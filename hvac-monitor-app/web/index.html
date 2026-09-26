@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HVAC Monitor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#E9EDF0;--panel:#FFFFFF;--ink:#16202A;--ink2:#5A6873;--line:#D5DCE1;--low:#1F5FAE;--low-bg:#E6EEF8;--high:#C0312A;--high-bg:#F9E9E7;--air:#2E7D5B;--warn:#A86400;--alert:#C0312A;
+ --num:"Barlow Condensed","Arial Narrow",sans-serif;--sans:"Barlow",system-ui,sans-serif;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0E1317;--panel:#161D22;--ink:#DCE3E8;--ink2:#8D9AA4;--line:#27323A;--low:#6FA2E6;--low-bg:#15222F;--high:#EF6F66;--high-bg:#2A1917;--air:#6CC39B;--warn:#E3A33D;--alert:#EF6F66;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 var(--sans)}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px;padding:14px 24px;background:var(--panel);border-bottom:1px solid var(--line)}
+header h1{font:600 1.25rem var(--sans);margin:0 auto 0 0}
+.mode{font:600 1.05rem var(--num);padding:4px 12px;border-radius:4px;background:var(--line)}
+.mode.cooling{background:var(--low-bg);color:var(--low)}.mode.heating{background:var(--high-bg);color:var(--high)}
+.node{display:inline-flex;align-items:center;gap:6px;font-size:.92rem;color:var(--ink2)}
+.node i{width:9px;height:9px;border-radius:50%;background:var(--alert)}.node.on i{background:var(--air)}
+main{max-width:1320px;margin:0 auto;padding:20px 24px 60px;display:grid;gap:18px}
+.row{display:grid;gap:18px;grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:980px){.row{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px}
+.side{border-top:5px solid var(--line)}.side.low{border-top-color:var(--low)}.side.high{border-top-color:var(--high)}.side.air{border-top-color:var(--air)}
+.side h2{margin:0 0 10px;font:600 1rem var(--sans);display:flex;justify-content:space-between;color:var(--ink2)}
+.big{display:flex;align-items:baseline;gap:8px}
+.big b{font:600 3.6rem/1 var(--num);font-variant-numeric:tabular-nums}
+.low .big b{color:var(--low)}.high .big b{color:var(--high)}.air .big b{color:var(--air)}
+.big span{color:var(--ink2);font-weight:500}
+.kv{display:grid;grid-template-columns:1fr auto;gap:4px 12px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.kv dt{color:var(--ink2)}.kv dd{margin:0;font:600 1.25rem var(--num);font-variant-numeric:tabular-nums;text-align:right}
+.kv dd.key{font-size:1.6rem}
+.flags{display:flex;flex-direction:column;gap:6px}
+.flag{padding:8px 12px;border-left:4px solid var(--warn);background:var(--panel);border-radius:3px}
+.flag.alert{border-left-color:var(--alert);font-weight:600}
+.flag.ok{border-left-color:var(--air);color:var(--ink2)}
+.note{color:var(--ink2);font-size:.9rem;margin:6px 0 0}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.toolbar h2{font:600 1.1rem var(--sans);margin:0 auto 0 0}
+button,select,input{font:500 .95rem var(--sans);color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:6px 10px}
+button{cursor:pointer}button:hover{border-color:var(--ink2)}
+button[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+button.primary{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+:focus-visible{outline:2px solid var(--low);outline-offset:2px}
+.chart{position:relative;height:320px}
+.grid2{display:grid;gap:18px;grid-template-columns:1fr 1fr}
+@media (max-width:980px){.grid2{grid-template-columns:1fr}}
+form.cal{display:grid;grid-template-columns:auto 1fr;gap:10px 12px;align-items:center}
+form.cal label{color:var(--ink2)}
+.log{font:13px/1.5 ui-monospace,Consolas,monospace;max-height:180px;overflow:auto;background:var(--bg);border-radius:4px;padding:8px;margin-top:12px;white-space:pre-wrap}
+.help{color:var(--ink2);font-size:.9rem;margin:10px 0 0}
+table.nodes{width:100%;border-collapse:collapse;font-size:.93rem}
+table.nodes th,table.nodes td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line)}
+table.nodes th{color:var(--ink2);font-weight:500}
+.banner{background:var(--high-bg);color:var(--high);padding:10px 24px;font-weight:500}
+</style>
+</head>
+<body>
+<header>
+  <h1>HVAC Monitor</h1>
+  <span id="mode" class="mode">Waiting for data</span>
+  <span class="node" id="n-outdoor"><i></i>Outdoor</span>
+  <span class="node" id="n-indoor"><i></i>Indoor</span>
+</header>
+<div id="banner" class="banner" hidden></div>
+<main>
+  <div class="row">
+    <section class="panel side low" aria-label="Low side">
+      <h2><span>Low side</span><span id="low-src">vapor port</span></h2>
+      <div class="big"><b id="p_low">--</b><span>psig</span></div>
+      <dl class="kv">
+        <dt>Saturation (dew)</dt><dd id="sat_low">--</dd>
+        <dt>Suction line temp</dt><dd id="t_low">--</dd>
+        <dt>Superheat</dt><dd id="sh" class="key">--</dd>
+      </dl>
+    </section>
+    <section class="panel side high" aria-label="High side">
+      <h2><span>High side</span><span id="high-src">liquid line</span></h2>
+      <div class="big"><b id="p_high">--</b><span>psig</span></div>
+      <dl class="kv">
+        <dt>Saturation (bubble)</dt><dd id="sat_high">--</dd>
+        <dt>Liquid line temp</dt><dd id="t_liq">--</dd>
+        <dt>Subcooling</dt><dd id="sc" class="key">--</dd>
+      </dl>
+    </section>
+    <section class="panel side air" aria-label="Air side">
+      <h2><span>Air side</span><span>ΔT</span></h2>
+      <div class="big"><b id="dt">--</b><span>°F</span></div>
+      <dl class="kv">
+        <dt>Return / supply</dt><dd id="retsup">--</dd>
+        <dt>Outdoor air</dt><dd id="oat">--</dd>
+        <dt>Condensing over ambient</dt><dd id="ctoa">--</dd>
+        <dt>Liquid approach</dt><dd id="approach">--</dd>
+      </dl>
+    </section>
+  </div>
+
+  <section class="flags" id="flags" aria-live="polite"></section>
+
+  <section class="panel">
+    <div class="toolbar">
+      <h2>History</h2>
+      <div role="group" aria-label="Chart">
+        <button data-chart="press" aria-pressed="true">Pressures</button>
+        <button data-chart="temps" aria-pressed="false">Line temps</button>
+        <button data-chart="shsc" aria-pressed="false">Superheat / subcooling</button>
+        <button data-chart="air" aria-pressed="false">Air</button>
+      </div>
+      <div role="group" aria-label="Range">
+        <button data-min="15" aria-pressed="false">15 min</button>
+        <button data-min="60" aria-pressed="true">1 h</button>
+        <button data-min="360" aria-pressed="false">6 h</button>
+        <button data-min="1440" aria-pressed="false">24 h</button>
+      </div>
+      <a id="export" href="/api/export.csv?minutes=60"><button type="button">Export CSV</button></a>
+    </div>
+    <div class="chart"><canvas id="chart" aria-label="History chart"></canvas></div>
+  </section>
+
+  <div class="grid2">
+    <section class="panel">
+      <div class="toolbar"><h2>System setup</h2></div>
+      <form class="cal" id="setup">
+        <label for="ref">Refrigerant</label><select id="ref"></select>
+        <label for="hp">Equipment</label>
+        <select id="hp"><option value="true">Heat pump</option><option value="false">Air conditioner</option></select>
+        <label for="ob">Reversing valve</label>
+        <select id="ob"><option value="cool">O: energized in cooling</option><option value="heat">B: energized in heating</option></select>
+        <label for="atm">Atmospheric pressure</label><input id="atm" type="number" step="0.05" min="10" max="15">
+        <span></span><button class="primary" type="submit">Save setup</button>
+      </form>
+      <p class="help">Atmospheric pressure converts gauge readings to absolute for the saturation tables. Use 14.7 at sea level, about 14.0 around 1,200 ft.</p>
+    </section>
+
+    <section class="panel">
+      <div class="toolbar"><h2>Calibration</h2></div>
+      <form class="cal" id="cal">
+        <label for="c-ch">Channel</label>
+        <select id="c-ch">
+          <optgroup label="Outdoor node">
+            <option value="outdoor|p_liq">Liquid line pressure</option>
+            <option value="outdoor|p_vap">Vapor port pressure</option>
+            <option value="outdoor|p_tsuc">True suction pressure</option>
+            <option value="outdoor|t_suc">Suction line temp</option>
+            <option value="outdoor|t_liq">Liquid line temp</option>
+            <option value="outdoor|t_tsuc">True suction temp</option>
+            <option value="outdoor|t_dis">Discharge temp</option>
+          </optgroup>
+          <optgroup label="Indoor node">
+            <option value="indoor|t_sup">Supply air temp</option>
+            <option value="indoor|t_ret">Return air temp</option>
+          </optgroup>
+        </select>
+        <label for="c-act">Action</label>
+        <select id="c-act">
+          <option value="cal_zero">Zero (open to atmosphere)</option>
+          <option value="cal_span">Span to reference pressure</option>
+          <option value="cal_ref">Match reference temperature</option>
+          <option value="cal_reset">Reset calibration</option>
+          <option value="fit_on">Mark sensor installed</option>
+          <option value="fit_off">Mark sensor not installed</option>
+        </select>
+        <label for="c-refv">Reference value</label><input id="c-refv" type="number" step="0.1" placeholder="psig or °F">
+        <span></span><button class="primary" type="submit">Send to node</button>
+      </form>
+      <div class="log" id="log" aria-live="polite">Replies from the nodes appear here.</div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <div class="toolbar"><h2>Nodes</h2><button id="swap" type="button">Swap supply/return probes</button></div>
+    <table class="nodes"><thead><tr><th>Node</th><th>Firmware</th><th>IP</th><th>WiFi</th><th>Uptime</th><th>Last reading</th><th>Issues</th></tr></thead>
+    <tbody id="nodes"></tbody></table>
+  </section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const f1 = v => (v === null || v === undefined) ? '--' : Number(v).toFixed(1);
+const deg = v => (v === null || v === undefined) ? '--' : f1(v) + '°';
+const MODES = {cooling:'Cooling', heating:'Heating', heat_aux:'Heat (W)', fan:'Fan only', idle:'Idle'};
+let state = null, chartKind = 'press', minutes = 60, chart = null;
+
+function render(s) {
+  state = s;
+  const d = s.derived || {};
+  const m = $('mode');
+  m.className = 'mode ' + (d.mode || '');
+  m.textContent = d.mode ? MODES[d.mode] + (d.run_min ? `, running ${Math.round(d.run_min)} min` : '') : 'Waiting for data';
+  for (const n of ['outdoor','indoor']) $('n-'+n).classList.toggle('on', !!s.nodes[n].online);
+
+  const heating = d.mode === 'heating';
+  $('low-src').textContent = heating ? 'true suction' : 'vapor port';
+  $('high-src').textContent = heating ? 'vapor line (discharge)' : 'liquid line';
+  $('p_low').textContent = f1(d.p_low);
+  $('p_high').textContent = f1(d.p_high);
+  $('sat_low').textContent = deg(d.sat_low);
+  $('sat_high').textContent = deg(d.sat_high);
+  $('t_low').textContent = deg(heating ? d.t_tsuc : d.t_suc);
+  $('t_liq').textContent = deg(d.t_liq);
+  $('sh').textContent = deg(d.sh);
+  $('sc').textContent = deg(d.sc);
+  $('dt').textContent = f1(d.dt);
+  $('retsup').textContent = `${deg(d.t_ret)} / ${deg(d.t_sup)}`;
+  $('oat').textContent = d.oat == null ? '--' : `${deg(d.oat)}  ${f1(d.orh)}% RH`;
+  $('ctoa').textContent = deg(d.ctoa);
+  $('approach').textContent = deg(d.approach);
+
+  const flags = $('flags'); flags.innerHTML = '';
+  const list = (d.flags || []).concat((d.notes || []).map(t => ({level:'info', text:t})));
+  if (!list.length && d.mode) list.push({level:'ok', text:'No issues detected'});
+  for (const f of list) { const el = document.createElement('div'); el.className = 'flag ' + f.level; el.textContent = f.text; flags.appendChild(el); }
+
+  const b = $('banner');
+  const msgs = [];
+  if (s.demo) msgs.push('Demo mode: showing simulated data.');
+  if (s.pt_error) msgs.push(s.pt_error);
+  b.hidden = !msgs.length; b.textContent = msgs.join(' ');
+
+  const ref = $('ref');
+  if (!ref.options.length) {
+    for (const r of s.refrigerants) ref.add(new Option(r, r));
+    ref.value = s.config.refrigerant; $('hp').value = String(s.config.heat_pump);
+    $('ob').value = s.config.ob_energized; $('atm').value = s.config.atm_psia;
+  }
+
+  const tb = $('nodes'); tb.innerHTML = '';
+  for (const n of ['outdoor','indoor']) {
+    const nd = s.nodes[n], st = nd.status || {}, dt = nd.data || {};
+    const up = dt.uptime ? (dt.uptime > 3600 ? (dt.uptime/3600).toFixed(1)+' h' : Math.round(dt.uptime/60)+' min') : '--';
+    const tr = document.createElement('tr');
+    [n[0].toUpperCase()+n.slice(1), dt.fw || st.fw || '--', st.ip || '--', dt.rssi ? dt.rssi+' dBm' : '--', up,
+     nd.age == null ? 'never' : nd.age < 60 ? Math.round(nd.age)+' s ago' : Math.round(nd.age/60)+' min ago',
+     (dt.err && dt.err.length) ? dt.err.join(', ') : (nd.online ? 'none' : 'offline')]
+      .forEach(v => { const td = document.createElement('td'); td.textContent = v; tr.appendChild(td); });
+    tb.appendChild(tr);
+  }
+}
+
+function logLine(text) {
+  const l = $('log');
+  if (l.dataset.fresh !== '1') { l.textContent = ''; l.dataset.fresh = '1'; }
+  l.textContent = `${new Date().toLocaleTimeString()}  ${text}\n` + l.textContent;
+}
+
+// ---------- Charts ----------
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const SERIES = {
+  press: [['p_low','Low side psig','--low'], ['p_high','High side psig','--high']],
+  temps: [['t_suc','Suction line °F','--low'], ['sat_low','Low sat °F','--low',true], ['t_liq','Liquid line °F','--high'], ['sat_high','High sat °F','--high',true], ['oat','Outdoor air °F','--air']],
+  shsc:  [['sh','Superheat °F','--low'], ['sc','Subcooling °F','--high']],
+  air:   [['t_ret','Return °F','--high'], ['t_sup','Supply °F','--low'], ['dt','ΔT °F','--air']],
+};
+async function loadHistory() {
+  const rows = await (await fetch(`/api/history?minutes=${minutes}`)).json();
+  const datasets = SERIES[chartKind].map(([k, label, color, dashed]) => ({
+    label, data: rows.filter(r => r[k] != null).map(r => ({x: r.ts * 1000, y: r[k]})),
+    borderColor: css(color), backgroundColor: css(color), borderWidth: 2, pointRadius: 0, tension: .2,
+    borderDash: dashed ? [5, 4] : [],
+  }));
+  const grid = css('--line'), ink = css('--ink2');
+  if (!chart) {
+    chart = new Chart($('chart'), {type: 'line', data: {datasets},
+      options: {animation: false, maintainAspectRatio: false, interaction: {mode: 'nearest', axis: 'x', intersect: false},
+        scales: {x: {type: 'linear', grid: {color: grid}, ticks: {color: ink, maxTicksLimit: 8,
+                   callback: v => new Date(v).toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'})}},
+                 y: {grid: {color: grid}, ticks: {color: ink}}},
+        plugins: {legend: {labels: {color: ink, boxWidth: 14}},
+                  tooltip: {callbacks: {title: i => new Date(i[0].parsed.x).toLocaleTimeString()}}}}});
+  } else { chart.data.datasets = datasets; chart.update(); }
+}
+
+document.querySelectorAll('[data-chart]').forEach(b => b.onclick = () => {
+  chartKind = b.dataset.chart;
+  document.querySelectorAll('[data-chart]').forEach(x => x.setAttribute('aria-pressed', x === b));
+  loadHistory();
+});
+document.querySelectorAll('[data-min]').forEach(b => b.onclick = () => {
+  minutes = +b.dataset.min; $('export').href = `/api/export.csv?minutes=${minutes}`;
+  document.querySelectorAll('[data-min]').forEach(x => x.setAttribute('aria-pressed', x === b));
+  loadHistory();
+});
+
+// ---------- Forms ----------
+async function post(url, body) {
+  const r = await fetch(url, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
+  return r.json();
+}
+$('setup').onsubmit = async e => {
+  e.preventDefault();
+  await post('/api/config', {refrigerant: $('ref').value, heat_pump: $('hp').value === 'true',
+                             ob_energized: $('ob').value, atm_psia: parseFloat($('atm').value)});
+  logLine('Setup saved');
+};
+$('cal').onsubmit = async e => {
+  e.preventDefault();
+  const [node, ch] = $('c-ch').value.split('|');
+  const act = $('c-act').value, ref = parseFloat($('c-refv').value);
+  let cmd;
+  if (act === 'fit_on' || act === 'fit_off') cmd = {cmd: 'fitted', ch, on: act === 'fit_on'};
+  else cmd = {cmd: act, ch};
+  if (act === 'cal_span' || act === 'cal_ref') {
+    if (isNaN(ref)) { logLine('Enter the reference value first'); return; }
+    cmd.ref = ref;
+  }
+  const r = await post('/api/cmd', {node, cmd});
+  logLine(`→ ${node}: ${JSON.stringify(cmd)}  (${r.message || r.error})`);
+};
+$('swap').onclick = async () => {
+  const r = await post('/api/cmd', {node: 'indoor', cmd: {cmd: 'ds_swap'}});
+  logLine(`→ indoor: ds_swap  (${r.message || r.error})`);
+};
+
+// ---------- Live updates ----------
+fetch('/api/state').then(r => r.json()).then(render);
+loadHistory();
+setInterval(loadHistory, 20000);
+const es = new EventSource('/api/stream');
+es.onmessage = e => {
+  const m = JSON.parse(e.data);
+  if (m.type === 'state') render(m.state);
+  if (m.type === 'reply') logLine(`← ${m.entry.node}: ${JSON.stringify(m.entry.reply)}`);
+};
+</script>
+</body>
+</html>
