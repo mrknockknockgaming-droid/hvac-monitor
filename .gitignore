@@ -1,0 +1,14 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# PlatformIO build output
+.pio/
+
+# Local data and secrets
+hvac-monitor-app/hvac_data.db
+hvac-firmware/include/config.h
+
+# Old downloads and prototypes
+_archive/
