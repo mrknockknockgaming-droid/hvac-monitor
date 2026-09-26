@@ -1,0 +1,14 @@
+{
+  "mqtt_host": "localhost",
+  "mqtt_port": 1883,
+  "mqtt_user": "",
+  "mqtt_pass": "",
+  "site": "home",
+  "web_port": 8080,
+  "refrigerant": "R-410A",
+  "heat_pump": true,
+  "ob_energized": "cool",
+  "atm_psia": 14,
+  "stale_seconds": 30,
+  "keep_days": 90
+}

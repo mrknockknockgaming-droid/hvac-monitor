@@ -1,0 +1,97 @@
+# HVAC Monitor project — handoff brief
+
+Continued from a claude.ai chat. Read this first; it is the project's context.
+
+## What this is
+A residential HVAC monitoring system, prototype now, planned product to sell to HVAC contractors
+(hardware + subscription; homeowners get a read-only view). ESP32 nodes measure the refrigerant
+and air sides of a split system and report over MQTT to a dashboard that calculates saturation
+temperatures, superheat, subcooling and delta-T.
+
+## Folder layout (this folder: C:\Users\mrkno\hvac-monitor)
+- `CLAUDE.md` — this file. Open Claude Code / VS Code sessions in this folder.
+- `start-hvac.bat` — one-click: stops the Windows Mosquitto service, disables QuickEdit,
+  starts the broker (`mosquitto -c hvac.conf -v`) and the dashboard
+  (`hvac-monitor-app\start.bat`). Needs admin. Skips the broker or dashboard if one is
+  already running (port 8080 check), so double-clicking twice no longer makes duplicates.
+  Desktop shortcut: "HVAC Monitor".
+- `hvac-firmware/` — PlatformIO project, one codebase, builds `-e outdoor`, `-e indoor`
+  (plus `outdoor_ota`, `indoor_ota`).
+  - `include/config.h` holds WiFi/MQTT settings (not in git; copy of `config.example.h`)
+  - Defining `DEVICE_ID` in config.h switches to cloud mode (`devices/<serial>/...` topics)
+  - PlatformIO CLI: `C:\Users\mrkno\.platformio\penv\Scripts\pio.exe` (not on PATH).
+    No `upload_port` is set, so pass `--upload-port COMx` when more than one board is plugged in.
+- `hvac-monitor-app/` — local PC dashboard: Python stdlib HTTP server + paho-mqtt + CoolProp,
+  SQLite (`hvac_data.db`), http://localhost:8080. `start.bat` (normal), `start-demo.bat`
+  (simulated data). `.venv` was moved here from the Desktop and its paths rewritten; if it
+  ever breaks, delete `.venv` and run `start.bat` to rebuild it.
+- `_archive/` — original download zips, old copies of start-hvac.bat, and 2025 prototypes
+  (PlatformIO `HVAC_Monitor` sketch, MicroPython `temp code.py`, empty `hvacmonitoring.cpp`).
+  Not used; safe to delete once nothing is missed.
+- `hvac-cloud/` — cloud MVP (Docker Compose: TimescaleDB, Mosquitto on host port 1884,
+  FastAPI api on :8000, ingest worker). **Not on this PC**; still only in the claude.ai chat.
+
+## Hardware
+- Boards: 3x ESP-WROOM-32 30-pin dev boards (PCB antenna, no u.FL). Outdoor on COM4, indoor on COM5 (both CP210x; tell them apart by port).
+- Power: 24 VAC from the equipment -> fuse -> SMBJ48CA TVS -> 1N4007 half-wave -> 470 uF
+  -> LM2596HV buck set to 5.00 V -> ESP32 VIN. C (24 VAC common) = system GND.
+- Outdoor node: 2x ADS1115 (0x48 pressures + 5 V rail monitor, 0x49 thermistors),
+  XDB307-3 transducers 0.5-4.5 V (p_liq, p_vap at 0-50 bar; p_tsuc 0-35 bar not fitted yet)
+  through 10k/20k dividers, DROK 10k NTC B3950 thermistors (t_suc, t_liq) with 10k refs,
+  FS400-SHT30 outdoor air (0x44), H11AA1 optos on Y (GPIO34) and O/B (GPIO35).
+- Indoor node: 2x DS18B20 on GPIO4 (supply/return, 4.7k pull-up), H11AA1 optos on
+  Y (34), W (35), G (36/VP), O/B (39/VN).
+- I2C on GPIO21 (SDA) / 22 (SCL); status LED GPIO2.
+- Schematics rev A: https://claude.ai/artifact/VUq261XjNKgZRz52N9HCxV (not reproduced here)
+
+## Network
+- User's PC: 192.168.1.191 (runs Mosquitto on 1883 + the dashboard). Outdoor ESP32: 192.168.1.247. Indoor ESP32: 192.168.1.121.
+- WiFi must be 2.4 GHz.
+
+## Current status (Phase 1, bench bring-up)
+- Firmware builds; outdoor board flashed with fw 0.1.0, which is the current version
+  (no v0.2.0 exists on this PC) and
+  publishing `hvac/home/outdoor/telemetry` every 5 s with no sensors attached yet.
+- Waiting on parts delivery before wiring sensors.
+- Indoor board flashed with fw 0.1.0 (2026-09-24), publishing `hvac/home/indoor/telemetry` every 5 s;
+  `ds18b20_missing` and all mode inputs `true` until probes, pull-ups and optos are wired.
+- Dashboard shows both nodes online.
+
+## Problems already solved (don't re-debug)
+- `connect failed, state -4` = broker frozen by Windows console QuickEdit. Fixed by
+  disabling QuickEdit (start-hvac.bat does it).
+- Windows installs a Mosquitto *service* bound to localhost; the dashboard connected to it
+  while the ESP32 used the manual broker. Fix: `net stop mosquitto` and
+  `sc config mosquitto start= demand` (start-hvac.bat does it). Verify the dashboard's
+  `hvac-server-XXXX` client appears in the broker log.
+- `COM4 Access is denied` = another serial monitor already has the port open.
+
+## Known, expected behavior
+- `nvs_get_blob ... NOT_FOUND` at boot = no calibration saved yet (harmless; could quiet it
+  by checking `prefs.isKey()` before reads).
+- `"Y":true,"OB":true` with nothing wired = GPIO34-39 floating until the 10k pull-ups and
+  optos are installed.
+
+## Site and conventions
+- User is in Mesa, Arizona (~1,240 ft): set atmospheric pressure ~14.0 psia in the dashboard;
+  cloud stack derives it from site elevation. Enclosures must handle Arizona sun/heat.
+- Units: psig and deg F. Superheat uses dew point, subcooling uses bubble point.
+- O/B default: O energized in cooling. The user's system refrigerant is not yet confirmed.
+- Never connect USB and 24 VAC to a board at the same time.
+- Brazing access fittings / connecting to refrigerant ports requires EPA 608 certification.
+
+## Roadmap (checklist doc: https://claude.ai/code/artifact/e6a28e8e-9f92-404c-92b2-67be47d77f7e)
+1. Bench bring-up: build the 3 power supplies, flash both boards, confirm dashboard shows them
+2. Outdoor node: wire sensors, zero/span transducers on nitrogen vs Fieldpiece, ice-bath thermistors
+3. Indoor node: DS18B20s + mode inputs
+4. Install on own system, run weeks with the PC app
+5. Validate diagnostics vs gauges; metering-device targets
+6. Complete V1 sensors: true suction, SDP810 static x3 (TCA9548A), SHT45 humidity
+7. Run the cloud stack locally, switch nodes to cloud mode
+8. Go live: server + domain, HTTPS, MQTT TLS, managed auth, email, backups
+9. Productize: custom PCB, ESP32-C5?, secure boot, BLE provisioning + QR claim codes, OTA
+10. Pilot with a contractor; 11. Display node + electrical module; 12. Launch (FCC/UL, billing)
+Parallel: contractor interviews; patent attorney before public demos.
+
+## Immediate next steps
+- When parts arrive: build and verify the power supplies (5.00 V under load) before connecting boards.
