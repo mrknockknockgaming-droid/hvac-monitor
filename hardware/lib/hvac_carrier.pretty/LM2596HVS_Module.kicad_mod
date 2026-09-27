@@ -1,0 +1,163 @@
+(footprint "LM2596HVS_Module"
+	(version 20241229)
+	(generator "hvac_gen")
+	(layer "F.Cu")
+	(descr "LM2596HVS buck module 43 x 20.66 mm on four single female sockets, pads 39.5 x 17.75 mm apart")
+	(tags "module socket carrier")
+	(property "Reference" "REF**"
+		(at 0 -2 0)
+		(layer "F.SilkS")
+		(uuid "2fc1abdd-a55e-4738-8318-358aecccf2e7")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "LM2596HVS_Module"
+		(at 0 2 0)
+		(layer "F.Fab")
+		(uuid "af773bd2-a29d-41b8-92b6-beb03d3c4a3a")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "48be05b4-2534-40a6-b675-596567f73b46")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" "LM2596HVS buck module 43 x 20.66 mm on four single female sockets, pads 39.5 x 17.75 mm apart"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "20a47127-c7b2-4ca2-847e-a12dfdb5d1ee")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(pad "1" thru_hole rect
+		(at -19.75 -8.875)
+		(size 1.7 1.7)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "194a20bb-524b-4428-b3c1-afe4c2c53a9f")
+	)
+	(pad "2" thru_hole oval
+		(at -19.75 8.875)
+		(size 1.7 1.7)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "5963f6c6-96fe-463b-a629-eab763f843e9")
+	)
+	(pad "3" thru_hole oval
+		(at 19.75 -8.875)
+		(size 1.7 1.7)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "260fc129-0759-42e6-8751-8c1e86e7e631")
+	)
+	(pad "4" thru_hole oval
+		(at 19.75 8.875)
+		(size 1.7 1.7)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "5b415c01-00c3-4793-8ebc-c04991ba2f12")
+	)
+	(fp_rect
+		(start -21.5 -10.33)
+		(end 21.5 10.33)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.SilkS")
+		(uuid "f675bc94-56bb-47ad-8312-2083f6dc91bb")
+	)
+	(fp_rect
+		(start -21.5 -10.33)
+		(end 21.5 10.33)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "c99de40a-1814-4c14-b315-0efb9ef4120d")
+	)
+	(fp_text user "IN+"
+		(at -16.35 -8.875 0)
+		(layer "F.SilkS")
+		(uuid "cb59d407-35c2-417f-a753-0f7e7254c7f8")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(fp_text user "IN−"
+		(at -16.35 8.875 0)
+		(layer "F.SilkS")
+		(uuid "6020afd0-2590-40fd-a23c-c70c2ae4f8de")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(fp_text user "OUT+"
+		(at 16.15 -8.875 0)
+		(layer "F.SilkS")
+		(uuid "296bc868-9a39-46b2-b4a7-cce3e9333dca")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(fp_text user "OUT−"
+		(at 16.15 8.875 0)
+		(layer "F.SilkS")
+		(uuid "d70a6f50-77f5-4283-9230-a6b42b14b52c")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(fp_rect
+		(start -21.6 -10.43)
+		(end 21.6 10.43)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "764ec1cb-896c-4607-aa55-7b135a8987ed")
+	)
+)

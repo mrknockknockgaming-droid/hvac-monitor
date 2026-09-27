@@ -1,0 +1,132 @@
+
+=== outdoor-carrier: 46 components, 25 nets, 0 mismatches
+
+J1  24 VAC
+   1 R     VAC_IN     F1.1
+   2 C     GND        32 pins
+
+U2  LM2596HV
+   1 IN+   VRAW       C1.1, C2.1, D2.1
+   2 IN-   GND        31 pins
+   3 OUT+  +5V        5 pins
+   4 OUT-  GND        31 pins
+
+U1  ESP32 DevKit
+   4 D34   MODE_Y     R12.2, U5.5
+   5 D35   MODE_OB    R14.2, U6.5
+  14 GND   GND        31 pins
+  15 VIN   +5V        5 pins
+  17 D22   SCL        J8.4, U3.3, U4.3
+  20 D21   SDA        J8.3, U3.4, U4.4
+  29 GND   GND        31 pins
+  30 3V3   +3V3       9 pins
+  not connected: 1:EN, 2:VP, 3:VN, 6:D32, 7:D33, 8:D25, 9:D26, 10:D27, 11:D14, 12:D12, 13:D13, 16:D23, 18:TX0, 19:RX0, 21:D19, 22:D18, 23:D5, 24:TX2, 25:RX2, 26:D4, 27:D2, 28:D15
+
+U3  ADS1115 0x48
+   1 VDD   +3V3       9 pins
+   2 GND   GND        31 pins
+   3 SCL   SCL        J8.4, U1.17, U4.3
+   4 SDA   SDA        J8.3, U1.20, U4.4
+   5 ADDR  GND        31 pins
+   7 A0    P_LIQ      C3.1, R1.2, R2.1
+   8 A1    P_VAP      C4.1, R3.2, R4.1
+   9 A2    P_TSUC     C5.1, R5.2, R6.1
+  10 A3    V5_MON     C6.1, R7.2, R8.1
+  not connected: 6:ALRT
+
+U4  ADS1115 0x49
+   1 VDD   +3V3       8 pins
+   2 GND   GND        32 pins
+   3 SCL   SCL        J8.4, U1.17, U3.3
+   4 SDA   SDA        J8.3, U1.20, U3.4
+   5 ADDR  +3V3       8 pins
+   7 A0    T_SUC      C7.1, J6.1, R9.2
+   8 A1    T_LIQ      C8.1, J7.1, R10.2
+   9 A2    T_TSUC     C9.1, J9.1, R15.2
+  10 A3    T_DIS      
+  not connected: 6:ALRT
+
+J8  SHT30 FS400
+   1 3V3   +3V3       9 pins
+   2 GND   GND        32 pins
+   3 SDA   SDA        U1.20, U3.4, U4.4
+   4 SCL   SCL        U1.17, U3.3, U4.3
+
+J3  XDB307 liquid
+   1 +5    +5V        5 pins
+   2 SIG   P_LIQ_IN   R1.1
+   3 GND   GND        32 pins
+
+J4  XDB307 vapor
+   1 +5    +5V        5 pins
+   2 SIG   P_VAP_IN   R3.1
+   3 GND   GND        32 pins
+
+J5  XDB307 t.suction
+   1 +5    +5V        5 pins
+   2 SIG   P_TSUC_IN  R5.1
+   3 GND   GND        32 pins
+
+J6  TH1 suction
+   1 TH    T_SUC      C7.1, R9.2, U4.7
+   2 TH    GND        32 pins
+
+J7  TH2 liquid
+   1 TH    T_LIQ      C8.1, R10.2, U4.8
+   2 TH    GND        32 pins
+
+J9  TH3 t.suction
+   1 TH    T_TSUC     C9.1, R15.2, U4.9
+   2 TH    GND        32 pins
+
+J2  Mode in 24 VAC
+   1 Y     Y_24V      R11.1
+   2 O/B   OB_24V     R13.1
+
+=== indoor-carrier: 29 components, 21 nets, 0 mismatches
+
+J1  24 VAC
+   1 R     VAC_IN     F1.1
+   2 C     GND        18 pins
+
+U2  LM2596HV
+   1 IN+   VRAW       C1.1, C2.1, D2.1
+   2 IN-   GND        17 pins
+   3 OUT+  +5V        1 pins
+   4 OUT-  GND        17 pins
+
+U1  ESP32 DevKit
+   2 VP    MODE_G     R7.2, U5.5
+   3 VN    MODE_OB    R9.2, U6.5
+   4 D34   MODE_Y     R3.2, U3.5
+   5 D35   MODE_W     R5.2, U4.5
+  14 GND   GND        17 pins
+  15 VIN   +5V        1 pins
+  17 D22   SCL        J5.4
+  20 D21   SDA        J5.3
+  26 D4    ONEWIRE    J3.2, J4.2, R1.2
+  29 GND   GND        17 pins
+  30 3V3   +3V3       8 pins
+  not connected: 1:EN, 6:D32, 7:D33, 8:D25, 9:D26, 10:D27, 11:D14, 12:D12, 13:D13, 16:D23, 18:TX0, 19:RX0, 21:D19, 22:D18, 23:D5, 24:TX2, 25:RX2, 27:D2, 28:D15
+
+J3  DS18B20 supply air
+   1 3V3   +3V3       8 pins
+   2 DQ    ONEWIRE    J4.2, R1.2, U1.26
+   3 GND   GND        18 pins
+
+J4  DS18B20 return air
+   1 3V3   +3V3       8 pins
+   2 DQ    ONEWIRE    J3.2, R1.2, U1.26
+   3 GND   GND        18 pins
+
+J5  I2C expansion (DNP)
+   1 3V3   +3V3       8 pins
+   2 GND   GND        18 pins
+   3 SDA   SDA        U1.20
+   4 SCL   SCL        U1.17
+
+J2  Mode in 24 VAC
+   1 Y     Y_24V      R2.1
+   2 W     W_24V      R4.1
+   3 G     G_24V      R6.1
+   4 O/B   OB_24V     R8.1

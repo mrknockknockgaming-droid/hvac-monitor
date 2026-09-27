@@ -1,0 +1,7 @@
+(version 1)
+(rule "Analog away from 24 VAC"
+  (condition "A.hasNetclass('Analog') && (B.hasNetclass('Power24') || B.hasNetclass('Opto24'))")
+  (constraint clearance (min 3.0mm)))
+(rule "24 VAC away from analog"
+  (condition "B.hasNetclass('Analog') && (A.hasNetclass('Power24') || A.hasNetclass('Opto24'))")
+  (constraint clearance (min 3.0mm)))

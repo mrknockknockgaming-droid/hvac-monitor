@@ -1,0 +1,922 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fullscope — Monitor (mockup)</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>:root{--bg:#14181c;--surface:#1a1f24;--surface-2:#20262c;--surface-3:#29313a;--inset:#111417;--line:#2c343c;--line-strong:#626d78;--ink:#e4e8eb;--ink-muted:#9ea8b1;--ink-faint:#848f99;--focus:#7fb2e5;--ok:#5cb87a;--caution:#e2a33b;--fault:#f06a60;--advisory:#73aee2;--sensor:#b69ad8;--offline:#848f99;--ok-soft:#1b2a21;--caution-soft:#2c2416;--fault-soft:#331e1c;--advisory-soft:#18242f;--sensor-soft:#241f2e;--side-low:#8fb6d6;--side-high:#d6a583;--series-supply:#62c3b5;--series-return:#d6bf6e;--series-outdoor:#ad9fd8;--series-ink:var(--ink);--font-sans:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;--font-mono:"IBM Plex Mono", Consolas, ui-monospace, monospace;color-scheme:dark}
+:root[data-theme=light]{--bg:#e9ecef;--surface:#ffffff;--surface-2:#f4f6f8;--surface-3:#e3e8ec;--inset:#fbfcfd;--line:#d6dce1;--line-strong:#838e98;--ink:#161d23;--ink-muted:#56626c;--ink-faint:#6a7680;--focus:#1f64b0;--ok:#237a44;--caution:#9a5c00;--fault:#bf2f26;--advisory:#1f64b0;--sensor:#6b44a3;--offline:#6a7680;--ok-soft:#e3f2e8;--caution-soft:#fbf0dc;--fault-soft:#fbe5e3;--advisory-soft:#e3eefa;--sensor-soft:#efe8f8;--side-low:#2d5f8a;--side-high:#8a4f28;--series-supply:#177a6d;--series-return:#86700f;--series-outdoor:#5d4d9a;--series-ink:var(--ink);color-scheme:light}
+body{margin:0;background:var(--bg)}
+/* Fullscope — instrument UI stylesheet. Every colour is a token (tokens.css). */
+.fs, .fs *{box-sizing:border-box}
+.fs [hidden]{display:none!important}
+.fs{background:var(--bg);color:var(--ink);font:400 13px/18px var(--font-sans);font-feature-settings:"tnum" 1;-webkit-font-smoothing:antialiased;min-width:0}
+.fs button,.fs input,.fs select{font:inherit;color:inherit}
+.fs :focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+.fs .mono{font-family:var(--font-mono);font-size:11px;letter-spacing:.02em}
+.fs .muted{color:var(--ink-muted)}.fs .faint{color:var(--ink-faint)}
+
+/* ---------- numbers ---------- */
+.n{font-variant-numeric:tabular-nums;font-weight:500;white-space:nowrap}
+.n small{font-size:.78em;font-weight:400;color:var(--ink-muted);margin-left:2px}
+.n.na{color:var(--ink-faint);font-weight:400}
+
+/* ---------- state glyph + word ---------- */
+.st{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;white-space:nowrap}
+.st::before{content:"";width:7px;height:7px;flex:none;background:currentColor}
+.st.ok{color:var(--ok)}.st.ok::before{border-radius:50%}
+.st.caution{color:var(--caution)}.st.caution::before{clip-path:polygon(50% 0,100% 100%,0 100%);width:9px;height:8px}
+.st.fault{color:var(--fault)}
+.st.advisory{color:var(--advisory)}.st.advisory::before{transform:rotate(45deg);width:6px;height:6px}
+.st.sensor{color:var(--sensor)}.st.sensor::before{clip-path:polygon(20% 0,50% 30%,80% 0,100% 20%,70% 50%,100% 80%,80% 100%,50% 70%,20% 100%,0 80%,30% 50%,0 20%)}
+.st.offline{color:var(--offline)}.st.offline::before{border-radius:50%;background:none;box-shadow:inset 0 0 0 1.5px currentColor}
+
+/* source tag: measured vs calculated */
+.src{font:500 10px/14px var(--font-mono);letter-spacing:.04em;color:var(--ink-faint);border:1px solid var(--line);border-radius:2px;padding:0 3px;text-transform:uppercase}
+.src.calc{border-style:dashed}
+
+/* ---------- controls ---------- */
+.btn{background:var(--surface-2);border:1px solid var(--line-strong);border-radius:2px;padding:3px 9px;font-size:12px;font-weight:500;cursor:pointer;line-height:18px}
+.btn:hover{background:var(--surface-3)}
+.seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:2px;overflow:hidden}
+.seg button{background:var(--surface-2);border:0;border-right:1px solid var(--line-strong);padding:3px 9px;font-size:12px;font-weight:500;cursor:pointer;color:var(--ink-muted);line-height:18px}
+.seg button:last-child{border-right:0}
+.seg button:hover{color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--surface-3);color:var(--ink);box-shadow:inset 0 -2px 0 var(--focus)}
+.field{display:inline-flex;align-items:stretch;border:1px solid var(--line-strong);border-radius:2px;background:var(--surface-2)}
+.field input,.field select{background:transparent;border:0;padding:4px 8px;font-size:13px;font-weight:500;min-width:0;font-variant-numeric:tabular-nums}
+.field input{text-align:right;width:84px}
+.field .u{padding:4px 8px;color:var(--ink-muted);border-left:1px solid var(--line);font-size:12px;display:flex;align-items:center}
+select.sel,.field select{appearance:none;-webkit-appearance:none;padding-right:22px;background-image:linear-gradient(45deg,transparent 50%,var(--ink-muted) 50%),linear-gradient(135deg,var(--ink-muted) 50%,transparent 50%);background-position:calc(100% - 11px) 55%,calc(100% - 7px) 55%;background-size:4px 4px;background-repeat:no-repeat}
+select.sel{background-color:var(--surface-2);border:1px solid var(--line-strong);border-radius:2px;padding:4px 22px 4px 8px;font-size:13px}
+
+/* ---------- top bar ---------- */
+.top{background:var(--surface-2);border-bottom:1px solid var(--line)}
+.top-row{display:flex;align-items:stretch;min-height:48px}
+.brand{display:flex;align-items:center;gap:8px;padding:0 16px;border-right:1px solid var(--line);font-weight:600;font-size:13px;letter-spacing:.01em}
+.brand i{width:12px;height:12px;border:2px solid var(--ink);display:block;position:relative}
+.brand i::after{content:"";position:absolute;inset:2px;background:var(--ink)}
+.ident{display:flex;flex-direction:column;justify-content:center;padding:6px 16px;border-right:1px solid var(--line);min-width:0}
+.ident b{font-size:15px;line-height:20px;font-weight:600;white-space:nowrap}
+.ident span{font-size:11px;line-height:14px;color:var(--ink-muted);white-space:nowrap}
+.top-fields{display:flex;flex:1;min-width:0;overflow-x:auto}
+.tf{display:flex;flex-direction:column;justify-content:center;padding:5px 14px;border-right:1px solid var(--line);white-space:nowrap}
+.tf>span:first-child{font-size:11px;line-height:14px;color:var(--ink-muted)}
+.tf>b,.tf>div{font-size:13px;line-height:18px;font-weight:500}
+.mode{display:inline-flex;align-items:center;gap:8px}
+.mode .word{font-weight:600}
+.calls{display:inline-flex;gap:2px}
+.calls i{font:500 10px/14px var(--font-mono);font-style:normal;padding:0 4px;border:1px solid var(--line-strong);color:var(--ink-faint);border-radius:2px}
+.calls i.on{color:var(--ink);border-color:var(--ink-muted);background:var(--surface-3)}
+.tf.alerts{margin-left:auto;border-left:1px solid var(--line);border-right:0}
+.alerts .row{display:flex;gap:10px}
+.nav{display:flex;align-items:stretch;border-top:1px solid var(--line);padding:0 8px;gap:0;min-height:34px}
+.nav a{display:flex;align-items:center;padding:0 12px;font-size:12.5px;font-weight:500;color:var(--ink-muted);text-decoration:none;cursor:pointer;border-bottom:2px solid transparent}
+.nav a:hover{color:var(--ink)}
+.nav a[aria-current="page"]{color:var(--ink);border-bottom-color:var(--focus)}
+.nav .spacer{flex:1}
+.nav .tools{display:flex;align-items:center;gap:8px}
+.live{font:500 10px/14px var(--font-mono);letter-spacing:.06em;color:var(--ok);display:inline-flex;align-items:center;gap:5px}
+.live::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+
+/* ---------- page ---------- */
+.page{padding:12px 16px 20px;display:grid;gap:12px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:3px;min-width:0;overflow-x:auto}
+.ph{display:flex;align-items:center;gap:10px;padding:7px 12px;border-bottom:1px solid var(--line);min-height:36px;flex-wrap:wrap}
+.ph h2{margin:0;font-size:13px;line-height:18px;font-weight:600}
+.ph .sub{font-size:11px;color:var(--ink-muted)}
+.ph .right{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sh3{font-size:12px;font-weight:600;color:var(--ink-muted);padding:10px 12px 4px;margin:0;display:flex;align-items:baseline;gap:8px}
+
+/* ---------- summary strip ---------- */
+.strip{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));background:var(--surface);border:1px solid var(--line);border-radius:3px}
+.cell{padding:8px 12px 9px;border-right:1px solid var(--line);position:relative;min-width:0}
+.cell:last-child{border-right:0}
+.cell .lbl{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:12px;font-weight:500;color:var(--ink-muted)}
+.cell .val{margin:3px 0 4px;font-size:26px;line-height:30px;font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}
+.cell .val small{font-size:13px;font-weight:400;color:var(--ink-muted);margin-left:3px}
+.cell .meta{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:11px;line-height:14px;color:var(--ink-muted);white-space:nowrap}
+.cell[data-state]::before{content:"";position:absolute;left:-1px;right:-1px;top:-1px;height:2px}
+.cell[data-state="caution"]{background:var(--caution-soft)}.cell[data-state="caution"]::before{background:var(--caution)}
+.cell[data-state="advisory"]::before{background:var(--advisory)}
+.cell[data-state="fault"]{background:var(--fault-soft)}.cell[data-state="fault"]::before{background:var(--fault)}
+
+/* ---------- layout grids ---------- */
+.grid-a{display:grid;grid-template-columns:minmax(0,1fr) 316px;gap:12px;align-items:stretch}
+.grid-a>[data-chart]{display:flex;flex-direction:column}
+.grid-a>[data-chart] .chart-wrap{flex:1}
+.grid-b{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1.1fr) minmax(0,.85fr);gap:12px;align-items:start}
+
+/* ---------- trend chart ---------- */
+.chart-wrap{display:grid;grid-template-columns:minmax(0,1fr) 232px}
+.plot{position:relative;background:var(--inset);border-right:1px solid var(--line);min-height:486px}
+.plot svg{display:block;width:100%;height:100%;position:absolute;inset:0;overflow:visible}
+.plot .tip{position:absolute;pointer-events:none;background:var(--surface-2);border:1px solid var(--line-strong);border-radius:2px;padding:6px 8px;font-size:11.5px;line-height:16px;min-width:180px;display:none;z-index:2}
+.plot .tip .t{font-weight:600;font-size:12px;margin-bottom:3px;display:flex;justify-content:space-between;gap:10px}
+.plot .tip .r{display:grid;grid-template-columns:10px 1fr auto;gap:6px;align-items:center}
+.plot .tip .r .v{font-variant-numeric:tabular-nums;font-weight:500;text-align:right}
+.plot .tip .g{color:var(--ink-faint);font-size:10.5px;margin-top:4px}
+.axis text{fill:var(--ink-faint);font:400 10.5px var(--font-sans);font-variant-numeric:tabular-nums}
+.axis .lane-t{fill:var(--ink-muted);font-weight:500;font-size:11px}
+.gridl{stroke:var(--line);stroke-width:1}
+.base{stroke:var(--line-strong);stroke-width:1}
+.cross{stroke:var(--ink-muted);stroke-width:1;stroke-dasharray:3 3}
+.limit{stroke:var(--caution);stroke-width:1;stroke-dasharray:5 4}
+.limit-t{fill:var(--caution);font:500 10.5px var(--font-sans)}
+.band{fill:var(--ink);opacity:.05}
+.runbar{fill:var(--surface-3)}.runbar.on{fill:var(--ink-muted);opacity:.55}
+.s{fill:none;stroke-width:1.5;stroke-linejoin:round}
+.s.dash{stroke-dasharray:5 3}
+.c-low{stroke:var(--side-low);color:var(--side-low)}.c-high{stroke:var(--side-high);color:var(--side-high)}
+.c-sup{stroke:var(--series-supply);color:var(--series-supply)}.c-ret{stroke:var(--series-return);color:var(--series-return)}
+.c-out{stroke:var(--series-outdoor);color:var(--series-outdoor)}.c-ink{stroke:var(--series-ink);color:var(--series-ink)}
+.dot{stroke:var(--inset);stroke-width:1.5}
+.dot.c-low{fill:var(--side-low)}.dot.c-high{fill:var(--side-high)}.dot.c-sup{fill:var(--series-supply)}.dot.c-ret{fill:var(--series-return)}.dot.c-out{fill:var(--series-outdoor)}.dot.c-ink{fill:var(--series-ink)}
+.sw{display:inline-block;width:12px;height:0;border-top:2px solid currentColor;vertical-align:middle}
+.sw.dash{border-top-style:dashed}
+.legend{display:flex;flex-direction:column;min-width:0;max-height:100%;overflow:auto}
+.legend .grp{font-size:11px;font-weight:600;color:var(--ink-muted);padding:8px 10px 3px}
+.legend .grp:first-child{padding-top:6px}
+.legend button{display:grid;grid-template-columns:14px 14px 1fr auto;gap:6px;align-items:center;width:100%;text-align:left;background:none;border:0;padding:3px 10px;cursor:pointer;font-size:12px;line-height:17px;color:var(--ink)}
+.legend button:hover{background:var(--surface-2)}
+.legend button .ck{width:11px;height:11px;border:1px solid var(--line-strong);border-radius:1px;position:relative}
+.legend button[aria-pressed="true"] .ck{background:var(--ink-muted);border-color:var(--ink-muted)}
+.legend button[aria-pressed="true"] .ck::after{content:"";position:absolute;left:3px;top:0;width:3px;height:7px;border:solid var(--surface);border-width:0 1.5px 1.5px 0;transform:rotate(45deg)}
+.legend button[aria-pressed="false"]{color:var(--ink-faint)}
+.legend button[aria-pressed="false"] .sw{opacity:.35}
+.legend .lv{font-variant-numeric:tabular-nums;font-weight:500;white-space:nowrap}
+.legend .lv small{color:var(--ink-muted);font-weight:400;font-size:10.5px;margin-left:2px}
+.legend .foot{margin-top:auto;border-top:1px solid var(--line);padding:6px 10px;font-size:11px;color:var(--ink-faint)}
+
+/* ---------- data tables ---------- */
+.dt{width:100%;border-collapse:collapse}
+.dt th,.dt td{padding:6px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+.dt thead th{background:var(--surface-2);font-size:11.5px;font-weight:500;color:var(--ink-muted);padding-top:5px;padding-bottom:5px;white-space:nowrap}
+.dt tbody th{font-weight:400;color:var(--ink);white-space:nowrap}
+.dt td.num,.dt th.num{text-align:right}
+.dt td.num .n{font-size:14px}
+.dt tr:last-child>*{border-bottom:0}
+.dt .tagc{width:1%;padding-right:0}
+.dt .key th{font-weight:600}
+.dt .key td.num .n{font-size:18px;line-height:22px}
+.dt .key>*{background:var(--surface-2)}
+.dt .tgt{display:block;font-size:11px;line-height:14px;color:var(--ink-muted);font-weight:400;margin-top:1px}
+.col-low{box-shadow:inset 0 -2px 0 var(--side-low)}
+.col-high{box-shadow:inset 0 -2px 0 var(--side-high)}
+.kv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--line)}
+.kv>div{padding:6px 12px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.kv>div:nth-child(3n){border-right:0}
+.kv span{display:block;font-size:11px;color:var(--ink-muted);line-height:14px}
+.kv b{font-weight:500;font-size:13px;font-variant-numeric:tabular-nums}
+.kv b small{font-weight:400;color:var(--ink-muted);font-size:11px;margin-left:2px}
+.unavail td,.unavail th{color:var(--ink-faint)}
+.unavail .n{color:var(--ink-faint);font-weight:400}
+
+/* static pressure */
+.tesp{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;padding:10px 12px;border-top:1px solid var(--line);background:var(--caution-soft);align-items:center}
+.tesp .big{font-size:22px;line-height:26px;font-weight:500;font-variant-numeric:tabular-nums}
+.tesp .big small{font-size:12px;font-weight:400;color:var(--ink-muted);margin-left:3px}
+.gauge{position:relative;height:22px;margin-top:16px}
+.gauge .trk{position:absolute;left:0;right:0;top:8px;height:6px;background:var(--surface-3)}
+.gauge .fill{position:absolute;left:0;top:8px;height:6px;background:var(--ink-muted)}
+.gauge .over{position:absolute;top:8px;height:6px;background:var(--caution)}
+.gauge .mk{position:absolute;top:3px;width:0;height:16px;border-left:1.5px solid var(--caution)}
+.gauge .mk span{position:absolute;top:-15px;left:-2px;font-size:10.5px;color:var(--caution);white-space:nowrap;font-weight:500}
+.gauge .ticks{position:absolute;left:0;right:0;top:16px;display:flex;justify-content:space-between;font-size:10px;color:var(--ink-faint)}
+
+/* capacity */
+.cfm{padding:10px 12px;border-bottom:1px solid var(--line);display:grid;gap:6px}
+.cfm .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cfm .lab{font-size:12px;font-weight:500;color:var(--ink-muted);min-width:98px}
+.cfm .note{font-size:11px;color:var(--ink-muted);line-height:15px}
+.cfm .note b{color:var(--caution);font-weight:500}
+.cap-total{padding:10px 12px 8px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.cap-total .big{font-size:26px;line-height:30px;font-weight:500;font-variant-numeric:tabular-nums}
+.cap-total .big small{font-size:13px;font-weight:400;color:var(--ink-muted);margin-left:3px}
+.cap-total .tons{font-size:15px;font-weight:500;font-variant-numeric:tabular-nums}
+.cap-total .tons small{font-size:12px;color:var(--ink-muted);font-weight:400;margin-left:2px}
+.cap-method{font-size:11px;color:var(--ink-muted);padding:0 12px 8px;line-height:15px}
+.split{display:flex;height:6px;margin:0 12px 2px;background:var(--surface-3)}
+.split i{display:block;height:100%}
+.split .sen{background:var(--ink-muted)}.split .lat{background:var(--series-supply)}
+.pct{padding:8px 12px 10px;border-top:1px solid var(--line)}
+.pct .bar{position:relative;height:6px;background:var(--surface-3);margin:6px 0 3px}
+.pct .bar i{position:absolute;left:0;top:0;bottom:0;background:var(--advisory)}
+.pct .bar b{position:absolute;top:-3px;bottom:-3px;border-left:1.5px solid var(--ink)}
+.pct .scale{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-faint)}
+
+/* rail */
+.rail{display:grid;gap:12px;align-content:start}
+.calls-t td:last-child{text-align:right}
+.health .sec>*{background:var(--surface-2);font-size:11px;font-weight:600;color:var(--ink-muted);padding-top:4px;padding-bottom:4px}
+.health td,.health th{padding:4px 10px;white-space:nowrap}
+.health tbody th{width:100%;white-space:normal}
+.health tbody tr.x{cursor:pointer}
+.health tbody tr.x:hover>*{background:var(--surface-2)}
+.health .det>td{background:var(--inset);font-size:11px;color:var(--ink-muted);padding:5px 12px 6px 24px;line-height:15px}
+
+/* diagnostics */
+.sevsum{display:flex;gap:14px;align-items:center}
+.diag th,.diag td{vertical-align:top;padding-top:7px;padding-bottom:7px}
+.diag tbody tr.row{cursor:pointer}
+.diag tbody tr.row:hover>*{background:var(--surface-2)}
+.diag tbody tr.row[aria-expanded="true"]>*{background:var(--surface-2);border-bottom-color:transparent}
+.diag .cond{font-weight:500}
+.diag .ev .n{font-size:13px}
+.diag .ev .n+.n::before{content:"·";margin:0 6px;color:var(--ink-faint)}
+.diag .cause{color:var(--ink-muted)}
+.diag .chev{width:20px;color:var(--ink-faint);font-size:10px;padding-right:0}
+.diag tr.row[aria-expanded="true"] .chev{color:var(--ink)}
+.diag tr.normal .cond{font-weight:400;color:var(--ink-muted)}
+.diag tr.detail>td{padding:0;background:var(--surface-2)}
+.dd{display:grid;grid-template-columns:1.1fr 1.4fr 1fr 1.2fr;border-top:1px solid var(--line)}
+.dd>section{padding:10px 12px 12px;border-right:1px solid var(--line);min-width:0}
+.dd>section:last-child{border-right:0}
+.dd h4{margin:0 0 6px;font-size:11px;font-weight:600;color:var(--ink-muted)}
+.dd p{margin:0 0 6px;font-size:12px;line-height:17px}
+.dd table{width:100%;border-collapse:collapse;font-size:12px}
+.dd table th,.dd table td{padding:3px 0;border-bottom:1px solid var(--line);text-align:left;font-weight:400}
+.dd table th{color:var(--ink-muted);font-size:11px;font-weight:500}
+.dd table td.num,.dd table th.num{text-align:right}
+.dd ol{margin:0;padding-left:16px;font-size:12px;line-height:18px}
+.dd ol li span{color:var(--ink-muted)}
+.dd .acts{display:flex;gap:6px;margin-top:10px}
+.spark{display:block;width:100%;height:44px;background:var(--inset);margin-top:6px}
+.spark .s{stroke-width:1.25}
+
+/* equipment config */
+.cfg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.cfg .dt td{padding-top:4px;padding-bottom:4px}
+.cfg .dt td .field input{width:120px}
+.cfg .used{font-size:11px;color:var(--ink-muted)}
+.foot-legend{display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-size:11px;color:var(--ink-muted);padding:2px 2px 0}
+
+/* ---------- responsive: tablet ---------- */
+@media (max-width:1280px){
+  .strip{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .strip .cell:nth-child(4){border-right:0}
+  .strip .cell:nth-child(-n+4){border-bottom:1px solid var(--line)}
+  .grid-b{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .grid-b>.capacity{grid-column:1 / -1}
+  .dd{grid-template-columns:1fr 1fr}
+  .dd>section:nth-child(2){border-right:0}
+  .dd>section:nth-child(-n+2){border-bottom:1px solid var(--line)}
+}
+@media (max-width:1080px){
+  .grid-a{grid-template-columns:minmax(0,1fr)}
+  .grid-b{grid-template-columns:minmax(0,1fr)}
+  .grid-b>.capacity{grid-column:auto}
+  .rail{grid-template-columns:1fr 1fr}
+  .chart-wrap{grid-template-columns:minmax(0,1fr)}
+  .plot{border-right:0;border-bottom:1px solid var(--line);min-height:400px}
+  .legend{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+  .legend .grp{grid-column:1 / -1}
+  .legend .foot{grid-column:1 / -1}
+  .top-row{flex-wrap:wrap}
+  .nav{flex-wrap:wrap}
+  .nav .spacer{display:none}
+  .nav .tools{padding:4px 12px;margin-left:auto}
+  .ident{border-right:0}
+  .top-fields{flex-basis:100%;border-top:1px solid var(--line)}
+  .diag .cause,.diag th.cause{display:none}
+}
+@media (max-width:760px){
+  .grid-b,.rail,.cfg{grid-template-columns:minmax(0,1fr)}
+  .strip{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .strip .cell{border-bottom:1px solid var(--line)}
+  .strip .cell:nth-child(2n){border-right:0}
+  .legend{grid-template-columns:1fr 1fr}
+  .dd{grid-template-columns:1fr}
+  .dd>section{border-right:0;border-bottom:1px solid var(--line)}
+  .page{padding:10px}
+  .nav{overflow-x:auto}
+}
+
+.theme-t{position:fixed;right:10px;bottom:10px;z-index:9}</style></head>
+<body>
+<div class="fs">
+
+<header class="top">
+  <div class="top-row">
+    <div class="brand"><i></i>Fullscope</div>
+    <div class="ident"><b>Main floor heat pump</b><span>Home · Mesa, AZ · 1,240 ft · R-410A · 3.5 ton</span></div>
+    <div class="top-fields">
+      <div class="tf"><span>Mode</span><div class="mode"><span class="word">Cooling</span><span class="calls" aria-label="Thermostat calls"><i class="on" title="Y compressor: on">Y</i><i class="on" title="G blower: on">G</i><i class="on" title="O/B reversing valve: O energized">O</i><i title="W aux heat: off">W</i></span></div></div>
+      <div class="tf"><span>Indoor node</span><div><span class="st ok">Online</span> <span class="faint">2 s</span></div></div>
+      <div class="tf"><span>Outdoor node</span><div><span class="st ok">Online</span> <span class="faint">3 s</span></div></div>
+      <div class="tf"><span>Last update</span><b class="n">14:32:08</b></div>
+      <div class="tf"><span>Outdoor air</span><b><span class="n">103.8<small>°F</small></span></b></div>
+      <div class="tf"><span>Runtime</span><b><span class="n">42<small>min</small></span> <span class="muted" style="font-weight:400">cycle</span> · <span class="n">6.4<small>h</small></span> <span class="muted" style="font-weight:400">today</span></b></div>
+      <a class="tf alerts" href="#diagnostics" data-jump="diagnostics" style="text-decoration:none;color:inherit"><span>Diagnostics</span><div class="row"><span class="st caution">1 warning</span><span class="st advisory">2 advisory</span><span class="st sensor">1 sensor</span></div></a>
+    </div>
+  </div>
+  <nav class="nav" aria-label="Sections">
+    <a data-view-link="monitor" aria-current="page">Monitor</a>
+    <a>Trends</a>
+    <a data-view-link="monitor" data-jump="diagnostics">Diagnostics log</a>
+    <a data-view-link="equipment">Equipment</a>
+    <a>Sensors &amp; calibration</a>
+    <a>Service history</a>
+    <span class="spacer"></span>
+    <div class="tools">
+      <span class="live">LIVE · 5 s</span>
+      <select class="sel" aria-label="System"><option>Main floor heat pump</option><option>Casita mini-split (not configured)</option></select>
+      <button class="btn" type="button">Export CSV</button>
+    </div>
+  </nav>
+</header>
+
+<main class="page" data-view="monitor">
+<section class="strip" aria-label="System summary"><div class="cell"><div class="lbl"><span>Superheat</span><span class="src calc" title="Calculated from measurements">calc</span></div>
+  <div class="val">12.4<small>°F</small></div>
+  <div class="meta"><span class="st ok">Normal</span><span>Target 8–15</span></div></div><div class="cell"><div class="lbl"><span>Subcooling</span><span class="src calc" title="Calculated from measurements">calc</span></div>
+  <div class="val">9.7<small>°F</small></div>
+  <div class="meta"><span class="st ok">Normal</span><span>Target 10 ± 3</span></div></div><div class="cell" data-state="advisory"><div class="lbl"><span>Delta-T</span><span class="src calc" title="Calculated from measurements">calc</span></div>
+  <div class="val">21.2<small>°F</small></div>
+  <div class="meta"><span class="st advisory">Above target</span><span>Target 16–21</span></div></div><div class="cell" data-state="caution"><div class="lbl"><span>Total ext. static</span><span class="src calc" title="Calculated from measurements">calc</span></div>
+  <div class="val">0.72<small>in. w.c.</small></div>
+  <div class="meta"><span class="st caution">High</span><span>Max 0.50</span></div></div><div class="cell"><div class="lbl"><span>Airflow</span><span class="src" title="Configured in Equipment">cfg</span></div>
+  <div class="val"><span data-o="cfm">1,400</span><small>CFM</small></div>
+  <div class="meta"><span class="faint" data-o-src>Manufacturer spec</span><span>Unverified</span></div></div><div class="cell" data-state="advisory"><div class="lbl"><span>Total capacity</span><span class="src calc" title="Calculated from measurements">calc</span></div>
+  <div class="val"><span data-o="tot">34,900</span><small>BTU/hr</small></div>
+  <div class="meta"><span class="st advisory"><span data-o="pct">84</span>% of rated</span><span><span data-o="tons">2.91</span> tons</span></div></div><div class="cell"><div class="lbl"><span>Outdoor ambient</span><span class="src" title="Measured by a sensor">meas</span></div>
+  <div class="val">103.8<small>°F</small></div>
+  <div class="meta"><span class="muted">RH 12 %</span><span>Rating point 95</span></div></div></section>
+<div class="grid-a">
+<section class="panel" data-chart aria-label="Live system trend">
+  <div class="ph">
+    <h2>Live trend</h2><span class="sub">Shaded Y bar = compressor call · hover for values at a timestamp</span>
+    <div class="right">
+      <div class="seg" role="group" aria-label="Channel preset">
+        <button type="button" data-preset="refrigerant" aria-pressed="true">Refrigerant</button>
+        <button type="button" data-preset="air" aria-pressed="false">Air side</button>
+        <button type="button" data-preset="pressure" aria-pressed="false">Pressure</button>
+        <button type="button" data-preset="temperature" aria-pressed="false">Temperature</button>
+        <button type="button" data-preset="performance" aria-pressed="false">Performance</button>
+        <button type="button" data-preset="all" aria-pressed="false">All</button>
+      </div>
+      <div class="seg" role="group" aria-label="Time range">
+        <button type="button" data-range="15m" aria-pressed="false">15 min</button>
+        <button type="button" data-range="1h" aria-pressed="true">1 hr</button>
+        <button type="button" data-range="6h" aria-pressed="false">6 hr</button>
+        <button type="button" data-range="24h" aria-pressed="false">24 hr</button>
+        <button type="button" data-range="7d" aria-pressed="false">7 days</button>
+      </div>
+    </div>
+  </div>
+  <div class="chart-wrap">
+    <div class="plot"><div class="tip" role="status"></div></div>
+    <div class="legend" aria-label="Channels"></div>
+  </div>
+</section>
+<div class="rail">
+<section class="panel" aria-label="Operating state">
+  <div class="ph"><h2>Operating state</h2><span class="right st ok">Cooling</span></div>
+  <table class="dt calls-t">
+    <tbody>
+      <tr><th><span class="mono">Y</span>&nbsp; Compressor</th><td><span class="st ok">On</span> <span class="faint n">42 min</span></td></tr>
+      <tr><th><span class="mono">G</span>&nbsp; Blower</th><td><span class="st ok">On</span></td></tr>
+      <tr><th><span class="mono">O</span>&nbsp; Reversing valve</th><td>Energized <span class="faint">→ cooling</span></td></tr>
+      <tr><th><span class="mono">W</span>&nbsp; Aux heat</th><td><span class="st offline">Off</span></td></tr>
+    </tbody>
+  </table>
+  <div class="kv">
+    <div><span>Cycle start</span><b>13:50:02</b></div>
+    <div><span>Cycles today</span><b>9</b></div>
+    <div><span>Avg on-time</span><b>38<small>min</small></b></div>
+  </div>
+</section>
+
+<section class="panel" data-health aria-label="Sensor health">
+  <div class="ph"><h2>Sensor health</h2><span class="right sub">Click a row for detail</span></div>
+  <table class="dt health">
+    <tbody>
+      <tr class="sec"><td colspan="3">Nodes</td></tr>
+<tr class="x" aria-expanded="false"><th>Indoor node</th><td><span class="st ok">Online</span></td><td class="num faint">2 s</td></tr><tr class="det" hidden><td colspan="3"><span class="mono">fw 0.1.0 · 192.168.1.121 · −55 dBm · up 3.2 d</span></td></tr><tr class="x" aria-expanded="false"><th>Outdoor node</th><td><span class="st ok">Online</span></td><td class="num faint">3 s</td></tr><tr class="det" hidden><td colspan="3"><span class="mono">fw 0.1.0 · 192.168.1.247 · −61 dBm · up 3.2 d · 5 V rail 5.02 V</span></td></tr>
+      <tr class="sec"><td colspan="3">Pressure</td></tr>
+<tr><th>Liquid line</th><td><span class="st ok">OK</span></td><td class="num faint">50 bar</td></tr><tr><th>Vapor port</th><td><span class="st ok">OK</span></td><td class="num faint">50 bar</td></tr><tr><th>True suction</th><td><span class="st offline">Not installed</span></td><td class="num faint">optional</td></tr>
+      <tr class="sec"><td colspan="3">Temperature</td></tr>
+<tr><th>Suction · liquid</th><td><span class="st ok">OK</span></td><td class="num faint">2 of 2</td></tr><tr><th>Supply · return air</th><td><span class="st ok">OK</span></td><td class="num faint">2 of 2</td></tr><tr class="x" aria-expanded="false"><th>Discharge</th><td><span class="st sensor">Open circuit</span></td><td class="num faint">optional</td></tr><tr class="det" hidden><td colspan="3"><span class="mono">ADS1115 0x49 A2 = 3.29 V</span> — outside 0.30–3.00 V. Not used by any active diagnostic.</td></tr>
+      <tr class="sec"><td colspan="3">Humidity &amp; static</td></tr>
+<tr><th>Humidity ×3</th><td><span class="st ok">OK</span></td><td class="num faint">3 of 3</td></tr><tr><th>Static ×2</th><td><span class="st ok">OK</span></td><td class="num faint">2 of 2</td></tr><tr><th>Filter / coil ΔP</th><td><span class="st offline">Not installed</span></td><td class="num faint">optional</td></tr>
+    </tbody>
+  </table>
+</section>
+</div></div>
+<div class="grid-b">
+<section class="panel" aria-label="Refrigerant performance">
+  <div class="ph"><h2>Refrigerant performance</h2><span class="sub">R-410A · TXV · cooling</span></div>
+  <table class="dt">
+    <thead><tr><th>Measurement</th><th class="tagc"></th><th class="num col-low">Low side · suction</th><th class="num col-high">High side · liquid</th></tr></thead>
+    <tbody>
+      <tr><th>Pressure</th><td class="tagc"><span class="src" title="Measured by a sensor">meas</span></td><td class="num"><span class="n">128.4<small>psig</small></span><span class="tgt">Vapor service port</span></td><td class="num"><span class="n">418.2<small>psig</small></span><span class="tgt">Liquid line</span></td></tr>
+      <tr><th>Saturation temp</th><td class="tagc"><span class="src calc" title="Calculated from measurements">calc</span></td><td class="num"><span class="n">44.1<small>°F</small></span><span class="tgt">Evaporator · dew</span></td><td class="num"><span class="n">120.0<small>°F</small></span><span class="tgt">Condenser · bubble</span></td></tr>
+      <tr><th>Line temp</th><td class="tagc"><span class="src" title="Measured by a sensor">meas</span></td><td class="num"><span class="n">56.5<small>°F</small></span></td><td class="num"><span class="n">110.3<small>°F</small></span></td></tr>
+      <tr class="key"><th>Superheat / subcooling</th><td class="tagc"><span class="src calc" title="Calculated from measurements">calc</span></td>
+        <td class="num"><span class="muted" style="font-size:12px">SH</span> <span class="n">12.4<small>°F</small></span><span class="tgt"><span class="st ok">Normal</span> · target 8–15</span></td>
+        <td class="num"><span class="muted" style="font-size:12px">SC</span> <span class="n">9.7<small>°F</small></span><span class="tgt"><span class="st ok">Normal</span> · target 10 ± 3</span></td></tr>
+    </tbody>
+  </table>
+  <div class="kv">
+    <div><span>Cond. over ambient</span><b>16.2<small>°F</small></b></div>
+    <div><span>Liquid approach</span><b>6.5<small>°F</small></b></div>
+    <div><span>Compression ratio</span><b>3.03<small>: 1</small></b></div>
+    <div><span>Refrigerant</span><b>R-410A</b></div>
+    <div><span>Metering device</span><b>TXV</b></div>
+    <div><span>True suction</span><b class="faint" style="font-weight:400">Not installed</b></div>
+  </div>
+</section>
+
+<section class="panel" aria-label="Air-side performance">
+  <div class="ph"><h2>Air-side performance</h2><span class="sub">Psychrometrics at 14.05 psia</span></div>
+  <table class="dt">
+    <thead><tr><th>Measurement</th><th class="tagc"></th><th class="num">Return</th><th class="num">Supply</th><th class="num">Difference</th></tr></thead>
+    <tbody>
+      <tr class="key"><th>Dry bulb</th><td class="tagc"><span class="src" title="Measured by a sensor">meas</span></td><td class="num"><span class="n">77.2<small>°F</small></span></td><td class="num"><span class="n">56.0<small>°F</small></span></td><td class="num"><span class="muted" style="font-size:12px">ΔT</span> <span class="n">21.2<small>°F</small></span><span class="tgt"><span class="st advisory">Above</span> · target 16–21</span></td></tr>
+      <tr><th>Relative humidity</th><td class="tagc"><span class="src" title="Measured by a sensor">meas</span></td><td class="num"><span class="n">44<small>%</small></span></td><td class="num"><span class="n">86<small>%</small></span></td><td class="num faint">—</td></tr>
+      <tr><th>Wet bulb</th><td class="tagc"><span class="src calc" title="Calculated from measurements">calc</span></td><td class="num"><span class="n">62.3<small>°F</small></span></td><td class="num"><span class="n">53.6<small>°F</small></span></td><td class="num"><span class="n">8.7<small>°F</small></span></td></tr>
+      <tr><th>Dew point</th><td class="tagc"><span class="src calc" title="Calculated from measurements">calc</span></td><td class="num"><span class="n">53.6<small>°F</small></span></td><td class="num"><span class="n">51.9<small>°F</small></span></td><td class="num"><span class="n">1.7<small>°F</small></span></td></tr>
+      <tr><th>Enthalpy</th><td class="tagc"><span class="src calc" title="Calculated from measurements">calc</span></td><td class="num"><span class="n">28.54<small>BTU/lb</small></span></td><td class="num"><span class="n">22.74<small>BTU/lb</small></span></td><td class="num"><span class="muted" style="font-size:12px">Δh</span> <span class="n">5.80</span></td></tr>
+    </tbody>
+  </table>
+  <h3 class="sh3" style="border-top:1px solid var(--line)">Static pressure <span class="faint" style="font-weight:400">in. w.c., referenced to room</span></h3>
+  <table class="dt">
+    <tbody>
+      <tr><th>Return static</th><td class="tagc"><span class="src" title="Measured by a sensor">meas</span></td><td class="num"><span class="n">−0.28<small>in. w.c.</small></span></td><td class="muted" style="font-size:11px">Between filter and blower</td></tr>
+      <tr><th>Supply static</th><td class="tagc"><span class="src" title="Measured by a sensor">meas</span></td><td class="num"><span class="n">+0.44<small>in. w.c.</small></span></td><td class="muted" style="font-size:11px">Plenum, after coil</td></tr>
+      <tr class="unavail"><th>Filter pressure drop</th><td class="tagc"><span class="src" title="Measured by a sensor">meas</span></td><td class="num"><span class="n na">—</span></td><td style="font-size:11px">Not installed</td></tr>
+      <tr class="unavail"><th>Coil pressure drop</th><td class="tagc"><span class="src" title="Measured by a sensor">meas</span></td><td class="num"><span class="n na">—</span></td><td style="font-size:11px">Not installed</td></tr>
+    </tbody>
+  </table>
+  <div class="tesp">
+    <div>
+      <div style="font-size:12px;font-weight:600">Total external static <span class="src calc" style="margin-left:4px">calc</span></div>
+      <div class="big">0.72<small>in. w.c.</small></div>
+      <span class="st caution">High · 144 % of max</span>
+    </div>
+    <div>
+      <div class="gauge" aria-label="TESP 0.72 against maximum 0.50">
+        <div class="trk"></div><div class="fill" style="width:50%"></div><div class="over" style="left:50%;width:22%"></div>
+        <div class="mk" style="left:50%"><span>Max 0.50 (equipment)</span></div>
+        <div class="ticks"><span>0</span><span>0.25</span><span>0.50</span><span>0.75</span><span>1.00</span></div>
+      </div>
+      <div class="muted" style="font-size:11px;margin-top:10px">|−0.28| + 0.44 = 0.72 · limit from Equipment → Max external static</div>
+    </div>
+  </div>
+</section>
+
+<section class="panel capacity" data-capacity aria-label="System capacity">
+  <div class="ph"><h2>System capacity</h2><span class="right sub">Enthalpy method</span></div>
+  <div class="cfm">
+    <div class="row"><span class="lab">Equipment airflow</span>
+      <label class="field"><input data-cfm value="1,400" inputmode="numeric" aria-label="Equipment airflow"><span class="u">CFM</span></label>
+      <span class="src">cfg</span></div>
+    <div class="row"><span class="lab">Source</span>
+      <select class="sel" data-cfm-src aria-label="Airflow source">
+        <option value="mfr">Manufacturer spec</option><option value="measured">Measured</option><option value="calc">Calculated (blower table)</option><option value="est">Estimated (400 CFM/ton)</option>
+      </select>
+      <a class="muted" style="font-size:11px;cursor:pointer" data-view-link="equipment">Equipment →</a></div>
+    <div class="note" data-cfm-note></div>
+  </div>
+  <div class="cap-total">
+    <div><div class="muted" style="font-size:12px;font-weight:500">Total capacity</div>
+    <div class="big"><span data-o="tot">34,900</span><small>BTU/hr</small></div></div>
+    <div class="tons"><span data-o="tons">2.91</span><small>tons</small></div>
+  </div>
+  <div class="split" aria-hidden="true"><i class="sen" data-o-w="sen"></i><i class="lat" data-o-w="lat"></i></div>
+  <table class="dt" style="margin-top:6px">
+    <tbody>
+      <tr><th><i class="sw" style="color:var(--ink-muted)"></i>&nbsp; Sensible</th><td class="num"><span class="n"><span data-o="sen">30,600</span><small>BTU/hr</small></span></td></tr>
+      <tr><th><i class="sw" style="color:var(--series-supply)"></i>&nbsp; Latent</th><td class="num"><span class="n"><span data-o="lat">4,300</span><small>BTU/hr</small></span></td></tr>
+      <tr><th>Sensible heat ratio</th><td class="num"><span class="n" data-o="shr">0.88</span></td></tr>
+      <tr><th>Airflow per ton</th><td class="num"><span class="n"><span data-o="cfmton">400</span><small>CFM/ton</small></span></td></tr>
+    </tbody>
+  </table>
+  <div class="cap-method">4.5 × CFM × Δh and 1.08 × CFM × ΔT, density-corrected for 1,240 ft (× 0.956). Rounded to 100 BTU/hr — accuracy is limited by the airflow value.</div>
+  <div class="pct">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
+      <span style="font-size:12px;font-weight:600">% of rated</span>
+      <span><span class="n" style="font-size:18px"><span data-o="pct">84</span><small>%</small></span></span>
+    </div>
+    <div class="bar"><i data-o-w="pct"></i><b style="left:83.33%" title="100 % of rated"></b></div>
+    <div class="scale"><span>0</span><span>Rated 41,500 BTU/hr at 95 °F OD</span><span>120 %</span></div>
+  </div>
+</section>
+</div>
+
+<section class="panel" id="diagnostics" data-diag aria-label="System diagnostics">
+  <div class="ph"><h2>System diagnostics</h2>
+    <div class="sevsum"><span class="st fault">0 fault</span><span class="st caution">1 warning</span><span class="st advisory">2 advisory</span><span class="st sensor">1 sensor error</span><span class="st ok">4 normal</span></div>
+    <div class="right"><span class="sub">Judged after 10 min of steady running · inferences, not confirmed diagnoses</span>
+      <button class="btn" type="button" data-show-normal aria-pressed="true">Show normal</button></div></div>
+  <table class="dt diag">
+    <thead><tr><th class="chev"></th><th>Severity</th><th>System</th><th>Condition</th><th>Evidence</th><th class="cause">Possible causes</th><th>Status</th><th class="num">Since</th></tr></thead>
+    <tbody>
+<tr class="row" aria-expanded="false"><td class="chev">▸</td><td><span class="st caution">Warning</span></td><td>Air side</td>
+<td class="cond">Possible airflow restriction — high external static</td><td class="ev"><span class="n">TESP 0.72<small>in. w.c.</small></span><span class="n">max 0.50</span></td><td class="cause">Coil restriction · restrictive supply duct · filter · blower tap</td><td>Active</td><td class="num faint n">13:54</td></tr><tr class="detail" hidden><td colspan="8"><div class="dd">
+<section><h4>What triggered it</h4>
+<p>Rule AF-02: total external static above the configured maximum (0.50 in. w.c.) for more than 5 min with the blower running.</p>
+<p class="muted">Interpretation only — a possible airflow restriction, not a confirmed fault.</p>
+<svg class="spark" data-k="tesp" data-limit="0.5" data-c="c-ink" aria-label="TESP last 60 min"></svg>
+<div class="faint" style="font-size:10.5px;margin-top:2px">TESP, last 60 min · dashed = max 0.50</div></section>
+<section><h4>Current vs expected</h4><table><thead><tr><th>Measurement</th><th class="num">Current</th><th class="num">Expected</th><th class="num"></th></tr></thead><tbody><tr><td>TESP</td><td class="num"><span class="n">0.72<small>in. w.c.</small></span></td><td class="num muted">≤ 0.50</td><td class="num"><span class="st caution" title="outside"></span></td></tr><tr><td>Supply static</td><td class="num"><span class="n">+0.44<small>in. w.c.</small></span></td><td class="num muted">—</td><td class="num"></td></tr><tr><td>Return static</td><td class="num"><span class="n">−0.28<small>in. w.c.</small></span></td><td class="num muted">—</td><td class="num"></td></tr><tr><td>Delta-T</td><td class="num"><span class="n">21.2<small>°F</small></span></td><td class="num muted">16–21</td><td class="num"><span class="st advisory" title="marginal"></span></td></tr><tr><td>Superheat</td><td class="num"><span class="n">12.4<small>°F</small></span></td><td class="num muted">8–15</td><td class="num"><span class="st ok" title="within"></span></td></tr><tr><td>Airflow (configured)</td><td class="num"><span class="n">1,400<small>CFM</small></span></td><td class="num muted">unverified</td><td class="num"></td></tr></tbody></table></section>
+<section><h4>How long</h4>
+<table><tbody>
+<tr><td class="muted">First detected</td><td class="num n">13:54:10</td></tr>
+<tr><td class="muted">Duration</td><td class="num n">38 min, continuous</td></tr>
+<tr><td class="muted">Cycles today</td><td class="num n">7 of 9</td></tr>
+<tr><td class="muted">Previous event</td><td class="num n">Fri 25 Sep</td></tr>
+</tbody></table></section>
+<section><h4>Possible causes · ranked by evidence</h4>
+<ol>
+<li>Evaporator coil restriction <span>— supply side carries 61 % of TESP</span></li>
+<li>Restrictive supply duct, closed registers or dampers</li>
+<li>Filter restriction <span>— less likely; return static is moderate</span></li>
+<li>Blower speed tap above duct design</li>
+</ol>
+<p class="muted" style="margin-top:6px">Filter and coil ΔP probes would separate causes 1 and 3.</p>
+<div class="acts"><button class="btn" type="button">Acknowledge</button><button class="btn" type="button">Add note</button><button class="btn" type="button">Show in trend</button></div></section>
+</div></td></tr><tr class="row" aria-expanded="false"><td class="chev">▸</td><td><span class="st advisory">Advisory</span></td><td>Air side</td>
+<td class="cond">Delta-T above target range</td><td class="ev"><span class="n">ΔT 21.2<small>°F</small></span><span class="n">target 16–21</span></td><td class="cause">Reduced airflow · blower tap</td><td>Active</td><td class="num faint n">14:01</td></tr><tr class="detail" hidden><td colspan="8"><div class="dd">
+<section><h4>What triggered it</h4><p>Rule AS-04: delta-T above the target band for the return humidity (16–21 °F at 44 % RH) for more than 10 min.</p>
+<svg class="spark" data-k="dt" data-limit="21" data-c="c-sup" aria-label="Delta-T last 60 min"></svg>
+<div class="faint" style="font-size:10.5px;margin-top:2px">Delta-T, last 60 min · dashed = 21 °F</div></section>
+<section><h4>Current vs expected</h4><table><thead><tr><th>Measurement</th><th class="num">Current</th><th class="num">Expected</th><th class="num"></th></tr></thead><tbody><tr><td>Delta-T</td><td class="num"><span class="n">21.2<small>°F</small></span></td><td class="num muted">16–21</td><td class="num"><span class="st advisory" title="marginal"></span></td></tr><tr><td>Return RH</td><td class="num"><span class="n">44<small>%</small></span></td><td class="num muted">—</td><td class="num"></td></tr><tr><td>TESP</td><td class="num"><span class="n">0.72<small>in. w.c.</small></span></td><td class="num muted">≤ 0.50</td><td class="num"><span class="st caution" title="outside"></span></td></tr><tr><td>Superheat</td><td class="num"><span class="n">12.4<small>°F</small></span></td><td class="num muted">8–15</td><td class="num"><span class="st ok" title="within"></span></td></tr></tbody></table></section>
+<section><h4>How long</h4><table><tbody>
+<tr><td class="muted">First detected</td><td class="num n">14:01:40</td></tr>
+<tr><td class="muted">Duration</td><td class="num n">31 min</td></tr></tbody></table></section>
+<section><h4>Possible causes</h4><ol><li>Reduced airflow <span>— consistent with high TESP</span></li><li>Blower speed tap set low</li></ol>
+<div class="acts"><button class="btn" type="button">Acknowledge</button><button class="btn" type="button">Show in trend</button></div></section>
+</div></td></tr><tr class="row" aria-expanded="false"><td class="chev">▸</td><td><span class="st advisory">Advisory</span></td><td>Capacity</td>
+<td class="cond">Capacity below rated</td><td class="ev"><span class="n">34,900<small>BTU/hr</small></span><span class="n">84 % of 41,500</span></td><td class="cause">Reduced airflow · high ambient · airflow unverified</td><td>Active</td><td class="num faint n">14:02</td></tr><tr class="detail" hidden><td colspan="8"><div class="dd">
+<section><h4>What triggered it</h4><p>Rule CP-01: measured total capacity below 90 % of rated for more than 15 min.</p>
+<p class="muted">Depends on the configured airflow. If actual airflow is lower than 1,400 CFM, measured capacity is lower still.</p></section>
+<section><h4>Current vs expected</h4><table><thead><tr><th>Measurement</th><th class="num">Current</th><th class="num">Expected</th><th class="num"></th></tr></thead><tbody><tr><td>Total capacity</td><td class="num"><span class="n">34,900<small>BTU/hr</small></span></td><td class="num muted">≥ 37,400</td><td class="num"><span class="st advisory" title="marginal"></span></td></tr><tr><td>Rated capacity</td><td class="num"><span class="n">41,500<small>BTU/hr</small></span></td><td class="num muted">at 95 °F OD</td><td class="num"></td></tr><tr><td>Outdoor ambient</td><td class="num"><span class="n">103.8<small>°F</small></span></td><td class="num muted">95 rating pt.</td><td class="num"></td></tr><tr><td>Airflow source</td><td class="num"><span class="n">Manufacturer</span></td><td class="num muted">measured</td><td class="num"><span class="st advisory" title="marginal"></span></td></tr></tbody></table></section>
+<section><h4>How long</h4><table><tbody>
+<tr><td class="muted">First detected</td><td class="num n">14:02:15</td></tr>
+<tr><td class="muted">Duration</td><td class="num n">30 min</td></tr></tbody></table></section>
+<section><h4>Possible causes</h4><ol><li>Reduced airflow <span>— see static pressure</span></li><li>Outdoor ambient 8.8 °F above rating point</li><li>Airflow value not verified on site</li></ol></section>
+</div></td></tr><tr class="row" aria-expanded="false"><td class="chev">▸</td><td><span class="st sensor">Sensor error</span></td><td>Sensors</td>
+<td class="cond">Discharge temperature probe open circuit</td><td class="ev"><span class="n">0x49 A2 3.29<small>V</small></span></td><td class="cause">Unplugged · broken lead · not fitted</td><td><span class="muted">Acknowledged</span></td><td class="num faint n">Thu</td></tr><tr class="detail" hidden><td colspan="8"><div class="dd">
+<section><h4>What triggered it</h4><p>Channel <span class="mono">t_dis</span> reads outside its physical range (≥ 3.25 V = open circuit).</p>
+<p class="muted">A measurement problem, not an equipment problem. No active diagnostic depends on this channel.</p></section>
+<section><h4>Current vs expected</h4><table><thead><tr><th>Measurement</th><th class="num">Current</th><th class="num">Expected</th><th class="num"></th></tr></thead><tbody><tr><td>ADS1115 0x49 A2</td><td class="num"><span class="n">3.29<small>V</small></span></td><td class="num muted">0.30–3.00</td><td class="num"><span class="st sensor"></span></td></tr><tr><td>Configured as</td><td class="num"><span class="n">Optional</span></td><td class="num muted">—</td><td class="num"></td></tr></tbody></table></section>
+<section><h4>How long</h4><table><tbody>
+<tr><td class="muted">Since</td><td class="num n">Thu 24 Sep 09:12</td></tr>
+<tr><td class="muted">Acknowledged</td><td class="num n">Thu 24 Sep 09:40</td></tr></tbody></table></section>
+<section><h4>Possible causes</h4><ol><li>Probe connector unplugged</li><li>Broken lead</li><li>Probe not fitted yet</li></ol>
+<div class="acts"><button class="btn" type="button">Mark not installed</button></div></section>
+</div></td></tr><tr class="row normal"><td class="chev"></td><td><span class="st ok">Normal</span></td><td>Refrigerant</td>
+<td class="cond">Superheat within target</td><td class="ev"><span class="n">SH 12.4<small>°F</small></span><span class="n">target 8–15</span></td><td class="cause"><span class="faint">—</span></td><td><span class="muted">Normal</span></td><td class="num faint n"></td></tr><tr class="row normal"><td class="chev"></td><td><span class="st ok">Normal</span></td><td>Refrigerant</td>
+<td class="cond">Subcooling within target</td><td class="ev"><span class="n">SC 9.7<small>°F</small></span><span class="n">target 10 ± 3</span></td><td class="cause"><span class="faint">—</span></td><td><span class="muted">Normal</span></td><td class="num faint n"></td></tr><tr class="row normal"><td class="chev"></td><td><span class="st ok">Normal</span></td><td>Condenser</td>
+<td class="cond">Condensing over ambient within range</td><td class="ev"><span class="n">CTOA 16.2<small>°F</small></span><span class="n">target 12–25</span></td><td class="cause"><span class="faint">—</span></td><td><span class="muted">Normal</span></td><td class="num faint n"></td></tr><tr class="row normal"><td class="chev"></td><td><span class="st ok">Normal</span></td><td>Nodes</td>
+<td class="cond">Both nodes reporting</td><td class="ev"><span class="n">2 s</span><span class="n">3 s</span></td><td class="cause"><span class="faint">—</span></td><td><span class="muted">Normal</span></td><td class="num faint n"></td></tr>
+    </tbody>
+  </table>
+</section>
+
+
+<div class="foot-legend">
+  <span><span class="src" title="Measured by a sensor">meas</span> measured by a sensor</span>
+  <span><span class="src calc" title="Calculated from measurements">calc</span> calculated from measurements</span>
+  <span><span class="src" title="Configured in Equipment">cfg</span> configured in Equipment</span>
+  <span>Interpretation appears only in status words and the diagnostics table.</span>
+  <span style="margin-left:auto" class="mono faint">server 0.1.0 · MQTT 192.168.1.191:1883 · stored 90 d</span>
+</div>
+
+</main>
+<main class="page" data-view="equipment" hidden>
+
+<div class="ph panel" style="border-radius:3px"><h2>Equipment configuration</h2><span class="sub">Main floor heat pump · values here feed the calculations on Monitor</span>
+  <div class="right"><button class="btn" type="button" data-view-link="monitor">Cancel</button><button class="btn" type="button" style="border-color:var(--ink-muted)">Save configuration</button></div></div>
+<div class="cfg">
+<section class="panel"><div class="ph"><h2>Identification</h2></div>
+<table class="dt"><thead><tr><th>Field</th><th>Value</th><th>Used by</th></tr></thead><tbody><tr><th>Manufacturer</th><td><label class="field"><input value="Goodman" style="text-align:left;width:180px" aria-label="Manufacturer"></label></td><td class="used"></td></tr><tr><th>Outdoor model</th><td><label class="field"><input value="GSZ140421" style="text-align:left;width:180px" aria-label="Outdoor model"></label></td><td class="used"></td></tr><tr><th>Indoor model</th><td><label class="field"><input value="AVPTC42D14" style="text-align:left;width:180px" aria-label="Indoor model"></label></td><td class="used"></td></tr><tr><th>Serial number</th><td><label class="field"><input value="2308147752" style="text-align:left;width:180px" aria-label="Serial number"></label></td><td class="used"></td></tr><tr><th>Installed</th><td><label class="field"><input value="2023-08" style="text-align:left;width:180px" aria-label="Installed"></label></td><td class="used"></td></tr></tbody></table></section><section class="panel"><div class="ph"><h2>System</h2></div>
+<table class="dt"><thead><tr><th>Field</th><th>Value</th><th>Used by</th></tr></thead><tbody><tr><th>System type</th><td><select class="sel" aria-label="System type"><option>Split heat pump</option><option>Split air conditioner</option><option>Packaged heat pump</option><option>Packaged AC</option></select></td><td class="used">Mode logic</td></tr><tr><th>Heat pump / straight cool</th><td><select class="sel" aria-label="Heat pump / straight cool"><option>Heat pump</option><option>Straight cool</option></select></td><td class="used">Mode logic</td></tr><tr><th>O/B configuration</th><td><select class="sel" aria-label="O/B configuration"><option>O — energized in cooling</option><option>B — energized in heating</option></select></td><td class="used">Mode detection</td></tr><tr><th>Nominal tonnage</th><td><label class="field"><input value="3.5" aria-label="Nominal tonnage"><span class="u">tons</span></label></td><td class="used">CFM/ton, estimated airflow</td></tr><tr><th>Refrigerant</th><td><select class="sel" aria-label="Refrigerant"><option>R-410A</option><option>R-454B</option><option>R-32</option><option>R-22</option></select></td><td class="used">Saturation temps, SH, SC</td></tr><tr><th>Metering device</th><td><select class="sel" aria-label="Metering device"><option>TXV</option><option>EEV</option><option>Fixed orifice / piston</option></select></td><td class="used">SH/SC targets, rules</td></tr></tbody></table></section><section class="panel"><div class="ph"><h2>Ratings &amp; targets</h2></div>
+<table class="dt"><thead><tr><th>Field</th><th>Value</th><th>Used by</th></tr></thead><tbody><tr><th>Rated cooling capacity</th><td><label class="field"><input value="41,500" aria-label="Rated cooling capacity"><span class="u">BTU/hr</span></label></td><td class="used">% of rated</td></tr><tr><th>Rated airflow</th><td><label class="field"><input value="1,400" aria-label="Rated airflow"><span class="u">CFM</span></label></td><td class="used">Airflow source: manufacturer</td></tr><tr><th>Configured airflow</th><td><label class="field"><input value="1,400" aria-label="Configured airflow"><span class="u">CFM</span></label></td><td class="used">Capacity (source: manufacturer)</td></tr><tr><th>Max external static</th><td><label class="field"><input value="0.50" aria-label="Max external static"><span class="u">in. w.c.</span></label></td><td class="used">TESP limit, rule AF-02</td></tr><tr><th>Superheat target</th><td><label class="field"><input value="8–15" aria-label="Superheat target"><span class="u">°F</span></label></td><td class="used">Rule RF-01</td></tr><tr><th>Subcooling target</th><td><label class="field"><input value="10 ± 3" aria-label="Subcooling target"><span class="u">°F</span></label></td><td class="used">Rule RF-02</td></tr></tbody></table></section><section class="panel"><div class="ph"><h2>Site</h2></div>
+<table class="dt"><thead><tr><th>Field</th><th>Value</th><th>Used by</th></tr></thead><tbody><tr><th>Site elevation</th><td><label class="field"><input value="1,240" aria-label="Site elevation"><span class="u">ft</span></label></td><td class="used">Atmospheric pressure, air density</td></tr><tr><th>Atmospheric pressure</th><td><span class="n">14.05<small>psia</small></span> <span class="faint" style="font-size:11px">derived</span></td><td class="used">psig → psia for PT tables</td></tr><tr><th>Required sensors</th><td><label class="field"><input value="p_liq, p_vap, t_suc, t_liq, supply, return" style="text-align:left;width:180px" aria-label="Required sensors"></label></td><td class="used">Missing = fault; others = unavailable</td></tr></tbody></table></section>
+</div>
+
+</main>
+</div>
+<button class="btn theme-t fs" type="button" onclick="var r=document.documentElement;r.dataset.theme=r.dataset.theme==='light'?'dark':'light'">Light / dark</button>
+<script>(function(){
+"use strict";
+var $ = function(s, r){ return (r || document).querySelector(s); };
+var $$ = function(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+var NS = "http://www.w3.org/2000/svg";
+var NOW = new Date(2026, 8, 26, 14, 32, 8).getTime();   // Sat 26 Sep 2026 14:32:08
+
+/* ---------------- R-410A PT (psig @14.696 -> degF), local atm 14.05 psia ---------------- */
+var PT = [[48.6,0],[62.6,10],[78.3,20],[95.8,30],[101.6,32],[118,40],[129.8,45],[142.2,50],[155.5,55],[169.6,60],[184.6,65],[200.6,70],[217.4,75],[235.3,80],[254.1,85],[274.1,90],[295.1,95],[317.2,100],[340.5,105],[365,110],[390.7,115],[417.7,120],[446.1,125],[475.8,130]];
+var ATM = 14.05;
+function satT(g){ g = g + ATM - 14.696; for (var i = 1; i < PT.length; i++){ if (g <= PT[i][0]){ var a = PT[i-1], b = PT[i]; return a[1] + (b[1]-a[1]) * (g-a[0]) / (b[0]-a[0]); } } return 130; }
+function satP(t){ for (var i = 1; i < PT.length; i++){ if (t <= PT[i][1]){ var a = PT[i-1], b = PT[i]; return a[0] + (b[0]-a[0]) * (t-a[1]) / (b[1]-a[1]) - ATM + 14.696; } } return 470; }
+
+/* ---------------- simulated site history (deterministic) ---------------- */
+function hash(x){ x = Math.sin(x * 12.9898) * 43758.5453; return x - Math.floor(x); }
+function noise(t, k, a){ return (hash(Math.round(t * 12) + k * 1000.37) - .5) * 2 * a; }
+function oatAt(m){ var h = 14 + 32/60 + m/60; return 90.6 + 14 * Math.cos(2*Math.PI*(h-16.2)/24); }
+var SEG = null;
+function schedule(){
+  if (SEG) return SEG;
+  SEG = [{s:-42, e:0.5, on:true}];
+  var t = -42, i = 0;
+  while (t > -7*1440 - 120){
+    var o = oatAt(t);
+    var off = Math.max(7, Math.min(70, 34 - (o-80)*1.1)) * (0.85 + hash(i)*0.3);
+    SEG.push({s:t-off, e:t, on:false}); t -= off;
+    o = oatAt(t);
+    var on = Math.max(7, Math.min(58, 9 + (o-80)*1.35)) * (0.85 + hash(i+50)*0.3);
+    SEG.push({s:t-on, e:t, on:true}); t -= on; i++;
+  }
+  return SEG;
+}
+function segAt(m){ var S = schedule(); for (var i = 0; i < S.length; i++){ if (m >= S[i].s && m < S[i].e) return S[i]; } return S[S.length-1]; }
+function sample(m){
+  var seg = segAt(m), o = oatAt(m), r = {m:m, on:seg.on};
+  var tret = 77.2 + 0.5*Math.sin(m/47) + noise(m,1,.08);
+  var eq = satP(79);
+  var pl = 128.4 + (o-103.8)*0.45, ph = 418.2 + (o-103.8)*3.3;
+  r.oat = o + noise(m,2,.15); r.t_ret = tret;
+  if (seg.on){
+    var s = m - seg.s;
+    r.p_low  = eq + (pl-eq)*(1-Math.exp(-s/2.2)) + noise(m,3,.6);
+    r.p_high = eq + (ph-eq)*(1-Math.exp(-s/1.8)) + noise(m,4,1.4);
+    r.sat_low = satT(r.p_low); r.sat_high = satT(r.p_high);
+    r.sh = 12.4 + 16*Math.exp(-s/4.5) + noise(m,5,.3);
+    r.sc = 9.7*(1-Math.exp(-s/3.5)) + 0.6 + noise(m,6,.2) - 0.6*Math.exp(-s/.8);
+    var e0 = Math.exp(-s/1.5);
+    r.t_suc = (r.sat_low + r.sh)*(1-e0) + 79*e0; r.t_liq = (r.sat_high - r.sc)*(1-e0) + (o-1.5)*e0;
+    var d = 21.2*(1-Math.exp(-s/3.2));
+    r.t_sup = tret - d + noise(m,7,.1); r.dt = r.t_ret - r.t_sup;
+    var b = 1-Math.exp(-s/.25);
+    r.s_ret = -0.28*b + noise(m,8,.006); r.s_sup = 0.44*b + noise(m,9,.008); r.tesp = r.s_sup - r.s_ret;
+    r.cap = s > 4 ? 2.91*(r.dt/21.2)*(0.97+0.03*Math.min(1,s/15)) + noise(m,10,.03) : null;
+  } else {
+    var q = m - seg.s;
+    var k1 = Math.exp(-q/1.6);
+    r.p_low = eq + (pl-eq)*k1 + noise(m,3,.5); r.p_high = eq + (ph-eq)*Math.exp(-q/1.3) + noise(m,4,1);
+    r.sat_low = satT(r.p_low); r.sat_high = satT(r.p_high);
+    r.t_suc = 79 + (56.5-79)*Math.exp(-q/5); r.t_liq = (o-1.5) + (110.3-(o-1.5))*Math.exp(-q/4);
+    r.sh = null; r.sc = null; r.cap = null;
+    var fan = q < 1.5;
+    r.t_sup = tret - 21.2*Math.exp(-q/(fan?1.2:3.5)) + noise(m,7,.1); r.dt = fan ? r.t_ret - r.t_sup : null;
+    r.s_ret = fan ? -0.28 : 0 + noise(m,8,.002); r.s_sup = fan ? 0.44 : 0 + noise(m,9,.002); r.tesp = fan ? .72 : null;
+    if (!fan){ r.s_ret = null; r.s_sup = null; }
+  }
+  return r;
+}
+
+/* ---------------- channels ---------------- */
+var CH = [
+  {k:"p_low",  n:"Suction pressure",  u:"psig", lane:"press", c:"c-low",  d:1},
+  {k:"p_high", n:"Liquid pressure",   u:"psig", lane:"press", c:"c-high", d:1},
+  {k:"t_suc",  n:"Suction line",      u:"°F",   lane:"temp",  c:"c-low",  d:1},
+  {k:"sat_low",n:"Evap. saturation",  u:"°F",   lane:"temp",  c:"c-low",  d:1, dash:1},
+  {k:"t_liq",  n:"Liquid line",       u:"°F",   lane:"temp",  c:"c-high", d:1},
+  {k:"sat_high",n:"Cond. saturation", u:"°F",   lane:"temp",  c:"c-high", d:1, dash:1},
+  {k:"t_ret",  n:"Return air",        u:"°F",   lane:"temp",  c:"c-ret",  d:1},
+  {k:"t_sup",  n:"Supply air",        u:"°F",   lane:"temp",  c:"c-sup",  d:1},
+  {k:"oat",    n:"Outdoor air",       u:"°F",   lane:"temp",  c:"c-out",  d:1},
+  {k:"sh",     n:"Superheat",         u:"°F",   lane:"calc",  c:"c-low",  d:1},
+  {k:"sc",     n:"Subcooling",        u:"°F",   lane:"calc",  c:"c-high", d:1},
+  {k:"dt",     n:"Delta-T",           u:"°F",   lane:"calc",  c:"c-sup",  d:1},
+  {k:"tesp",   n:"TESP",              u:"in. w.c.", lane:"static", c:"c-ink", d:2},
+  {k:"s_sup",  n:"Supply static",     u:"in. w.c.", lane:"static", c:"c-sup", d:2},
+  {k:"s_ret",  n:"Return static",     u:"in. w.c.", lane:"static", c:"c-ret", d:2},
+  {k:"cap",    n:"Total capacity",    u:"tons", lane:"cap",   c:"c-ink",  d:2}
+];
+var LANES = {press:{t:"Pressure", u:"psig", w:1}, temp:{t:"Temperature", u:"°F", w:1.35}, calc:{t:"Calculated", u:"°F", w:.95}, static:{t:"Static pressure", u:"in. w.c.", w:.8}, cap:{t:"Capacity", u:"tons", w:.7}};
+var LANE_ORDER = ["press","temp","calc","static","cap"];
+var GROUPS = [["Refrigerant — raw",["p_low","p_high","t_suc","t_liq"]],["Refrigerant — calculated",["sat_low","sat_high","sh","sc"]],["Air side",["t_ret","t_sup","dt","oat"]],["Static pressure",["tesp","s_sup","s_ret"]],["Performance",["cap"]]];
+var PRESETS = {
+  refrigerant:["p_low","p_high","t_suc","sat_low","t_liq","sat_high","sh","sc"],
+  air:["t_ret","t_sup","oat","dt","tesp","s_sup","s_ret"],
+  pressure:["p_low","p_high","tesp","s_sup","s_ret"],
+  temperature:["t_suc","sat_low","t_liq","sat_high","t_ret","t_sup","oat"],
+  performance:["sh","sc","dt","tesp","cap"],
+  all:CH.map(function(c){ return c.k; })
+};
+var RANGES = {"15m":{span:15, step:5/60}, "1h":{span:60, step:10/60}, "6h":{span:360, step:1}, "24h":{span:1440, step:3}, "7d":{span:10080, step:12}};
+
+function fmt(v, d){ if (v === null || v === undefined || isNaN(v)) return "—"; return v.toFixed(d); }
+function clock(m, long){
+  var d = new Date(NOW + m*60000), h = d.getHours(), mi = d.getMinutes(), s = d.getSeconds();
+  var p = function(x){ return (x < 10 ? "0" : "") + x; };
+  return long ? p(h)+":"+p(mi)+":"+p(s) : p(h)+":"+p(mi);
+}
+var DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+
+function el(tag, attrs, parent){ var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+
+function Chart(root){
+  var plot = $(".plot", root), legend = $(".legend", root), tip = $(".tip", plot);
+  var st = {range:"1h", on:PRESETS.refrigerant.slice(), data:[], hover:null};
+  var svg = el("svg", {"aria-label":"Live system trend"}, plot);
+  var geo = null;
+
+  function build(){
+    var R = RANGES[st.range], out = [];
+    for (var m = -R.span; m <= 0.0001; m += R.step) out.push(sample(m));
+    st.data = out;
+  }
+  function visibleLanes(){ return LANE_ORDER.filter(function(l){ return CH.some(function(c){ return c.lane === l && st.on.indexOf(c.k) >= 0; }); }); }
+  function niceTicks(lo, hi, n){
+    var span = hi - lo, raw = span / n, mag = Math.pow(10, Math.floor(Math.log10(raw))), f = raw/mag;
+    var step = (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * mag;
+    var t = [], v = Math.ceil(lo/step)*step; for (; v <= hi + 1e-9; v += step) t.push(+v.toFixed(6)); return {t:t, step:step};
+  }
+  function render(){
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    var W = plot.clientWidth, H = plot.clientHeight; if (!W || !H) return;
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    var L = 46, Rm = 14, T = 8, B = 24, runH = 10, gap = 22;
+    var lanes = visibleLanes(), R = RANGES[st.range];
+    var x = function(m){ return L + (m + R.span) / R.span * (W - L - Rm); };
+    var ax = el("g", {"class":"axis"}, svg);
+    // run bar (compressor call)
+    var ry = T;
+    el("text", {x:L-6, y:ry+8, "text-anchor":"end", "class":"lane-t"}, ax).textContent = "Y";
+    el("rect", {x:L, y:ry, width:W-L-Rm, height:runH, "class":"runbar"}, svg);
+    var S = schedule();
+    S.forEach(function(sg){ if (!sg.on || sg.e < -R.span) return; var a = Math.max(sg.s, -R.span), b = Math.min(sg.e, 0); el("rect", {x:x(a), y:ry, width:Math.max(1, x(b)-x(a)), height:runH, "class":"runbar on"}, svg); });
+    var top = T + runH + gap, avail = H - top - B - gap*(lanes.length-1);
+    var wsum = lanes.reduce(function(a, l){ return a + LANES[l].w; }, 0);
+    var y0 = top; geo = {x:x, lanes:[], L:L, W:W, Rm:Rm, R:R};
+    lanes.forEach(function(l){
+      var h = avail * LANES[l].w / wsum, chs = CH.filter(function(c){ return c.lane === l && st.on.indexOf(c.k) >= 0; });
+      var lo = Infinity, hi = -Infinity;
+      st.data.forEach(function(r){ chs.forEach(function(c){ var v = r[c.k]; if (v !== null && v !== undefined){ lo = Math.min(lo, v); hi = Math.max(hi, v); } }); });
+      if (l === "static"){ hi = Math.max(hi, .55); lo = Math.min(lo, -.35); }
+      if (l === "calc"){ lo = Math.min(lo, 0); }
+      if (!isFinite(lo)){ lo = 0; hi = 1; }
+      var pad = (hi - lo) * .08 || 1; lo -= pad; hi += pad;
+      var nt = niceTicks(lo, hi, h > 110 ? 4 : 2);
+      var y = function(v){ return y0 + h - (v - lo) / (hi - lo) * h; };
+      // frame + grid
+      nt.t.forEach(function(tv){ var yy = y(tv); if (yy < y0 || yy > y0+h) return; el("line", {x1:L, x2:W-Rm, y1:yy, y2:yy, "class":"gridl"}, svg); el("text", {x:L-6, y:yy+3.5, "text-anchor":"end"}, ax).textContent = Math.abs(nt.step) < 1 ? tv.toFixed(nt.step < .1 ? 2 : 1) : tv; });
+      el("line", {x1:L, x2:L, y1:y0, y2:y0+h, "class":"base"}, svg);
+      var lt = el("text", {x:L, y:y0-5, "class":"lane-t"}, ax); lt.textContent = LANES[l].t + " · " + LANES[l].u;
+      // reference bands / limits
+      if (l === "calc" && st.on.indexOf("sh") >= 0){ el("rect", {x:L, y:y(15), width:W-L-Rm, height:Math.max(0, y(8)-y(15)), "class":"band"}, svg); var bt = el("text", {x:W-Rm-4, y:y(15)-3, "text-anchor":"end"}, ax); bt.textContent = "SH target 8–15"; }
+      if (l === "static" && st.on.indexOf("tesp") >= 0){ el("line", {x1:L, x2:W-Rm, y1:y(.5), y2:y(.5), "class":"limit"}, svg); var mt = el("text", {x:W-Rm-4, y:y(.5)-4, "text-anchor":"end", "class":"limit-t"}, svg); mt.textContent = "Max ESP 0.50"; el("line", {x1:L, x2:W-Rm, y1:y(0), y2:y(0), "class":"gridl", "stroke-dasharray":"2 3"}, svg); }
+      // series
+      chs.forEach(function(c){
+        var d = "", pen = false;
+        st.data.forEach(function(r){ var v = r[c.k]; if (v === null || v === undefined){ pen = false; return; } d += (pen ? "L" : "M") + x(r.m).toFixed(1) + " " + y(v).toFixed(1); pen = true; });
+        el("path", {d:d, "class":"s " + c.c + (c.dash ? " dash" : "")}, svg);
+      });
+      geo.lanes.push({l:l, y:y, y0:y0, h:h, chs:chs});
+      y0 += h + gap;
+    });
+    // x axis
+    var ticks = xTicks(R.span);
+    ticks.forEach(function(m){ var xx = x(m); el("line", {x1:xx, x2:xx, y1:T+runH+gap, y2:H-B, "class":"gridl", "stroke-dasharray":"1 3"}, svg); var t = el("text", {x:xx, y:H-B+15, "text-anchor":"middle"}, ax); t.textContent = st.range === "7d" ? DAYS[new Date(NOW + m*60000).getDay()] + " " + clock(m) : clock(m); });
+    el("line", {x1:L, x2:W-Rm, y1:H-B, y2:H-B, "class":"base"}, svg);
+    var nt2 = el("text", {x:W-Rm, y:H-B+15, "text-anchor":"end"}, ax); nt2.textContent = "";
+    if (st.hover !== null) drawCross(st.hover);
+  }
+  function xTicks(span){
+    var step = span <= 15 ? 3 : span <= 60 ? 10 : span <= 360 ? 60 : span <= 1440 ? 180 : 1440;
+    var endMin = new Date(NOW).getHours()*60 + new Date(NOW).getMinutes() + new Date(NOW).getSeconds()/60;
+    var first = -((endMin % step)), out = [];
+    for (var m = first; m >= -span + step*0.3; m -= step) out.push(m);
+    return out;
+  }
+  var crossG = null;
+  function drawCross(i){
+    if (crossG) crossG.remove(); if (!geo) return;
+    var r = st.data[i]; crossG = el("g", {}, svg);
+    var xx = geo.x(r.m);
+    el("line", {x1:xx, x2:xx, y1:8, y2:plot.clientHeight-24, "class":"cross"}, crossG);
+    geo.lanes.forEach(function(ln){ ln.chs.forEach(function(c){ var v = r[c.k]; if (v === null || v === undefined) return; el("circle", {cx:xx, cy:ln.y(v), r:3, "class":"dot " + c.c}, crossG); }); });
+    var R = RANGES[st.range], html = '<div class="t"><span>' + (st.range === "7d" || st.range === "24h" ? DAYS[new Date(NOW + r.m*60000).getDay()] + " " : "") + clock(r.m, true) + '</span><span class="' + (r.on ? "" : "faint") + '">' + (r.on ? "Cooling · Y on" : "Idle · Y off") + "</span></div>";
+    geo.lanes.forEach(function(ln){ ln.chs.forEach(function(c){ html += '<div class="r"><i class="sw ' + c.c + (c.dash ? " dash" : "") + '" style="width:10px"></i><span>' + c.n + '</span><span class="v">' + fmt(r[c.k], c.d) + ' <small class="muted">' + c.u + "</small></span></div>"; }); });
+    html += '<div class="g">' + (r.m < 0 ? Math.round(-r.m) + " min before now" : "Now") + "</div>";
+    tip.innerHTML = html; tip.style.display = "block";
+    var tw = tip.offsetWidth, left = xx + 14; if (left + tw > plot.clientWidth - 4) left = xx - tw - 14;
+    tip.style.left = left + "px"; tip.style.top = "24px";
+    updateLegend(r);
+  }
+  function legendHTML(){
+    var h = "";
+    GROUPS.forEach(function(g){
+      h += '<div class="grp">' + g[0] + "</div>";
+      g[1].forEach(function(k){ var c = CH.filter(function(z){ return z.k === k; })[0];
+        h += '<button type="button" data-k="' + k + '" aria-pressed="' + (st.on.indexOf(k) >= 0) + '"><span class="ck"></span><i class="sw ' + c.c + (c.dash ? " dash" : "") + '"></i><span>' + c.n + '</span><span class="lv" data-v="' + k + '"></span></button>'; });
+    });
+    h += '<div class="foot" data-foot>Live values · click a channel to show or hide it</div>';
+    legend.innerHTML = h;
+    $$("button[data-k]", legend).forEach(function(b){ b.onclick = function(){ var k = b.dataset.k, i = st.on.indexOf(k); if (i >= 0) st.on.splice(i, 1); else st.on.push(k); b.setAttribute("aria-pressed", i < 0); $$("[data-preset]", root).forEach(function(p){ p.setAttribute("aria-pressed", "false"); }); render(); }; });
+  }
+  function updateLegend(r){
+    var cur = r || st.data[st.data.length-1];
+    CH.forEach(function(c){ var e = $('[data-v="' + c.k + '"]', legend); if (e) e.innerHTML = fmt(cur[c.k], c.d) + "<small>" + c.u + "</small>"; });
+    var f = $("[data-foot]", legend); if (f) f.textContent = r ? "Cursor values · " + clock(r.m, true) : "Live values · click a channel to show or hide it";
+  }
+  plot.addEventListener("mousemove", function(ev){
+    if (!geo) return; var b = plot.getBoundingClientRect(), px = ev.clientX - b.left;
+    if (px < geo.L || px > geo.W - geo.Rm){ leave(); return; }
+    var m = (px - geo.L) / (geo.W - geo.L - geo.Rm) * geo.R.span - geo.R.span;
+    var i = Math.round((m + geo.R.span) / geo.R.step); i = Math.max(0, Math.min(st.data.length-1, i));
+    st.hover = i; drawCross(i);
+  });
+  function leave(){ st.hover = null; if (crossG) crossG.remove(); crossG = null; tip.style.display = "none"; updateLegend(null); }
+  plot.addEventListener("mouseleave", leave);
+  $$("[data-preset]", root).forEach(function(b){ b.onclick = function(){ st.on = PRESETS[b.dataset.preset].slice(); $$("[data-preset]", root).forEach(function(x){ x.setAttribute("aria-pressed", x === b); }); legendHTML(); updateLegend(null); render(); }; });
+  $$("[data-range]", root).forEach(function(b){ b.onclick = function(){ st.range = b.dataset.range; $$("[data-range]", root).forEach(function(x){ x.setAttribute("aria-pressed", x === b); }); build(); leave(); render(); }; });
+  build(); legendHTML(); updateLegend(null); render();
+  if (window.ResizeObserver) new ResizeObserver(function(){ render(); }).observe(plot); else window.addEventListener("resize", render);
+}
+
+/* ---------------- diagnostics: expand rows, show/hide normal ---------------- */
+function Diagnostics(root){
+  $$("tr.row", root).forEach(function(tr){
+    var det = tr.nextElementSibling; if (!det || !det.classList.contains("detail")) return;
+    tr.tabIndex = 0;
+    var tog = function(){ var o = tr.getAttribute("aria-expanded") === "true"; tr.setAttribute("aria-expanded", !o); det.hidden = o; var ch = $(".chev", tr); if (ch) ch.textContent = o ? "▸" : "▾"; };
+    tr.onclick = tog; tr.onkeydown = function(e){ if (e.key === "Enter" || e.key === " "){ e.preventDefault(); tog(); } };
+  });
+  var sn = $("[data-show-normal]", root);
+  if (sn){ var apply = function(){ var on = sn.getAttribute("aria-pressed") === "true"; $$("tr.normal", root).forEach(function(r){ r.hidden = !on; }); };
+    sn.onclick = function(){ sn.setAttribute("aria-pressed", sn.getAttribute("aria-pressed") !== "true"); apply(); }; apply(); }
+  // sparkline of TESP in the first detail
+  $$("svg.spark[data-k]", root).forEach(function(sv){
+    var k = sv.dataset.k, lim = parseFloat(sv.dataset.limit), pts = [];
+    for (var m = -60; m <= 0; m += 0.5) pts.push(sample(m));
+    var W = 300, H = 44, vals = pts.map(function(r){ return r[k]; }).filter(function(v){ return v !== null; });
+    var lo = Math.min.apply(null, vals.concat([isNaN(lim) ? Infinity : lim])) , hi = Math.max.apply(null, vals.concat([isNaN(lim) ? -Infinity : lim]));
+    lo = Math.min(lo, 0); var pad = (hi-lo)*.12; lo -= pad; hi += pad;
+    sv.setAttribute("viewBox", "0 0 " + W + " " + H); sv.setAttribute("preserveAspectRatio", "none");
+    var d = "", pen = false;
+    pts.forEach(function(r, i){ var v = r[k]; if (v === null){ pen = false; return; } d += (pen ? "L" : "M") + (i/(pts.length-1)*W).toFixed(1) + " " + (H - (v-lo)/(hi-lo)*H).toFixed(1); pen = true; });
+    if (!isNaN(lim)) el("line", {x1:0, x2:W, y1:H-(lim-lo)/(hi-lo)*H, y2:H-(lim-lo)/(hi-lo)*H, "class":"limit", "vector-effect":"non-scaling-stroke"}, sv);
+    el("path", {d:d, "class":"s " + (sv.dataset.c || "c-ink"), "vector-effect":"non-scaling-stroke"}, sv);
+  });
+}
+
+/* ---------------- sensor health rows ---------------- */
+function Health(root){
+  $$("tr.x", root).forEach(function(tr){ var d = tr.nextElementSibling; if (!d || !d.classList.contains("det")) return; tr.tabIndex = 0;
+    var t = function(){ d.hidden = !d.hidden; tr.setAttribute("aria-expanded", !d.hidden); };
+    tr.onclick = t; tr.onkeydown = function(e){ if (e.key === "Enter"){ t(); } }; });
+}
+
+/* ---------------- airflow config -> capacity ---------------- */
+var K_ALT = 0.956, DH = 5.80, DT = 21.2, RATED = 41500;
+function Capacity(root){
+  var inp = $("[data-cfm]", root), src = $("[data-cfm-src]", root); if (!inp) return;
+  var NOTES = {
+    mfr:"From manufacturer literature for this air handler at the configured blower tap. <b>Not verified on site</b> — TESP is above the rated maximum, so actual airflow is likely lower.",
+    measured:"Measured on site (enter method and date in Equipment). Capacity uses this value directly.",
+    calc:"Calculated from the blower performance table at the measured TESP. Requires blower model and speed tap in Equipment.",
+    est:"Estimated at 400 CFM per nominal ton. Lowest confidence — use only until a better source is available."
+  };
+  function n(v){ return Math.round(v).toLocaleString("en-US"); }
+  function upd(){
+    var cfm = parseFloat(String(inp.value).replace(/,/g, "")) || 0;
+    var tot = 4.5*K_ALT*cfm*DH, sen = 1.08*K_ALT*cfm*DT, lat = tot - sen;
+    var r100 = function(v){ return Math.round(v/100)*100; };
+    $$("[data-o]", document).forEach(function(e){
+      var k = e.dataset.o;
+      if (k === "tot") e.textContent = n(r100(tot));
+      if (k === "tons") e.textContent = (tot/12000).toFixed(2);
+      if (k === "sen") e.textContent = n(r100(sen));
+      if (k === "lat") e.textContent = n(r100(lat));
+      if (k === "shr") e.textContent = (sen/tot).toFixed(2);
+      if (k === "pct") e.textContent = (tot/RATED*100).toFixed(0);
+      if (k === "cfm") e.textContent = n(cfm);
+      if (k === "cfmton") e.textContent = n(cfm/3.5);
+    });
+    $$("[data-o-w]", document).forEach(function(e){ var k = e.dataset.oW; if (k === "sen") e.style.width = (sen/tot*100) + "%"; if (k === "lat") e.style.width = (lat/tot*100) + "%"; if (k === "pct") e.style.width = Math.min(100, tot/RATED/1.2*100) + "%"; });
+    var s = src ? src.value : "mfr";
+    var nt = $("[data-cfm-note]", root); if (nt) nt.innerHTML = NOTES[s];
+    $$("[data-o-src]", document).forEach(function(e){ e.textContent = src ? src.options[src.selectedIndex].text : ""; });
+  }
+  inp.addEventListener("input", upd); inp.addEventListener("change", function(){ var v = parseFloat(String(inp.value).replace(/,/g, "")); if (!isNaN(v)) inp.value = n(v); upd(); });
+  if (src) src.addEventListener("change", upd);
+  upd();
+}
+
+/* ---------------- views (Monitor / Equipment) ---------------- */
+function Views(){
+  var links = $$("[data-view-link]"); if (!links.length) return;
+  links.forEach(function(a){ a.onclick = function(e){ e.preventDefault(); var v = a.dataset.viewLink;
+    if (!$('[data-view="' + v + '"]')) return;
+    links.forEach(function(x){ if (x.getAttribute("aria-current")) x.removeAttribute("aria-current"); });
+    $$('[data-view-link="' + v + '"]').forEach(function(x){ if (x.closest(".nav")) x.setAttribute("aria-current", "page"); });
+    $$("[data-view]").forEach(function(s){ s.hidden = s.dataset.view !== v; });
+    window.dispatchEvent(new Event("resize"));
+  }; });
+}
+
+function boot(){
+  $$("[data-chart]").forEach(Chart);
+  $$("[data-diag]").forEach(Diagnostics);
+  $$("[data-health]").forEach(Health);
+  $$("[data-capacity]").forEach(Capacity);
+  Views();
+  $$("[data-jump]").forEach(function(a){ a.onclick = function(e){ e.preventDefault(); var t = document.getElementById(a.dataset.jump); if (t) t.scrollIntoView({behavior:"smooth", block:"start"}); }; });
+}
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
+})();
+</script>
+</body></html>
