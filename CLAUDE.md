@@ -8,13 +8,23 @@ A residential HVAC monitoring system, prototype now, planned product to sell to 
 and air sides of a split system and report over MQTT to a dashboard that calculates saturation
 temperatures, superheat, subcooling and delta-T.
 
+## Repository and releases
+- GitHub (private): https://github.com/mrknockknockgaming-droid/hvac-monitor. Work on a branch,
+  open a PR into `main`, merge with a merge commit, then tag.
+- `v0.1.0` — firmware 0.1.0 + dashboard + start script (first tracked release). Firmware .bin
+  files are not attached because they embed the WiFi password from `config.h`.
+- `hardware-rev-a` — carrier boards rev A (commit 8d1bd07). Release has both JLCPCB Gerber zips
+  and BOMs attached: https://github.com/mrknockknockgaming-droid/hvac-monitor/releases/tag/hardware-rev-a
+- The user pastes commands into Windows PowerShell 5.1: give one pasteable block, no `&&`.
+
 ## Folder layout (this folder: C:\Users\mrkno\hvac-monitor)
+- `Desktop\HVAC Monitor` is a directory junction to this folder (same files, not a copy).
 - `CLAUDE.md` — this file. Open Claude Code / VS Code sessions in this folder.
 - `start-hvac.bat` — one-click: stops the Windows Mosquitto service, disables QuickEdit,
   starts the broker (`mosquitto -c hvac.conf -v`) and the dashboard
   (`hvac-monitor-app\start.bat`). Needs admin. Skips the broker or dashboard if one is
   already running (port 8080 check), so double-clicking twice no longer makes duplicates.
-  Desktop shortcut: "HVAC Monitor".
+  Desktop shortcut: "HVAC Monitor" in `Desktopi stuff on my desktop`.
 - `hvac-firmware/` — PlatformIO project, one codebase, builds `-e outdoor`, `-e indoor`
   (plus `outdoor_ota`, `indoor_ota`).
   - `include/config.h` holds WiFi/MQTT settings (not in git; copy of `config.example.h`)
@@ -107,4 +117,7 @@ temperatures, superheat, subcooling and delta-T.
 Parallel: contractor interviews; patent attorney before public demos.
 
 ## Immediate next steps
+- Order the rev A carrier boards from JLCPCB (release `hardware-rev-a`), plus JST-XH and
+  Phoenix MC 1,5 mating plugs, 2.54 mm sockets and DIP-6 sockets; build one of each and
+  bench-test before building spares.
 - When parts arrive: build and verify the power supplies (5.00 V under load) before connecting boards.
