@@ -12,3 +12,14 @@ hvac-firmware/include/config.h
 
 # Old downloads and prototypes
 _archive/
+
+# KiCad hardware: routing tools and intermediates
+hardware/tools/*.jar
+hardware/**/*.dsn
+hardware/**/*.ses
+hardware/**/*.kicad_prl
+hardware/**/fp-info-cache
+hardware/**/*-backups/
+hardware/**/drc-placement.rpt
+hardware/**/drc-pre.rpt
+hardware/scripts/__pycache__/
