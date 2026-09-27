@@ -24,7 +24,7 @@ temperatures, superheat, subcooling and delta-T.
   starts the broker (`mosquitto -c hvac.conf -v`) and the dashboard
   (`hvac-monitor-app\start.bat`). Needs admin. Skips the broker or dashboard if one is
   already running (port 8080 check), so double-clicking twice no longer makes duplicates.
-  Desktop shortcut: "HVAC Monitor" in `Desktopi stuff on my desktop`.
+  Desktop shortcut: "HVAC Monitor" in `Desktop\ai stuff on my desktop\`.
 - `hvac-firmware/` — PlatformIO project, one codebase, builds `-e outdoor`, `-e indoor`
   (plus `outdoor_ota`, `indoor_ota`).
   - `include/config.h` holds WiFi/MQTT settings (not in git; copy of `config.example.h`)
