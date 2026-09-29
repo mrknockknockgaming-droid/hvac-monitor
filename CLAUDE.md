@@ -28,7 +28,9 @@ temperatures, superheat, subcooling and delta-T.
 - `hvac-firmware/` — PlatformIO project, one codebase, builds `-e outdoor`, `-e indoor`
   (plus `outdoor_ota`, `indoor_ota`).
   - `include/config.h` holds WiFi/MQTT settings (not in git; copy of `config.example.h`)
-  - Defining `DEVICE_ID` in config.h switches to cloud mode (`devices/<serial>/...` topics)
+  - Topics are `hvac/<SITE_ID>/<node>/{telemetry,status,cmd,reply}`; the same firmware works
+    with the PC dashboard and the cloud (set MQTT_HOST/PORT/USER/PASS). The `DEVICE_ID` cloud
+    mode with `devices/<serial>/...` topics was in the lost v0.2.0 and does not exist in 0.1.0.
   - PlatformIO CLI: `C:\Users\mrkno\.platformio\penv\Scripts\pio.exe` (not on PATH).
     No `upload_port` is set, so pass `--upload-port COMx` when more than one board is plugged in.
 - `hvac-monitor-app/` — local PC dashboard: Python stdlib HTTP server + paho-mqtt + CoolProp,
@@ -51,8 +53,16 @@ temperatures, superheat, subcooling and delta-T.
 - `_archive/` — original download zips, old copies of start-hvac.bat, and 2025 prototypes
   (PlatformIO `HVAC_Monitor` sketch, MicroPython `temp code.py`, empty `hvacmonitoring.cpp`).
   Not used; safe to delete once nothing is missed.
-- `hvac-cloud/` — cloud MVP (Docker Compose: TimescaleDB, Mosquitto on host port 1884,
-  FastAPI api on :8000, ingest worker). **Not on this PC**; still only in the claude.ai chat.
+- `hvac-cloud/` — cloud stack, rebuilt here 2026-09-29 (the claude.ai original was not used).
+  Ingest worker + FastAPI (`X-API-Key` per account) + `manage.py` + `demo_publisher.py`;
+  SQLite `dev.db` in development, TimescaleDB via `docker-compose.yml` (Mosquitto on host
+  port 1884, API on :8000) — Docker is NOT installed yet, so Compose is untested.
+  - Uses the firmware's existing topics `hvac/<site>/<node>/...`; a system's `site_id` =
+    the node's `SITE_ID`. The firmware has no separate "cloud mode" (that was the lost v0.2.0).
+  - `hvaccloud/calc.py` ports `Hub.compute`/`Hub.flags` from `hvac-monitor-app/server.py`;
+    `tests/test_calc.py` fails if they diverge, so change both together.
+  - Tests: `.venv\Scripts\python.exe -m pytest -q` in `hvac-cloud/` (18 pass). Not done: web
+    app, alerts/email, per-device MQTT accounts and ACLs, TLS.
 
 ## Hardware
 - Boards: 3x ESP-WROOM-32 30-pin dev boards (PCB antenna, no u.FL). Outdoor on COM4, indoor on COM5 (both CP210x; tell them apart by port).

@@ -23,3 +23,11 @@ hardware/**/*-backups/
 hardware/**/drc-placement.rpt
 hardware/**/drc-pre.rpt
 hardware/scripts/__pycache__/
+
+# Cloud stack: local-only files
+hvac-cloud/.venv/
+hvac-cloud/dev.db*
+hvac-cloud/.env
+hvac-cloud/mosquitto/passwd
+hvac-cloud/**/__pycache__/
+hvac-cloud/.pytest_cache/
