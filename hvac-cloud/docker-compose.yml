@@ -1,0 +1,58 @@
+# HVAC Monitor cloud stack: TimescaleDB, Mosquitto (host port 1884), ingest worker, API (port 8000).
+# Not yet run: Docker is not installed on the dev PC. See README.md.
+
+x-app: &app
+  build: .
+  restart: unless-stopped
+  environment:
+    DATABASE_URL: postgresql+psycopg://hvac:${POSTGRES_PASSWORD}@db:5432/hvac
+    MQTT_HOST: mqtt
+    MQTT_PORT: "1883"
+    MQTT_USER: ${MQTT_BACKEND_USER}
+    MQTT_PASS: ${MQTT_BACKEND_PASS}
+    STALE_SECONDS: "30"
+    KEEP_DAYS: "365"
+  depends_on:
+    db:
+      condition: service_healthy
+    mqtt:
+      condition: service_started
+
+services:
+  db:
+    image: timescale/timescaledb:latest-pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: hvac
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: hvac
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hvac -d hvac"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  mqtt:
+    image: eclipse-mosquitto:2
+    restart: unless-stopped
+    ports:
+      - "1884:1883"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./mosquitto/passwd:/mosquitto/config/passwd:ro
+      - mqttdata:/mosquitto/data
+
+  ingest:
+    <<: *app
+    command: ["python", "-m", "hvaccloud.ingest"]
+
+  api:
+    <<: *app
+    ports:
+      - "8000:8000"
+
+volumes:
+  dbdata:
+  mqttdata:
