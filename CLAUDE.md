@@ -117,7 +117,11 @@ temperatures, superheat, subcooling and delta-T.
 Parallel: contractor interviews; patent attorney before public demos.
 
 ## Immediate next steps
-- Order the rev A carrier boards from JLCPCB (release `hardware-rev-a`), plus JST-XH and
-  Phoenix MC 1,5 mating plugs, 2.54 mm sockets and DIP-6 sockets; build one of each and
-  bench-test before building spares.
+- Rev A carrier boards ORDERED from JLCPCB (2026-09-28, 5 of each); parts on hand or on the way.
+  Next: when boards arrive, short-check bare boards, solder low parts first, power up on 24 VAC
+  with no modules (VRAW ~34 V), plug in only the buck and set 5.00 V, then add ESP32 + ADS1115s.
+  Build one of each and bench-test before building spares.
+- Firmware already matches the boards (ADS channel order, divider ratios, 10k NTC refs,
+  GPIO4 1-Wire). J9/TH3 is channel `t_tsuc`, off by default: enable with
+  `{"cmd":"fitted","ch":"t_tsuc","on":true}` once a thermistor is installed.
 - When parts arrive: build and verify the power supplies (5.00 V under load) before connecting boards.
