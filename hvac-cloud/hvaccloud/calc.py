@@ -103,23 +103,23 @@ def flags(s, nodes):
     for node in NODES:
         n = nodes.get(node) or {}
         if not n.get("online"):
-            f.append({"level": "warn", "text": f"{node.title()} node is offline"})
+            f.append({"level": "warn", "code": "node_offline", "node": node, "text": f"{node.title()} node is offline"})
         elif (n.get("data") or {}).get("err"):
-            f.append({"level": "warn", "text": f"{node.title()} sensor issue: {', '.join(n['data']['err'])}"})
+            f.append({"level": "warn", "code": "sensor_issue", "node": node, "text": f"{node.title()} sensor issue: {', '.join(n['data']['err'])}"})
     if s["mode"] not in ("cooling", "heating") or s["run_min"] < 10:
         return f
     sh, sc, dt = s["sh"], s["sc"], s["dt"]
     if sh is not None and sh < 3:
-        f.append({"level": "alert", "text": f"Superheat {sh}°F: risk of liquid floodback"})
+        f.append({"level": "alert", "code": "sh_low", "text": f"Superheat {sh}°F: risk of liquid floodback"})
     if sh is not None and sh > 30:
-        f.append({"level": "warn", "text": f"Superheat {sh}°F is high: possible undercharge or restriction"})
+        f.append({"level": "warn", "code": "sh_high", "text": f"Superheat {sh}°F is high: possible undercharge or restriction"})
     if sc is not None and sc < 3:
-        f.append({"level": "warn", "text": f"Subcooling {sc}°F is low: possible undercharge"})
+        f.append({"level": "warn", "code": "sc_low", "text": f"Subcooling {sc}°F is low: possible undercharge"})
     if sc is not None and sc > 20:
-        f.append({"level": "warn", "text": f"Subcooling {sc}°F is high: possible overcharge or restriction"})
+        f.append({"level": "warn", "code": "sc_high", "text": f"Subcooling {sc}°F is high: possible overcharge or restriction"})
     if s["mode"] == "cooling":
         if dt is not None and s["G"] and dt < 12:
-            f.append({"level": "warn", "text": f"Air delta-T {dt}°F is low"})
+            f.append({"level": "warn", "code": "dt_low", "text": f"Air delta-T {dt}°F is low"})
         if s["ctoa"] is not None and s["ctoa"] > 35:
-            f.append({"level": "warn", "text": f"Condensing {s['ctoa']}°F over ambient: check condenser coil and fan"})
+            f.append({"level": "warn", "code": "ctoa_high", "text": f"Condensing {s['ctoa']}°F over ambient: check condenser coil and fan"})
     return f

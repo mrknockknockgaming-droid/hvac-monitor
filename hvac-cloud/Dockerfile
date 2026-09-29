@@ -3,5 +3,6 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY hvaccloud ./hvaccloud
+COPY web ./web
 COPY manage.py demo_publisher.py ./
 CMD ["uvicorn", "hvaccloud.api:app", "--host", "0.0.0.0", "--port", "8000"]

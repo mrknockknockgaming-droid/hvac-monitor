@@ -10,6 +10,7 @@ superheat / subcooling / fault-flag math.
 | `hvaccloud/api.py` | FastAPI: systems, live state, history, CSV export, settings, commands to nodes |
 | `hvaccloud/calc.py` | Port of the dashboard's `Hub.compute` / `Hub.flags`; `tests/test_calc.py` checks they match |
 | `hvaccloud/db.py` | SQLAlchemy models; SQLite in development, TimescaleDB hypertables in production |
+| `web/` | Fullscope web app (homeowner + technician views), served by the API at `/app/` |
 | `manage.py` | Create accounts, API keys and systems |
 | `demo_publisher.py` | Simulated outdoor + indoor nodes over MQTT (site `demo`) |
 
@@ -36,8 +37,23 @@ With a Mosquitto broker on localhost:1883 (`start-hvac.bat` starts one), in sepa
 .venv\Scripts\python.exe -m uvicorn hvaccloud.api:app --port 8000
 ```
 
-Data goes to `dev.db` (SQLite). Interactive API docs: http://localhost:8000/docs (click
-Authorize and paste the API key).
+Data goes to `dev.db` (SQLite). Web app: http://localhost:8000/ (sign in with the API key).
+Interactive API docs: http://localhost:8000/docs (click Authorize and paste the API key).
+
+## Web app
+
+Plain HTML/CSS/JS in `web/`, no build step; styles are copied from the Fullscope mockups in
+`design/`. It polls the API every 5 s.
+
+- **Home** (`#/home/<id>`): plain-language status, inside/outside/vent temperatures, what we
+  noticed (each fault flag explained for a homeowner), system health, last 24 hours.
+- **Monitor** (`#/monitor/<id>`): superheat, subcooling, delta-T, condensing over ambient,
+  compression ratio; live trend (15 min to 7 days); operating state; sensor health from the
+  nodes' own error codes; refrigerant and air-side tables; current diagnostics; CSV export.
+
+Values the hardware does not measure yet (indoor humidity, static pressure, capacity) are
+shown as "Not installed", never estimated. The API key is kept in the browser's local
+storage; real per-user sign-in comes with going live (roadmap phase 8).
 
 ## API
 
@@ -48,7 +64,8 @@ All endpoints except `/health` need the header `X-API-Key: <key from manage.py c
 | GET | `/api/systems` | Systems on this account |
 | GET | `/api/systems/{id}` | Settings + nodes (online, age, fw, ip, rssi) |
 | PATCH | `/api/systems/{id}` | `refrigerant`, `heat_pump`, `ob_energized` (`cool`/`heat`), `atm_psia` |
-| GET | `/api/systems/{id}/latest` | Newest derived snapshot (mode, pressures, sat temps, SH, SC, delta-T, flags) |
+| GET | `/api/systems/{id}/latest` | Newest derived snapshot (mode, pressures, sat temps, SH, SC, delta-T, flags) + each node's raw telemetry |
+| GET | `/api/systems/{id}/summary?hours=24` | Compressor runtime, cycles, average on-time, outside high, inside average |
 | GET | `/api/systems/{id}/history?minutes=60` | Averaged series, at most ~600 points |
 | GET | `/api/systems/{id}/export.csv?minutes=1440` | Snapshots as CSV (UTC times) |
 | POST | `/api/systems/{id}/commands` | `{"node":"outdoor","cmd":{"cmd":"cal_zero","ch":"p_liq"}}` |
@@ -73,7 +90,8 @@ Commands are the firmware's (see the top of `hvac-firmware/src/node_outdoor.cpp`
 
 ## Not done yet
 
-- Web app for homeowners and contractors (the API is ready for it).
+- Web app: per-user sign-in, maintenance reminders, contractor details, service requests,
+  a diagnostics history (only current flags are shown), calibration from the browser.
 - Alerts and email when a flag appears.
 - Per-device MQTT accounts and topic ACLs (every node shares one account for now).
 - HTTPS / MQTT TLS (Phase 8, going live).

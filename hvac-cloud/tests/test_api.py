@@ -70,3 +70,42 @@ def test_command_round_trip(world):
     assert cmds[0]["reply"] == {"cmd": "cal_zero", "ok": True} and cmds[0]["replied_at"]
     assert c.post(f"/api/systems/{sid}/commands", headers=h,
                   json={"node": "outdoor", "cmd": {"ch": "p_liq"}}).status_code == 422
+
+
+def test_latest_includes_raw_node_data(world):
+    c, h = world["client"], world["h1"]
+    sid = c.get("/api/systems", headers=h).json()[0]["id"]
+    latest = c.get(f"/api/systems/{sid}/latest", headers=h).json()
+    assert latest["nodes"]["outdoor"]["data"]["p"]["liq"] == 360.0
+    assert latest["nodes"]["indoor"]["data"]["air"]["supply"] == 57.0
+
+
+def test_summary_counts_runtime_and_cycles(sessions, seeded, tables):
+    """Two 10-minute runs 20 minutes apart, one message every 30 s."""
+    client = TestClient(create_app(sessions, publisher=lambda *a: True))
+    ingest = Ingest(sessions, tables)
+    off_out = {**COOL_OUT, "mode": {"Y": False, "OB": False}}
+    off_in = {**COOL_IN, "mode": {}}
+    start = time.time() - 50 * 60
+    for k in range(100):                                   # 50 min
+        t = start + k * 30
+        m = k * 0.5
+        on = m < 10 or 30 <= m < 40
+        ingest.handle("hvac/home/indoor/telemetry", json.dumps(COOL_IN if on else off_in).encode(), now=t)
+        ingest.handle("hvac/home/outdoor/telemetry", json.dumps(COOL_OUT if on else off_out).encode(), now=t + 1)
+    h = {"X-API-Key": seeded["key1"]}
+    sid = client.get("/api/systems", headers=h).json()[0]["id"]
+    sm = client.get(f"/api/systems/{sid}/summary?hours=1", headers=h).json()
+    assert sm["cycles"] == 2
+    assert 0.3 < sm["runtime_hours"] < 0.36            # ~20 min
+    assert 9 < sm["avg_on_minutes"] < 11
+    assert sm["outside_high"] == 95.0 and sm["inside_avg"] == 76.0
+
+
+def test_web_app_is_served(world):
+    c = world["client"]
+    r = c.get("/", follow_redirects=False)
+    assert r.status_code in (302, 307) and r.headers["location"] == "/app/"
+    page = c.get("/app/")
+    assert page.status_code == 200 and "app.js" in page.text
+    assert c.get("/app/app.js").status_code == 200 and c.get("/app/fullscope.css").status_code == 200
