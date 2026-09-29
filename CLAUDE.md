@@ -61,8 +61,14 @@ temperatures, superheat, subcooling and delta-T.
     the node's `SITE_ID`. The firmware has no separate "cloud mode" (that was the lost v0.2.0).
   - `hvaccloud/calc.py` ports `Hub.compute`/`Hub.flags` from `hvac-monitor-app/server.py`;
     `tests/test_calc.py` fails if they diverge, so change both together.
-  - Tests: `.venv\Scripts\python.exe -m pytest -q` in `hvac-cloud/` (18 pass). Not done: web
-    app, alerts/email, per-device MQTT accounts and ACLs, TLS.
+  - Fault flags carry a `code` (sh_low, sc_high, dt_low, ctoa_high, node_offline, ...) in both
+    the dashboard and the cloud; the web app maps codes to homeowner wording.
+  - Web app `hvac-cloud/web/` (served at `/app/`, plain JS, styles copied from the Fullscope
+    mockups in `design/`): Home (homeowner) and Monitor (technician) views. Unmeasured values
+    (indoor humidity, static pressure, capacity) show "Not installed", never estimates.
+  - Tests: `.venv\Scripts\python.exe -m pytest -q` in `hvac-cloud/` (21 pass). Not done:
+    per-user sign-in (API key in browser storage for now), alerts/email, maintenance and
+    contractor info, diagnostics history, per-device MQTT accounts and ACLs, TLS.
 
 ## Hardware
 - Boards: 3x ESP-WROOM-32 30-pin dev boards (PCB antenna, no u.FL). Outdoor on COM4, indoor on COM5 (both CP210x; tell them apart by port).

@@ -8,20 +8,23 @@ import csv
 import datetime as dt
 import io
 import json
+import os
 import random
 import threading
 from typing import Literal
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import PlainTextResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 
 from . import calc, settings
-from .db import (ApiKey, Command, Device, Snapshot, System, as_utc, hash_key, init_db, make_engine,
-                 session_factory, utcnow)
+from .db import (ApiKey, Command, Device, Snapshot, System, Telemetry, as_utc, hash_key, init_db,
+                 make_engine, session_factory, utcnow)
 from .refrigerants import FLUIDS
 
+WEB_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "web")
 HISTORY_KEYS = ["p_low", "p_high", "sat_low", "sat_high", "t_suc", "t_liq", "sh", "sc", "oat", "t_sup", "t_ret", "dt"]
 CSV_COLS = ["mode", "p_low", "p_high", "sat_low", "sat_high", "t_suc", "t_liq", "sh", "sc",
             "oat", "orh", "t_ret", "t_sup", "dt", "ctoa", "approach", "Y", "W", "G", "OB"]
@@ -114,6 +117,10 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS):
     def health():
         return {"ok": True}
 
+    @app.get("/", include_in_schema=False)
+    def root():
+        return RedirectResponse("/app/")
+
     @app.get("/api/refrigerants")
     def refrigerants():
         return list(FLUIDS)
@@ -141,13 +148,46 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS):
 
     @app.get("/api/systems/{system_id}/latest")
     def latest(system=Depends(own_system), s=Depends(db)):
+        """Newest derived snapshot, plus each node's status and its newest raw telemetry."""
         now = utcnow()
         devices = {d.node: d for d in s.scalars(select(Device).where(Device.system_id == system.id))}
         row = s.execute(select(Snapshot.time, Snapshot.data).where(Snapshot.system_id == system.id)
                         .order_by(Snapshot.time.desc()).limit(1)).first()
+        nodes = {}
+        for n in calc.NODES:
+            d = devices.get(n)
+            if d is None:
+                nodes[n] = None
+                continue
+            raw = s.scalar(select(Telemetry.data).where(Telemetry.device_id == d.id)
+                           .order_by(Telemetry.time.desc()).limit(1))
+            nodes[n] = {**device_view(d, now), "data": raw}
         return {"time": as_utc(row.time).isoformat() if row else None,
-                "derived": row.data if row else None,
-                "nodes": {n: device_view(devices[n], now) if n in devices else None for n in calc.NODES}}
+                "run_started_at": as_utc(system.run_started_at).isoformat() if system.run_started_at else None,
+                "derived": row.data if row else None, "nodes": nodes}
+
+    @app.get("/api/systems/{system_id}/summary")
+    def summary(hours: float = Query(24, gt=0, le=24 * 31), system=Depends(own_system), s=Depends(db)):
+        """Compressor runtime and cycles, outside high and inside average over the last `hours`."""
+        on_s, cycles, prev_t, prev_on, oat_hi, ret = 0.0, 0, None, False, None, []
+        for t, d in snapshots(s, system, hours * 60):
+            t = as_utc(t).timestamp()
+            on = d.get("mode") in ("cooling", "heating")
+            if on and not prev_on:
+                cycles += 1
+            if prev_on and prev_t is not None:
+                on_s += min(t - prev_t, 60)      # a gap longer than a minute is an outage, not runtime
+            prev_t, prev_on = t, on
+            oat = calc.num(d.get("oat"))
+            if oat is not None:
+                oat_hi = oat if oat_hi is None else max(oat_hi, oat)
+            v = calc.num(d.get("t_ret"))
+            if v is not None:
+                ret.append(v)
+        return {"hours": hours, "runtime_hours": round(on_s / 3600, 2), "cycles": cycles,
+                "avg_on_minutes": round(on_s / 60 / cycles, 1) if cycles else None,
+                "outside_high": calc.r1(oat_hi), "inside_avg": calc.r1(sum(ret) / len(ret)) if ret else None,
+                "cycle_started_at": as_utc(system.run_started_at).isoformat() if system.run_started_at else None}
 
     @app.get("/api/systems/{system_id}/history")
     def history(minutes: float = Query(60, gt=0, le=60 * 24 * 90), system=Depends(own_system), s=Depends(db)):
@@ -200,6 +240,8 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS):
                          .order_by(Command.id.desc()).limit(limit)).all()
         return [_command_view(c, node) for c, node in rows]
 
+    if os.path.isdir(WEB_DIR):
+        app.mount("/app", StaticFiles(directory=WEB_DIR, html=True), name="web")
     return app
 
 
