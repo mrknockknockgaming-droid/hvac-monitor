@@ -111,3 +111,8 @@ def test_web_app_is_served(world):
     assert c.get("/app/app.js").status_code == 200 and c.get("/app/fullscope.css").status_code == 200
     assert page.headers["cache-control"] == "no-cache"          # browsers recheck for a newer version
     assert c.get("/app/fullscope-wordmark.webp").status_code == 200
+    for font in ("D-DIN.woff", "D-DIN-Bold.woff"):                # self-hosted, no font CDN
+        r = c.get(f"/app/fonts/{font}")
+        assert r.status_code == 200 and r.content[:4] == b"wOFF" and r.headers["content-type"] == "font/woff"
+    assert "SIL OPEN FONT LICENSE" in c.get("/app/fonts/OFL.txt").text
+    assert "cdnfonts" not in page.text

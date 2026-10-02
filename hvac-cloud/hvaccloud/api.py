@@ -8,6 +8,7 @@ import csv
 import datetime as dt
 import io
 import json
+import mimetypes
 import os
 import random
 import threading
@@ -24,6 +25,7 @@ from .db import (ApiKey, Command, Device, Snapshot, System, Telemetry, as_utc, h
                  make_engine, session_factory, utcnow)
 from .refrigerants import FLUIDS
 
+mimetypes.add_type("font/woff", ".woff")   # Windows does not know it; StaticFiles uses mimetypes
 WEB_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "web")
 HISTORY_KEYS = ["p_low", "p_high", "sat_low", "sat_high", "t_suc", "t_liq", "sh", "sc", "oat", "t_sup", "t_ret", "dt"]
 CSV_COLS = ["mode", "p_low", "p_high", "sat_low", "sat_high", "t_suc", "t_liq", "sh", "sc",

@@ -3,9 +3,9 @@
    2. Components: design/fullscope.css, unchanged.
    3. Web app additions (sign-in page etc.), not part of the design system. */
 
-:root{--bg:#14181c;--surface:#1a1f24;--surface-2:#20262c;--surface-3:#29313a;--inset:#111417;--line:#2c343c;--line-strong:#626d78;--ink:#e4e8eb;--ink-muted:#9ea8b1;--ink-faint:#848f99;--focus:#7fb2e5;--ok:#5cb87a;--caution:#e2a33b;--fault:#f06a60;--advisory:#73aee2;--sensor:#b69ad8;--offline:#848f99;--ok-soft:#1b2a21;--caution-soft:#2c2416;--fault-soft:#331e1c;--advisory-soft:#18242f;--sensor-soft:#241f2e;--side-low:#8fb6d6;--side-high:#d6a583;--series-supply:#62c3b5;--series-return:#d6bf6e;--series-outdoor:#ad9fd8;--series-ink:var(--ink);--bar-bg:#0d1013;--bar-bg-2:#1b2026;--bar-bg-3:#29313a;--bar-line:#262d34;--bar-line-strong:#626d78;--bar-ink:#e4e8eb;--bar-muted:#9ea8b1;--bar-faint:#848f99;--bar-ok:#5cb87a;--bar-caution:#e2a33b;--bar-advisory:#73aee2;--bar-sensor:#b69ad8;--bar-focus:#7fb2e5;--brand-black:#000000;--brand-chrome:#cecece;--brand-green:#7dff08;--font-sans:Bahnschrift, "DIN Next", "D-DIN", Barlow, "Segoe UI", system-ui, sans-serif;--font-mono:"IBM Plex Mono", Consolas, ui-monospace, monospace;color-scheme:dark}
+:root{--bg:#14181c;--surface:#1a1f24;--surface-2:#20262c;--surface-3:#29313a;--inset:#111417;--line:#2c343c;--line-strong:#626d78;--ink:#e4e8eb;--ink-muted:#9ea8b1;--ink-faint:#848f99;--focus:#7fb2e5;--ok:#5cb87a;--caution:#e2a33b;--fault:#f06a60;--advisory:#73aee2;--sensor:#b69ad8;--offline:#848f99;--ok-soft:#1b2a21;--caution-soft:#2c2416;--fault-soft:#331e1c;--advisory-soft:#18242f;--sensor-soft:#241f2e;--side-low:#8fb6d6;--side-high:#d6a583;--series-supply:#62c3b5;--series-return:#d6bf6e;--series-outdoor:#ad9fd8;--series-ink:var(--ink);--bar-bg:#0d1013;--bar-bg-2:#1b2026;--bar-bg-3:#29313a;--bar-line:#262d34;--bar-line-strong:#626d78;--bar-ink:#e4e8eb;--bar-muted:#9ea8b1;--bar-faint:#848f99;--bar-ok:#5cb87a;--bar-caution:#e2a33b;--bar-advisory:#73aee2;--bar-sensor:#b69ad8;--bar-focus:#7fb2e5;--brand-black:#000000;--brand-chrome:#cecece;--brand-green:#7dff08;--font-sans:"D-DIN", Bahnschrift, "DIN Next", "DIN 2014", "Segoe UI", system-ui, sans-serif;--font-mono:"D-DIN", Bahnschrift, "DIN Next", "DIN 2014", "Segoe UI", system-ui, sans-serif;color-scheme:dark}
 :root[data-theme=light]{--bg:#e9ecef;--surface:#ffffff;--surface-2:#f4f6f8;--surface-3:#e3e8ec;--inset:#fbfcfd;--line:#d6dce1;--line-strong:#838e98;--ink:#161d23;--ink-muted:#56626c;--ink-faint:#6a7680;--focus:#1f64b0;--ok:#237a44;--caution:#9a5c00;--fault:#bf2f26;--advisory:#1f64b0;--sensor:#6b44a3;--offline:#6a7680;--ok-soft:#e3f2e8;--caution-soft:#fbf0dc;--fault-soft:#fbe5e3;--advisory-soft:#e3eefa;--sensor-soft:#efe8f8;--side-low:#2d5f8a;--side-high:#8a4f28;--series-supply:#177a6d;--series-return:#86700f;--series-outdoor:#5d4d9a;--series-ink:var(--ink);--bar-bg:#0d1013;--bar-bg-2:#1b2026;--bar-bg-3:#29313a;--bar-line:#262d34;--bar-line-strong:#626d78;--bar-ink:#e4e8eb;--bar-muted:#9ea8b1;--bar-faint:#848f99;--bar-ok:#5cb87a;--bar-caution:#e2a33b;--bar-advisory:#73aee2;--bar-sensor:#b69ad8;--bar-focus:#7fb2e5;--brand-black:#000000;--brand-chrome:#cecece;--brand-green:#7dff08;color-scheme:light}
-body{margin:0;background:var(--bg)}
+body{margin:0;background:var(--bg);font-family:var(--font-sans)}
 
 /* Fullscope — instrument UI stylesheet. Every colour is a token (tokens.css). */
 .fs, .fs *{box-sizing:border-box}
@@ -412,6 +412,10 @@ select.sel{background-color:var(--surface-2);border:1px solid var(--line-strong)
 }
 
 /* ---------- web app additions (not in the mockups) ---------- */
+/* D-DIN, self-hosted (fonts/, SIL OFL 1.1, see fonts/OFL.txt). Regular and bold only, so 500 renders
+   regular and 600 renders bold, as design-system-README asks: headings bold, values regular. */
+@font-face{font-family:"D-DIN";font-style:normal;font-weight:400;font-display:swap;src:url("fonts/D-DIN.woff") format("woff")}
+@font-face{font-family:"D-DIN";font-style:normal;font-weight:700;font-display:swap;src:url("fonts/D-DIN-Bold.woff") format("woff")}
 .login{max-width:420px;margin:12vh auto 0;padding:0 16px}
 .login .h-card{padding:18px}
 .login h1{margin:0 0 6px;font-size:20px;font-weight:600}

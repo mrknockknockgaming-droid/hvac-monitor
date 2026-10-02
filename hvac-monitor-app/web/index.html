@@ -4,12 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HVAC Monitor</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.cdnfonts.com" crossorigin><link href="https://fonts.cdnfonts.com/css/d-din" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root{--bg:#E9EDF0;--panel:#FFFFFF;--ink:#16202A;--ink2:#5A6873;--line:#D5DCE1;--low:#1F5FAE;--low-bg:#E6EEF8;--high:#C0312A;--high-bg:#F9E9E7;--air:#2E7D5B;--warn:#A86400;--alert:#C0312A;
- --num:"Barlow Condensed","Arial Narrow",sans-serif;--sans:"Barlow",system-ui,sans-serif;color-scheme:light}
+ --num:"D-DIN Condensed","Bahnschrift Condensed","Arial Narrow",sans-serif;--sans:"D-DIN",Bahnschrift,system-ui,sans-serif;color-scheme:light}
 @media (prefers-color-scheme:dark){:root{--bg:#0E1317;--panel:#161D22;--ink:#DCE3E8;--ink2:#8D9AA4;--line:#27323A;--low:#6FA2E6;--low-bg:#15222F;--high:#EF6F66;--high-bg:#2A1917;--air:#6CC39B;--warn:#E3A33D;--alert:#EF6F66;color-scheme:dark}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 var(--sans)}
@@ -49,7 +48,7 @@ button.primary{background:var(--ink);color:var(--panel);border-color:var(--ink)}
 @media (max-width:980px){.grid2{grid-template-columns:1fr}}
 form.cal{display:grid;grid-template-columns:auto 1fr;gap:10px 12px;align-items:center}
 form.cal label{color:var(--ink2)}
-.log{font:13px/1.5 ui-monospace,Consolas,monospace;max-height:180px;overflow:auto;background:var(--bg);border-radius:4px;padding:8px;margin-top:12px;white-space:pre-wrap}
+.log{font:13px/1.5 var(--sans);max-height:180px;overflow:auto;background:var(--bg);border-radius:4px;padding:8px;margin-top:12px;white-space:pre-wrap}
 .help{color:var(--ink2);font-size:.9rem;margin:10px 0 0}
 table.nodes{width:100%;border-collapse:collapse;font-size:.93rem}
 table.nodes th,table.nodes td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line)}

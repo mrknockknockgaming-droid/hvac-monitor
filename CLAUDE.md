@@ -72,7 +72,9 @@ temperatures, superheat, subcooling and delta-T.
     `design/design-system-README.md` before UI work. `web/fullscope.css` = tokens from the
     mockups + `design/fullscope.css` verbatim + small app additions; dark first; logo is the
     WebP wordmark embedded in the mockups (`web/fullscope-wordmark.webp`), always on the dark
-    header bar. Unmeasured values (indoor humidity, static pressure, capacity, Airflow health)
+    header bar. Type is D-DIN everywhere, self-hosted in `web/fonts/` (SIL OFL, `OFL.txt`); the
+    old dashboard and `docs/` still load it from fonts.cdnfonts.com.
+    Unmeasured values (indoor humidity, static pressure, capacity, Airflow health)
     show "Not installed" / "Not measured", never estimates.
   - Ingest restarts the compressor-run timer after a data gap longer than STALE_SECONDS, so a
     power/WiFi outage mid-cooling can't create a multi-day "cycle" and false flags.
