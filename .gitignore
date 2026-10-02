@@ -31,3 +31,4 @@ hvac-cloud/.env
 hvac-cloud/mosquitto/passwd
 hvac-cloud/**/__pycache__/
 hvac-cloud/.pytest_cache/
+hvac-cloud/my-api-key.txt

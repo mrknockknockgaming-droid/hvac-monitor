@@ -21,10 +21,14 @@ temperatures, superheat, subcooling and delta-T.
 - `Desktop\HVAC Monitor` is a directory junction to this folder (same files, not a copy).
 - `CLAUDE.md` — this file. Open Claude Code / VS Code sessions in this folder.
 - `start-hvac.bat` — one-click: stops the Windows Mosquitto service, disables QuickEdit,
-  starts the broker (`mosquitto -c hvac.conf -v`) and the dashboard
-  (`hvac-monitor-app\start.bat`). Needs admin. Skips the broker or dashboard if one is
-  already running (port 8080 check), so double-clicking twice no longer makes duplicates.
+  starts the broker (`mosquitto -c hvac.conf -v`), the PC dashboard (`hvac-monitor-app\start.bat
+  --no-browser`, still at http://localhost:8080) and then `hvac-cloud\start-cloud.bat` (ingest
+  worker + Fullscope web app, opens http://localhost:8000). Needs admin. Skips anything already
+  running, so double-clicking twice makes no duplicates. Uses `%SystemRoot%\System32\find.exe`
+  explicitly (Git's `find` can shadow it on PATH).
   Desktop shortcut: "HVAC Monitor" in `Desktop\ai stuff on my desktop\`.
+  - Web app sign-in key: `hvac-cloud\my-api-key.txt` (git-ignored); account and system "home"
+    are in `hvac-cloud\dev.db`.
 - `hvac-firmware/` — PlatformIO project, one codebase, builds `-e outdoor`, `-e indoor`
   (plus `outdoor_ota`, `indoor_ota`).
   - `include/config.h` holds WiFi/MQTT settings (not in git; copy of `config.example.h`)
