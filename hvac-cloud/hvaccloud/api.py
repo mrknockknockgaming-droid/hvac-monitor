@@ -242,6 +242,14 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS):
 
     if os.path.isdir(WEB_DIR):
         app.mount("/app", StaticFiles(directory=WEB_DIR, html=True), name="web")
+
+        @app.middleware("http")
+        async def revalidate_web_files(request, call_next):
+            """Browsers must check for a newer web app on every load instead of reusing old copies."""
+            response = await call_next(request)
+            if request.url.path.startswith("/app"):
+                response.headers["Cache-Control"] = "no-cache"
+            return response
     return app
 
 
