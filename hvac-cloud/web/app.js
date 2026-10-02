@@ -52,6 +52,8 @@ function clock(t, secs) {
 }
 function ampm(t) { return new Date(t).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); }
 function ago(s) { return !isNum(s) ? "—" : s < 90 ? Math.round(s) + " s" : s < 5400 ? Math.round(s / 60) + " min" : (s / 3600).toFixed(1) + " h"; }
+var LOGO = '<div class="brand logo" title="Fullscope — Continuous diagnostics &amp; control"><img src="fullscope-wordmark.webp" alt="Fullscope"></div>';
+var TAGLINE = '<div class="tagline caps">Continuous diagnostics &amp; control</div>';
 function st(cls, word) { return '<span class="st ' + cls + '">' + esc(word) + "</span>"; }
 var MODE_WORD = { cooling: "Cooling", heating: "Heating", heat_aux: "Aux heat", fan: "Fan only", idle: "Idle" };
 
@@ -83,7 +85,7 @@ var FLAG_INFO = {
     sub: "Doesn't affect heating or cooling.", why: "One sensor isn't giving a reading. Your system runs the same; it only gives your technician extra information.",
     todo: ["Nothing to do on your own; your contractor can check it."] }
 };
-var LEVEL = { fault: { word: "Needs service", rank: 3 }, caution: { word: "Check soon", rank: 2 }, advisory: { word: "Good to know", rank: 1 }, ok: { word: "All good", rank: 0 } };
+var LEVEL = { fault: { word: "Service needed", rank: 3 }, caution: { word: "Check soon", rank: 2 }, advisory: { word: "Good to know", rank: 1 }, ok: { word: "Good", rank: 0 } };
 var TECH_LEVEL = { fault: "Fault", caution: "Warning", advisory: "Advisory" };
 
 function flags() { return ((S.latest && S.latest.derived) || {}).flags || []; }
@@ -167,8 +169,8 @@ function signOut(msg) {
 function renderLogin() {
   root.className = "fs home";
   root.innerHTML =
+    '<header class="h-top">' + LOGO + TAGLINE + "</header>" +
     '<div class="login"><div class="h-card">' +
-    '<div class="brand" style="padding:0;border:0;margin-bottom:12px"><i></i>Fullscope</div>' +
     "<h1>Sign in</h1><p>Paste the API key for your account (from <span class=\"mono\">manage.py create-key</span>).</p>" +
     '<form id="lf"><input id="k" type="password" autocomplete="off" placeholder="hvk_…" aria-label="API key">' +
     '<div class="row"><button class="h-btn primary" type="submit">Sign in</button></div>' +
@@ -226,7 +228,7 @@ function renderHome() {
   var dtTxt = isNum(d.t_ret) && isNum(d.t_sup) ? Math.abs(Math.round(d.t_ret - d.t_sup)) + "° " + (d.t_sup < d.t_ret ? "cooler" : "warmer") + " than inside" : "Supply air";
 
   var html =
-    '<header class="h-top"><div class="brand"><i></i>Fullscope</div>' +
+    '<header class="h-top">' + LOGO + TAGLINE +
     '<div class="who"><b>' + esc(S.sys.name) + "</b><span>" + esc(S.sys.refrigerant) + (S.systems.length > 1 ? "" : "") + "</span></div>" +
     '<div class="upd">' + (fresh ? '<span class="live">LIVE</span>' : st("offline", "Offline")) +
     "<span>" + (L && L.time ? "Updated " + ampm(L.time) : "") + "</span>" +
@@ -247,7 +249,7 @@ function renderHome() {
     "</div></section>" +
     '<div class="h-grid"><div class="h-col">' + homeNoticed(fresh) + "</div>" +
     '<div class="h-col">' + homeHealth(fresh, running) + homeChart() + "</div></div>" +
-    '<div class="h-foot"><span>Monitoring by Fullscope</span><span>Checks run every 5 seconds while the system is on</span></div>' +
+    '<div class="h-foot"><span class="foot-brand"><b>Fullscope</b><span class="caps">Continuous diagnostics &amp; control</span></span><span>Checks run every 5 seconds while the system is on</span></div>' +
     "</main>";
   root.innerHTML = html;
   bindCommon();
@@ -300,8 +302,10 @@ function homeHealth(fresh, running) {
   var dtT = isNum(d.dt) ? "Air from your vents is about " + Math.round(Math.abs(d.dt)) + "° " + (d.mode === "heating" ? "warmer" : "cooler") + " than the air going in." : "Temperature change across the indoor coil looks right.";
   var rows = [
     area(d.mode === "heating" ? "Heating" : "Cooling", ["dt_low"], dtT, "caution", "Check soon", "Air from your vents isn't changing temperature as much as it should."),
+    { name: "Airflow", cls: "offline", word: "Not measured",
+      text: "Needs static pressure sensors, planned for a later phase. A dirty filter can still show up as weak cooling above." },
     area("Refrigerant", ["sh_low", "sh_high", "sc_low", "sc_high"], "Pressures and temperatures look normal for today's weather.",
-      hasFlag("sh_low") ? "fault" : "caution", hasFlag("sh_low") ? "Needs service" : "Check soon", "Refrigerant readings are outside the normal range. See above."),
+      hasFlag("sh_low") ? "fault" : "caution", hasFlag("sh_low") ? "Service needed" : "Check soon", "Refrigerant readings are outside the normal range. See above."),
     area("Outdoor unit", ["ctoa_high"], "Releasing heat normally.", "caution", "Check soon", "It isn't releasing heat as well as it should. See above."),
     { name: "Monitoring", cls: online === 2 && !hasFlag("sensor_issue") ? "ok" : online ? "advisory" : "offline",
       word: online === 2 ? "Connected" : online ? "Partly connected" : "Offline",
@@ -369,7 +373,7 @@ function renderMonitor() {
   var ob = d.OB, obWord = S.sys.ob_energized === "heat" ? "B" : "O";
 
   var html =
-    '<header class="top"><div class="top-row"><div class="brand"><i></i>Fullscope</div>' +
+    '<header class="top"><div class="top-row">' + LOGO +
     '<div class="ident"><b>' + esc(S.sys.name) + "</b><span>site " + esc(S.sys.site_id) + " · " + esc(S.sys.refrigerant) + " · " + fmt(S.sys.atm_psia, 2) + " psia" + (S.sys.heat_pump ? " · heat pump" : "") + "</span></div>" +
     '<div class="top-fields">' +
     '<div class="tf"><span>Mode</span><div class="mode"><span class="word">' + esc(MODE_WORD[d.mode] || "—") + '</span><span class="calls" aria-label="Thermostat calls">' +

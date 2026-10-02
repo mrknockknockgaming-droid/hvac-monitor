@@ -86,6 +86,10 @@ class Ingest:
 
         nodes = {n: self._node_state(s, system, n, now) for n in calc.NODES}
         run_start = as_utc(system.run_started_at)
+        last = as_utc(s.scalar(select(Snapshot.time).where(Snapshot.system_id == system.id)
+                               .order_by(Snapshot.time.desc()).limit(1)))
+        if last is None or now - last.timestamp() > self.stale:
+            run_start = None   # after an outage the compressor call can't be assumed to have continued
         snap, run_start = calc.compute(system.calc_config(), nodes,
                                        run_start.timestamp() if run_start else None, now, self.tables)
         system.run_started_at = ts(run_start) if run_start else None

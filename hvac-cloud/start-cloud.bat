@@ -15,7 +15,7 @@ if not exist "dev.db" (
 )
 
 echo Starting the cloud ingest worker...
-powershell -NoProfile -Command "exit [int](-not (Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*hvaccloud.ingest*' }))"
+powershell -NoProfile -Command "exit [int](-not (Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'python.exe' -and $_.CommandLine -like '*hvaccloud.ingest*' }))"
 if %errorlevel% equ 0 (
   echo       Already running, leaving it alone.
 ) else (

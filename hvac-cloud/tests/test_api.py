@@ -109,3 +109,5 @@ def test_web_app_is_served(world):
     page = c.get("/app/")
     assert page.status_code == 200 and "app.js" in page.text
     assert c.get("/app/app.js").status_code == 200 and c.get("/app/fullscope.css").status_code == 200
+    assert page.headers["cache-control"] == "no-cache"          # browsers recheck for a newer version
+    assert c.get("/app/fullscope-wordmark.webp").status_code == 200

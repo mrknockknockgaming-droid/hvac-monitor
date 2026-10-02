@@ -67,10 +67,16 @@ temperatures, superheat, subcooling and delta-T.
     `tests/test_calc.py` fails if they diverge, so change both together.
   - Fault flags carry a `code` (sh_low, sc_high, dt_low, ctoa_high, node_offline, ...) in both
     the dashboard and the cloud; the web app maps codes to homeowner wording.
-  - Web app `hvac-cloud/web/` (served at `/app/`, plain JS, styles copied from the Fullscope
-    mockups in `design/`): Home (homeowner) and Monitor (technician) views. Unmeasured values
-    (indoor humidity, static pressure, capacity) show "Not installed", never estimates.
-  - Tests: `.venv\Scripts\python.exe -m pytest -q` in `hvac-cloud/` (21 pass). Not done:
+  - Web app `hvac-cloud/web/` (served at `/app/`, plain JS): Home (homeowner) and Monitor
+    (technician) views. Follows the Fullscope design system in `design/` — read
+    `design/design-system-README.md` before UI work. `web/fullscope.css` = tokens from the
+    mockups + `design/fullscope.css` verbatim + small app additions; dark first; logo is the
+    WebP wordmark embedded in the mockups (`web/fullscope-wordmark.webp`), always on the dark
+    header bar. Unmeasured values (indoor humidity, static pressure, capacity, Airflow health)
+    show "Not installed" / "Not measured", never estimates.
+  - Ingest restarts the compressor-run timer after a data gap longer than STALE_SECONDS, so a
+    power/WiFi outage mid-cooling can't create a multi-day "cycle" and false flags.
+  - Tests: `.venv\Scripts\python.exe -m pytest -q` in `hvac-cloud/` (22 pass). Not done:
     per-user sign-in (API key in browser storage for now), alerts/email, maintenance and
     contractor info, diagnostics history, per-device MQTT accounts and ACLs, TLS.
 

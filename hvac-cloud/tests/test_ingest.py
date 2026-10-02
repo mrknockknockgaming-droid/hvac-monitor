@@ -34,12 +34,25 @@ def test_telemetry_stores_and_derives(sessions, seeded, tables):
 
 
 def test_run_time_survives_restart_and_stale_nodes_drop(sessions, seeded, tables):
-    msg(Ingest(sessions, tables), "home", "indoor", "telemetry", COOL_IN, T0)
-    msg(Ingest(sessions, tables), "home", "outdoor", "telemetry", COOL_OUT, T0 + 1)
+    first = Ingest(sessions, tables)
+    msg(first, "home", "indoor", "telemetry", COOL_IN, T0)
+    for k in range(66):                                    # outdoor keeps reporting for 11 min; indoor goes quiet
+        msg(first, "home", "outdoor", "telemetry", COOL_OUT, T0 + 1 + k * 10)
     fresh = Ingest(sessions, tables)                       # restarted worker, empty cache
     snap = msg(fresh, "home", "outdoor", "telemetry", COOL_OUT, T0 + 11 * 60)
     assert snap["run_min"] >= 11                           # run start came from the database
     assert any("Indoor node is offline" in f["text"] for f in snap["flags"])   # indoor reading is 11 min old
+
+
+def test_run_time_restarts_after_an_outage(sessions, seeded, tables):
+    i = Ingest(sessions, tables)
+    msg(i, "home", "indoor", "telemetry", COOL_IN, T0)
+    msg(i, "home", "outdoor", "telemetry", COOL_OUT, T0 + 1)
+    later = T0 + 3 * 86400                                 # nodes back after 3 days, still cooling
+    msg(i, "home", "indoor", "telemetry", COOL_IN, later)
+    snap = msg(i, "home", "outdoor", "telemetry", COOL_OUT, later + 1)
+    assert snap["run_min"] < 1                             # a new cycle, not a 3-day one
+    assert not any(f["code"] in ("dt_low", "sh_low", "sh_high") for f in snap["flags"])
 
 
 def test_status_and_will(sessions, seeded, tables):
