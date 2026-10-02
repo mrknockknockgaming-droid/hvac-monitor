@@ -35,7 +35,7 @@ Diagnostics always show their evidence and use hedged language: "Possible airflo
 
 ## Voice
 
-- Sentence case everywhere; no all-caps headings. Short mono tags (`MEAS`, `CALC`, `Y`, `O`) are the only uppercase.
+- Sentence case everywhere; no all-caps headings. Short tags (`MEAS`, `CALC`, `Y`, `O`) and the tagline are the only uppercase.
 - Units always, and always visually secondary: `128.4 psig`, `12.4 °F`, `0.72 in. w.c.`, `1,400 CFM`, `34,900 BTU/hr`. Negative static uses a true minus (−0.28); positive static carries a plus (+0.44).
 - Don't imply precision you don't have: capacity rounds to 100 BTU/hr and states its airflow source.
 - Missing optional sensors say "Not installed", in `ink-faint` — never a fault. Only a sensor configured as required can raise a fault.
@@ -46,7 +46,7 @@ Diagnostics always show their evidence and use hedged language: "Possible airflo
 - **Structure from lines, not cards.** Hairlines (`line`) divide rows and cells; panels have a 1px outline and `radius-2` (3px) at most. No shadows, gradients, glows or glass.
 - **Colour means state.** `ok`, `caution`, `fault`, `advisory`, `sensor`, `offline`. Every state is also a glyph shape (● ▲ ■ ◆ ✕ ○) plus a word, so it survives colour blindness and greyscale printing. A non-normal summary cell gets a 2px top rule in its state colour; a warning cell also gets `caution-soft` behind it.
 - **Low vs high side** are told apart by a 2px rule under the column header (`side-low` steel, `side-high` copper) and by line colour in the trend — never by filling whole areas blue and red.
-- **Type**: the logo's tagline is set in DIN, so the UI is too — Bahnschrift (Microsoft's DIN 1451, built into Windows 10/11) first, Barlow from Google Fonts on Macs, iPhones and Android. IBM Plex Mono for tags and ids.
+- **Type**: everything is set in DIN, the face of the logo's tagline — D-DIN (open licence, DIN 1451) loaded as a web font on every device, Bahnschrift (Microsoft's DIN 1451, built into Windows) as the fallback. One family for all text, including tags, ids and numbers; D-DIN has regular and bold, so headings are bold and values regular. Self-host the D-DIN files before production rather than relying on a public font CDN.
 - **Numbers**: tabular numerals everywhere (`font-feature-settings: "tnum"`). The value dominates; label above in `ink-muted`; target and source below in `caption`.
 - **Density**: 13px body, 6px/12px cell padding, 12px gaps. Designed for a 13–16" laptop at 1366–1440 wide; collapses to two and then one column for tablets.
 
