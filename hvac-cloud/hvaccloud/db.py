@@ -52,6 +52,37 @@ class ApiKey(Base):
         return ApiKey(account_id=account_id, prefix=key[:12], key_hash=hash_key(key)), key
 
 
+class User(Base):
+    """A person who signs in. Contractor users belong to an account and see all its systems;
+    homeowner users have no account and see the systems they are members of."""
+    __tablename__ = "users"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    email: Mapped[str] = mapped_column(String(320), unique=True)
+    name: Mapped[str | None] = mapped_column(String(200))
+    role: Mapped[str] = mapped_column(String(16))                    # "contractor" | "homeowner"
+    account_id: Mapped[int | None] = mapped_column(ForeignKey("accounts.id"))
+    password_hash: Mapped[str | None] = mapped_column(String(200))   # None until a password is set
+    created_at: Mapped[dt.datetime] = mapped_column(default=utcnow)
+    last_login: Mapped[dt.datetime | None]
+
+
+class UserSession(Base):
+    """A signed-in browser. Only a SHA-256 of the cookie token is stored."""
+    __tablename__ = "user_sessions"
+    token_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    created_at: Mapped[dt.datetime] = mapped_column(default=utcnow)
+    expires_at: Mapped[dt.datetime]
+    last_seen: Mapped[dt.datetime] = mapped_column(default=utcnow)
+
+
+class SystemMember(Base):
+    """A homeowner user's access to a system."""
+    __tablename__ = "system_members"
+    system_id: Mapped[int] = mapped_column(ForeignKey("systems.id"), primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
+
+
 def hash_key(key):
     return hashlib.sha256(key.encode()).hexdigest()
 

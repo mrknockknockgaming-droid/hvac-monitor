@@ -444,3 +444,6 @@ select.sel{background-color:var(--surface-2);border:1px solid var(--line-strong)
 .field.wide input{width:220px;text-align:left}
 .field.wide input[type="date"]{width:150px}
 .h-maint li .h-btn{padding:5px 10px;font-size:13px}
+.login .lbl{display:block;font-size:13px;color:var(--ink-muted);margin:10px 0 4px}
+.login input[type="email"]{font-family:var(--font-sans)}
+.login .alt{margin:14px 0 0;font-size:13px}

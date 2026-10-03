@@ -25,7 +25,7 @@ def world(sessions, seeded, tables):
 def test_needs_a_valid_key(world):
     c = world["client"]
     assert c.get("/health").json() == {"ok": True}
-    assert c.get("/api/systems").status_code == 422                     # header missing
+    assert c.get("/api/systems").status_code == 401                     # not signed in
     assert c.get("/api/systems", headers={"X-API-Key": "hvk_nope"}).status_code == 401
 
 

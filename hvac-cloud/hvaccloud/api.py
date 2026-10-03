@@ -1,6 +1,9 @@
 """REST API for accounts' systems: live state, history, CSV export, settings and node commands.
 
-Every request carries an account API key (create one with manage.py) in the X-API-Key header.
+Requests are signed in either with a session cookie (POST /api/auth/login, see auth.py) or with an
+account API key in the X-API-Key header (create one with manage.py). Contractors (and API keys) see
+all their account's systems; homeowners see the systems they are members of, read-only apart from
+marking the air filter changed.
 
 Run:  uvicorn hvaccloud.api:app --port 8000
 """
@@ -14,15 +17,15 @@ import random
 import threading
 from typing import Literal
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Query
+from fastapi import Cookie, Depends, FastAPI, Header, HTTPException, Query, Request, Response
 from fastapi.responses import PlainTextResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 
-from . import calc, service, settings
-from .db import (Account, Alert, AlertMute, AlertPrefs, ApiKey, Command, ServiceInfo, Device, Snapshot, System, Telemetry, as_utc, hash_key, init_db,
-                 make_engine, session_factory, utcnow)
+from . import auth, calc, service, settings
+from .db import (Account, Alert, AlertMute, AlertPrefs, ApiKey, Command, Device, ServiceInfo, Snapshot, System,
+                 SystemMember, Telemetry, User, as_utc, hash_key, init_db, make_engine, session_factory, utcnow)
 from .refrigerants import FLUIDS
 
 mimetypes.add_type("font/woff", ".woff")   # Windows does not know it; StaticFiles uses mimetypes
@@ -98,6 +101,16 @@ class DoneIn(BaseModel):
     date: dt.date | None = None        # the viewer's local date; the server's when left out
 
 
+class LoginIn(BaseModel):
+    email: str = Field(max_length=320)
+    password: str = Field(max_length=200)
+
+
+class PasswordIn(BaseModel):
+    current: str = Field(max_length=200)
+    new: str = Field(max_length=200)
+
+
 class CommandIn(BaseModel):
     node: Literal["outdoor", "indoor"]
     cmd: dict
@@ -109,25 +122,58 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS):
         init_db(engine)
         sessions = session_factory(engine)
     publish = publisher or MqttPublisher()
+    throttle = auth.Throttle()
     app = FastAPI(title="HVAC Monitor cloud API", version="0.1.0")
 
     def db():
         with sessions() as s:
             yield s
 
-    def account_id(x_api_key: str = Header(...), s=Depends(db)):
-        key = s.scalar(select(ApiKey).where(ApiKey.key_hash == hash_key(x_api_key)))
-        if key is None:
-            raise HTTPException(401, "invalid API key")
-        key.last_used = utcnow()
-        s.commit()
-        return key.account_id
+    def principal(request: Request, s=Depends(db), x_api_key: str | None = Header(None),
+                  fs_session: str | None = Cookie(None)):
+        """Who is asking: an API key (acts as a contractor of its account) or a signed-in user."""
+        if x_api_key:
+            key = s.scalar(select(ApiKey).where(ApiKey.key_hash == hash_key(x_api_key)))
+            if key is None:
+                raise HTTPException(401, "invalid API key")
+            key.last_used = utcnow()
+            s.commit()
+            return auth.Principal(role="contractor", account_id=key.account_id, via="key")
+        user_id = auth.session_user_id(s, fs_session)
+        user = s.get(User, user_id) if user_id else None
+        if user is None:
+            raise HTTPException(401, "sign in required")
+        if request.method not in ("GET", "HEAD") and not request.headers.get(auth.CSRF_HEADER):
+            raise HTTPException(403, f"missing {auth.CSRF_HEADER} header")
+        return auth.Principal(role=user.role, account_id=user.account_id, user_id=user.id)
 
-    def own_system(system_id: int, acct=Depends(account_id), s=Depends(db)):
-        system = s.get(System, system_id)
-        if system is None or system.account_id != acct:
+    def visible_systems(s, who):
+        if who.is_tech:
+            return select(System).where(System.account_id == who.account_id)
+        return select(System).join(SystemMember, SystemMember.system_id == System.id).where(SystemMember.user_id == who.user_id)
+
+    def own_system(system_id: int, who=Depends(principal), s=Depends(db)):
+        system = s.scalar(visible_systems(s, who).where(System.id == system_id))
+        if system is None:
             raise HTTPException(404, "no such system")
         return system
+
+    def tech_system(system=Depends(own_system), who=Depends(principal)):
+        """Technician-only endpoints: settings, commands, calibration, alert handling."""
+        if not who.is_tech:
+            raise HTTPException(403, "for your contractor only")
+        return system
+
+    def me_view(s, who):
+        user = s.get(User, who.user_id) if who.user_id else None
+        acct = s.get(Account, who.account_id) if who.account_id else None
+        return {"role": who.role, "via": who.via,
+                "user": {"id": user.id, "email": user.email, "name": user.name} if user else None,
+                "account": {"id": acct.id, "name": acct.name} if acct else None}
+
+    def set_cookie(response, token):
+        response.set_cookie(auth.COOKIE, token, max_age=int(settings.SESSION_DAYS * 86400), httponly=True,
+                            samesite="lax", secure=settings.COOKIE_SECURE, path="/")
 
     def device_view(d, now):
         seen = as_utc(d.last_seen)
@@ -153,13 +199,54 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS):
     def root():
         return RedirectResponse("/app/")
 
+    # ---------- sign-in ----------
+    @app.post("/api/auth/login")
+    def login(body: LoginIn, response: Response, s=Depends(db)):
+        email = body.email.strip().lower()
+        if throttle.blocked(email):
+            raise HTTPException(429, "Too many attempts. Try again in 15 minutes.")
+        user = s.scalar(select(User).where(User.email == email))
+        if user is None or not auth.check_password(body.password, user.password_hash):
+            throttle.fail(email)
+            raise HTTPException(401, "Email or password is not right.")
+        throttle.clear(email)
+        user.last_login = utcnow()
+        token = auth.new_session(s, user.id)
+        s.commit()
+        set_cookie(response, token)
+        return me_view(s, auth.Principal(role=user.role, account_id=user.account_id, user_id=user.id))
+
+    @app.post("/api/auth/logout")
+    def logout(response: Response, s=Depends(db), fs_session: str | None = Cookie(None)):
+        auth.end_session(s, fs_session)
+        response.delete_cookie(auth.COOKIE, path="/")
+        return {"ok": True}
+
+    @app.get("/api/auth/me")
+    def me(who=Depends(principal), s=Depends(db)):
+        return me_view(s, who)
+
+    @app.post("/api/auth/password")
+    def change_password(body: PasswordIn, who=Depends(principal), s=Depends(db)):
+        user = s.get(User, who.user_id) if who.user_id else None
+        if user is None:
+            raise HTTPException(400, "API keys have no password")
+        if not auth.check_password(body.current, user.password_hash):
+            raise HTTPException(401, "The current password is not right.")
+        problem = auth.password_problem(body.new)
+        if problem:
+            raise HTTPException(422, problem)
+        user.password_hash = auth.hash_password(body.new)
+        s.commit()
+        return {"ok": True}
+
     @app.get("/api/refrigerants")
     def refrigerants():
         return list(FLUIDS)
 
     @app.get("/api/systems")
-    def list_systems(acct=Depends(account_id), s=Depends(db)):
-        rows = s.scalars(select(System).where(System.account_id == acct).order_by(System.id))
+    def list_systems(who=Depends(principal), s=Depends(db)):
+        rows = s.scalars(visible_systems(s, who).order_by(System.id))
         return [system_view(x) for x in rows]
 
     @app.get("/api/systems/{system_id}")
@@ -169,7 +256,7 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS):
         return {**system_view(system), "devices": [device_view(d, now) for d in devices]}
 
     @app.patch("/api/systems/{system_id}")
-    def update_system(body: SystemSettings, system=Depends(own_system), s=Depends(db)):
+    def update_system(body: SystemSettings, system=Depends(tech_system), s=Depends(db)):
         changes = body.model_dump(exclude_none=True)
         if "refrigerant" in changes and changes["refrigerant"] not in FLUIDS:
             raise HTTPException(422, f"refrigerant must be one of {list(FLUIDS)}")
@@ -266,7 +353,7 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS):
             raise HTTPException(404, f"kind must be one of {list(service.KINDS)}")
 
     @app.post("/api/systems/{system_id}/alerts/{alert_id}/ack")
-    def ack_alert(alert_id: int, body: AckIn | None = None, system=Depends(own_system), s=Depends(db)):
+    def ack_alert(alert_id: int, body: AckIn | None = None, system=Depends(tech_system), s=Depends(db)):
         """Mark an alert as being handled (or undo with {"ack": false})."""
         a = s.get(Alert, alert_id)
         if a is None or a.system_id != system.id:
@@ -288,12 +375,12 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS):
                 "email_enabled": bool(settings.SMTP_HOST), "mutes": mutes}
 
     @app.get("/api/systems/{system_id}/alert-settings")
-    def get_alert_settings(system=Depends(own_system), s=Depends(db)):
+    def get_alert_settings(system=Depends(tech_system), s=Depends(db)):
         """Who gets alert emails, and which alert codes are muted."""
         return alert_settings_view(s, system)
 
     @app.put("/api/systems/{system_id}/alert-settings")
-    def set_alert_settings(body: AlertSettingsIn, system=Depends(own_system), s=Depends(db)):
+    def set_alert_settings(body: AlertSettingsIn, system=Depends(tech_system), s=Depends(db)):
         prefs = s.get(AlertPrefs, system.id) or AlertPrefs(system_id=system.id, email_owner=True, email_contractor=False)
         if body.email_owner is not None:
             prefs.email_owner = body.email_owner
@@ -304,7 +391,7 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS):
         return alert_settings_view(s, system)
 
     @app.put("/api/systems/{system_id}/alert-mutes/{code}")
-    def mute_alerts(code: str, body: MuteIn, system=Depends(own_system), s=Depends(db)):
+    def mute_alerts(code: str, body: MuteIn, system=Depends(tech_system), s=Depends(db)):
         """No emails for this alert code for `hours` (0 unmutes). Alerts are still recorded and shown."""
         if not code.replace("_", "").isalnum() or len(code) > 32:
             raise HTTPException(422, "bad alert code")
@@ -325,7 +412,7 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS):
         return service.service_view(s, system.id)
 
     @app.put("/api/systems/{system_id}/service/contractor")
-    def set_contractor(body: ContractorIn, system=Depends(own_system), s=Depends(db)):
+    def set_contractor(body: ContractorIn, system=Depends(tech_system), s=Depends(db)):
         info = s.get(ServiceInfo, system.id) or ServiceInfo(system_id=system.id)
         info.name, info.phone, info.email = [(v or "").strip() or None for v in (body.name, body.phone, body.email)]
         s.add(info)
@@ -333,7 +420,7 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS):
         return service.service_view(s, system.id)
 
     @app.patch("/api/systems/{system_id}/service/items/{kind}")
-    def update_item(kind: str, body: ItemIn, system=Depends(own_system), s=Depends(db)):
+    def update_item(kind: str, body: ItemIn, system=Depends(tech_system), s=Depends(db)):
         check_kind(kind)
         row = service.get_item(s, system.id, kind)
         for k in body.model_fields_set:
@@ -344,15 +431,18 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS):
         return service.service_view(s, system.id)
 
     @app.post("/api/systems/{system_id}/service/items/{kind}/done")
-    def item_done(kind: str, body: DoneIn | None = None, system=Depends(own_system), s=Depends(db)):
+    def item_done(kind: str, body: DoneIn | None = None, system=Depends(own_system), who=Depends(principal),
+                  s=Depends(db)):
         check_kind(kind)
+        if kind != "filter" and not who.is_tech:
+            raise HTTPException(403, "for your contractor only")
         row = service.get_item(s, system.id, kind)
         row.last_done = (body.date if body and body.date else None) or dt.date.today()
         s.commit()
         return service.service_view(s, system.id)
 
     @app.post("/api/systems/{system_id}/commands")
-    def send_command(body: CommandIn, system=Depends(own_system), s=Depends(db)):
+    def send_command(body: CommandIn, system=Depends(tech_system), s=Depends(db)):
         if not isinstance(body.cmd.get("cmd"), str):
             raise HTTPException(422, 'cmd needs a "cmd" verb, e.g. {"cmd":"cal_zero","ch":"p_liq"}')
         device = s.scalar(select(Device).where(Device.system_id == system.id, Device.node == body.node))
@@ -366,7 +456,7 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS):
         return _command_view(cmd, body.node)
 
     @app.get("/api/systems/{system_id}/commands")
-    def list_commands(limit: int = Query(20, gt=0, le=200), system=Depends(own_system), s=Depends(db)):
+    def list_commands(limit: int = Query(20, gt=0, le=200), system=Depends(tech_system), s=Depends(db)):
         rows = s.execute(select(Command, Device.node).join(Device).where(Device.system_id == system.id)
                          .order_by(Command.id.desc()).limit(limit)).all()
         return [_command_view(c, node) for c, node in rows]

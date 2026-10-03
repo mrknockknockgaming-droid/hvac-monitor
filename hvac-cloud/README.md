@@ -12,6 +12,7 @@ superheat / subcooling / fault-flag math.
 | `hvaccloud/calc.py` | Port of the dashboard's `Hub.compute` / `Hub.flags`; `tests/test_calc.py` checks they match |
 | `hvaccloud/db.py` | SQLAlchemy models; SQLite in development, TimescaleDB hypertables in production |
 | `web/` | Fullscope web app (homeowner + technician views), served by the API at `/app/` |
+| `hvaccloud/auth.py` | Passwords (scrypt), sign-in sessions, who is asking (contractor / homeowner / API key) |
 | `hvaccloud/service.py` | Maintenance reminders (air filter, tune-up) and the service contractor |
 | `hvaccloud/maintenance.py` | Nightly backup of `dev.db` and thinning of old data |
 | `manage.py` | Create accounts, API keys and systems; send a test alert email; backup / prune by hand |
@@ -42,6 +43,25 @@ With a Mosquitto broker on localhost:1883 (`start-hvac.bat` starts one), in sepa
 
 Data goes to `dev.db` (SQLite). Web app: http://localhost:8000/ (sign in with the API key).
 Interactive API docs: http://localhost:8000/docs (click Authorize and paste the API key).
+
+## Sign-in and roles
+
+- **Contractor** users belong to an account and see all of its systems, including the
+  technician pages. **Homeowner** users see only the systems they are members of: the
+  homeowner page, read-only except "I changed it" for the air filter.
+- Users sign in with email and password (scrypt hashes). The session lives in an HttpOnly
+  cookie for `SESSION_DAYS` (30, renewed while in use); set `COOKIE_SECURE=true` once the site
+  runs on HTTPS. Requests that change something with the cookie must carry `X-Requested-With`
+  (the web app adds it), which stops other sites from forging them. Eight wrong passwords for
+  one email lock it for 15 minutes. Users change their password on the Account page.
+- API keys still work (header `X-API-Key`) and act as a contractor of their account.
+
+```powershell
+.venv\Scripts\python.exe manage.py create-user you@example.com --name "Tyler" --account 1
+.venv\Scripts\python.exe manage.py create-user owner@example.com --role homeowner --system 1
+.venv\Scripts\python.exe manage.py set-password you@example.com
+```
+Both commands ask for the password at a hidden prompt (typed twice, at least 10 characters).
 
 ## Web app
 
@@ -114,11 +134,16 @@ On PostgreSQL, TimescaleDB's retention policy expires old data; back up with `pg
 
 ## API
 
-All endpoints except `/health` need the header `X-API-Key: <key from manage.py create-key>`.
+All endpoints except `/health` and `/api/auth/login` need a signed-in session cookie or the
+header `X-API-Key: <key from manage.py create-key>`. Endpoints marked *tech* answer 403 to homeowners.
 
 | Method | Path | |
 |---|---|---|
-| GET | `/api/systems` | Systems on this account |
+| POST | `/api/auth/login` | `{"email","password"}`; sets the session cookie |
+| POST | `/api/auth/logout` | Ends the session |
+| GET | `/api/auth/me` | Role, user and account of whoever is asking |
+| POST | `/api/auth/password` | `{"current","new"}` |
+| GET | `/api/systems` | Systems this user can see |
 | GET | `/api/systems/{id}` | Settings + nodes (online, age, fw, ip, rssi) |
 | PATCH | `/api/systems/{id}` | `refrigerant`, `heat_pump`, `ob_energized` (`cool`/`heat`), `atm_psia` |
 | GET | `/api/systems/{id}/latest` | Newest derived snapshot (mode, pressures, sat temps, SH, SC, delta-T, flags) + each node's raw telemetry |
@@ -155,7 +180,8 @@ Commands are the firmware's (see the top of `hvac-firmware/src/node_outdoor.cpp`
 
 ## Not done yet
 
-- Web app: per-user sign-in, service requests sent through the cloud (now the homeowner's email),
+- Web app: invites (a contractor adds a homeowner by email) and the contractor fleet page,
+  service requests sent through the cloud (now the homeowner's email),
   sending the homeowner and contractor emails from separate per-user accounts.
 - Per-device MQTT accounts and topic ACLs (every node shares one account for now).
 - HTTPS / MQTT TLS (Phase 8, going live).
