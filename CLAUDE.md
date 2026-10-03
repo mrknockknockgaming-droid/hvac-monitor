@@ -76,6 +76,9 @@ temperatures, superheat, subcooling and delta-T.
     old dashboard and `docs/` still load it from fonts.cdnfonts.com.
     Unmeasured values (indoor humidity, static pressure, capacity, Airflow health)
     show "Not installed" / "Not measured", never estimates.
+    Third view "Sensors & calibration" (`#/setup/<id>`) sends the firmware's calibration and
+    config commands and shows replies; use it for Phase 2 zeroing / span / ice-bath checks.
+    Settings shown there come from the node's status message (refreshed with `{"cmd":"status"}`).
   - Ingest restarts the compressor-run timer after a data gap longer than STALE_SECONDS, so a
     power/WiFi outage mid-cooling can't create a multi-day "cycle" and false flags.
   - Alerts (`hvaccloud/alerts.py`): a flag that holds 5 min raises an alert, gone 5 min clears

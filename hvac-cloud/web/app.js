@@ -23,7 +23,7 @@ $("#theme").addEventListener("click", function () {
 // ---------------------------------------------------------------- state
 var S = {
   key: load("fs_key"), systems: null, sys: null, view: null,
-  latest: null, summary: null, history: {}, alerts: null, range: load("fs_range") || "1h",
+  latest: null, summary: null, history: {}, alerts: null, commands: null, pending: {}, form: {}, msg: null, range: load("fs_range") || "1h",
   preset: load("fs_preset") || "refrigerant", off: {}, lastOk: null, error: null, timers: []
 };
 var LIVE_MS = 5000, STALE_S = 30, OUTAGE_S = 90;   // a gap longer than OUTAGE_S breaks chart lines
@@ -111,7 +111,7 @@ function dataFresh() {
 
 // ---------------------------------------------------------------- routing / loop
 function route() {
-  var m = location.hash.match(/^#\/(home|monitor)\/(\d+)/);
+  var m = location.hash.match(/^#\/(home|monitor|setup)\/(\d+)/);
   if (!S.key) return renderLogin();
   if (!S.systems) return start();
   if (!m) {
@@ -124,7 +124,8 @@ function route() {
   var changed = !S.sys || S.sys.id !== id;
   S.view = m[1];
   S.sys = sys;
-  if (changed) { S.latest = null; S.summary = null; S.history = {}; S.alerts = null; stopTimers(); startTimers(); }
+  if (changed) { S.latest = null; S.summary = null; S.history = {}; S.alerts = null; S.commands = null; S.pending = {}; S.form = {}; stopTimers(); startTimers(); }
+  if (S.view === "setup") pollCommands();
   render();
 }
 window.addEventListener("hashchange", route);
@@ -141,6 +142,7 @@ function startTimers() {
   S.timers.push(setInterval(pollLatest, LIVE_MS));
   S.timers.push(setInterval(pollSummary, 60000));
   S.timers.push(setInterval(pollAlerts, 30000));
+  S.timers.push(setInterval(function () { if (S.view === "setup") pollCommands(); }, 2500));
   S.timers.push(setInterval(pollHistory, 30000));
 }
 function pollLatest() {
@@ -208,8 +210,14 @@ function render() {
   if (!S.view || !S.sys) return;
   var open = $$("details[open]").map(function (d) { return d.id; });
   var y = window.scrollY;
-  if (S.view === "home") renderHome(); else renderMonitor();
+  var act = document.activeElement, focusId = act && act.id && root.contains(act) ? act.id : null;
+  var selStart = focusId && act.selectionStart, selEnd = focusId && act.selectionEnd;
+  if (S.view === "home") renderHome(); else if (S.view === "setup") renderSetup(); else renderMonitor();
   open.forEach(function (id) { var d = document.getElementById(id); if (d) d.open = true; });
+  // re-rendering every 5 s must not wipe what the technician is typing
+  $$("input[id^='f-']", root).forEach(function (i) { if (S.form[i.id] !== undefined) i.value = S.form[i.id]; });
+  var f = focusId && document.getElementById(focusId);
+  if (f) { f.focus(); try { if (selStart !== null && selStart !== undefined) f.setSelectionRange(selStart, selEnd); } catch (e) {} }
   window.scrollTo(0, y);
 }
 
@@ -384,8 +392,8 @@ function drawHomeChart() {
 }
 
 // ================================================================ TECHNICIAN VIEW
-function renderMonitor() {
-  root.className = "fs";
+// Top bar + section nav shared by the technician pages ("monitor", "setup").
+function techHeader(page) {
   var L = S.latest, d = (L && L.derived) || {}, n = (L && L.nodes) || {}, sm = S.summary || {};
   var fresh = dataFresh(), fl = flags();
   var counts = { fault: 0, caution: 0, advisory: 0, sensor: 0 };
@@ -395,7 +403,8 @@ function renderMonitor() {
   var running = d.mode === "cooling" || d.mode === "heating";
   var ob = d.OB, obWord = S.sys.ob_energized === "heat" ? "B" : "O";
 
-  var html =
+  var diagHref = page === "monitor" ? "#" : "#/monitor/" + S.sys.id;
+  return (
     '<header class="top"><div class="top-row">' + LOGO +
     '<div class="ident"><b>' + esc(S.sys.name) + "</b><span>site " + esc(S.sys.site_id) + " · " + esc(S.sys.refrigerant) + " · " + fmt(S.sys.atm_psia, 2) + " psia" + (S.sys.heat_pump ? " · heat pump" : "") + "</span></div>" +
     '<div class="top-fields">' +
@@ -406,13 +415,24 @@ function renderMonitor() {
     '<div class="tf"><span>Outdoor air</span><b>' + num(d.oat, "°F") + "</b></div>" +
     '<div class="tf"><span>Runtime</span><b>' + (running ? num(d.run_min, "min", 0) + ' <span class="muted" style="font-weight:400">cycle</span> · ' : "") +
     num(sm.runtime_hours, "h", 1) + ' <span class="muted" style="font-weight:400">24 h</span></b></div>' +
-    '<a class="tf alerts" href="#" data-jump="diagnostics" style="text-decoration:none;color:inherit"><span>Diagnostics</span><div class="row">' + diagSum + "</div></a>" +
+    '<a class="tf alerts" href="' + diagHref + '"' + (page === "monitor" ? ' data-jump="diagnostics"' : "") + ' style="text-decoration:none;color:inherit"><span>Diagnostics</span><div class="row">' + diagSum + "</div></a>" +
     "</div></div>" +
-    '<nav class="nav" aria-label="Sections"><a aria-current="page">Monitor</a><a href="#/home/' + S.sys.id + '">Homeowner view</a>' +
+    '<nav class="nav" aria-label="Sections">' + navLink("monitor", "Monitor", page) + navLink("setup", "Sensors &amp; calibration", page) +
+    '<a href="#/home/' + S.sys.id + '">Homeowner view</a>' +
     '<span class="spacer"></span><div class="tools">' +
-    (fresh ? '<span class="live">LIVE · 5 s</span>' : st("offline", "Offline")) + systemPicker("monitor") +
-    '<button class="btn" type="button" data-export>Export CSV</button><button class="btn" type="button" data-signout>Sign out</button></div></nav></header>' +
-    (S.error ? '<div class="stale-banner">Can\'t reach the server: ' + esc(S.error) + "</div>" : !fresh && L ? '<div class="stale-banner">No readings for ' + ago((Date.now() - new Date(L.time).getTime()) / 1000) + ". Values below are the last ones received.</div>" : "") +
+    (fresh ? '<span class="live">LIVE · 5 s</span>' : st("offline", "Offline")) + systemPicker(page) +
+    (page === "monitor" ? '<button class="btn" type="button" data-export>Export CSV</button>' : "") + '<button class="btn" type="button" data-signout>Sign out</button></div></nav></header>' +
+    (S.error ? '<div class="stale-banner">Can\'t reach the server: ' + esc(S.error) + "</div>" : !fresh && L ? '<div class="stale-banner">No readings for ' + ago((Date.now() - new Date(L.time).getTime()) / 1000) + ". Values below are the last ones received.</div>" : ""));
+}
+function navLink(page, label, cur) {
+  return page === cur ? '<a aria-current="page">' + label + "</a>" : '<a href="#/' + page + "/" + S.sys.id + '">' + label + "</a>";
+}
+
+function renderMonitor() {
+  root.className = "fs";
+  var L = S.latest, d = (L && L.derived) || {}, n = (L && L.nodes) || {}, sm = S.summary || {};
+  var fl = flags(), obWord = S.sys.ob_energized === "heat" ? "B" : "O";
+  var html = techHeader("monitor") +
     '<main class="page">' + strip(d) +
     '<div class="grid-a"><section class="panel" data-chart aria-label="Live trend"><div class="ph"><h2>Live trend</h2>' +
     '<span class="sub">Shaded bar = compressor running · hover for values</span><div class="right">' +
@@ -605,6 +625,219 @@ function alertLog() {
   return '<section class="panel" id="alert-log" aria-label="Alert log"><div class="ph"><h2>Alert log</h2><span class="sub">Last 7 days · raised after 5 min, cleared after 5 min without the condition</span></div>' +
     '<table class="dt diag"><thead><tr><th>Severity</th><th>Condition</th><th>Started</th><th>Duration</th><th>Email</th></tr></thead><tbody>' + body + "</tbody></table></section>";
 }
+
+// ================================================================ SENSORS & CALIBRATION VIEW
+// Sends the firmware's own commands (hvac-firmware/src/node_outdoor.cpp, node_indoor.cpp) and shows
+// each node's reply. Settings shown here come from the node's status message, refreshed after a change.
+var PCH = [["p_liq", "liq", "Liquid line", "J3"], ["p_vap", "vap", "Vapor port", "J4"], ["p_tsuc", "tsuc", "True suction", "J5"]];
+var TCH = [["t_suc", "suc", "Suction line", "J6 · TH1"], ["t_liq", "liq", "Liquid line", "J7 · TH2"], ["t_tsuc", "tsuc", "True suction line", "J9 · TH3"]];
+var QUIET = { status: 1 };                                  // sent automatically; kept out of the log
+var REFRESH_AFTER = { fitted: 1, cal_zero: 1, cal_span: 1, cal_ref: 1, cal_reset: 1, range: 1, ntc_b: 1, v33: 1, ds_swap: 1, rescan: 1 };
+var REPLY_WAIT_S = 20;
+
+function pollCommands() {
+  var id = S.sys.id;
+  api("/api/systems/" + id + "/commands?limit=40").then(function (list) {
+    if (!S.sys || S.sys.id !== id) return;
+    S.commands = list;
+    list.forEach(function (c) {
+      var p = S.pending[c.id];
+      if (!p || !c.reply) return;
+      delete S.pending[c.id];
+      if (c.reply.ok && REFRESH_AFTER[c.cmd.cmd]) sendCmd(c.node, { cmd: "status" });
+      setTimeout(pollLatest, 1500);                       // show the effect without waiting for the next poll
+    });
+    render();
+  }).catch(function () {});
+}
+
+function sendCmd(node, cmd) {
+  return api("/api/systems/" + S.sys.id + "/commands", { method: "POST", body: { node: node, cmd: cmd } }).then(function (c) {
+    S.pending[c.id] = true;
+    if (!QUIET[cmd.cmd]) S.msg = c.sent ? null : "The cloud couldn't reach the MQTT broker, so the command was not sent.";
+    pollCommands();
+  }).catch(function (e) { S.msg = "Command failed: " + e.message; render(); });
+}
+
+function nodeOf(name) { return ((S.latest && S.latest.nodes) || {})[name] || null; }
+function numIn(id) { var v = parseFloat(String(S.form[id] === undefined ? "" : S.form[id]).replace(",", ".")); return isFinite(v) ? v : null; }
+function field(id, unit, ph, label) {
+  return '<label class="field"><input id="' + id + '" inputmode="decimal" autocomplete="off" placeholder="' + esc(ph || "") + '" aria-label="' + esc(label) + '">' +
+    (unit ? '<span class="u">' + unit + "</span>" : "") + "</label>";
+}
+function actBtn(act, label, node, ch, extra) {
+  var on = nodeOf(node) && nodeOf(node).online;
+  return '<button class="btn" type="button" data-act="' + act + '" data-node="' + node + '"' + (ch ? ' data-ch="' + ch + '"' : "") + (extra || "") + (on ? "" : " disabled") + ">" + label + "</button>";
+}
+function fitSeg(node, ch, fit) {
+  var on = nodeOf(node) && nodeOf(node).online, dis = on ? "" : " disabled";
+  if (fit === undefined || fit === null) return '<span class="faint">—</span>';
+  return '<div class="seg" role="group" aria-label="Installed">' +
+    '<button type="button" data-act="fit" data-on="1" data-node="' + node + '" data-ch="' + ch + '" aria-pressed="' + !!fit + '"' + dis + ">On</button>" +
+    '<button type="button" data-act="fit" data-on="0" data-node="' + node + '" data-ch="' + ch + '" aria-pressed="' + !fit + '"' + dis + ">Off</button></div>";
+}
+function offsetTxt(v, digits) { return isNum(v) ? (v > 0 ? "+" : "") + v.toFixed(digits === undefined ? 1 : digits) : "—"; }
+function reading(v, unit, fit, errKey, errs, digits) {
+  if (fit === false) return '<span class="faint">Off</span>';
+  if (errs.indexOf(errKey) >= 0) return st("sensor", "No reading");
+  return num(v, unit, digits);
+}
+function nodeSub(node, label) {
+  var n = nodeOf(node);
+  if (!n) return st("offline", "Never seen") + ' <span class="faint">' + label + " has not reported to the cloud yet</span>";
+  if (!n.online) return st("offline", "Offline") + ' <span class="faint">commands can\'t reach it until it reports again</span>';
+  return st("ok", "Online") + ' <span class="faint">fw ' + esc(n.fw || "?") + "</span>";
+}
+
+function renderSetup() {
+  root.className = "fs";
+  var out = nodeOf("outdoor"), ind = nodeOf("indoor");
+  var od = (out && out.data) || {}, os = (out && out.status) || {}, oc = os.cal || {}, oerr = od.err || [], raw = od.raw || {};
+  var id = (ind && ind.data) || {}, is = (ind && ind.status) || {}, ic = is.cal || {}, ierr = id.err || [], air = id.air || {};
+
+  var pRows = PCH.map(function (c) {
+    var k = c[0], cal = oc[k] || {}, fit = cal.fit;
+    return "<tr><th>" + c[2] + ' <span class="faint mono">' + c[3] + "</span></th><td>" + fitSeg("outdoor", k, fit) + "</td>" +
+      '<td class="num">' + reading((od.p || {})[c[1]], "psig", fit, k, oerr) + '</td><td class="num faint n">' + (isNum(raw[k]) ? raw[k].toFixed(2) + " V" : "—") + "</td>" +
+      '<td class="num n">' + offsetTxt(cal.o) + ' <span class="faint">psi</span> · ×' + (isNum(cal.s) ? cal.s.toFixed(3) : "—") + "</td>" +
+      '<td><div class="acts-cell">' + actBtn("zero", "Zero", "outdoor", k) + field("f-span-" + k, "psig", "gauge", c[2] + " reference pressure") + actBtn("span", "Span", "outdoor", k) + actBtn("reset", "Reset", "outdoor", k) + "</div></td>" +
+      '<td><div class="acts-cell">' + field("f-range-" + k, "bar", isNum(cal.fs_bar) ? String(cal.fs_bar) : "", c[2] + " full-scale range") + actBtn("range", "Set", "outdoor", k) + "</div></td></tr>";
+  }).join("");
+
+  var tRows = TCH.map(function (c) {
+    var k = c[0], cal = oc[k] || {}, fit = cal.fit;
+    return "<tr><th>" + c[2] + ' <span class="faint mono">' + c[3] + "</span></th><td>" + fitSeg("outdoor", k, fit) + "</td>" +
+      '<td class="num">' + reading((od.t || {})[c[1]], "°F", fit, k, oerr) + '</td><td class="num faint n">' + (isNum(raw[k]) ? Math.round(raw[k]).toLocaleString() + " Ω" : "—") + "</td>" +
+      '<td class="num n">' + offsetTxt(cal.o) + ' <span class="faint">°F</span></td>' +
+      '<td><div class="acts-cell">' + actBtn("ice", "Ice bath 32 °F", "outdoor", k) + field("f-ref-" + k, "°F", "known", c[2] + " reference temperature") + actBtn("ref", "Set", "outdoor", k) + actBtn("reset", "Reset", "outdoor", k) + "</div></td></tr>";
+  }).join("");
+
+  var aRows = [["t_sup", "supply", "Supply air"], ["t_ret", "return", "Return air"]].map(function (c) {
+    var k = c[0], cal = ic[c[0]] || {};
+    return "<tr><th>" + c[2] + '</th><td class="num">' + reading(air[c[1]], "°F", true, k, ierr) + "</td>" +
+      '<td class="num n">' + offsetTxt(cal.o) + ' <span class="faint">°F</span></td>' +
+      '<td><div class="acts-cell">' + actBtn("ice", "Ice bath 32 °F", "indoor", k) + field("f-ref-" + k, "°F", "known", c[2] + " reference temperature") + actBtn("ref", "Set", "indoor", k) + actBtn("reset", "Reset", "indoor", k) + "</div></td></tr>";
+  }).join("");
+
+  var html = techHeader("setup") +
+    (S.msg ? '<div class="stale-banner" role="status">' + esc(S.msg) + "</div>" : "") +
+    '<main class="page">' +
+    '<section class="panel" aria-label="Pressure transducers"><div class="ph"><h2>Pressure transducers</h2><span class="sub">Outdoor node</span><span class="right">' + nodeSub("outdoor", "The outdoor node") + "</span></div>" +
+    '<table class="dt"><thead><tr><th>Channel</th><th>Installed</th><th class="num">Reading</th><th class="num">Sensor</th><th class="num">Calibration</th><th>Zero · span</th><th>Range</th></tr></thead><tbody>' + pRows + "</tbody></table>" +
+    '<ol class="howto"><li><b>Zero:</b> with the transducer open to air (removed, or its port depressurized), press Zero.</li>' +
+    "<li><b>Span:</b> pressurize with nitrogen to at least 50 psig, read your reference gauge, enter that value and press Span.</li>" +
+    "<li><b>Range:</b> the XDB307's full scale in bar, from its label (50 for the line sensors, 35 for true suction).</li></ol></section>" +
+
+    '<section class="panel" aria-label="Line thermistors"><div class="ph"><h2>Line thermistors</h2><span class="sub">Outdoor node</span><span class="right">' + nodeSub("outdoor", "The outdoor node") + "</span></div>" +
+    '<table class="dt"><thead><tr><th>Channel</th><th>Installed</th><th class="num">Reading</th><th class="num">Resistance</th><th class="num">Offset</th><th>Calibrate</th></tr></thead><tbody>' + tRows + "</tbody></table>" +
+    '<div class="kv setup-kv"><div><span>Thermistor B-value</span><div class="acts-cell">' + field("f-ntcb", "", isNum(os.ntc_b) ? String(os.ntc_b) : "3950", "Thermistor B-value") + actBtn("ntcb", "Set", "outdoor") + "</div></div>" +
+    '<div><span>Measured 3.3 V rail</span><div class="acts-cell">' + field("f-v33", "V", isNum(os.v33) ? os.v33.toFixed(2) : "3.30", "Measured 3.3 V rail") + actBtn("v33", "Set", "outdoor") + "</div></div>" +
+    '<div><span>5 V rail (live)</span><b>' + (isNum(od.v5) ? od.v5.toFixed(2) + "<small>V</small>" : "—") + "</b></div></div>" +
+    '<ol class="howto"><li><b>Ice bath:</b> fill a cup with crushed ice and a little water, stir, hold the probe in it for 3 minutes, then press Ice bath.</li>' +
+    "<li><b>Set:</b> or compare against a trusted thermometer at any temperature, enter its reading and press Set.</li>" +
+    "<li><b>3.3 V rail:</b> measure between 3V3 and GND on the ESP32 with a meter; entering it makes every thermistor more accurate.</li></ol></section>" +
+
+    '<div class="cfg">' +
+    '<section class="panel" aria-label="Air probes"><div class="ph"><h2>Air probes</h2><span class="sub">Indoor node · DS18B20</span><span class="right">' + nodeSub("indoor", "The indoor node") + "</span></div>" +
+    '<table class="dt"><thead><tr><th>Probe</th><th class="num">Reading</th><th class="num">Offset</th><th>Calibrate</th></tr></thead><tbody>' + aRows + "</tbody></table>" +
+    '<div class="kv setup-kv"><div><span>Probes found</span><b>' + (is.probes ? is.probes.length + " of 2" : "—") + "</b></div>" +
+    '<div><span>Supply / return</span><div class="acts-cell">' + actBtn("swap", "Swap them", "indoor") + "</div></div>" +
+    '<div><span>Search the bus</span><div class="acts-cell">' + actBtn("rescan", "Rescan probes", "indoor") + "</div></div></div>" +
+    '<ol class="howto"><li><b>Swap them</b> if supply reads warmer than return while cooling.</li><li>DS18B20s are accurate to ±0.9 °F out of the box; calibrate only if they disagree with a reference.</li></ol></section>' +
+
+    '<section class="panel" aria-label="Nodes"><div class="ph"><h2>Nodes</h2></div><table class="dt"><tbody>' +
+    ["outdoor", "indoor"].map(function (nm) {
+      var nd = nodeOf(nm);
+      return "<tr><th>" + (nm === "outdoor" ? "Outdoor" : "Indoor") + " node</th><td>" + nodeSub(nm, "This node") + "</td></tr>" +
+        '<tr><td colspan="2"><div class="acts-cell">' + field("f-int-" + nm, "s", "5", nm + " reporting interval") + actBtn("interval", "Set interval", nm) +
+        actBtn("status", "Reload settings", nm) + actBtn("reboot", "Reboot", nm) + (nd && nd.ip ? '<span class="faint mono">' + esc(nd.ip) + "</span>" : "") + "</div></td></tr>";
+    }).join("") + "</tbody></table></section></div>" +
+    commandLog() + "</main>";
+  root.innerHTML = html;
+  bindCommon();
+}
+
+function cmdText(c) {
+  var parts = [];
+  for (var k in c) if (k !== "cmd") parts.push(k + " " + (typeof c[k] === "object" ? JSON.stringify(c[k]) : c[k]));
+  return c.cmd + (parts.length ? " · " + parts.join(", ") : "");
+}
+function commandLog() {
+  var list = (S.commands || []).filter(function (c) { return c.cmd && !QUIET[c.cmd.cmd]; }).slice(0, 15), body;
+  if (!S.commands) body = '<tr><td colspan="4" class="faint">Loading…</td></tr>';
+  else if (!list.length) body = '<tr><td colspan="4" class="faint">No commands sent yet.</td></tr>';
+  else body = list.map(function (c) {
+    var age = (Date.now() - new Date(c.created_at).getTime()) / 1000, r = c.reply, res;
+    if (!c.sent) res = st("fault", "Not sent");
+    else if (r && r.ok) res = st("ok", "Done") + (isNum(r.offset) ? ' <span class="faint n">offset ' + offsetTxt(r.offset, 2) + (isNum(r.scale) && r.scale !== 1 ? " · ×" + r.scale.toFixed(3) : "") + "</span>" : "");
+    else if (r) res = st("caution", "Refused") + ' <span class="faint">' + esc(r.error || "") + "</span>";
+    else if (age < REPLY_WAIT_S) res = st("advisory", "Waiting for the node…");
+    else res = st("offline", "No reply");
+    return '<tr><td class="n faint">' + clock(c.created_at, true) + "</td><td>" + esc(c.node) + '</td><td class="mono">' + esc(cmdText(c.cmd)) + "</td><td>" + res + "</td></tr>";
+  }).join("");
+  return '<section class="panel" aria-label="Command log"><div class="ph"><h2>Command log</h2><span class="sub">Each change is confirmed by the node, then its settings are reloaded</span></div>' +
+    '<table class="dt"><thead><tr><th>Sent</th><th>Node</th><th>Command</th><th>Result</th></tr></thead><tbody>' + body + "</tbody></table></section>";
+}
+
+// one delegated listener: the page is re-rendered every few seconds
+root.addEventListener("input", function (e) { if (e.target.id && e.target.id.indexOf("f-") === 0) S.form[e.target.id] = e.target.value; });
+root.addEventListener("click", function (e) {
+  var b = e.target.closest && e.target.closest("[data-act]");
+  if (!b || S.view !== "setup" || b.disabled) return;
+  var act = b.dataset.act, node = b.dataset.node, ch = b.dataset.ch, nd = nodeOf(node) || {}, name = b.closest("tr") ? (b.closest("tr").querySelector("th") || {}).textContent : "";
+  var cmd = null, v;
+  S.msg = null;
+  function need(id, lo, hi, what) {
+    v = numIn(id);
+    if (v === null || v < lo || v > hi) { S.msg = "Enter " + what + " between " + lo + " and " + hi + " first."; render(); return false; }
+    return true;
+  }
+  if (act === "fit") {
+    var on = b.dataset.on === "1";
+    if (!on && !confirm("Turn off " + name + "? It will stop reporting until it is turned back on.")) return;
+    cmd = { cmd: "fitted", ch: ch, on: on };
+  } else if (act === "zero") {
+    var psig = (((nd.data || {}).p) || {})[ch.slice(2)];
+    var warn = isNum(psig) && Math.abs(psig) > 25 ? "\n\nIt reads " + psig.toFixed(1) + " psig right now. Zeroing it under pressure would make every reading wrong." : "";
+    if (!confirm("Zero " + name + "?\n\nOnly do this with the transducer open to air (0 psig)." + warn)) return;
+    cmd = { cmd: "cal_zero", ch: ch };
+  } else if (act === "span") {
+    if (!need("f-span-" + ch, 50, 800, "the reference gauge pressure (psig)")) return;
+    cmd = { cmd: "cal_span", ch: ch, ref: v };
+  } else if (act === "ice") {
+    if (!confirm("Calibrate " + name + " to 32.0 °F?\n\nThe probe should have been in stirred ice water for 3 minutes.")) return;
+    cmd = { cmd: "cal_ref", ch: ch, ref: 32 };
+  } else if (act === "ref") {
+    if (!need("f-ref-" + ch, -20, 250, "the reference temperature (°F)")) return;
+    cmd = { cmd: "cal_ref", ch: ch, ref: v };
+  } else if (act === "reset") {
+    if (!confirm("Clear the calibration of " + name + "?")) return;
+    cmd = { cmd: "cal_reset", ch: ch };
+  } else if (act === "range") {
+    if (!need("f-range-" + ch, 5, 100, "the full-scale range (bar)")) return;
+    cmd = { cmd: "range", ch: ch, bar: v };
+  } else if (act === "ntcb") {
+    if (!need("f-ntcb", 2000, 5000, "the B-value")) return;
+    cmd = { cmd: "ntc_b", value: v };
+  } else if (act === "v33") {
+    if (!need("f-v33", 3.0, 3.6, "the measured voltage")) return;
+    cmd = { cmd: "v33", value: v };
+  } else if (act === "swap") {
+    if (!confirm("Swap which probe is supply and which is return?")) return;
+    cmd = { cmd: "ds_swap" };
+  } else if (act === "rescan") {
+    cmd = { cmd: "rescan" };
+  } else if (act === "interval") {
+    if (!need("f-int-" + node, 1, 600, "the interval (seconds)")) return;
+    cmd = { cmd: "interval", ms: Math.round(v * 1000) };
+  } else if (act === "status") {
+    cmd = { cmd: "status" };
+  } else if (act === "reboot") {
+    if (!confirm("Reboot the " + node + " node? It will be offline for about 10 seconds.")) return;
+    cmd = { cmd: "reboot" };
+  }
+  if (cmd) { b.disabled = true; sendCmd(node, cmd); }
+});
 
 // ---------------------------------------------------------------- CSV export
 function exportCsv() {
