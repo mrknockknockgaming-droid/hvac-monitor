@@ -23,7 +23,7 @@ $("#theme").addEventListener("click", function () {
 // ---------------------------------------------------------------- state
 var S = {
   key: load("fs_key"), me: null, loginMode: load("fs_key") ? "key" : "password", systems: null, sys: null, view: null,
-  latest: null, summary: null, history: {}, alerts: null, alertSettings: null, service: null, commands: null, equipment: null, refrigerants: null, people: null, team: null, fleet: null, inviteResult: null, teamResult: null, pending: {}, form: {}, msg: null, range: load("fs_range") || "1h",
+  latest: null, summary: null, history: {}, alerts: null, alertSettings: null, service: null, commands: null, equipment: null, visits: null, recentVisits: null, refrigerants: null, people: null, team: null, fleet: null, inviteResult: null, teamResult: null, pending: {}, form: {}, msg: null, range: load("fs_range") || "1h",
   preset: load("fs_preset") || "refrigerant", off: {}, lastOk: null, error: null, timers: []
 };
 var LIVE_MS = 5000, STALE_S = 30, OUTAGE_S = 90;   // a gap longer than OUTAGE_S breaks chart lines
@@ -133,7 +133,7 @@ function route() {
     pollFleet(); S.timers.push(setInterval(pollFleet, 15000));
     return renderFleet();
   }
-  var m = location.hash.match(/^#\/(home|monitor|setup|equipment)\/(\d+)/);
+  var m = location.hash.match(/^#\/(home|monitor|setup|equipment|service)\/(\d+)/);
   if (!S.systems) return loadSystems();
   if (!m) {
     if (!S.systems.length && !isTech()) return renderNoSystems();
@@ -146,9 +146,10 @@ function route() {
   var changed = !S.sys || S.sys.id !== id;
   S.view = m[1];
   S.sys = sys;
-  if (changed) { S.latest = null; S.summary = null; S.history = {}; S.alerts = null; S.alertSettings = null; S.service = null; S.commands = null; S.equipment = null; S.people = null; S.inviteResult = null; S.pending = {}; S.form = {}; stopTimers(); startTimers(); }
+  if (changed) { S.latest = null; S.summary = null; S.history = {}; S.alerts = null; S.alertSettings = null; S.service = null; S.commands = null; S.equipment = null; S.visits = null; S.recentVisits = null; S.people = null; S.inviteResult = null; S.pending = {}; S.form = {}; stopTimers(); startTimers(); }
   if (S.view === "setup") { pollCommands(); pollPeople(); }
   if (S.view === "equipment") { S.msg = null; pollEquipment(); }
+  if (S.view === "service") { S.msg = null; pollVisits(); }
   if (!changed && S.view !== "home" && !S.alertSettings) pollAlerts();   // the home page doesn't load them
   render();
 }
@@ -195,6 +196,7 @@ function pollAlerts() {
 function pollService() {
   var id = S.sys.id;
   api("/api/systems/" + id + "/service").then(function (d) { if (S.sys && S.sys.id === id) { S.service = d; render(); } }).catch(function () {});
+  if (S.view === "home") api("/api/systems/" + id + "/visits?limit=3").then(function (d) { if (S.sys && S.sys.id === id) { S.recentVisits = d; render(); } }).catch(function () {});
 }
 function serviceItem(kind) { return ((S.service && S.service.items) || []).filter(function (x) { return x.kind === kind; })[0] || null; }
 function localDate() { var d = new Date(), p = function (x) { return (x < 10 ? "0" : "") + x; }; return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()); }
@@ -347,10 +349,13 @@ function render() {
   var y = window.scrollY;
   var act = document.activeElement, focusId = act && act.id && root.contains(act) ? act.id : null;
   var selStart = focusId && act.selectionStart, selEnd = focusId && act.selectionEnd;
-  if (S.view === "home") renderHome(); else if (S.view === "setup") renderSetup(); else if (S.view === "equipment") renderEquipment(); else renderMonitor();
+  if (S.view === "home") renderHome(); else if (S.view === "setup") renderSetup(); else if (S.view === "equipment") renderEquipment(); else if (S.view === "service") renderServiceHistory(); else renderMonitor();
   open.forEach(function (id) { var d = document.getElementById(id); if (d) d.open = true; });
   // re-rendering every 5 s must not wipe what the technician is typing
-  $$("input[id^='f-'], select[id^='f-']", root).forEach(function (i) { if (S.form[i.id] !== undefined) i.value = S.form[i.id]; });
+  $$("input[id^='f-'], select[id^='f-'], textarea[id^='f-']", root).forEach(function (i) {
+    if (S.form[i.id] === undefined) return;
+    if (i.type === "checkbox") i.checked = S.form[i.id] === "1"; else i.value = S.form[i.id];
+  });
   var f = focusId && document.getElementById(focusId);
   if (f) { f.focus(); try { if (selStart !== null && selStart !== undefined) f.setSelectionRange(selStart, selEnd); } catch (e) {} }
   window.scrollTo(0, y);
@@ -476,6 +481,12 @@ function homeMaint() {
     return "<li><b>" + esc(x.label) + "</b>" + st(m[0], m[1]) + "<span>" + esc(txt) + "</span>" + (btn || "<span></span>") +
       '<div class="bar"><i style="width:' + pct + "%;background:" + m[2] + '"></i></div></li>';
   }).join("") + "</ul>";
+  if (S.recentVisits && S.recentVisits.length) {
+    h += '<div class="h-visits"><h4>Recent service</h4><ul>' + S.recentVisits.map(function (v) {
+      var w = v.work.length > 110 ? v.work.slice(0, 107) + "…" : v.work;
+      return "<li><b>" + esc(dateWord(v.date)) + " · " + esc(v.kind_label) + "</b><span>" + esc(w) + "</span></li>";
+    }).join("") + "</ul></div>";
+  }
   var c = sv.contractor;
   if (c) {
     var initials = (c.name || "?").replace(/&/g, " ").split(/\s+/).filter(Boolean).slice(0, 2).map(function (w) { return w.charAt(0).toUpperCase(); }).join("");
@@ -612,7 +623,7 @@ function techHeader(page) {
     num(sm.runtime_hours, "h", 1) + ' <span class="muted" style="font-weight:400">24 h</span></b></div>' +
     '<a class="tf alerts" href="' + diagHref + '"' + (page === "monitor" ? ' data-jump="diagnostics"' : "") + ' style="text-decoration:none;color:inherit"><span>Diagnostics</span><div class="row">' + diagSum + "</div></a>" +
     "</div></div>" +
-    '<nav class="nav" aria-label="Sections"><a href="#/fleet">Fleet</a>' + navLink("monitor", "Monitor", page) + navLink("equipment", "Equipment", page) + navLink("setup", "Sensors &amp; calibration", page) +
+    '<nav class="nav" aria-label="Sections"><a href="#/fleet">Fleet</a>' + navLink("monitor", "Monitor", page) + navLink("equipment", "Equipment", page) + navLink("setup", "Sensors &amp; calibration", page) + navLink("service", "Service history", page) +
     '<a href="#/home/' + S.sys.id + '">Homeowner view</a>' +
     '<span class="spacer"></span><div class="tools">' +
     (fresh ? '<span class="live">LIVE · 5 s</span>' : st("offline", "Offline")) + systemPicker(page) +
@@ -964,6 +975,61 @@ root.addEventListener("click", function (e) {
   }).catch(function (err) { S.msg = "Couldn't save: " + err.message; b.disabled = false; render(); });
 });
 
+// ================================================================ SERVICE HISTORY VIEW (#/service/<id>)
+var VISIT_KINDS = [["tuneup", "Tune-up"], ["repair", "Repair"], ["install", "Installation"], ["inspection", "Inspection"], ["other", "Other"]];
+function pollVisits() {
+  var id = S.sys.id;
+  api("/api/systems/" + id + "/visits").then(function (d) { if (S.sys && S.sys.id === id) { S.visits = d; render(); } }).catch(function () {});
+}
+function readingsText(r) {
+  if (!r) return '<span class="faint">—</span>';
+  var bits = [["SH", r.sh, "°F"], ["SC", r.sc, "°F"], ["ΔT", r.dt, "°F"], ["Suction", r.p_low, " psig"], ["Liquid", r.p_high, " psig"], ["Outdoor", r.oat, "°F"]]
+    .filter(function (b) { return isNum(b[1]); }).map(function (b) { return b[0] + " " + fmt(b[1]) + b[2]; });
+  return '<span class="n">' + esc(bits.join(" · ") || "No values") + "</span>" + (r.mode ? ' <span class="faint">' + esc(MODE_WORD[r.mode] || r.mode) + "</span>" : "");
+}
+function renderServiceHistory() {
+  root.className = "fs";
+  var me = (S.me && S.me.user) || {}, list = S.visits;
+  var rows = !list ? '<tr><td colspan="6" class="faint">Loading…</td></tr>' : !list.length ? '<tr><td colspan="6" class="faint">No visits logged yet.</td></tr>'
+    : list.map(function (v) {
+      return '<tr><td class="n">' + esc(dateWord(v.date, false)) + " " + esc(v.date.slice(0, 4)) + "</td><td>" + esc(v.kind_label) + (v.filter_changed ? ' <span class="faint">+ filter</span>' : "") +
+        "</td><td>" + esc(v.technician || "—") + '</td><td class="cond" style="white-space:pre-wrap">' + esc(v.work) + "</td><td>" + readingsText(v.readings) +
+        '</td><td><button class="btn" type="button" data-del-visit="' + v.id + '">Delete</button></td></tr>';
+    }).join("");
+  var form = '<section class="panel" aria-label="Log a visit"><div class="ph"><h2>Log a visit</h2><span class="sub">A tune-up resets the tune-up reminder; a changed filter resets the filter reminder</span></div>' +
+    '<table class="dt"><tbody>' +
+    '<tr><th>Date</th><td><label class="field wide"><input id="f-v-date" type="date" value="' + localDate() + '" aria-label="Visit date"></label></td></tr>' +
+    "<tr><th>Type</th><td>" + eqSelect("f-v-kind", VISIT_KINDS, "tuneup", "Visit type") + "</td></tr>" +
+    '<tr><th>Technician</th><td><label class="field wide"><input id="f-v-tech" type="text" value="' + esc(me.name || "") + '" aria-label="Technician"></label></td></tr>' +
+    '<tr><th>Work done</th><td><textarea id="f-v-work" rows="3" maxlength="2000" aria-label="Work done" placeholder="Cleaned the condenser coil, checked charge, replaced contactor…"></textarea></td></tr>' +
+    '<tr><th>Also</th><td><label><input type="checkbox" id="f-v-filter"> Replaced the air filter</label>&nbsp;&nbsp; <label><input type="checkbox" id="f-v-attach"> Attach the current readings</label></td></tr>' +
+    '<tr><td colspan="2"><button class="btn" type="button" data-save-visit style="border-color:var(--ink-muted)">Log visit</button></td></tr></tbody></table></section>';
+  root.innerHTML = techHeader("service") + (S.msg ? '<div class="stale-banner" role="status">' + esc(S.msg) + "</div>" : "") +
+    '<main class="page">' + form +
+    '<section class="panel" aria-label="Service history"><div class="ph"><h2>Service history</h2><span class="sub">The homeowner sees the date, type and work done</span></div>' +
+    '<table class="dt diag"><thead><tr><th>Date</th><th>Type</th><th>Technician</th><th>Work done</th><th>Readings</th><th></th></tr></thead><tbody>' + rows + "</tbody></table></section></main>";
+  bindCommon();
+}
+root.addEventListener("click", function (e) {
+  if (S.view !== "service") return;
+  var del = e.target.closest && e.target.closest("[data-del-visit]");
+  if (del) {
+    if (!confirm("Delete this visit? Reminder dates it changed stay as they are.")) return;
+    api("/api/systems/" + S.sys.id + "/visits/" + del.dataset.delVisit, { method: "DELETE" }).then(pollVisits).catch(function (err) { alert(err.message); });
+    return;
+  }
+  var b = e.target.closest && e.target.closest("[data-save-visit]");
+  if (!b) return;
+  var work = $("#f-v-work").value.trim();
+  if (!work) { S.msg = "Describe the work done first."; render(); return; }
+  b.disabled = true;
+  api("/api/systems/" + S.sys.id + "/visits", { method: "POST", body: { date: $("#f-v-date").value, kind: $("#f-v-kind").value, technician: $("#f-v-tech").value,
+    work: work, filter_changed: $("#f-v-filter").checked, attach_readings: $("#f-v-attach").checked } }).then(function () {
+    Object.keys(S.form).forEach(function (k) { if (k.indexOf("f-v-") === 0) delete S.form[k]; });
+    S.msg = "Visit logged."; pollVisits(); pollService();
+  }).catch(function (err) { b.disabled = false; S.msg = "Couldn't log it: " + err.message; render(); });
+});
+
 // ================================================================ SENSORS & CALIBRATION VIEW
 // Sends the firmware's own commands (hvac-firmware/src/node_outdoor.cpp, node_indoor.cpp) and shows
 // each node's reply. Settings shown here come from the node's status message, refreshed after a change.
@@ -1181,8 +1247,14 @@ function commandLog() {
 }
 
 // one delegated listener: the page is re-rendered every few seconds
-root.addEventListener("input", function (e) { if (e.target.id && e.target.id.indexOf("f-") === 0) S.form[e.target.id] = e.target.value; });
-root.addEventListener("change", function (e) { if (e.target.tagName === "SELECT" && e.target.id && e.target.id.indexOf("f-") === 0) S.form[e.target.id] = e.target.value; });
+root.addEventListener("input", function (e) {
+  if (e.target.id && e.target.id.indexOf("f-") === 0) S.form[e.target.id] = e.target.type === "checkbox" ? (e.target.checked ? "1" : "0") : e.target.value;
+});
+root.addEventListener("change", function (e) {
+  if (!e.target.id || e.target.id.indexOf("f-") !== 0) return;
+  if (e.target.tagName === "SELECT") S.form[e.target.id] = e.target.value;
+  if (e.target.type === "checkbox") S.form[e.target.id] = e.target.checked ? "1" : "0";
+});
 root.addEventListener("click", function (e) {
   var b = e.target.closest && e.target.closest("[data-act]");
   if (!b || S.view !== "setup" || b.disabled) return;

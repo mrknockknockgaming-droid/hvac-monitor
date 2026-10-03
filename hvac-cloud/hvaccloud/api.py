@@ -26,7 +26,7 @@ from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import func, select
 
 from . import alerts, auth, calc, equipment, service, settings
-from .db import (Account, Alert, AlertMute, AlertPrefs, ApiKey, Command, Device, Invite, PasswordReset, ServiceInfo, Snapshot,
+from .db import (Account, Alert, AlertMute, AlertPrefs, ApiKey, Command, Device, Invite, PasswordReset, ServiceInfo, ServiceVisit, Snapshot,
                  System, SystemMember, Telemetry, User, as_utc, hash_key, init_db, make_engine, session_factory, utcnow)
 from .refrigerants import FLUIDS
 
@@ -162,6 +162,16 @@ class ResetIn(TokenIn):
 class AcceptIn(TokenIn):
     name: str | None = Field(default=None, max_length=200)
     password: str = Field(max_length=200)
+
+
+class VisitIn(BaseModel):
+    date: dt.date
+    kind: Literal["tuneup", "repair", "install", "inspection", "other"]
+    technician: str | None = Field(default=None, max_length=200)
+    work: str = Field(min_length=1, max_length=2000)
+    filter_changed: bool = False
+    attach_readings: bool = False
+    _check = field_validator("date")(past_date)
 
 
 class CommandIn(BaseModel):
@@ -484,6 +494,8 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
             inv.invited_by = None
         for r in s.scalars(select(PasswordReset).where(PasswordReset.user_id == user.id)):
             s.delete(r)
+        for v in s.scalars(select(ServiceVisit).where(ServiceVisit.created_by == user.id)):
+            v.created_by = None
         s.delete(user)
         s.commit()
         return {"ok": True}
@@ -779,6 +791,46 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
         row.last_done = (body.date if body and body.date else None) or dt.date.today()
         s.commit()
         return service.service_view(s, system.id)
+
+    # ---------- service history ----------
+    @app.get("/api/systems/{system_id}/visits")
+    def list_visits(limit: int = Query(100, gt=0, le=500), system=Depends(own_system), s=Depends(db)):
+        """Logged service visits, newest first (homeowners see them too)."""
+        rows = s.scalars(select(ServiceVisit).where(ServiceVisit.system_id == system.id)
+                         .order_by(ServiceVisit.date.desc(), ServiceVisit.id.desc()).limit(limit))
+        return [service.visit_view(v) for v in rows]
+
+    @app.post("/api/systems/{system_id}/visits")
+    def add_visit(body: VisitIn, system=Depends(tech_system), who=Depends(principal), s=Depends(db)):
+        """Log a visit. A tune-up resets the tune-up reminder, a changed filter the filter reminder;
+        attach_readings stores the newest snapshot's main values if it is under 15 minutes old."""
+        readings = None
+        if body.attach_readings:
+            row = s.execute(select(Snapshot.time, Snapshot.data).where(Snapshot.system_id == system.id)
+                            .order_by(Snapshot.time.desc()).limit(1)).first()
+            if row is None or (utcnow() - as_utc(row.time)).total_seconds() > service.READINGS_MAX_AGE_S:
+                raise HTTPException(409, "No readings from the last 15 minutes to attach.")
+            readings = {k: (row.data or {}).get(k) for k in service.READING_KEYS}
+            readings["time"] = _iso(row.time)
+        v = ServiceVisit(system_id=system.id, date=body.date, kind=body.kind, technician=(body.technician or "").strip() or None,
+                         work=body.work.strip(), filter_changed=body.filter_changed, readings=readings, created_by=who.user_id)
+        s.add(v)
+        if body.kind == "tuneup":
+            service.mark_done(s, system.id, "tuneup", body.date)
+        if body.filter_changed:
+            service.mark_done(s, system.id, "filter", body.date)
+        s.commit()
+        return service.visit_view(v)
+
+    @app.delete("/api/systems/{system_id}/visits/{visit_id}")
+    def delete_visit(visit_id: int, system=Depends(tech_system), s=Depends(db)):
+        """Remove a visit logged by mistake (reminder dates it moved are left as they are)."""
+        v = s.get(ServiceVisit, visit_id)
+        if v is None or v.system_id != system.id:
+            raise HTTPException(404, "no such visit")
+        s.delete(v)
+        s.commit()
+        return {"ok": True}
 
     @app.post("/api/systems/{system_id}/commands")
     def send_command(body: CommandIn, system=Depends(tech_system), s=Depends(db)):

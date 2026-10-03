@@ -105,6 +105,10 @@ Plain HTML/CSS/JS in `web/`, no build step; styles are copied from the Fullscope
   Superheat keeps the generic 3–30 °F (the valve controls it; a piston's target needs indoor
   humidity, phase 6). Ratings and static are stored for phase 6 and marked "not used yet". The
   PC dashboard and `calc.py` are unchanged, so the parity test still holds.
+- **Service history** (`#/service/<id>`): log a visit (date, type, technician, work done,
+  "replaced the air filter", "attach the current readings" from a snapshot under 15 minutes
+  old). A tune-up moves the tune-up reminder and a changed filter the filter reminder forward
+  (never back). Homeowners see the last three visits under Maintenance.
 - **Sensors & calibration** (`#/setup/<id>`): for commissioning. Per channel: on/off, live
   reading, raw sensor volts or ohms, and the calibration stored on the node. Buttons send the
   firmware's commands (zero, span, ice bath / reference temperature, reset, range, B-value,
@@ -170,6 +174,8 @@ header `X-API-Key: <key from manage.py create-key>`. Endpoints marked *tech* ans
 | GET | `/api/auth/me` | Role, user and account of whoever is asking |
 | POST | `/api/auth/password` | `{"current","new"}` |
 | GET | `/api/systems` | Systems this user can see |
+| GET / POST | `/api/systems/{id}/visits` | Service visits (POST *tech*: `date`, `kind`, `technician`, `work`, `filter_changed`, `attach_readings`) |
+| DELETE | `/api/systems/{id}/visits/{visit_id}` | *tech* Remove a visit logged by mistake |
 | GET / PUT | `/api/systems/{id}/equipment` | *tech* Equipment page; PUT sends every field (null to clear) |
 | GET | `/api/fleet` | *tech* All systems with status, issues, nodes and maintenance, worst first |
 | POST | `/api/systems/{id}/invites` | *tech* `{"email"}`: invite a homeowner (or add an existing one) |
