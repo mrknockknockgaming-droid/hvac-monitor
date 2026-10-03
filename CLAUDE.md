@@ -94,6 +94,9 @@ temperatures, superheat, subcooling and delta-T.
     cookie requests need `X-Requested-With`, 8 failures lock an email 15 min. API keys still
     act as a contractor. Create users with `manage.py create-user` / `set-password` (hidden
     password prompt: the user types it, never put a password on the command line).
+  - Equipment page (`equipment` table, `hvaccloud/equipment.py`): nameplate SC target ± tol
+    replaces calc's generic sc_low/sc_high for TXV/EEV in cooling, applied in ingest AFTER
+    calc.compute (calc.py and the dashboard stay identical). Elevation sets atm_psia.
   - Invites (`invites` table, token hashed, 7 days, single use) for homeowners (per system,
     Sensors & calibration page) and contractor teammates (Account page); links use APP_URL.
     Contractors land on `#/fleet` (GET /api/fleet, worst first: alerts.LEVEL mirrors the
@@ -107,7 +110,7 @@ temperatures, superheat, subcooling and delta-T.
     `hvac-cloud/backups/` (keeps 7, git-ignored) and prunes: >30 days thinned to 1-minute
     averages, raw telemetry >30 days dropped, >365 days deleted (`hvaccloud/maintenance.py`;
     `manage.py backup` / `prune` by hand). Restore steps are in hvac-cloud/README.md.
-  - Tests: `.venv\Scripts\python.exe -m pytest -q` in `hvac-cloud/` (61 pass). Not done:
+  - Tests: `.venv\Scripts\python.exe -m pytest -q` in `hvac-cloud/` (67 pass). Not done:
     password reset by email, per-device MQTT accounts and ACLs, TLS.
 
 ## Hardware

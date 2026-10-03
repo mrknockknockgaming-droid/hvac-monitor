@@ -12,6 +12,7 @@ superheat / subcooling / fault-flag math.
 | `hvaccloud/calc.py` | Port of the dashboard's `Hub.compute` / `Hub.flags`; `tests/test_calc.py` checks they match |
 | `hvaccloud/db.py` | SQLAlchemy models; SQLite in development, TimescaleDB hypertables in production |
 | `web/` | Fullscope web app (homeowner + technician views), served by the API at `/app/` |
+| `hvaccloud/equipment.py` | Equipment details; nameplate subcooling targets applied after `calc` (cloud only) |
 | `hvaccloud/auth.py` | Passwords (scrypt), sign-in sessions, who is asking (contractor / homeowner / API key) |
 | `hvaccloud/service.py` | Maintenance reminders (air filter, tune-up) and the service contractor |
 | `hvaccloud/maintenance.py` | Nightly backup of `dev.db` and thinning of old data |
@@ -89,6 +90,14 @@ Plain HTML/CSS/JS in `web/`, no build step; styles are copied from the Fullscope
   compression ratio; live trend (15 min to 7 days); operating state; sensor health from the
   nodes' own error codes; refrigerant and air-side tables; current diagnostics; alert log;
   CSV export.
+- **Equipment** (`#/equipment/<id>`), laid out like the mockup's equipment configuration:
+  system type, heat pump / straight cool, O/B, refrigerant, metering device, tonnage; nameplate
+  subcooling target ± tolerance, rated capacity and airflow, maximum external static; site
+  elevation (sets atmospheric pressure). With a TXV or EEV and a target, subcooling in cooling is
+  judged against target ± tolerance instead of the generic 3–20 °F, and Monitor shows the target.
+  Superheat keeps the generic 3–30 °F (the valve controls it; a piston's target needs indoor
+  humidity, phase 6). Ratings and static are stored for phase 6 and marked "not used yet". The
+  PC dashboard and `calc.py` are unchanged, so the parity test still holds.
 - **Sensors & calibration** (`#/setup/<id>`): for commissioning. Per channel: on/off, live
   reading, raw sensor volts or ohms, and the calibration stored on the node. Buttons send the
   firmware's commands (zero, span, ice bath / reference temperature, reset, range, B-value,
@@ -153,6 +162,7 @@ header `X-API-Key: <key from manage.py create-key>`. Endpoints marked *tech* ans
 | GET | `/api/auth/me` | Role, user and account of whoever is asking |
 | POST | `/api/auth/password` | `{"current","new"}` |
 | GET | `/api/systems` | Systems this user can see |
+| GET / PUT | `/api/systems/{id}/equipment` | *tech* Equipment page; PUT sends every field (null to clear) |
 | GET | `/api/fleet` | *tech* All systems with status, issues, nodes and maintenance, worst first |
 | POST | `/api/systems/{id}/invites` | *tech* `{"email"}`: invite a homeowner (or add an existing one) |
 | GET | `/api/systems/{id}/people` | *tech* Homeowners with access and pending invites |
