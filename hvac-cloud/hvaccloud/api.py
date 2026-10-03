@@ -20,8 +20,8 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 
-from . import calc, settings
-from .db import (Alert, ApiKey, Command, Device, Snapshot, System, Telemetry, as_utc, hash_key, init_db,
+from . import calc, service, settings
+from .db import (Alert, ApiKey, Command, ServiceInfo, Device, Snapshot, System, Telemetry, as_utc, hash_key, init_db,
                  make_engine, session_factory, utcnow)
 from .refrigerants import FLUIDS
 
@@ -66,6 +66,23 @@ class SystemSettings(BaseModel):
     heat_pump: bool | None = None
     ob_energized: Literal["cool", "heat"] | None = None
     atm_psia: float | None = Field(default=None, ge=10, le=15.5)
+
+
+class ContractorIn(BaseModel):
+    name: str | None = Field(default=None, max_length=200)
+    phone: str | None = Field(default=None, max_length=40)
+    email: str | None = Field(default=None, max_length=320)
+
+
+class ItemIn(BaseModel):
+    """Only the fields sent are changed; send interval_run_hours: null to stop counting run hours."""
+    interval_days: int | None = Field(default=None, ge=1, le=3650)
+    interval_run_hours: float | None = Field(default=None, gt=0, le=20000)
+    last_done: dt.date | None = None
+
+
+class DoneIn(BaseModel):
+    date: dt.date | None = None        # the viewer's local date; the server's when left out
 
 
 class CommandIn(BaseModel):
@@ -230,6 +247,42 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS):
                          .where((Alert.cleared_at.is_(None)) | (Alert.cleared_at >= since))
                          .order_by(Alert.started_at.desc()).limit(200))
         return [_alert_view(a) for a in rows]
+
+    def check_kind(kind):
+        if kind not in service.KINDS:
+            raise HTTPException(404, f"kind must be one of {list(service.KINDS)}")
+
+    @app.get("/api/systems/{system_id}/service")
+    def get_service(system=Depends(own_system), s=Depends(db)):
+        """Service contractor and maintenance reminders (air filter, tune-up)."""
+        return service.service_view(s, system.id)
+
+    @app.put("/api/systems/{system_id}/service/contractor")
+    def set_contractor(body: ContractorIn, system=Depends(own_system), s=Depends(db)):
+        info = s.get(ServiceInfo, system.id) or ServiceInfo(system_id=system.id)
+        info.name, info.phone, info.email = [(v or "").strip() or None for v in (body.name, body.phone, body.email)]
+        s.add(info)
+        s.commit()
+        return service.service_view(s, system.id)
+
+    @app.patch("/api/systems/{system_id}/service/items/{kind}")
+    def update_item(kind: str, body: ItemIn, system=Depends(own_system), s=Depends(db)):
+        check_kind(kind)
+        row = service.get_item(s, system.id, kind)
+        for k in body.model_fields_set:
+            if k == "interval_days" and body.interval_days is None:
+                raise HTTPException(422, "interval_days can't be empty")
+            setattr(row, k, getattr(body, k))
+        s.commit()
+        return service.service_view(s, system.id)
+
+    @app.post("/api/systems/{system_id}/service/items/{kind}/done")
+    def item_done(kind: str, body: DoneIn | None = None, system=Depends(own_system), s=Depends(db)):
+        check_kind(kind)
+        row = service.get_item(s, system.id, kind)
+        row.last_done = (body.date if body and body.date else None) or dt.date.today()
+        s.commit()
+        return service.service_view(s, system.id)
 
     @app.post("/api/systems/{system_id}/commands")
     def send_command(body: CommandIn, system=Depends(own_system), s=Depends(db)):

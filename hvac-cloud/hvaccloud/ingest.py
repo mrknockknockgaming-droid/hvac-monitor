@@ -18,11 +18,12 @@ import time
 from sqlalchemy import select
 
 from . import alerts, calc, maintenance, settings
-from .db import (Alert, Command, Device, Snapshot, System, Telemetry, as_utc, init_db, make_engine,
-                 session_factory, utcnow)
+from .db import (Alert, Command, Device, RuntimeDay, Snapshot, System, Telemetry, as_utc, init_db,
+                 make_engine, session_factory, utcnow)
 from .refrigerants import Tables
 
 log = logging.getLogger("ingest")
+RUN_GAP_S = 60          # longer gaps between snapshots don't count as run time (same rule as /summary)
 
 
 def ts(epoch):
@@ -134,8 +135,11 @@ class Ingest:
 
         nodes = {n: self._node_state(s, system, n, now) for n in calc.NODES}
         run_start = as_utc(system.run_started_at)
-        last = as_utc(s.scalar(select(Snapshot.time).where(Snapshot.system_id == system.id)
-                               .order_by(Snapshot.time.desc()).limit(1)))
+        prev = s.execute(select(Snapshot.time, Snapshot.mode).where(Snapshot.system_id == system.id)
+                         .order_by(Snapshot.time.desc()).limit(1)).first()
+        last = as_utc(prev.time) if prev else None
+        if prev is not None:
+            self._add_runtime(s, system.id, prev.mode, now - last.timestamp(), now)
         if last is None or now - last.timestamp() > self.stale:
             run_start = None   # after an outage the compressor call can't be assumed to have continued
         snap, run_start = calc.compute(system.calc_config(), nodes,
@@ -143,6 +147,20 @@ class Ingest:
         system.run_started_at = ts(run_start) if run_start else None
         s.add(Snapshot(system_id=system.id, time=ts(now), mode=snap["mode"], data=snap))
         return snap
+
+    @staticmethod
+    def _add_runtime(s, system_id, prev_mode, gap, now):
+        """Credit the time since the previous snapshot to its mode; a gap over RUN_GAP_S is an outage."""
+        if prev_mode == "idle" or not 0 < gap <= RUN_GAP_S:
+            return
+        day = ts(now).date()
+        row = s.get(RuntimeDay, (system_id, day))
+        if row is None:
+            row = RuntimeDay(system_id=system_id, day=day, blower_s=0.0, compressor_s=0.0)
+            s.add(row)
+        row.blower_s += gap
+        if prev_mode in ("cooling", "heating"):
+            row.compressor_s += gap
 
     def _node_state(self, s, system, node, now):
         e = self.latest.get((system.id, node))

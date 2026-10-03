@@ -12,6 +12,7 @@ superheat / subcooling / fault-flag math.
 | `hvaccloud/calc.py` | Port of the dashboard's `Hub.compute` / `Hub.flags`; `tests/test_calc.py` checks they match |
 | `hvaccloud/db.py` | SQLAlchemy models; SQLite in development, TimescaleDB hypertables in production |
 | `web/` | Fullscope web app (homeowner + technician views), served by the API at `/app/` |
+| `hvaccloud/service.py` | Maintenance reminders (air filter, tune-up) and the service contractor |
 | `hvaccloud/maintenance.py` | Nightly backup of `dev.db` and thinning of old data |
 | `manage.py` | Create accounts, API keys and systems; send a test alert email; backup / prune by hand |
 | `demo_publisher.py` | Simulated outdoor + indoor nodes over MQTT (site `demo`) |
@@ -48,7 +49,13 @@ Plain HTML/CSS/JS in `web/`, no build step; styles are copied from the Fullscope
 `design/`. It polls the API every 5 s.
 
 - **Home** (`#/home/<id>`): plain-language status, inside/outside/vent temperatures, what we
-  noticed (each fault flag explained for a homeowner), system health, last 24 hours.
+  noticed (each fault flag explained for a homeowner), maintenance, recent alerts, system
+  health, last 24 hours.
+  - **Maintenance:** air filter (due after 90 days or 500 hours of blower run time, whichever
+    comes first; the homeowner presses "I changed it") and tune-up (every 182 days), with the
+    service contractor and a **Request service** button. It opens the homeowner's email with
+    the current issues filled in, or calls if only a phone number is set. Run time is added up
+    per day by the ingest worker (`runtime_days`).
 - **Monitor** (`#/monitor/<id>`): superheat, subcooling, delta-T, condensing over ambient,
   compression ratio; live trend (15 min to 7 days); operating state; sensor health from the
   nodes' own error codes; refrigerant and air-side tables; current diagnostics; alert log;
@@ -59,6 +66,8 @@ Plain HTML/CSS/JS in `web/`, no build step; styles are copied from the Fullscope
   measured 3.3 V rail, swap indoor probes, rescan, reporting interval, reboot). The command log
   shows each node's reply; after a change the page asks the node for its settings again. Buttons
   are disabled while a node is offline, and zero / reset / reboot ask for confirmation.
+  Also the service contractor (name, phone, email) and the maintenance schedule (intervals and
+  last-done dates).
 
 Both views list the last 7 days of alerts (homeowner: "Recent alerts"; technician: "Alert log").
 
@@ -111,6 +120,10 @@ All endpoints except `/health` need the header `X-API-Key: <key from manage.py c
 | GET | `/api/systems/{id}/history?minutes=60` | Averaged series, at most ~600 points |
 | GET | `/api/systems/{id}/export.csv?minutes=1440` | Snapshots as CSV (UTC times) |
 | GET | `/api/systems/{id}/alerts?days=7` | Raised alerts open during the last `days`, newest first |
+| GET | `/api/systems/{id}/service` | Contractor + maintenance items (status, days and run hours since, next due) |
+| PUT | `/api/systems/{id}/service/contractor` | `{"name","phone","email"}` |
+| PATCH | `/api/systems/{id}/service/items/{filter\|tuneup}` | `interval_days`, `interval_run_hours` (null = days only), `last_done` |
+| POST | `/api/systems/{id}/service/items/{kind}/done` | `{"date":"2026-10-03"}` (defaults to today) |
 | POST | `/api/systems/{id}/commands` | `{"node":"outdoor","cmd":{"cmd":"cal_zero","ch":"p_liq"}}` |
 | GET | `/api/systems/{id}/commands` | Recent commands with the node's reply |
 
@@ -133,7 +146,7 @@ Commands are the firmware's (see the top of `hvac-firmware/src/node_outdoor.cpp`
 
 ## Not done yet
 
-- Web app: per-user sign-in, maintenance reminders, contractor details, service requests,
+- Web app: per-user sign-in, service requests sent through the cloud (now the homeowner's email),
   acknowledging or muting alerts, choosing who gets emails.
 - Per-device MQTT accounts and topic ACLs (every node shares one account for now).
 - HTTPS / MQTT TLS (Phase 8, going live).
