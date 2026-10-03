@@ -78,15 +78,15 @@ def test_offline_node_raises_emails_and_clears(sessions, seeded, tables):
     offline = [a for a in rows(sessions) if a.code == "node_offline"]
     assert len(offline) == 1 and offline[0].node == "indoor" and offline[0].raised_at is not None
     assert offline[0].emailed_at is not None
-    assert [m[0] for m in mailer.sent] == ["t@example.com"] and "A monitor isn't reporting" in mailer.sent[0][1]
-    assert "For your contractor: Indoor node is offline" in mailer.sent[0][2]
+    assert [m[0] for m in mailer.sent] == ["t@example.com"]             # no homeowners yet: the contractor account
+    assert mailer.sent[0][1] == "[Fullscope] Home (site home): Indoor node is offline"
     for k in range(40):                                  # indoor back for ~7 min
         t = T0 + 721 + k * 10
         send(i, "indoor", COOL_IN, t)
         send(i, "outdoor", COOL_OUT, t + 1)
     offline = [a for a in rows(sessions) if a.code == "node_offline"]
     assert offline[0].cleared_at is not None
-    assert "back to normal" in mailer.sent[-1][1]
+    assert "cleared" in mailer.sent[-1][1]
 
 
 def test_email_cooldown_per_code(sessions, seeded, tables):
@@ -98,7 +98,7 @@ def test_email_cooldown_per_code(sessions, seeded, tables):
             jobs = alerts.emails_for(s, system, alerts.sync(s, system, [FLAG], start, 0), start, 6 * 3600)
         i._send(jobs)
         run_sync(sessions, [], start + 60, hold=0)
-    assert len([m for m in mailer.sent if "back to normal" not in m[1]]) == 1
+    assert len([m for m in mailer.sent if "cleared" not in m[1]]) == 1
 
 
 def test_sweep_raises_no_data_and_readings_clear_it(sessions, seeded, tables):
@@ -117,7 +117,7 @@ def test_sweep_raises_no_data_and_readings_clear_it(sessions, seeded, tables):
     send(i, "outdoor", COOL_OUT, back + 1)
     nd = [a for a in rows(sessions) if a.code == "no_data"]
     assert nd[0].cleared_at is not None                  # cleared on the first reading, not after the hold
-    assert any("lost contact" in m[1] for m in mailer.sent)
+    assert any("No readings" in m[1] for m in mailer.sent)
 
 
 def test_no_email_without_a_mailer(sessions, seeded, tables):

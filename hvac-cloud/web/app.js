@@ -799,15 +799,15 @@ function emailSummary() {
   if (!a) return "";
   if (!a.email_enabled) return "Email is off (no SMTP set up)";
   var who = [];
-  if (a.email_owner && a.owner_email) who.push("you");
-  if (a.email_contractor && a.contractor_email) who.push("contractor");
+  if (a.email_owner && a.homeowner_emails.length) who.push(a.homeowner_emails.length === 1 ? "the homeowner" : "the homeowners");
+  if (a.email_contractor && a.contractor_email) who.push("the contractor");
   return who.length ? "Emailed to " + who.join(" and ") : "Nobody gets alert emails";
 }
 function alertEmailPanel() {
   var a = S.alertSettings;
   if (!a) return '<section class="panel" aria-label="Alert email"><div class="ph"><h2>Alert email</h2></div><div class="empty">Loading…</div></section>';
-  function row(key, label, addr, missing) {
-    return '<tr><th><label><input type="checkbox" data-alert-pref="' + key + '"' + (a[key] ? " checked" : "") + (addr ? "" : " disabled") + "> " + label + "</label></th>" +
+  function row(key, label, addr, missing) {     // a switch with no address yet stays usable: it applies once there is one
+    return '<tr><th><label><input type="checkbox" data-alert-pref="' + key + '"' + (a[key] ? " checked" : "") + "> " + label + "</label></th>" +
       '<td class="faint">' + esc(addr || missing) + "</td></tr>";
   }
   var mutes = a.mutes.map(function (m) {
@@ -815,11 +815,11 @@ function alertEmailPanel() {
       '</span><button class="btn" type="button" data-alert-act="mute" data-code="' + esc(m.code) + '" data-hours="0">Unmute</button></div></td></tr>';
   }).join("");
   var note = a.email_enabled
-    ? "The owner gets plain-language emails with what to do; the contractor gets the technical reading and a link to this view. Acknowledged alerts send no “cleared” email."
+    ? "Homeowners get plain-language emails with what to do; the contractor gets the technical reading and a link to this view. Acknowledged alerts send no “cleared” email."
     : "Email is off until SMTP_HOST, SMTP_USER and SMTP_PASS are set in hvac-cloud/.env (see the README). Choices here are kept.";
   return '<section class="panel" aria-label="Alert email"><div class="ph"><h2>Alert email</h2><span class="sub">Who is emailed when an alert is raised</span></div>' +
-    '<table class="dt"><tbody>' + row("email_owner", "Account owner", a.owner_email, "no email on the account") +
-    row("email_contractor", "Service contractor", a.contractor_email, "add the contractor's email above") +
+    '<table class="dt"><tbody>' + row("email_owner", "Homeowners", a.homeowner_emails.join(", "), "nobody has access yet (invite them below)") +
+    row("email_contractor", "Contractor", a.contractor_email, "add an email to the contractor panel above") +
     (mutes ? '<tr class="sec"><td colspan="2">Muted</td></tr>' + mutes : "") + "</tbody></table>" +
     '<div class="na-note">' + esc(note) + "</div></section>";
 }
@@ -1200,7 +1200,7 @@ root.addEventListener("click", function (e) {
 function renderInvite(token) {
   root.className = "fs home";
   root.innerHTML = '<header class="h-top">' + LOGO + TAGLINE + '</header><div class="login"><div class="h-card"><div class="empty">Checking your invite…</div></div></div>';
-  api("/api/invites/" + encodeURIComponent(token), { keep401: true }).then(function (inv) {
+  api("/api/invites/lookup", { method: "POST", body: { token: token }, keep401: true }).then(function (inv) {
     var place = inv.role === "homeowner" ? "see " + inv.system + (inv.account ? ", serviced by " + inv.account : "") : "join " + (inv.account || "your team");
     var box = $(".login .h-card");
     if (inv.has_user) {
@@ -1218,7 +1218,7 @@ function renderInvite(token) {
       e.preventDefault();
       if ($("#ap").value !== $("#ap2").value) { $("#ae").textContent = "The passwords don't match."; return; }
       $("#af button").disabled = true;
-      api("/api/invites/" + encodeURIComponent(token) + "/accept", { method: "POST", body: { name: $("#an").value, password: $("#ap").value }, keep401: true })
+      api("/api/invites/accept", { method: "POST", body: { token: token, name: $("#an").value, password: $("#ap").value }, keep401: true })
         .then(function (me) { S.me = me; S.key = null; save("fs_key", null); S.systems = null; location.hash = me.role === "contractor" ? "#/fleet" : "#/"; })
         .catch(function (err) { $("#af button").disabled = false; $("#ae").textContent = err.message; });
     });
@@ -1237,9 +1237,10 @@ function inviteResult(r) {
     '<span class="faint">Works once, for 7 days.</span></div>';
 }
 function personRows(list, removeAttr) {
+  var self = S.me && S.me.user && S.me.user.id;
   return list.map(function (u) {
-    return "<tr><th>" + esc(u.name || u.email) + (u.name ? ' <span class="faint">' + esc(u.email) + "</span>" : "") + '</th><td class="faint">' +
-      (u.last_login ? "Last signed in " + esc(when(u.last_login)) : "Never signed in") + "</td><td>" + (removeAttr ? '<button class="btn" type="button" ' + removeAttr + '="' + u.user_id + '">Remove</button>' : "") + "</td></tr>";
+    return "<tr><th>" + esc(u.name || u.email) + (u.name ? ' <span class="faint">' + esc(u.email) + "</span>" : "") + (u.user_id === self ? ' <span class="faint">(you)</span>' : "") + '</th><td class="faint">' +
+      (u.last_login ? "Last signed in " + esc(when(u.last_login)) : "Never signed in") + "</td><td>" + (removeAttr && u.user_id !== self ? '<button class="btn" type="button" ' + removeAttr + '="' + u.user_id + '">Remove</button>' : "") + "</td></tr>";
   }).join("");
 }
 function inviteRows(list) {
@@ -1270,7 +1271,7 @@ function pollTeam() {
 }
 function teamPanel() {
   var p = S.team;
-  var rows = !p ? '<tr><td colspan="3" class="faint">Loading…</td></tr>' : personRows(p.users, null) + inviteRows(p.invites);
+  var rows = !p ? '<tr><td colspan="3" class="faint">Loading…</td></tr>' : personRows(p.users, "data-remove-teammate") + inviteRows(p.invites);
   return '<div class="h-card team"><h2>Your team</h2><div class="h-sub">Everyone here sees all of ' + esc((S.me.account || {}).name || "the account") + "'s systems</div>" +
     '<table class="dt"><tbody>' + rows + "</tbody></table>" +
     '<div class="invite-form"><div class="acts-cell"><label class="field wide"><input id="f-team-email" type="email" placeholder="colleague@example.com" aria-label="Colleague email"></label>' +
@@ -1279,7 +1280,7 @@ function teamPanel() {
 
 // ---------- shared click handling for invites
 root.addEventListener("click", function (e) {
-  var t = e.target.closest && e.target.closest("[data-invite],[data-remove-member],[data-revoke-invite],[data-copy-invite]");
+  var t = e.target.closest && e.target.closest("[data-invite],[data-remove-member],[data-remove-teammate],[data-revoke-invite],[data-copy-invite]");
   if (!t) return;
   if (t.hasAttribute("data-copy-invite")) {
     var inp = $("#inv-link", t.parentNode);
@@ -1305,6 +1306,9 @@ root.addEventListener("click", function (e) {
   } else if (t.dataset.removeMember) {
     if (!confirm("Remove this person's access to " + S.sys.name + "?")) return;
     api("/api/systems/" + S.sys.id + "/members/" + t.dataset.removeMember, { method: "DELETE" }).then(after).catch(function (err) { alert(err.message); });
+  } else if (t.dataset.removeTeammate) {
+    if (!confirm("Remove this colleague? Their sign-in is deleted and they are signed out everywhere.")) return;
+    api("/api/account/users/" + t.dataset.removeTeammate, { method: "DELETE" }).then(after).catch(function (err) { alert(err.message); });
   } else if (t.dataset.revokeInvite) {
     api("/api/invites/" + t.dataset.revokeInvite, { method: "DELETE" }).then(after).catch(function (err) { alert(err.message); });
   }

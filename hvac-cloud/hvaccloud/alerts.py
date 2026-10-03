@@ -14,7 +14,7 @@ from email.message import EmailMessage
 from sqlalchemy import select
 
 from . import settings
-from .db import Account, Alert, AlertMute, AlertPrefs, ServiceInfo, Snapshot, as_utc
+from .db import Account, Alert, AlertMute, AlertPrefs, ServiceInfo, Snapshot, SystemMember, User, as_utc
 
 log = logging.getLogger("alerts")
 
@@ -101,18 +101,34 @@ LEVEL = {"sh_low": "fault", "sh_high": "caution", "sc_low": "caution", "sc_high"
          "ctoa_high": "caution", "node_offline": "advisory", "sensor_issue": "advisory", NO_DATA: "advisory"}
 
 
-def recipients(s, system):
-    """[(address, "owner" | "contractor")] from the system's alert preferences."""
-    prefs = s.get(AlertPrefs, system.id)
-    owner_on = True if prefs is None else prefs.email_owner
-    contractor_on = False if prefs is None else prefs.email_contractor
-    out = []
-    acct = s.get(Account, system.account_id)
-    if owner_on and acct is not None and acct.email:
-        out.append((acct.email, "owner"))
+def homeowner_emails(s, system_id):
+    return list(s.scalars(select(User.email).join(SystemMember, SystemMember.user_id == User.id)
+                          .where(SystemMember.system_id == system_id).order_by(User.email)))
+
+
+def contractor_email(s, system):
+    """The contractor-panel email, else the contractor account's own email."""
     info = s.get(ServiceInfo, system.id)
-    if contractor_on and info is not None and info.email and all(info.email != a for a, _ in out):
-        out.append((info.email, "contractor"))
+    if info is not None and info.email:
+        return info.email
+    acct = s.get(Account, system.account_id)
+    return acct.email if acct is not None and acct.email else None
+
+
+def wants(s, system_id):
+    """(email the homeowners, email the contractor); both on unless changed."""
+    prefs = s.get(AlertPrefs, system_id)
+    return (True, True) if prefs is None else (prefs.email_owner, prefs.email_contractor)
+
+
+def recipients(s, system):
+    """[(address, "owner" | "contractor")]: the system's homeowners get plain language, its
+    contractor the technical version. alert_prefs.email_owner means "the homeowners"."""
+    owners_on, contractor_on = wants(s, system.id)
+    out = [(e, "owner") for e in homeowner_emails(s, system.id)] if owners_on else []
+    c = contractor_email(s, system) if contractor_on else None
+    if c and all(c != a for a, _ in out):
+        out.append((c, "contractor"))
     return out
 
 

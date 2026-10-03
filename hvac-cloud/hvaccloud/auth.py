@@ -18,6 +18,8 @@ import time
 from dataclasses import dataclass
 
 from . import settings
+from sqlalchemy import delete
+
 from .db import UserSession, as_utc, hash_key, utcnow
 
 COOKIE = "fs_session"
@@ -47,7 +49,13 @@ def hash_password(password):
     return f"scrypt${SCRYPT['n']}${SCRYPT['r']}${SCRYPT['p']}${b64(salt)}${b64(digest)}"
 
 
+# Checked when an email has no sign-in, so the answer takes as long as a wrong password and
+# doesn't reveal which emails exist.
+DUMMY_HASH = hash_password(secrets.token_hex(16))
+
+
 def check_password(password, stored):
+    """True when `password` matches the stored scrypt hash."""
     try:
         kind, n, r, p, salt, digest = (stored or "").split("$")
         if kind != "scrypt":
@@ -97,6 +105,14 @@ def session_user_id(s, token, now=None):
     return row.user_id
 
 
+def end_other_sessions(s, user_id, keep=None):
+    """Sign the user out everywhere except the session `keep` (a cookie token, or None for all)."""
+    q = delete(UserSession).where(UserSession.user_id == user_id)
+    if keep:
+        q = q.where(UserSession.token_hash != hash_key(keep))
+    s.execute(q)
+
+
 def end_session(s, token):
     row = s.get(UserSession, hash_key(token)) if token else None
     if row is not None:
@@ -124,6 +140,8 @@ class Throttle:
     def fail(self, key, now=None):
         now = time.time() if now is None else now
         with self._lock:
+            if len(self._fails) > 1000:                # forget emails whose failures have all aged out
+                self._fails = {k: v for k, v in self._fails.items() if self._recent(k, now)}
             self._fails[key] = self._recent(key, now) + [now]
 
     def clear(self, key):
