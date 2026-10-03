@@ -25,7 +25,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 
-from . import alerts, auth, calc, service, settings
+from . import alerts, auth, calc, equipment, service, settings
 from .db import (Account, Alert, AlertMute, AlertPrefs, ApiKey, Command, Device, Invite, ServiceInfo, Snapshot,
                  System, SystemMember, Telemetry, User, as_utc, hash_key, init_db, make_engine, session_factory, utcnow)
 from .refrigerants import FLUIDS
@@ -114,6 +114,23 @@ class LoginIn(BaseModel):
 class PasswordIn(BaseModel):
     current: str = Field(max_length=200)
     new: str = Field(max_length=200)
+
+
+class EquipmentIn(BaseModel):
+    """The whole Equipment page; empty optional fields are sent as null."""
+    system_type: Literal["split_hp", "split_ac", "packaged_hp", "packaged_ac"] | None = None
+    metering: Literal["txv", "eev", "piston"] | None = None
+    tonnage: float | None = Field(default=None, ge=0.5, le=30)
+    sc_target: float | None = Field(default=None, ge=0, le=30)
+    sc_tolerance: float | None = Field(default=None, ge=0.5, le=10)
+    rated_btuh: float | None = Field(default=None, ge=1000, le=500000)
+    rated_cfm: float | None = Field(default=None, ge=100, le=20000)
+    max_esp: float | None = Field(default=None, gt=0, le=2)
+    elevation_ft: float | None = Field(default=None, ge=-1500, le=12000)
+    refrigerant: str
+    heat_pump: bool
+    ob_energized: Literal["cool", "heat"]
+    atm_psia: float | None = Field(default=None, ge=10, le=15.5)    # used when no elevation is given
 
 
 class InviteIn(BaseModel):
@@ -254,6 +271,30 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
         user.password_hash = auth.hash_password(body.new)
         s.commit()
         return {"ok": True}
+
+    # ---------- equipment ----------
+    @app.get("/api/systems/{system_id}/equipment")
+    def get_equipment(system=Depends(tech_system), s=Depends(db)):
+        """Equipment details, the system's settings and the targets the diagnostics use."""
+        return equipment.view(s.get(equipment.Equipment, system.id), system)
+
+    @app.put("/api/systems/{system_id}/equipment")
+    def set_equipment(body: EquipmentIn, system=Depends(tech_system), s=Depends(db)):
+        if body.refrigerant not in FLUIDS:
+            raise HTTPException(422, f"refrigerant must be one of {list(FLUIDS)}")
+        eq = equipment.get_or_new(s, system.id)
+        for k in ("system_type", "metering", "tonnage", "sc_target", "rated_btuh", "rated_cfm", "max_esp", "elevation_ft"):
+            setattr(eq, k, getattr(body, k))
+        eq.sc_tolerance = body.sc_tolerance if body.sc_tolerance is not None else equipment.DEFAULT_SC_TOL
+        system.refrigerant, system.heat_pump, system.ob_energized = body.refrigerant, body.heat_pump, body.ob_energized
+        if body.elevation_ft is not None:
+            system.atm_psia = equipment.atm_from_elevation(body.elevation_ft)
+        elif body.atm_psia is not None:
+            system.atm_psia = body.atm_psia
+        if body.system_type in ("split_ac", "packaged_ac"):
+            system.heat_pump = False
+        s.commit()
+        return equipment.view(eq, system)
 
     # ---------- invites ----------
     def clean_email(raw):

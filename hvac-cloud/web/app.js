@@ -23,7 +23,7 @@ $("#theme").addEventListener("click", function () {
 // ---------------------------------------------------------------- state
 var S = {
   key: load("fs_key"), me: null, loginMode: load("fs_key") ? "key" : "password", systems: null, sys: null, view: null,
-  latest: null, summary: null, history: {}, alerts: null, alertSettings: null, service: null, commands: null, people: null, team: null, fleet: null, inviteResult: null, teamResult: null, pending: {}, form: {}, msg: null, range: load("fs_range") || "1h",
+  latest: null, summary: null, history: {}, alerts: null, alertSettings: null, service: null, commands: null, equipment: null, refrigerants: null, people: null, team: null, fleet: null, inviteResult: null, teamResult: null, pending: {}, form: {}, msg: null, range: load("fs_range") || "1h",
   preset: load("fs_preset") || "refrigerant", off: {}, lastOk: null, error: null, timers: []
 };
 var LIVE_MS = 5000, STALE_S = 30, OUTAGE_S = 90;   // a gap longer than OUTAGE_S breaks chart lines
@@ -131,7 +131,7 @@ function route() {
     pollFleet(); S.timers.push(setInterval(pollFleet, 15000));
     return renderFleet();
   }
-  var m = location.hash.match(/^#\/(home|monitor|setup)\/(\d+)/);
+  var m = location.hash.match(/^#\/(home|monitor|setup|equipment)\/(\d+)/);
   if (!S.systems) return loadSystems();
   if (!m) {
     if (!S.systems.length && !isTech()) return renderNoSystems();
@@ -144,8 +144,9 @@ function route() {
   var changed = !S.sys || S.sys.id !== id;
   S.view = m[1];
   S.sys = sys;
-  if (changed) { S.latest = null; S.summary = null; S.history = {}; S.alerts = null; S.alertSettings = null; S.service = null; S.commands = null; S.people = null; S.inviteResult = null; S.pending = {}; S.form = {}; stopTimers(); startTimers(); }
+  if (changed) { S.latest = null; S.summary = null; S.history = {}; S.alerts = null; S.alertSettings = null; S.service = null; S.commands = null; S.equipment = null; S.people = null; S.inviteResult = null; S.pending = {}; S.form = {}; stopTimers(); startTimers(); }
   if (S.view === "setup") { pollCommands(); pollPeople(); }
+  if (S.view === "equipment") { S.msg = null; pollEquipment(); }
   if (!changed && S.view !== "home" && !S.alertSettings) pollAlerts();   // the home page doesn't load them
   render();
 }
@@ -300,10 +301,10 @@ function render() {
   var y = window.scrollY;
   var act = document.activeElement, focusId = act && act.id && root.contains(act) ? act.id : null;
   var selStart = focusId && act.selectionStart, selEnd = focusId && act.selectionEnd;
-  if (S.view === "home") renderHome(); else if (S.view === "setup") renderSetup(); else renderMonitor();
+  if (S.view === "home") renderHome(); else if (S.view === "setup") renderSetup(); else if (S.view === "equipment") renderEquipment(); else renderMonitor();
   open.forEach(function (id) { var d = document.getElementById(id); if (d) d.open = true; });
   // re-rendering every 5 s must not wipe what the technician is typing
-  $$("input[id^='f-']", root).forEach(function (i) { if (S.form[i.id] !== undefined) i.value = S.form[i.id]; });
+  $$("input[id^='f-'], select[id^='f-']", root).forEach(function (i) { if (S.form[i.id] !== undefined) i.value = S.form[i.id]; });
   var f = focusId && document.getElementById(focusId);
   if (f) { f.focus(); try { if (selStart !== null && selStart !== undefined) f.setSelectionRange(selStart, selEnd); } catch (e) {} }
   window.scrollTo(0, y);
@@ -565,7 +566,7 @@ function techHeader(page) {
     num(sm.runtime_hours, "h", 1) + ' <span class="muted" style="font-weight:400">24 h</span></b></div>' +
     '<a class="tf alerts" href="' + diagHref + '"' + (page === "monitor" ? ' data-jump="diagnostics"' : "") + ' style="text-decoration:none;color:inherit"><span>Diagnostics</span><div class="row">' + diagSum + "</div></a>" +
     "</div></div>" +
-    '<nav class="nav" aria-label="Sections"><a href="#/fleet">Fleet</a>' + navLink("monitor", "Monitor", page) + navLink("setup", "Sensors &amp; calibration", page) +
+    '<nav class="nav" aria-label="Sections"><a href="#/fleet">Fleet</a>' + navLink("monitor", "Monitor", page) + navLink("equipment", "Equipment", page) + navLink("setup", "Sensors &amp; calibration", page) +
     '<a href="#/home/' + S.sys.id + '">Homeowner view</a>' +
     '<span class="spacer"></span><div class="tools">' +
     (fresh ? '<span class="live">LIVE · 5 s</span>' : st("offline", "Offline")) + systemPicker(page) +
@@ -644,12 +645,16 @@ function judged(v, codesBad, d) {
   if ((d.run_min || 0) < 10) return ["advisory", "Settling"];
   return ["ok", "Normal"];
 }
+function scTargetText(d) {
+  var t = d.targets && d.targets.sc;
+  return t && t.source === "nameplate" ? "Target " + fmt(t.target) + " ± " + fmt((t.hi - t.lo) / 2) + " (nameplate)" : "Flag &lt; 3 or &gt; 20";
+}
 function strip(d) {
   var sh = judged(d.sh, ["sh_low", "sh_high"], d), sc = judged(d.sc, ["sc_low", "sc_high"], d), dt = judged(d.dt, ["dt_low"], d), ct = judged(d.ctoa, ["ctoa_high"], d);
   var cr = isNum(d.p_high) && isNum(d.p_low) ? (d.p_high + S.sys.atm_psia) / (d.p_low + S.sys.atm_psia) : null;
   return '<section class="strip" aria-label="System summary" style="grid-template-columns:repeat(6,minmax(0,1fr))">' +
     cell("Superheat", "calc", d.sh, "°F", sh[0], sh[1], "Flag &lt; 3 or &gt; 30") +
-    cell("Subcooling", "calc", d.sc, "°F", sc[0], sc[1], "Flag &lt; 3 or &gt; 20") +
+    cell("Subcooling", "calc", d.sc, "°F", sc[0], sc[1], scTargetText(d)) +
     cell("Delta-T", "calc", d.dt, "°F", dt[0], dt[1], "Flag &lt; 12 (cooling)") +
     cell("Cond. over ambient", "calc", d.ctoa, "°F", ct[0], ct[1], "Flag &gt; 35") +
     cell("Compression ratio", "calc", cr, ": 1", null, "", "Absolute pressures", 2) +
@@ -838,6 +843,79 @@ root.addEventListener("change", function (e) {
   if (!S.sys || !t.dataset) return;
   if (t.dataset.alertMute && t.value) saveAlertSettings("/alert-mutes/" + encodeURIComponent(t.dataset.alertMute), { hours: +t.value });
   if (t.dataset.alertPref) { var body = {}; body[t.dataset.alertPref] = t.checked; saveAlertSettings("/alert-settings", body); }
+});
+
+// ================================================================ EQUIPMENT VIEW (#/equipment/<id>)
+// Layout from the monitor mockup's "Equipment configuration": System, Ratings & targets, Site.
+var SYSTEM_TYPES = [["split_hp", "Split heat pump"], ["split_ac", "Split air conditioner"], ["packaged_hp", "Packaged heat pump"], ["packaged_ac", "Packaged air conditioner"]];
+var METERING = [["txv", "TXV"], ["eev", "EEV"], ["piston", "Fixed orifice / piston"]];
+function pollEquipment() {
+  var id = S.sys.id;
+  api("/api/systems/" + id + "/equipment").then(function (d) { if (S.sys && S.sys.id === id) { S.equipment = d; render(); } }).catch(function () {});
+  if (!S.refrigerants) api("/api/refrigerants").then(function (r) { S.refrigerants = r; render(); }).catch(function () {});
+}
+function eqSelect(id, opts, cur, label, blank) {
+  return '<select class="sel" id="' + id + '" aria-label="' + esc(label) + '">' + (blank ? '<option value="">' + esc(blank) + "</option>" : "") +
+    opts.map(function (o) { return '<option value="' + esc(o[0]) + '"' + (String(o[0]) === String(cur) ? " selected" : "") + ">" + esc(o[1]) + "</option>"; }).join("") + "</select>";
+}
+function eqNum(id, value, unit, label) {
+  return field(id, unit, "", label).replace("<input ", '<input value="' + (value === null || value === undefined ? "" : esc(value)) + '" ');
+}
+function renderEquipment() {
+  root.className = "fs";
+  var e = S.equipment;
+  var body;
+  if (!e) body = '<section class="panel"><div class="empty">Loading…</div></section>';
+  else {
+    var sc = e.targets.sc, refr = (S.refrigerants || [e.refrigerant]).map(function (r) { return [r, r]; });
+    var row = function (label, input, used) { return "<tr><th>" + label + "</th><td>" + input + '</td><td class="used">' + used + "</td></tr>"; };
+    var head = '<table class="dt"><thead><tr><th>Field</th><th>Value</th><th>Used by</th></tr></thead><tbody>';
+    body = '<div class="ph panel" style="border-radius:3px"><h2>Equipment configuration</h2><span class="sub">' + esc(S.sys.name) +
+      " · values here feed the calculations on Monitor</span>" +
+      '<div class="right"><button class="btn" type="button" data-eq-save style="border-color:var(--ink-muted)">Save configuration</button></div></div>' +
+      '<div class="cfg">' +
+      '<section class="panel" aria-label="System"><div class="ph"><h2>System</h2></div>' + head +
+      row("System type", eqSelect("f-eq-type", SYSTEM_TYPES, e.system_type, "System type", "Not set"), "Mode logic") +
+      row("Heat pump / straight cool", eqSelect("f-eq-hp", [["1", "Heat pump"], ["0", "Straight cool"]], e.heat_pump ? "1" : "0", "Heat pump or straight cool"), "Mode logic") +
+      row("O/B configuration", eqSelect("f-eq-ob", [["cool", "O — energized in cooling"], ["heat", "B — energized in heating"]], e.ob_energized, "O/B configuration"), "Mode detection") +
+      row("Refrigerant", eqSelect("f-eq-ref", refr, e.refrigerant, "Refrigerant"), "Saturation temps, SH, SC") +
+      row("Metering device", eqSelect("f-eq-meter", METERING, e.metering, "Metering device", "Not set"), "Subcooling target") +
+      row("Nominal tonnage", eqNum("f-eq-tons", e.tonnage, "tons", "Nominal tonnage"), '<span class="faint">Not used yet</span>') +
+      "</tbody></table></section>" +
+      '<section class="panel" aria-label="Ratings and targets"><div class="ph"><h2>Ratings &amp; targets</h2></div>' + head +
+      row("Subcooling target", '<div class="acts-cell">' + eqNum("f-eq-sc", e.sc_target, "°F", "Nameplate subcooling target") + "<span class=\"faint\">±</span>" +
+        eqNum("f-eq-tol", e.sc_tolerance, "°F", "Subcooling tolerance") + "</div>",
+        sc.source === "nameplate" ? "SC flags: " + fmt(sc.lo) + "–" + fmt(sc.hi) + " °F in cooling" : "Generic 3–20 °F until a TXV/EEV target is set") +
+      row("Superheat", '<span class="faint">Flagged below 3 or above 30 °F</span>', esc(e.targets.sh.note)) +
+      row("Rated cooling capacity", eqNum("f-eq-btuh", e.rated_btuh, "BTU/hr", "Rated cooling capacity"), '<span class="faint">Capacity, phase 6</span>') +
+      row("Rated airflow", eqNum("f-eq-cfm", e.rated_cfm, "CFM", "Rated airflow"), '<span class="faint">Capacity, phase 6</span>') +
+      row("Max external static", eqNum("f-eq-esp", e.max_esp, "in. w.c.", "Maximum external static pressure"), '<span class="faint">Static sensors, phase 6</span>') +
+      "</tbody></table></section>" +
+      '<section class="panel" aria-label="Site"><div class="ph"><h2>Site</h2></div>' + head +
+      row("Site elevation", eqNum("f-eq-elev", e.elevation_ft, "ft", "Site elevation"), "Atmospheric pressure") +
+      row("Atmospheric pressure", e.elevation_ft !== null ? '<span class="n">' + fmt(e.atm_psia, 2) + ' <small>psia</small></span> <span class="faint">derived</span>'
+        : eqNum("f-eq-atm", e.atm_psia, "psia", "Atmospheric pressure"), "psig → psia for PT tables") +
+      "</tbody></table></section></div>";
+  }
+  root.innerHTML = techHeader("equipment") + (S.msg ? '<div class="stale-banner" role="status">' + esc(S.msg) + "</div>" : "") + '<main class="page">' + body + "</main>";
+  bindCommon();
+}
+root.addEventListener("click", function (e) {
+  var b = e.target.closest && e.target.closest("[data-eq-save]");
+  if (!b || S.view !== "equipment") return;
+  function v(id) { var el = document.getElementById(id); return el ? el.value.trim() : ""; }
+  function n(id) { var x = v(id); return x === "" ? null : parseFloat(x.replace(",", ".")); }
+  var body = { system_type: v("f-eq-type") || null, metering: v("f-eq-meter") || null, tonnage: n("f-eq-tons"), sc_target: n("f-eq-sc"),
+    sc_tolerance: n("f-eq-tol"), rated_btuh: n("f-eq-btuh"), rated_cfm: n("f-eq-cfm"), max_esp: n("f-eq-esp"), elevation_ft: n("f-eq-elev"),
+    refrigerant: v("f-eq-ref"), heat_pump: v("f-eq-hp") === "1", ob_energized: v("f-eq-ob"), atm_psia: n("f-eq-atm") };
+  for (var k in body) if (typeof body[k] === "number" && !isFinite(body[k])) { S.msg = "Check the numbers: one of them isn't a number."; render(); return; }
+  b.disabled = true;
+  api("/api/systems/" + S.sys.id + "/equipment", { method: "PUT", body: body }).then(function (d) {
+    S.equipment = d;
+    Object.keys(S.form).forEach(function (k) { if (k.indexOf("f-eq-") === 0) delete S.form[k]; });
+    S.sys.refrigerant = d.refrigerant; S.sys.heat_pump = d.heat_pump; S.sys.ob_energized = d.ob_energized; S.sys.atm_psia = d.atm_psia;
+    S.msg = "Saved. New readings use these settings."; render();
+  }).catch(function (err) { S.msg = "Couldn't save: " + err.message; b.disabled = false; render(); });
 });
 
 // ================================================================ SENSORS & CALIBRATION VIEW
@@ -1058,6 +1136,7 @@ function commandLog() {
 
 // one delegated listener: the page is re-rendered every few seconds
 root.addEventListener("input", function (e) { if (e.target.id && e.target.id.indexOf("f-") === 0) S.form[e.target.id] = e.target.value; });
+root.addEventListener("change", function (e) { if (e.target.tagName === "SELECT" && e.target.id && e.target.id.indexOf("f-") === 0) S.form[e.target.id] = e.target.value; });
 root.addEventListener("click", function (e) {
   var b = e.target.closest && e.target.closest("[data-act]");
   if (!b || S.view !== "setup" || b.disabled) return;

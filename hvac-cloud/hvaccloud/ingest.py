@@ -17,8 +17,8 @@ import time
 
 from sqlalchemy import select
 
-from . import alerts, calc, maintenance, settings
-from .db import (Alert, Command, Device, RuntimeDay, Snapshot, System, Telemetry, as_utc, init_db,
+from . import alerts, calc, equipment, maintenance, settings
+from .db import (Alert, Command, Device, Equipment, RuntimeDay, Snapshot, System, Telemetry, as_utc, init_db,
                  make_engine, session_factory, utcnow)
 from .refrigerants import Tables
 
@@ -144,6 +144,7 @@ class Ingest:
             run_start = None   # after an outage the compressor call can't be assumed to have continued
         snap, run_start = calc.compute(system.calc_config(), nodes,
                                        run_start.timestamp() if run_start else None, now, self.tables)
+        snap = equipment.apply(snap, s.get(Equipment, system.id))     # nameplate targets (cloud only)
         system.run_started_at = ts(run_start) if run_start else None
         s.add(Snapshot(system_id=system.id, time=ts(now), mode=snap["mode"], data=snap))
         return snap

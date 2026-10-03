@@ -188,6 +188,21 @@ class Alert(Base):
     acked_at: Mapped[dt.datetime | None]       # someone is handling it: shown as such, no "cleared" email
 
 
+class Equipment(Base):
+    """What is installed, entered by the technician (equipment.py). All optional."""
+    __tablename__ = "equipment"
+    system_id: Mapped[int] = mapped_column(ForeignKey("systems.id"), primary_key=True)
+    system_type: Mapped[str | None] = mapped_column(String(16))      # split_hp, split_ac, packaged_hp, packaged_ac
+    metering: Mapped[str | None] = mapped_column(String(8))          # txv, eev, piston
+    tonnage: Mapped[float | None]
+    sc_target: Mapped[float | None]                                  # nameplate subcooling, F
+    sc_tolerance: Mapped[float | None]
+    rated_btuh: Mapped[float | None]
+    rated_cfm: Mapped[float | None]
+    max_esp: Mapped[float | None]                                    # in. w.c.
+    elevation_ft: Mapped[float | None]
+
+
 class AlertPrefs(Base):
     """Who a system's alerts are emailed to. Missing row = the account owner only."""
     __tablename__ = "alert_prefs"
