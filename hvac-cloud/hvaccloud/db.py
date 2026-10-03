@@ -4,7 +4,7 @@ import hashlib
 import secrets
 
 from sqlalchemy import (JSON, Boolean, Date, DateTime, Float, ForeignKey, Integer, String, UniqueConstraint,
-                        create_engine, event, text)
+                        create_engine, event, inspect, text)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, sessionmaker
 
@@ -138,6 +138,23 @@ class Alert(Base):
     raised_at: Mapped[dt.datetime | None]
     cleared_at: Mapped[dt.datetime | None]
     emailed_at: Mapped[dt.datetime | None]
+    acked_at: Mapped[dt.datetime | None]       # someone is handling it: shown as such, no "cleared" email
+
+
+class AlertPrefs(Base):
+    """Who a system's alerts are emailed to. Missing row = the account owner only."""
+    __tablename__ = "alert_prefs"
+    system_id: Mapped[int] = mapped_column(ForeignKey("systems.id"), primary_key=True)
+    email_owner: Mapped[bool] = mapped_column(Boolean, default=True)
+    email_contractor: Mapped[bool] = mapped_column(Boolean, default=False)
+
+
+class AlertMute(Base):
+    """No emails for this alert code on this system until `until` (alerts are still recorded)."""
+    __tablename__ = "alert_mutes"
+    system_id: Mapped[int] = mapped_column(ForeignKey("systems.id"), primary_key=True)
+    code: Mapped[str] = mapped_column(String(32), primary_key=True)
+    until: Mapped[dt.datetime]
 
 
 class RuntimeDay(Base):
@@ -187,6 +204,7 @@ def make_engine(url=None):
 
 def init_db(engine):
     Base.metadata.create_all(engine)
+    add_missing_columns(engine)
     if engine.dialect.name == "postgresql":
         with engine.begin() as c:
             c.execute(text("CREATE EXTENSION IF NOT EXISTS timescaledb"))
@@ -195,6 +213,23 @@ def init_db(engine):
                                f"migrate_data => TRUE)"))
                 c.execute(text(f"SELECT add_retention_policy('{table}', INTERVAL '{settings.KEEP_DAYS} days', "
                                f"if_not_exists => TRUE)"))
+
+
+def add_missing_columns(engine):
+    """create_all makes new tables but never changes existing ones. Columns added to a model
+    later must be nullable; this adds them to an existing database so it keeps working."""
+    insp = inspect(engine)
+    with engine.begin() as c:
+        for table in Base.metadata.sorted_tables:
+            if not insp.has_table(table.name):
+                continue
+            have = {col["name"] for col in insp.get_columns(table.name)}
+            for col in table.columns:
+                if col.name not in have:
+                    if not col.nullable:
+                        raise RuntimeError(f"can't add NOT NULL column {table.name}.{col.name} automatically")
+                    kind = col.type.compile(dialect=engine.dialect)
+                    c.execute(text(f'ALTER TABLE {table.name} ADD COLUMN {col.name} {kind}'))
 
 
 def session_factory(engine):

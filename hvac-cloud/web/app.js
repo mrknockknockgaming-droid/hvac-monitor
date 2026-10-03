@@ -23,7 +23,7 @@ $("#theme").addEventListener("click", function () {
 // ---------------------------------------------------------------- state
 var S = {
   key: load("fs_key"), systems: null, sys: null, view: null,
-  latest: null, summary: null, history: {}, alerts: null, service: null, commands: null, pending: {}, form: {}, msg: null, range: load("fs_range") || "1h",
+  latest: null, summary: null, history: {}, alerts: null, alertSettings: null, service: null, commands: null, pending: {}, form: {}, msg: null, range: load("fs_range") || "1h",
   preset: load("fs_preset") || "refrigerant", off: {}, lastOk: null, error: null, timers: []
 };
 var LIVE_MS = 5000, STALE_S = 30, OUTAGE_S = 90;   // a gap longer than OUTAGE_S breaks chart lines
@@ -124,7 +124,7 @@ function route() {
   var changed = !S.sys || S.sys.id !== id;
   S.view = m[1];
   S.sys = sys;
-  if (changed) { S.latest = null; S.summary = null; S.history = {}; S.alerts = null; S.service = null; S.commands = null; S.pending = {}; S.form = {}; stopTimers(); startTimers(); }
+  if (changed) { S.latest = null; S.summary = null; S.history = {}; S.alerts = null; S.alertSettings = null; S.service = null; S.commands = null; S.pending = {}; S.form = {}; stopTimers(); startTimers(); }
   if (S.view === "setup") pollCommands();
   render();
 }
@@ -160,6 +160,7 @@ function pollSummary() {
 function pollAlerts() {
   var id = S.sys.id;
   api("/api/systems/" + id + "/alerts?days=7").then(function (d) { if (S.sys && S.sys.id === id) { S.alerts = d; render(); } }).catch(function () {});
+  if (S.view !== "home") api("/api/systems/" + id + "/alert-settings").then(function (d) { if (S.sys && S.sys.id === id) { S.alertSettings = d; render(); } }).catch(function () {});
 }
 function pollService() {
   var id = S.sys.id;
@@ -385,7 +386,7 @@ function homeAlerts() {
   if (!list.length) return h + '<ul class="h-health"><li><b>None</b>' + st("ok", "Good") + "<p>Nothing needed attention in the last 7 days.</p></li></ul></section>";
   return h + '<ul class="h-health">' + list.slice(0, 8).map(function (a) {
     var i = flagInfo(a);
-    return "<li><b>" + esc(i.title) + "</b>" + (a.open ? st(i.level, "Ongoing") : st("ok", "Cleared")) +
+    return "<li><b>" + esc(i.title) + "</b>" + (a.open ? (a.acked_at ? st("advisory", "Being handled") : st(i.level, "Ongoing")) : st("ok", "Cleared")) +
       "<p>" + esc(when(a.started_at)) + " · " + (a.open ? "for " : "lasted ") + esc(lasted(a)) + "</p></li>";
   }).join("") + "</ul></section>";
 }
@@ -683,19 +684,85 @@ function diagPanel(fl, d) {
     '</tbody></table><div class="na-note">' + esc(note) + "</div></section>";
 }
 
+function mutedUntil(code) {
+  var m = ((S.alertSettings && S.alertSettings.mutes) || []).filter(function (x) { return x.code === code; })[0];
+  return m ? m.until : null;
+}
 function alertLog() {
-  var list = S.alerts, body;
-  if (!list) body = '<tr><td colspan="5" class="faint">Loading…</td></tr>';
-  else if (!list.length) body = '<tr class="normal"><td>' + st("ok", "Normal") + '</td><td class="cond" colspan="4">No alerts in the last 7 days.</td></tr>';
+  var list = S.alerts, body, seenCode = {};
+  if (!list) body = '<tr><td colspan="6" class="faint">Loading…</td></tr>';
+  else if (!list.length) body = '<tr class="normal"><td>' + st("ok", "Normal") + '</td><td class="cond" colspan="5">No alerts in the last 7 days.</td></tr>';
   else body = list.map(function (a) {
     var i = flagInfo(a), sensor = ["sensor_issue", "node_offline", "no_data"].indexOf(a.code) >= 0;
+    var state = !a.open ? '<span class="n">' + esc(lasted(a)) + "</span>"
+      : (a.acked_at ? st("ok", "Handling") : st(i.level === "advisory" ? "advisory" : "caution", "Active")) + ' <span class="faint n">' + esc(lasted(a)) + "</span>";
+    var acts = [];
+    if (a.open) acts.push('<button class="btn" type="button" data-alert-act="ack" data-id="' + a.id + '" data-on="' + (a.acked_at ? 0 : 1) + '">' + (a.acked_at ? "Undo" : "Acknowledge") + "</button>");
+    if (!seenCode[a.code]) {                      // mute is per kind of alert: offer it on the newest row of each kind
+      seenCode[a.code] = true;
+      var mu = mutedUntil(a.code);
+      acts.push(mu ? '<span class="faint">Muted to ' + esc(when(mu)) + '</span><button class="btn" type="button" data-alert-act="mute" data-code="' + esc(a.code) + '" data-hours="0">Unmute</button>'
+        : '<select class="sel" aria-label="Mute emails for this kind of alert" data-alert-mute="' + esc(a.code) + '"><option value="">Mute emails…</option>' +
+          '<option value="24">for 1 day</option><option value="168">for 7 days</option><option value="720">for 30 days</option></select>');
+    }
     return "<tr><td>" + st(sensor ? "sensor" : i.level, sensor ? "Sensor" : TECH_LEVEL[i.level]) + '</td><td class="cond">' + esc(a.text) + "</td>" +
-      '<td class="n">' + esc(when(a.started_at)) + "</td><td>" + (a.open ? st(i.level === "advisory" ? "advisory" : "caution", "Active") + ' <span class="faint n">' + esc(lasted(a)) + "</span>" : '<span class="n">' + esc(lasted(a)) + "</span>") +
-      '</td><td class="faint n">' + (a.emailed_at ? "Emailed " + esc(ampm(a.emailed_at)) : "—") + "</td></tr>";
+      '<td class="n">' + esc(when(a.started_at)) + "</td><td>" + state + "</td>" +
+      '<td class="faint n">' + (a.emailed_at ? "Emailed " + esc(ampm(a.emailed_at)) : "—") + '</td><td><div class="acts-cell">' + acts.join("") + "</div></td></tr>";
   }).join("");
-  return '<section class="panel" id="alert-log" aria-label="Alert log"><div class="ph"><h2>Alert log</h2><span class="sub">Last 7 days · raised after 5 min, cleared after 5 min without the condition</span></div>' +
-    '<table class="dt diag"><thead><tr><th>Severity</th><th>Condition</th><th>Started</th><th>Duration</th><th>Email</th></tr></thead><tbody>' + body + "</tbody></table></section>";
+  return '<section class="panel" id="alert-log" aria-label="Alert log"><div class="ph"><h2>Alert log</h2><span class="sub">Last 7 days · raised after 5 min, cleared after 5 min without the condition</span>' +
+    '<span class="right sub">' + esc(emailSummary()) + ' · <a class="muted" href="#/setup/' + S.sys.id + '">change</a></span></div>' +
+    '<table class="dt diag"><thead><tr><th>Severity</th><th>Condition</th><th>Started</th><th>Duration</th><th>Email</th><th></th></tr></thead><tbody>' + body + "</tbody></table></section>";
 }
+function emailSummary() {
+  var a = S.alertSettings;
+  if (!a) return "";
+  if (!a.email_enabled) return "Email is off (no SMTP set up)";
+  var who = [];
+  if (a.email_owner && a.owner_email) who.push("you");
+  if (a.email_contractor && a.contractor_email) who.push("contractor");
+  return who.length ? "Emailed to " + who.join(" and ") : "Nobody gets alert emails";
+}
+function alertEmailPanel() {
+  var a = S.alertSettings;
+  if (!a) return '<section class="panel" aria-label="Alert email"><div class="ph"><h2>Alert email</h2></div><div class="empty">Loading…</div></section>';
+  function row(key, label, addr, missing) {
+    return '<tr><th><label><input type="checkbox" data-alert-pref="' + key + '"' + (a[key] ? " checked" : "") + (addr ? "" : " disabled") + "> " + label + "</label></th>" +
+      '<td class="faint">' + esc(addr || missing) + "</td></tr>";
+  }
+  var mutes = a.mutes.map(function (m) {
+    return "<tr><th>" + esc(flagInfo(m).title) + ' <span class="faint mono">' + esc(m.code) + '</span></th><td><div class="acts-cell"><span class="faint">until ' + esc(when(m.until)) +
+      '</span><button class="btn" type="button" data-alert-act="mute" data-code="' + esc(m.code) + '" data-hours="0">Unmute</button></div></td></tr>';
+  }).join("");
+  var note = a.email_enabled
+    ? "The owner gets plain-language emails with what to do; the contractor gets the technical reading and a link to this view. Acknowledged alerts send no “cleared” email."
+    : "Email is off until SMTP_HOST, SMTP_USER and SMTP_PASS are set in hvac-cloud/.env (see the README). Choices here are kept.";
+  return '<section class="panel" aria-label="Alert email"><div class="ph"><h2>Alert email</h2><span class="sub">Who is emailed when an alert is raised</span></div>' +
+    '<table class="dt"><tbody>' + row("email_owner", "Account owner", a.owner_email, "no email on the account") +
+    row("email_contractor", "Service contractor", a.contractor_email, "add the contractor's email above") +
+    (mutes ? '<tr class="sec"><td colspan="2">Muted</td></tr>' + mutes : "") + "</tbody></table>" +
+    '<div class="na-note">' + esc(note) + "</div></section>";
+}
+function saveAlertSettings(path, body) {
+  return api("/api/systems/" + S.sys.id + path, { method: "PUT", body: body }).then(function (d) { S.alertSettings = d; render(); })
+    .catch(function (e) { alert("Couldn't save: " + e.message); });
+}
+root.addEventListener("click", function (e) {
+  var b = e.target.closest && e.target.closest("[data-alert-act]");
+  if (!b || !S.sys) return;
+  if (b.dataset.alertAct === "ack") {
+    b.disabled = true;
+    api("/api/systems/" + S.sys.id + "/alerts/" + b.dataset.id + "/ack", { method: "POST", body: { ack: b.dataset.on === "1" } })
+      .then(function () { pollAlerts(); }).catch(function (err) { b.disabled = false; alert("Couldn't save: " + err.message); });
+  } else if (b.dataset.alertAct === "mute") {
+    saveAlertSettings("/alert-mutes/" + encodeURIComponent(b.dataset.code), { hours: +b.dataset.hours });
+  }
+});
+root.addEventListener("change", function (e) {
+  var t = e.target;
+  if (!S.sys || !t.dataset) return;
+  if (t.dataset.alertMute && t.value) saveAlertSettings("/alert-mutes/" + encodeURIComponent(t.dataset.alertMute), { hours: +t.value });
+  if (t.dataset.alertPref) { var body = {}; body[t.dataset.alertPref] = t.checked; saveAlertSettings("/alert-settings", body); }
+});
 
 // ================================================================ SENSORS & CALIBRATION VIEW
 // Sends the firmware's own commands (hvac-firmware/src/node_outdoor.cpp, node_indoor.cpp) and shows
@@ -823,7 +890,7 @@ function renderSetup() {
         '<tr><td colspan="2"><div class="acts-cell">' + field("f-int-" + nm, "s", "5", nm + " reporting interval") + actBtn("interval", "Set interval", nm) +
         actBtn("status", "Reload settings", nm) + actBtn("reboot", "Reboot", nm) + (nd && nd.ip ? '<span class="faint mono">' + esc(nd.ip) + "</span>" : "") + "</div></td></tr>";
     }).join("") + "</tbody></table></section></div>" +
-    '<div class="cfg">' + contractorPanel() + maintPanel() + "</div>" +
+    '<div class="cfg">' + contractorPanel() + maintPanel() + alertEmailPanel() + "</div>" +
     commandLog() + "</main>";
   root.innerHTML = html;
   bindCommon();

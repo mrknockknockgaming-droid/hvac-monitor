@@ -86,6 +86,10 @@ temperatures, superheat, subcooling and delta-T.
     emailed to the account's email (6 h cooldown per code). Email is OFF until `hvac-cloud/.env`
     has SMTP_* (see `.env.example`; Gmail needs an App Password, which the user must create and
     paste themselves). Test with `manage.py test-email 1`. Settings also read `.env`.
+    Recipients per system (owner and/or contractor email; owner gets plain wording from
+    alerts.PLAIN, which must match FLAG_INFO in web/app.js), acknowledge, and per-code mutes.
+  - Schema changes: `db.add_missing_columns` adds new NULLABLE columns to existing tables at
+    startup (create_all only makes new tables). Non-null new columns need a real migration.
   - Maintenance card (home): filter due at 90 days or 500 blower hours, tune-up 182 days,
     contractor + Request service (mailto/tel). Ingest adds blower/compressor seconds per UTC day
     to `runtime_days`; contractor and schedule are edited on the Sensors & calibration page.
@@ -93,8 +97,8 @@ temperatures, superheat, subcooling and delta-T.
     `hvac-cloud/backups/` (keeps 7, git-ignored) and prunes: >30 days thinned to 1-minute
     averages, raw telemetry >30 days dropped, >365 days deleted (`hvaccloud/maintenance.py`;
     `manage.py backup` / `prune` by hand). Restore steps are in hvac-cloud/README.md.
-  - Tests: `.venv\Scripts\python.exe -m pytest -q` in `hvac-cloud/` (41 pass). Not done:
-    per-user sign-in (API key in browser storage for now), alert acknowledge/mute, per-device MQTT accounts and ACLs, TLS.
+  - Tests: `.venv\Scripts\python.exe -m pytest -q` in `hvac-cloud/` (48 pass). Not done:
+    per-user sign-in (API key in browser storage for now), per-device MQTT accounts and ACLs, TLS.
 
 ## Hardware
 - Boards: 3x ESP-WROOM-32 30-pin dev boards (PCB antenna, no u.FL). Outdoor on COM4, indoor on COM5 (both CP210x; tell them apart by port).
