@@ -55,6 +55,15 @@ Interactive API docs: http://localhost:8000/docs (click Authorize and paste the 
   (the web app adds it), which stops other sites from forging them. Eight wrong passwords for
   one email lock it for 15 minutes. Users change their password on the Account page.
 - API keys still work (header `X-API-Key`) and act as a contractor of their account.
+- **Invites:** on a system's Sensors & calibration page ("Homeowner access") a contractor invites
+  a homeowner by email; on the Account page ("Your team") a colleague. The person opens the
+  link (`#/invite/<token>`, valid 7 days, works once), chooses a password and is signed in. The
+  link is emailed when SMTP is set up and always shown to copy. An email that already has a
+  homeowner sign-in is given access straight away. Links use `APP_URL`, so they only work on
+  this PC until the site has a public address.
+- **Fleet** (`#/fleet`, contractors' landing page): every system on the account, most in need of
+  attention first (service needed, offline, check soon, good to know, maintenance due), with
+  current issues and open alerts, node health, filter and tune-up. Refreshes every 15 s.
 
 ```powershell
 .venv\Scripts\python.exe manage.py create-user you@example.com --name "Tyler" --account 1
@@ -144,6 +153,13 @@ header `X-API-Key: <key from manage.py create-key>`. Endpoints marked *tech* ans
 | GET | `/api/auth/me` | Role, user and account of whoever is asking |
 | POST | `/api/auth/password` | `{"current","new"}` |
 | GET | `/api/systems` | Systems this user can see |
+| GET | `/api/fleet` | *tech* All systems with status, issues, nodes and maintenance, worst first |
+| POST | `/api/systems/{id}/invites` | *tech* `{"email"}`: invite a homeowner (or add an existing one) |
+| GET | `/api/systems/{id}/people` | *tech* Homeowners with access and pending invites |
+| DELETE | `/api/systems/{id}/members/{user_id}` | *tech* Remove a homeowner's access |
+| POST / GET | `/api/account/invites`, `/api/account/people` | *tech* Invite a colleague; list the team |
+| DELETE | `/api/invites/{id}` | *tech* Revoke an invite |
+| GET / POST | `/api/invites/{token}`, `/api/invites/{token}/accept` | Open an invite link; `{"name","password"}` creates the sign-in |
 | GET | `/api/systems/{id}` | Settings + nodes (online, age, fw, ip, rssi) |
 | PATCH | `/api/systems/{id}` | `refrigerant`, `heat_pump`, `ob_energized` (`cool`/`heat`), `atm_psia` |
 | GET | `/api/systems/{id}/latest` | Newest derived snapshot (mode, pressures, sat temps, SH, SC, delta-T, flags) + each node's raw telemetry |
@@ -180,8 +196,7 @@ Commands are the firmware's (see the top of `hvac-firmware/src/node_outdoor.cpp`
 
 ## Not done yet
 
-- Web app: invites (a contractor adds a homeowner by email) and the contractor fleet page,
-  service requests sent through the cloud (now the homeowner's email),
+- Web app: password reset by email, service requests sent through the cloud (now the homeowner's email),
   sending the homeowner and contractor emails from separate per-user accounts.
 - Per-device MQTT accounts and topic ACLs (every node shares one account for now).
 - HTTPS / MQTT TLS (Phase 8, going live).

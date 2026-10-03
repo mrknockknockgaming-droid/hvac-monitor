@@ -14,6 +14,8 @@ import json
 import mimetypes
 import os
 import random
+import re
+import secrets
 import threading
 from typing import Literal
 
@@ -21,16 +23,19 @@ from fastapi import Cookie, Depends, FastAPI, Header, HTTPException, Query, Requ
 from fastapi.responses import PlainTextResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import func, select
 
-from . import auth, calc, service, settings
-from .db import (Account, Alert, AlertMute, AlertPrefs, ApiKey, Command, Device, ServiceInfo, Snapshot, System,
-                 SystemMember, Telemetry, User, as_utc, hash_key, init_db, make_engine, session_factory, utcnow)
+from . import alerts, auth, calc, service, settings
+from .db import (Account, Alert, AlertMute, AlertPrefs, ApiKey, Command, Device, Invite, ServiceInfo, Snapshot,
+                 System, SystemMember, Telemetry, User, as_utc, hash_key, init_db, make_engine, session_factory, utcnow)
 from .refrigerants import FLUIDS
 
 mimetypes.add_type("font/woff", ".woff")   # Windows does not know it; StaticFiles uses mimetypes
 WEB_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "web")
 HISTORY_KEYS = ["p_low", "p_high", "sat_low", "sat_high", "t_suc", "t_liq", "sh", "sc", "oat", "t_sup", "t_ret", "dt"]
+INVITE_DAYS = 7
+EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+LEVEL_RANK = {"fault": 4, "offline": 3, "caution": 2, "advisory": 1, "ok": 0}
 CSV_COLS = ["mode", "p_low", "p_high", "sat_low", "sat_high", "t_suc", "t_liq", "sh", "sc",
             "oat", "orh", "t_ret", "t_sup", "dt", "ctoa", "approach", "Y", "W", "G", "OB"]
 
@@ -111,18 +116,28 @@ class PasswordIn(BaseModel):
     new: str = Field(max_length=200)
 
 
+class InviteIn(BaseModel):
+    email: str = Field(max_length=320)
+
+
+class AcceptIn(BaseModel):
+    name: str | None = Field(default=None, max_length=200)
+    password: str = Field(max_length=200)
+
+
 class CommandIn(BaseModel):
     node: Literal["outdoor", "indoor"]
     cmd: dict
 
 
-def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS):
+def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mailer=None, send_async=True):
     if sessions is None:
         engine = make_engine()
         init_db(engine)
         sessions = session_factory(engine)
     publish = publisher or MqttPublisher()
     throttle = auth.Throttle()
+    mailer = mailer or alerts.Mailer()
     app = FastAPI(title="HVAC Monitor cloud API", version="0.1.0")
 
     def db():
@@ -239,6 +254,193 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS):
         user.password_hash = auth.hash_password(body.new)
         s.commit()
         return {"ok": True}
+
+    # ---------- invites ----------
+    def clean_email(raw):
+        email = raw.strip().lower()
+        if not EMAIL_RE.match(email):
+            raise HTTPException(422, "That doesn't look like an email address.")
+        return email
+
+    def send_invite(email, subject, body):
+        if not mailer.enabled:
+            return False
+        if send_async:
+            threading.Thread(target=mailer.send, args=(email, subject, body), daemon=True).start()
+            return True
+        return mailer.send(email, subject, body)
+
+    def make_invite(s, who, email, role, account_id=None, system_id=None):
+        """New invite (older pending ones for the same person and place are revoked). Returns the link."""
+        q = select(Invite).where(Invite.email == email, Invite.accepted_at.is_(None), Invite.role == role)
+        q = q.where(Invite.system_id == system_id) if system_id else q.where(Invite.account_id == account_id)
+        for old in s.scalars(q):
+            s.delete(old)
+        token = secrets.token_urlsafe(24)
+        inv = Invite(token_hash=hash_key(token), email=email, role=role, account_id=account_id, system_id=system_id,
+                     invited_by=who.user_id, expires_at=utcnow() + dt.timedelta(days=INVITE_DAYS))
+        s.add(inv)
+        s.commit()
+        return inv, f"{settings.APP_URL}#/invite/{token}"
+
+    def invite_view(inv):
+        return {"id": inv.id, "email": inv.email, "role": inv.role, "expires_at": _iso(inv.expires_at),
+                "expired": as_utc(inv.expires_at) <= utcnow()}
+
+    @app.post("/api/systems/{system_id}/invites")
+    def invite_homeowner(body: InviteIn, system=Depends(tech_system), who=Depends(principal), s=Depends(db)):
+        """Give a homeowner access: an existing homeowner sign-in is added at once, anyone else gets a link."""
+        email = clean_email(body.email)
+        user = s.scalar(select(User).where(User.email == email))
+        if user is not None:
+            if user.role != "homeowner":
+                raise HTTPException(409, "That email already has a contractor sign-in.")
+            if s.get(SystemMember, (system.id, user.id)) is None:
+                s.add(SystemMember(system_id=system.id, user_id=user.id))
+                s.commit()
+            return {"status": "added", "email": email}
+        inv, url = make_invite(s, who, email, "homeowner", system_id=system.id)
+        acct = s.get(Account, system.account_id)
+        emailed = send_invite(email, f"Your Fullscope access for {system.name}",
+                              f"{acct.name if acct else 'Your contractor'} has given you access to {system.name} on Fullscope, "
+                              f"which watches how your heating and cooling are running.\n\n"
+                              f"Choose a password here (the link works for {INVITE_DAYS} days):\n{url}")
+        return {"status": "invited", "email": email, "url": url, "emailed": emailed, "expires_at": _iso(inv.expires_at)}
+
+    @app.get("/api/systems/{system_id}/people")
+    def system_people(system=Depends(tech_system), s=Depends(db)):
+        """Homeowners with access to this system, and pending invites."""
+        members = s.scalars(select(User).join(SystemMember, SystemMember.user_id == User.id)
+                            .where(SystemMember.system_id == system.id).order_by(User.email))
+        invites = s.scalars(select(Invite).where(Invite.system_id == system.id, Invite.accepted_at.is_(None))
+                            .order_by(Invite.created_at.desc()))
+        return {"members": [{"user_id": u.id, "email": u.email, "name": u.name, "last_login": _iso(u.last_login)} for u in members],
+                "invites": [invite_view(i) for i in invites]}
+
+    @app.delete("/api/systems/{system_id}/members/{user_id}")
+    def remove_member(user_id: int, system=Depends(tech_system), s=Depends(db)):
+        m = s.get(SystemMember, (system.id, user_id))
+        if m is None:
+            raise HTTPException(404, "not a member")
+        s.delete(m)
+        s.commit()
+        return {"ok": True}
+
+    @app.post("/api/account/invites")
+    def invite_teammate(body: InviteIn, who=Depends(principal), s=Depends(db)):
+        """Invite a contractor colleague to this account."""
+        if not who.is_tech:
+            raise HTTPException(403, "for your contractor only")
+        email = clean_email(body.email)
+        if s.scalar(select(User).where(User.email == email)):
+            raise HTTPException(409, "That email already has a sign-in.")
+        inv, url = make_invite(s, who, email, "contractor", account_id=who.account_id)
+        acct = s.get(Account, who.account_id)
+        emailed = send_invite(email, f"Join {acct.name if acct else 'your team'} on Fullscope",
+                              f"You've been invited to {acct.name if acct else 'a contractor account'} on Fullscope.\n\n"
+                              f"Choose a password here (the link works for {INVITE_DAYS} days):\n{url}")
+        return {"status": "invited", "email": email, "url": url, "emailed": emailed, "expires_at": _iso(inv.expires_at)}
+
+    @app.get("/api/account/people")
+    def account_people(who=Depends(principal), s=Depends(db)):
+        if not who.is_tech:
+            raise HTTPException(403, "for your contractor only")
+        users = s.scalars(select(User).where(User.account_id == who.account_id).order_by(User.email))
+        invites = s.scalars(select(Invite).where(Invite.account_id == who.account_id, Invite.role == "contractor",
+                                                 Invite.accepted_at.is_(None)).order_by(Invite.created_at.desc()))
+        return {"users": [{"user_id": u.id, "email": u.email, "name": u.name, "last_login": _iso(u.last_login)} for u in users],
+                "invites": [invite_view(i) for i in invites]}
+
+    @app.delete("/api/invites/{invite_id}")
+    def revoke_invite(invite_id: int, who=Depends(principal), s=Depends(db)):
+        inv = s.get(Invite, invite_id)
+        owner = None
+        if inv is not None:
+            owner = inv.account_id if inv.system_id is None else s.get(System, inv.system_id).account_id
+        if inv is None or not who.is_tech or owner != who.account_id:
+            raise HTTPException(404, "no such invite")
+        s.delete(inv)
+        s.commit()
+        return {"ok": True}
+
+    def open_invite(s, token):
+        inv = s.scalar(select(Invite).where(Invite.token_hash == hash_key(token)))
+        if inv is None or inv.accepted_at is not None:
+            raise HTTPException(404, "This invite link isn't valid any more. Ask for a new one.")
+        if as_utc(inv.expires_at) <= utcnow():
+            raise HTTPException(410, "This invite link has expired. Ask for a new one.")
+        return inv
+
+    @app.get("/api/invites/{token}")
+    def invite_info(token: str, s=Depends(db)):
+        """What an invite link is for (no sign-in needed: the link itself is the secret)."""
+        inv = open_invite(s, token)
+        system = s.get(System, inv.system_id) if inv.system_id else None
+        acct = s.get(Account, system.account_id if system else inv.account_id)
+        return {"email": inv.email, "role": inv.role, "system": system.name if system else None,
+                "account": acct.name if acct else None, "expires_at": _iso(inv.expires_at),
+                "has_user": s.scalar(select(User.id).where(User.email == inv.email)) is not None}
+
+    @app.post("/api/invites/{token}/accept")
+    def accept_invite(token: str, body: AcceptIn, response: Response, s=Depends(db)):
+        inv = open_invite(s, token)
+        if s.scalar(select(User).where(User.email == inv.email)):
+            raise HTTPException(409, "This email already has a sign-in. Sign in instead.")
+        problem = auth.password_problem(body.password)
+        if problem:
+            raise HTTPException(422, problem)
+        account_id = inv.account_id if inv.role == "contractor" else None
+        user = User(email=inv.email, name=(body.name or "").strip() or None, role=inv.role, account_id=account_id,
+                    password_hash=auth.hash_password(body.password), last_login=utcnow())
+        s.add(user)
+        s.flush()
+        if inv.system_id:
+            s.add(SystemMember(system_id=inv.system_id, user_id=user.id))
+        inv.accepted_at = utcnow()
+        token_cookie = auth.new_session(s, user.id)
+        s.commit()
+        set_cookie(response, token_cookie)
+        return me_view(s, auth.Principal(role=user.role, account_id=user.account_id, user_id=user.id))
+
+    # ---------- contractor fleet ----------
+    @app.get("/api/fleet")
+    def fleet(who=Depends(principal), s=Depends(db)):
+        """Every system the contractor services, most in need of attention first."""
+        if not who.is_tech:
+            raise HTTPException(403, "for your contractor only")
+        now, today = utcnow(), dt.date.today()
+        out = []
+        for system in s.scalars(visible_systems(s, who).order_by(System.name)):
+            row = s.execute(select(Snapshot.time, Snapshot.data).where(Snapshot.system_id == system.id)
+                            .order_by(Snapshot.time.desc()).limit(1)).first()
+            data = (row.data or {}) if row else {}
+            age = (now - as_utc(row.time)).total_seconds() if row else None
+            fresh = age is not None and age <= stale
+            devices = list(s.scalars(select(Device).where(Device.system_id == system.id)))
+            online = sum(1 for d in devices if d.connected and d.last_seen and (now - as_utc(d.last_seen)).total_seconds() <= stale)
+            open_alerts = list(s.scalars(select(Alert).where(Alert.system_id == system.id, Alert.raised_at.is_not(None),
+                                                             Alert.cleared_at.is_(None)).order_by(Alert.started_at)))
+            flags = data.get("flags") or [] if fresh else []
+            level = "ok"
+            for code in [f.get("code") for f in flags] + [a.code for a in open_alerts if a.acked_at is None]:
+                lv = alerts.LEVEL.get(code, "caution")
+                if LEVEL_RANK[lv] > LEVEL_RANK[level]:
+                    level = lv
+            if not fresh and LEVEL_RANK[level] < LEVEL_RANK["offline"]:
+                level = "offline"
+            maint = service.service_view(s, system.id, today=today)["items"]
+            members = s.scalar(select(func.count()).select_from(SystemMember).where(SystemMember.system_id == system.id))
+            out.append({"id": system.id, "name": system.name, "site_id": system.site_id, "level": level,
+                        "mode": data.get("mode") if fresh else None, "last_seen": _iso(row.time) if row else None,
+                        "nodes": {"seen": len(devices), "online": online},
+                        "issues": [f.get("text") for f in flags],
+                        "open_alerts": [{"id": a.id, "code": a.code, "text": a.text, "since": _iso(a.started_at),
+                                         "acked": a.acked_at is not None} for a in open_alerts],
+                        "maintenance": {m["kind"]: {"status": m["status"], "next_due": m["next_due"]} for m in maint},
+                        "homeowners": members})
+        due = lambda r: any(m["status"] == "due" for m in r["maintenance"].values())
+        out.sort(key=lambda r: (-LEVEL_RANK[r["level"]], not due(r), r["name"].lower()))
+        return out
 
     @app.get("/api/refrigerants")
     def refrigerants():

@@ -83,6 +83,22 @@ class SystemMember(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
 
 
+class Invite(Base):
+    """A link that lets someone create their sign-in: a homeowner for one system, or a contractor
+    teammate on an account. Only a SHA-256 of the link token is stored."""
+    __tablename__ = "invites"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    email: Mapped[str] = mapped_column(String(320))
+    role: Mapped[str] = mapped_column(String(16))                    # "homeowner" | "contractor"
+    account_id: Mapped[int | None] = mapped_column(ForeignKey("accounts.id"))
+    system_id: Mapped[int | None] = mapped_column(ForeignKey("systems.id"))
+    invited_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+    created_at: Mapped[dt.datetime] = mapped_column(default=utcnow)
+    expires_at: Mapped[dt.datetime]
+    accepted_at: Mapped[dt.datetime | None]
+
+
 def hash_key(key):
     return hashlib.sha256(key.encode()).hexdigest()
 

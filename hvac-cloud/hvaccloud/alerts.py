@@ -20,6 +20,7 @@ log = logging.getLogger("alerts")
 
 NO_DATA = "no_data"
 CLEAR_AT_ONCE = {NO_DATA}       # readings are back: no reason to wait
+SLACK_S = 0.001                 # stored times are rounded to microseconds, so "now - started" can be a hair negative
 LEVEL_WORD = {"alert": "Fault", "warn": "Warning"}
 
 
@@ -41,14 +42,14 @@ def sync(s, system, flags, now, hold):
             s.add(a)
             open_[key] = a
         a.level, a.text, a.last_seen = f["level"], f["text"][:300], ts(now)
-        if a.raised_at is None and now - as_utc(a.started_at).timestamp() >= hold:
+        if a.raised_at is None and now - as_utc(a.started_at).timestamp() >= hold - SLACK_S:
             a.raised_at = ts(now)
             events.append(("raised", a))
     for key, a in open_.items():
         if key in seen:
             continue
         gone = now - as_utc(a.last_seen).timestamp()
-        if a.code in CLEAR_AT_ONCE or gone >= hold:
+        if a.code in CLEAR_AT_ONCE or gone >= hold - SLACK_S:
             if a.raised_at is None:
                 s.delete(a)
             else:
@@ -92,6 +93,12 @@ PLAIN = {
     NO_DATA: ("We lost contact with your monitors", "No checks can run until readings come back.",
               "Check that your WiFi is working."),
 }
+
+
+# Homeowner level of each flag code (FLAG_INFO in web/app.js): fault = service needed,
+# caution = check soon, advisory = good to know. Used to sort the contractor's fleet page.
+LEVEL = {"sh_low": "fault", "sh_high": "caution", "sc_low": "caution", "sc_high": "caution", "dt_low": "caution",
+         "ctoa_high": "caution", "node_offline": "advisory", "sensor_issue": "advisory", NO_DATA: "advisory"}
 
 
 def recipients(s, system):

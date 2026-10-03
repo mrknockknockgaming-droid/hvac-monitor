@@ -23,7 +23,7 @@ $("#theme").addEventListener("click", function () {
 // ---------------------------------------------------------------- state
 var S = {
   key: load("fs_key"), me: null, loginMode: load("fs_key") ? "key" : "password", systems: null, sys: null, view: null,
-  latest: null, summary: null, history: {}, alerts: null, alertSettings: null, service: null, commands: null, pending: {}, form: {}, msg: null, range: load("fs_range") || "1h",
+  latest: null, summary: null, history: {}, alerts: null, alertSettings: null, service: null, commands: null, people: null, team: null, fleet: null, inviteResult: null, teamResult: null, pending: {}, form: {}, msg: null, range: load("fs_range") || "1h",
   preset: load("fs_preset") || "refrigerant", off: {}, lastOk: null, error: null, timers: []
 };
 var LIVE_MS = 5000, STALE_S = 30, OUTAGE_S = 90;   // a gap longer than OUTAGE_S breaks chart lines
@@ -121,13 +121,21 @@ function dataFresh() {
 
 // ---------------------------------------------------------------- routing / loop
 function route() {
+  var inv = location.hash.match(/^#\/invite\/([\w-]+)/);
+  if (inv) { stopTimers(); S.view = null; S.sys = null; return renderInvite(inv[1]); }
   if (!S.me) return start();
-  if (location.hash === "#/account") { stopTimers(); S.view = null; S.sys = null; return renderAccount(); }
+  if (location.hash === "#/account") { stopTimers(); S.view = null; S.sys = null; if (isTech()) pollTeam(); return renderAccount(); }
+  if (location.hash === "#/fleet") {
+    if (!isTech()) { location.replace("#/"); return; }
+    stopTimers(); S.view = "fleet"; S.sys = null; S.error = null;
+    pollFleet(); S.timers.push(setInterval(pollFleet, 15000));
+    return renderFleet();
+  }
   var m = location.hash.match(/^#\/(home|monitor|setup)\/(\d+)/);
   if (!S.systems) return loadSystems();
   if (!m) {
-    if (!S.systems.length) return renderNoSystems();
-    location.replace("#/home/" + S.systems[0].id);
+    if (!S.systems.length && !isTech()) return renderNoSystems();
+    location.replace(isTech() ? "#/fleet" : "#/home/" + S.systems[0].id);   // contractors land on their fleet
     return;
   }
   var id = +m[2], sys = S.systems.filter(function (x) { return x.id === id; })[0];
@@ -136,8 +144,8 @@ function route() {
   var changed = !S.sys || S.sys.id !== id;
   S.view = m[1];
   S.sys = sys;
-  if (changed) { S.latest = null; S.summary = null; S.history = {}; S.alerts = null; S.alertSettings = null; S.service = null; S.commands = null; S.pending = {}; S.form = {}; stopTimers(); startTimers(); }
-  if (S.view === "setup") pollCommands();
+  if (changed) { S.latest = null; S.summary = null; S.history = {}; S.alerts = null; S.alertSettings = null; S.service = null; S.commands = null; S.people = null; S.inviteResult = null; S.pending = {}; S.form = {}; stopTimers(); startTimers(); }
+  if (S.view === "setup") { pollCommands(); pollPeople(); }
   if (!changed && S.view !== "home" && !S.alertSettings) pollAlerts();   // the home page doesn't load them
   render();
 }
@@ -251,7 +259,7 @@ function renderLogin() {
 // ---------------------------------------------------------------- account (change password)
 function renderAccount() {
   root.className = "fs home";
-  var me = S.me, u = me.user, back = S.systems && S.systems.length ? "#/home/" + S.systems[0].id : "#/";
+  var me = S.me, u = me.user, back = isTech() ? "#/fleet" : S.systems && S.systems.length ? "#/home/" + S.systems[0].id : "#/";
   var who = u ? esc(u.name || u.email) + ' <span class="muted">· ' + esc(u.email) + "</span>" : "Signed in with an API key" + (me.account ? " for " + esc(me.account.name) : "");
   root.innerHTML =
     '<header class="h-top">' + LOGO + TAGLINE + '<div class="upd"><a class="muted" href="' + back + '" style="font-size:12px">← Back</a>' +
@@ -262,7 +270,7 @@ function renderAccount() {
       '<label class="lbl" for="np2">New password again</label><input id="np2" type="password" autocomplete="new-password">' +
       '<div class="row"><button class="h-btn primary" type="submit">Change password</button></div><div class="err" role="alert" id="pe"></div></form>'
       : "<p class=\"muted\">To sign in with a password, ask for a user to be created with <span class=\"mono\">manage.py create-user</span>.</p>") +
-    "</div></div>";
+    "</div>" + (isTech() ? teamPanel() : "") + "</div>";
   bindCommon();
   var f = $("#pf");
   if (f) f.addEventListener("submit", function (e) {
@@ -286,6 +294,7 @@ function renderNoSystems() {
 
 // ---------------------------------------------------------------- render dispatch (keeps scroll + open details)
 function render() {
+  if (S.view === "fleet") return renderFleet();
   if (!S.view || !S.sys) return;
   var open = $$("details[open]").map(function (d) { return d.id; });
   var y = window.scrollY;
@@ -556,7 +565,7 @@ function techHeader(page) {
     num(sm.runtime_hours, "h", 1) + ' <span class="muted" style="font-weight:400">24 h</span></b></div>' +
     '<a class="tf alerts" href="' + diagHref + '"' + (page === "monitor" ? ' data-jump="diagnostics"' : "") + ' style="text-decoration:none;color:inherit"><span>Diagnostics</span><div class="row">' + diagSum + "</div></a>" +
     "</div></div>" +
-    '<nav class="nav" aria-label="Sections">' + navLink("monitor", "Monitor", page) + navLink("setup", "Sensors &amp; calibration", page) +
+    '<nav class="nav" aria-label="Sections"><a href="#/fleet">Fleet</a>' + navLink("monitor", "Monitor", page) + navLink("setup", "Sensors &amp; calibration", page) +
     '<a href="#/home/' + S.sys.id + '">Homeowner view</a>' +
     '<span class="spacer"></span><div class="tools">' +
     (fresh ? '<span class="live">LIVE · 5 s</span>' : st("offline", "Offline")) + systemPicker(page) +
@@ -957,7 +966,7 @@ function renderSetup() {
         '<tr><td colspan="2"><div class="acts-cell">' + field("f-int-" + nm, "s", "5", nm + " reporting interval") + actBtn("interval", "Set interval", nm) +
         actBtn("status", "Reload settings", nm) + actBtn("reboot", "Reboot", nm) + (nd && nd.ip ? '<span class="faint mono">' + esc(nd.ip) + "</span>" : "") + "</div></td></tr>";
     }).join("") + "</tbody></table></section></div>" +
-    '<div class="cfg">' + contractorPanel() + maintPanel() + alertEmailPanel() + "</div>" +
+    '<div class="cfg">' + contractorPanel() + maintPanel() + alertEmailPanel() + peoplePanel() + "</div>" +
     commandLog() + "</main>";
   root.innerHTML = html;
   bindCommon();
@@ -1106,6 +1115,156 @@ root.addEventListener("click", function (e) {
   }
   if (cmd) { b.disabled = true; sendCmd(node, cmd); }
 });
+
+// ================================================================ INVITES, PEOPLE, FLEET
+// ---------- invite link: #/invite/<token> (no sign-in needed; the link is the secret)
+function renderInvite(token) {
+  root.className = "fs home";
+  root.innerHTML = '<header class="h-top">' + LOGO + TAGLINE + '</header><div class="login"><div class="h-card"><div class="empty">Checking your invite…</div></div></div>';
+  api("/api/invites/" + encodeURIComponent(token), { keep401: true }).then(function (inv) {
+    var place = inv.role === "homeowner" ? "see " + inv.system + (inv.account ? ", serviced by " + inv.account : "") : "join " + (inv.account || "your team");
+    var box = $(".login .h-card");
+    if (inv.has_user) {
+      box.innerHTML = "<h1>You already have a sign-in</h1><p>" + esc(inv.email) + ' can already sign in. <a class="muted" href="#/">Sign in</a></p>';
+      return;
+    }
+    box.innerHTML = "<h1>Welcome to Fullscope</h1><p>You've been invited to " + esc(place) + ". Choose a password to finish.</p>" +
+      '<form id="af"><label class="lbl">Email</label><input type="email" value="' + esc(inv.email) + '" disabled>' +
+      '<label class="lbl" for="an">Your name (optional)</label><input id="an" type="text" autocomplete="name" style="font-family:var(--font-sans)">' +
+      '<label class="lbl" for="ap">Password (at least 10 characters)</label><input id="ap" type="password" autocomplete="new-password">' +
+      '<label class="lbl" for="ap2">Password again</label><input id="ap2" type="password" autocomplete="new-password">' +
+      '<div class="row"><button class="h-btn primary" type="submit">Create my sign-in</button></div><div class="err" role="alert" id="ae"></div></form>';
+    $("#an").focus();
+    $("#af").addEventListener("submit", function (e) {
+      e.preventDefault();
+      if ($("#ap").value !== $("#ap2").value) { $("#ae").textContent = "The passwords don't match."; return; }
+      $("#af button").disabled = true;
+      api("/api/invites/" + encodeURIComponent(token) + "/accept", { method: "POST", body: { name: $("#an").value, password: $("#ap").value }, keep401: true })
+        .then(function (me) { S.me = me; S.key = null; save("fs_key", null); S.systems = null; location.hash = me.role === "contractor" ? "#/fleet" : "#/"; })
+        .catch(function (err) { $("#af button").disabled = false; $("#ae").textContent = err.message; });
+    });
+  }).catch(function (err) {
+    $(".login .h-card").innerHTML = "<h1>This invite can't be used</h1><p>" + esc(err.message) + '</p><p><a class="muted" href="#/">Go to sign in</a></p>';
+  });
+}
+
+// ---------- shared: invite result (the link is shown when it couldn't be emailed)
+function inviteResult(r) {
+  if (!r) return "";
+  if (r.error) return '<div class="na-note" style="color:var(--fault)">' + esc(r.error) + "</div>";
+  if (r.status === "added") return '<div class="na-note">' + esc(r.email) + " already had a sign-in and now has access.</div>";
+  return '<div class="invite-out">' + (r.emailed ? "Invite emailed to " + esc(r.email) + ". You can also send them this link:" : "Email is off, so send " + esc(r.email) + " this link yourself:") +
+    '<div class="acts-cell"><input class="mono" readonly value="' + esc(r.url) + '" aria-label="Invite link" id="inv-link"><button class="btn" type="button" data-copy-invite>Copy link</button></div>' +
+    '<span class="faint">Works once, for 7 days.</span></div>';
+}
+function personRows(list, removeAttr) {
+  return list.map(function (u) {
+    return "<tr><th>" + esc(u.name || u.email) + (u.name ? ' <span class="faint">' + esc(u.email) + "</span>" : "") + '</th><td class="faint">' +
+      (u.last_login ? "Last signed in " + esc(when(u.last_login)) : "Never signed in") + "</td><td>" + (removeAttr ? '<button class="btn" type="button" ' + removeAttr + '="' + u.user_id + '">Remove</button>' : "") + "</td></tr>";
+  }).join("");
+}
+function inviteRows(list) {
+  return list.map(function (i) {
+    return "<tr><th>" + esc(i.email) + ' <span class="faint">invited</span></th><td class="faint">' + (i.expired ? "Expired" : "Link valid until " + esc(when(i.expires_at))) +
+      '</td><td><button class="btn" type="button" data-revoke-invite="' + i.id + '">' + (i.expired ? "Remove" : "Revoke") + "</button></td></tr>";
+  }).join("");
+}
+
+// ---------- setup page: homeowners with access to this system
+function pollPeople() {
+  var id = S.sys.id;
+  api("/api/systems/" + id + "/people").then(function (d) { if (S.sys && S.sys.id === id) { S.people = d; render(); } }).catch(function () {});
+}
+function peoplePanel() {
+  var p = S.people;
+  var rows = !p ? '<tr><td colspan="3" class="faint">Loading…</td></tr>'
+    : (personRows(p.members, "data-remove-member") + inviteRows(p.invites)) || '<tr><td colspan="3" class="faint">No homeowner has access yet.</td></tr>';
+  return '<section class="panel" aria-label="Homeowner access"><div class="ph"><h2>Homeowner access</h2><span class="sub">They see the homeowner page for this system only</span></div>' +
+    '<table class="dt"><tbody>' + rows + "</tbody></table>" +
+    '<div class="invite-form"><div class="acts-cell">' + textField("f-inv-email", "", "Homeowner email", "email").replace("<input ", '<input placeholder="homeowner@example.com" ') +
+    '<button class="btn" type="button" data-invite="system">Invite homeowner</button></div>' + inviteResult(S.inviteResult) + "</div></section>";
+}
+
+// ---------- account page: the contractor's team
+function pollTeam() {
+  api("/api/account/people").then(function (d) { S.team = d; if (location.hash === "#/account") renderAccount(); }).catch(function () {});
+}
+function teamPanel() {
+  var p = S.team;
+  var rows = !p ? '<tr><td colspan="3" class="faint">Loading…</td></tr>' : personRows(p.users, null) + inviteRows(p.invites);
+  return '<div class="h-card team"><h2>Your team</h2><div class="h-sub">Everyone here sees all of ' + esc((S.me.account || {}).name || "the account") + "'s systems</div>" +
+    '<table class="dt"><tbody>' + rows + "</tbody></table>" +
+    '<div class="invite-form"><div class="acts-cell"><label class="field wide"><input id="f-team-email" type="email" placeholder="colleague@example.com" aria-label="Colleague email"></label>' +
+    '<button class="btn" type="button" data-invite="team">Invite colleague</button></div>' + inviteResult(S.teamResult) + "</div></div>";
+}
+
+// ---------- shared click handling for invites
+root.addEventListener("click", function (e) {
+  var t = e.target.closest && e.target.closest("[data-invite],[data-remove-member],[data-revoke-invite],[data-copy-invite]");
+  if (!t) return;
+  if (t.hasAttribute("data-copy-invite")) {
+    var inp = $("#inv-link", t.parentNode);
+    inp.select();
+    try { navigator.clipboard.writeText(inp.value).then(function () { t.textContent = "Copied"; }); } catch (err) { document.execCommand("copy"); t.textContent = "Copied"; }
+    return;
+  }
+  var team = location.hash === "#/account";
+  var after = function () { if (team) pollTeam(); else pollPeople(); };
+  if (t.dataset.invite) {
+    var field = $(t.dataset.invite === "team" ? "#f-team-email" : "#f-inv-email"), email = field.value.trim();
+    if (!email) { field.focus(); return; }
+    t.disabled = true;
+    var path = t.dataset.invite === "team" ? "/api/account/invites" : "/api/systems/" + S.sys.id + "/invites";
+    api(path, { method: "POST", body: { email: email } }).then(function (r) {
+      if (team) S.teamResult = r; else { S.inviteResult = r; delete S.form["f-inv-email"]; }
+      field.value = ""; after();
+    }).catch(function (err) {
+      var r = { error: err.message };
+      if (team) S.teamResult = r; else S.inviteResult = r;
+      t.disabled = false; if (team) renderAccount(); else render();
+    });
+  } else if (t.dataset.removeMember) {
+    if (!confirm("Remove this person's access to " + S.sys.name + "?")) return;
+    api("/api/systems/" + S.sys.id + "/members/" + t.dataset.removeMember, { method: "DELETE" }).then(after).catch(function (err) { alert(err.message); });
+  } else if (t.dataset.revokeInvite) {
+    api("/api/invites/" + t.dataset.revokeInvite, { method: "DELETE" }).then(after).catch(function (err) { alert(err.message); });
+  }
+});
+
+// ---------- contractor fleet: #/fleet
+var FLEET_WORD = { fault: "Service needed", offline: "Offline", caution: "Check soon", advisory: "Good to know", ok: "Good" };
+function pollFleet() {
+  api("/api/fleet").then(function (d) { S.fleet = d; if (S.view === "fleet") renderFleet(); }).catch(function (e) { if (e.message !== "401") { S.error = e.message; renderFleet(); } });
+}
+function renderFleet() {
+  root.className = "fs";
+  var list = S.fleet, acct = (S.me && S.me.account) || {};
+  var counts = {};
+  (list || []).forEach(function (r) { counts[r.level] = (counts[r.level] || 0) + 1; });
+  var summary = ["fault", "offline", "caution", "advisory"].filter(function (l) { return counts[l]; })
+    .map(function (l) { return st(l === "offline" ? "offline" : l, counts[l] + " " + FLEET_WORD[l].toLowerCase()); }).join("") || (list && list.length ? st("ok", "All good") : "");
+  var rows = !list ? '<tr><td colspan="7" class="faint">Loading…</td></tr>' : !list.length ? '<tr><td colspan="7" class="faint">No systems yet. Create one with manage.py create-system.</td></tr>'
+    : list.map(function (r) {
+      var issues = r.open_alerts.map(function (a) { return esc(a.text) + (a.acked ? ' <span class="faint">(handling)</span>' : ""); });
+      r.issues.forEach(function (txt) { if (!r.open_alerts.some(function (a) { return a.text === txt; })) issues.push('<span class="faint">' + esc(txt) + "</span>"); });
+      var now = r.mode ? esc(MODE_WORD[r.mode] || r.mode) : r.last_seen ? '<span class="faint">Last reading ' + esc(ago((Date.now() - new Date(r.last_seen).getTime()) / 1000)) + " ago</span>" : '<span class="faint">Never reported</span>';
+      function m(kind) { var x = r.maintenance[kind] || {}, s = MAINT_ST[x.status || "unset"]; return st(s[0], s[1]); }
+      return '<tr class="fleet-row" data-open-system="' + r.id + '"><td>' + st(r.level, FLEET_WORD[r.level]) + "</td>" +
+        "<td><b>" + esc(r.name) + '</b> <span class="faint mono">' + esc(r.site_id) + "</span></td><td>" + now + "</td>" +
+        '<td class="cond">' + (issues.join("<br>") || '<span class="faint">None</span>') + "</td>" +
+        '<td class="n">' + r.nodes.online + "/" + Math.max(2, r.nodes.seen) + "</td><td>" + m("filter") + "</td><td>" + m("tuneup") + "</td></tr>";
+    }).join("");
+  root.innerHTML =
+    '<header class="top"><div class="top-row">' + LOGO + '<div class="ident"><b>' + esc(acct.name || "Your systems") + "</b><span>" + (list ? list.length + " system" + (list.length === 1 ? "" : "s") : "") + "</span></div>" +
+    '<div class="top-fields"><div class="tf alerts"><span>Needs attention</span><div class="row">' + summary + "</div></div></div></div>" +
+    '<nav class="nav" aria-label="Sections"><a aria-current="page">Fleet</a><span class="spacer"></span><div class="tools">' +
+    '<a class="btn" href="#/account" style="text-decoration:none">Account</a><button class="btn" type="button" data-signout>Sign out</button></div></nav></header>' +
+    (S.error ? '<div class="stale-banner">Can\'t reach the server: ' + esc(S.error) + "</div>" : "") +
+    '<main class="page"><section class="panel" aria-label="Systems"><div class="ph"><h2>Systems</h2><span class="sub">Most in need of attention first · updates every 15 s · click a row to open it</span></div>' +
+    '<table class="dt diag fleet"><thead><tr><th>Status</th><th>System</th><th>Now</th><th>Issues</th><th>Nodes</th><th>Filter</th><th>Tune-up</th></tr></thead><tbody>' + rows + "</tbody></table></section></main>";
+  bindCommon();
+  $$("[data-open-system]").forEach(function (tr) { tr.addEventListener("click", function () { location.hash = "#/monitor/" + tr.dataset.openSystem; }); });
+}
 
 // ---------------------------------------------------------------- CSV export
 function exportCsv() {
