@@ -110,6 +110,8 @@ temperatures, superheat, subcooling and delta-T.
     per-device accounts yet.
   - Password reset (`password_resets`, token hashed, 1 h, single use): /api/auth/forgot emails
     it (needs SMTP); contractors can make one per homeowner in "Homeowner access".
+  - Service history (`service_visits`, page #/service/<id>): tune-up / filter visits move the
+    maintenance last-done dates forward only; readings attached from a snapshot <= 15 min old.
   - Schema changes: `db.add_missing_columns` adds new NULLABLE columns to existing tables at
     startup (create_all only makes new tables). Non-null new columns need a real migration.
   - Maintenance card (home): filter due at 90 days or 500 blower hours, tune-up 182 days,
@@ -119,7 +121,7 @@ temperatures, superheat, subcooling and delta-T.
     `hvac-cloud/backups/` (keeps 7, git-ignored) and prunes: >30 days thinned to 1-minute
     averages, raw telemetry >30 days dropped, >365 days deleted (`hvaccloud/maintenance.py`;
     `manage.py backup` / `prune` by hand). Restore steps are in hvac-cloud/README.md.
-  - Tests: `.venv\Scripts\python.exe -m pytest -q` in `hvac-cloud/` (79 pass). Not done:
+  - Tests: `.venv\Scripts\python.exe -m pytest -q` in `hvac-cloud/` (83 pass). Not done:
     per-device MQTT accounts and ACLs, TLS.
 
 ## Hardware

@@ -213,6 +213,21 @@ class Equipment(Base):
     elevation_ft: Mapped[float | None]
 
 
+class ServiceVisit(Base):
+    """A service visit the technician logged, optionally with the readings at the time."""
+    __tablename__ = "service_visits"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    system_id: Mapped[int] = mapped_column(ForeignKey("systems.id"))
+    date: Mapped[dt.date] = mapped_column(Date)
+    kind: Mapped[str] = mapped_column(String(16))          # tuneup, repair, install, inspection, other
+    technician: Mapped[str | None] = mapped_column(String(200))
+    work: Mapped[str] = mapped_column(String(2000))
+    filter_changed: Mapped[bool] = mapped_column(Boolean, default=False)
+    readings = mapped_column(Json, nullable=True)
+    created_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+    created_at: Mapped[dt.datetime] = mapped_column(default=utcnow)
+
+
 class AlertPrefs(Base):
     """Who a system's alerts are emailed to. Missing row = the account owner only."""
     __tablename__ = "alert_prefs"

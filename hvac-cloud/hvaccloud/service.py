@@ -67,6 +67,23 @@ def service_view(s, system_id, today=None):
     return {"contractor": contractor, "items": [item_view(s, system_id, k, rows.get(k), today) for k in KINDS]}
 
 
+VISIT_KINDS = {"tuneup": "Tune-up", "repair": "Repair", "install": "Installation", "inspection": "Inspection", "other": "Other"}
+READING_KEYS = ["mode", "p_low", "p_high", "sat_low", "sat_high", "t_suc", "t_liq", "sh", "sc", "oat", "t_ret", "t_sup", "dt"]
+READINGS_MAX_AGE_S = 15 * 60          # "attach current readings" only uses a snapshot this fresh
+
+
+def mark_done(s, system_id, kind, date):
+    """Move an item's last-done date forward (never back: an older visit logged late changes nothing)."""
+    row = get_item(s, system_id, kind)
+    if row.last_done is None or date > row.last_done:
+        row.last_done = date
+
+
+def visit_view(v):
+    return {"id": v.id, "date": v.date.isoformat(), "kind": v.kind, "kind_label": VISIT_KINDS.get(v.kind, v.kind),
+            "technician": v.technician, "work": v.work, "filter_changed": v.filter_changed, "readings": v.readings}
+
+
 def get_item(s, system_id, kind):
     """The stored row for `kind`, created with the defaults on first change."""
     row = s.scalar(select(MaintenanceItem).where(MaintenanceItem.system_id == system_id, MaintenanceItem.kind == kind))
