@@ -86,13 +86,15 @@ temperatures, superheat, subcooling and delta-T.
     emailed to the account's email (6 h cooldown per code). Email is OFF until `hvac-cloud/.env`
     has SMTP_* (see `.env.example`; Gmail needs an App Password, which the user must create and
     paste themselves). Test with `manage.py test-email 1`. Settings also read `.env`.
+  - Maintenance card (home): filter due at 90 days or 500 blower hours, tune-up 182 days,
+    contractor + Request service (mailto/tel). Ingest adds blower/compressor seconds per UTC day
+    to `runtime_days`; contractor and schedule are edited on the Sensors & calibration page.
   - Nightly (3 AM, or on next start if missed) the ingest worker backs up dev.db to
     `hvac-cloud/backups/` (keeps 7, git-ignored) and prunes: >30 days thinned to 1-minute
     averages, raw telemetry >30 days dropped, >365 days deleted (`hvaccloud/maintenance.py`;
     `manage.py backup` / `prune` by hand). Restore steps are in hvac-cloud/README.md.
-  - Tests: `.venv\Scripts\python.exe -m pytest -q` in `hvac-cloud/` (36 pass). Not done:
-    per-user sign-in (API key in browser storage for now), maintenance and contractor info,
-    alert acknowledge/mute, per-device MQTT accounts and ACLs, TLS.
+  - Tests: `.venv\Scripts\python.exe -m pytest -q` in `hvac-cloud/` (41 pass). Not done:
+    per-user sign-in (API key in browser storage for now), alert acknowledge/mute, per-device MQTT accounts and ACLs, TLS.
 
 ## Hardware
 - Boards: 3x ESP-WROOM-32 30-pin dev boards (PCB antenna, no u.FL). Outdoor on COM4, indoor on COM5 (both CP210x; tell them apart by port).

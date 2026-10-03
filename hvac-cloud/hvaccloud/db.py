@@ -3,7 +3,7 @@ import datetime as dt
 import hashlib
 import secrets
 
-from sqlalchemy import (JSON, Boolean, DateTime, Float, ForeignKey, Integer, String, UniqueConstraint,
+from sqlalchemy import (JSON, Boolean, Date, DateTime, Float, ForeignKey, Integer, String, UniqueConstraint,
                         create_engine, event, text)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, sessionmaker
@@ -138,6 +138,38 @@ class Alert(Base):
     raised_at: Mapped[dt.datetime | None]
     cleared_at: Mapped[dt.datetime | None]
     emailed_at: Mapped[dt.datetime | None]
+
+
+class RuntimeDay(Base):
+    """Seconds the blower (any mode but idle) and the compressor (cooling/heating) ran on a UTC day.
+    Added up by the ingest worker; filter reminders use blower hours."""
+    __tablename__ = "runtime_days"
+    system_id: Mapped[int] = mapped_column(ForeignKey("systems.id"), primary_key=True)
+    day: Mapped[dt.date] = mapped_column(Date, primary_key=True)
+    blower_s: Mapped[float] = mapped_column(Float, default=0.0)
+    compressor_s: Mapped[float] = mapped_column(Float, default=0.0)
+
+
+class ServiceInfo(Base):
+    """The system's service contractor, shown to the homeowner."""
+    __tablename__ = "service_info"
+    system_id: Mapped[int] = mapped_column(ForeignKey("systems.id"), primary_key=True)
+    name: Mapped[str | None] = mapped_column(String(200))
+    phone: Mapped[str | None] = mapped_column(String(40))
+    email: Mapped[str | None] = mapped_column(String(320))
+
+
+class MaintenanceItem(Base):
+    """A recurring task ("filter", "tuneup"). Due after interval_days, or interval_run_hours of
+    blower time, since last_done, whichever comes first."""
+    __tablename__ = "maintenance_items"
+    __table_args__ = (UniqueConstraint("system_id", "kind"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    system_id: Mapped[int] = mapped_column(ForeignKey("systems.id"))
+    kind: Mapped[str] = mapped_column(String(16))
+    interval_days: Mapped[int | None]
+    interval_run_hours: Mapped[float | None]
+    last_done: Mapped[dt.date | None] = mapped_column(Date)
 
 
 def make_engine(url=None):

@@ -441,3 +441,6 @@ select.sel{background-color:var(--surface-2);border:1px solid var(--line-strong)
 .howto{margin:0;padding:8px 12px 10px 30px;font-size:12px;line-height:18px;color:var(--ink-muted);border-top:1px solid var(--line)}
 .howto b{color:var(--ink);font-weight:600}
 .ph .right .st+.faint{font-size:11px;margin-left:4px}
+.field.wide input{width:220px;text-align:left}
+.field.wide input[type="date"]{width:150px}
+.h-maint li .h-btn{padding:5px 10px;font-size:13px}

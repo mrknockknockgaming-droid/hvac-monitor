@@ -23,7 +23,7 @@ $("#theme").addEventListener("click", function () {
 // ---------------------------------------------------------------- state
 var S = {
   key: load("fs_key"), systems: null, sys: null, view: null,
-  latest: null, summary: null, history: {}, alerts: null, commands: null, pending: {}, form: {}, msg: null, range: load("fs_range") || "1h",
+  latest: null, summary: null, history: {}, alerts: null, service: null, commands: null, pending: {}, form: {}, msg: null, range: load("fs_range") || "1h",
   preset: load("fs_preset") || "refrigerant", off: {}, lastOk: null, error: null, timers: []
 };
 var LIVE_MS = 5000, STALE_S = 30, OUTAGE_S = 90;   // a gap longer than OUTAGE_S breaks chart lines
@@ -124,7 +124,7 @@ function route() {
   var changed = !S.sys || S.sys.id !== id;
   S.view = m[1];
   S.sys = sys;
-  if (changed) { S.latest = null; S.summary = null; S.history = {}; S.alerts = null; S.commands = null; S.pending = {}; S.form = {}; stopTimers(); startTimers(); }
+  if (changed) { S.latest = null; S.summary = null; S.history = {}; S.alerts = null; S.service = null; S.commands = null; S.pending = {}; S.form = {}; stopTimers(); startTimers(); }
   if (S.view === "setup") pollCommands();
   render();
 }
@@ -138,10 +138,11 @@ function start() {
 
 function stopTimers() { S.timers.forEach(clearInterval); S.timers = []; }
 function startTimers() {
-  pollLatest(); pollSummary(); pollHistory(); pollAlerts();
+  pollLatest(); pollSummary(); pollHistory(); pollAlerts(); pollService();
   S.timers.push(setInterval(pollLatest, LIVE_MS));
   S.timers.push(setInterval(pollSummary, 60000));
   S.timers.push(setInterval(pollAlerts, 30000));
+  S.timers.push(setInterval(pollService, 60000));
   S.timers.push(setInterval(function () { if (S.view === "setup") pollCommands(); }, 2500));
   S.timers.push(setInterval(pollHistory, 30000));
 }
@@ -159,6 +160,17 @@ function pollSummary() {
 function pollAlerts() {
   var id = S.sys.id;
   api("/api/systems/" + id + "/alerts?days=7").then(function (d) { if (S.sys && S.sys.id === id) { S.alerts = d; render(); } }).catch(function () {});
+}
+function pollService() {
+  var id = S.sys.id;
+  api("/api/systems/" + id + "/service").then(function (d) { if (S.sys && S.sys.id === id) { S.service = d; render(); } }).catch(function () {});
+}
+function serviceItem(kind) { return ((S.service && S.service.items) || []).filter(function (x) { return x.kind === kind; })[0] || null; }
+function localDate() { var d = new Date(), p = function (x) { return (x < 10 ? "0" : "") + x; }; return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()); }
+function daysAgo(n) { return n <= 0 ? "today" : n === 1 ? "yesterday" : n + " days ago"; }
+function dateWord(iso, withYear) {   // "2026-09-01" -> "Sep 1" (as a local calendar date, not UTC midnight)
+  var p = iso.split("-"), d = new Date(+p[0], +p[1] - 1, +p[2]);
+  return d.toLocaleDateString([], withYear ? { month: "short", year: "numeric" } : { month: "short", day: "numeric" });
 }
 var RANGES = { "15m": { min: 15, label: "15 min" }, "1h": { min: 60, label: "1 hr" }, "6h": { min: 360, label: "6 hr" }, "24h": { min: 1440, label: "24 hr" }, "7d": { min: 10080, label: "7 days" } };
 function pollHistory() {
@@ -234,7 +246,11 @@ function renderHome() {
     .sort(function (a, b) { return LEVEL[b.level].rank - LEVEL[a.level].rank; })[0];
   if (!L) { h1 = "Connecting to your system…"; p = ""; }
   else if (!fresh) { h1 = "We can't reach your system's monitors"; p = "No readings for " + ago((Date.now() - new Date(L.time).getTime()) / 1000) + ". This is usually a WiFi or power interruption; heating and cooling are not affected."; }
-  else if (top) { h1 = "Your system is " + (MODE_WORD[mode] || "running").toLowerCase() + ", but " + top.title.charAt(0).toLowerCase() + top.title.slice(1); p = top.why; }
+  else if (top) {
+    h1 = "Your system is " + (MODE_WORD[mode] || "running").toLowerCase() + ", but " + top.title.charAt(0).toLowerCase() + top.title.slice(1); p = top.why;
+    var fi = serviceItem("filter");
+    if (top.area === "cooling" && fi && fi.days_since !== null) p += " Your filter was last changed " + daysAgo(fi.days_since) + ".";
+  }
   else if (running) { h1 = "Your system is " + MODE_WORD[mode].toLowerCase() + " normally"; p = "Everything we check looks right for today's conditions."; }
   else if (mode === "fan") { h1 = "Your fan is running"; p = "The blower is on without heating or cooling."; }
   else if (mode === "heat_aux") { h1 = "Your auxiliary heat is on"; p = "Backup electric heat is running."; }
@@ -257,7 +273,7 @@ function renderHome() {
     '<section class="h-card h-hero" aria-label="System status" style="border-top-color:' + heroColor + '"><div class="msg">' +
     '<div class="kicker">' + kicker + "<span>" + esc(runTxt) + "</span></div>" +
     "<h1>" + esc(h1) + "</h1><p>" + esc(p) + "</p>" +
-    (top ? '<div class="acts"><a class="h-btn primary" href="#" data-open="h-issue-0">What should I do?</a></div>' : "") +
+    (top ? '<div class="acts"><a class="h-btn primary" href="#" data-open="h-issue-0">What should I do?</a>' + requestBtn() + "</div>" : "") +
     '</div><div class="h-now">' +
     "<div><span>Inside</span><b>" + big(d.t_ret) + "</b><em>Air returning to the system</em></div>" +
     "<div><span>Outside</span><b>" + big(d.oat) + "</b><em>" + (isNum(d.orh) ? "Humidity " + Math.round(d.orh) + " %" : "At the outdoor unit") + "</em></div>" +
@@ -265,7 +281,7 @@ function renderHome() {
     "<div><span>Running, last 24 h</span><b>" + (isNum(sm.runtime_hours) ? fmt(sm.runtime_hours, 1) + "<small>hr</small>" : "—") + "</b><em>" +
     (isNum(sm.cycles) ? sm.cycles + " cycle" + (sm.cycles === 1 ? "" : "s") : "") + "</em></div>" +
     "</div></section>" +
-    '<div class="h-grid"><div class="h-col">' + homeNoticed(fresh) + homeAlerts() + "</div>" +
+    '<div class="h-grid"><div class="h-col">' + homeNoticed(fresh) + homeMaint() + homeAlerts() + "</div>" +
     '<div class="h-col">' + homeHealth(fresh, running) + homeChart() + "</div></div>" +
     '<div class="h-foot"><span class="foot-brand"><b>Fullscope</b><span class="caps">Continuous diagnostics &amp; control</span></span><span>Checks run every 5 seconds while the system is on</span></div>' +
     "</main>";
@@ -277,6 +293,13 @@ function renderHome() {
       var el = document.getElementById(a.dataset.open);
       if (el) { el.open = true; el.scrollIntoView({ behavior: "smooth", block: "start" }); }
     });
+  });
+  var fd = $("[data-filter-done]");
+  if (fd) fd.addEventListener("click", function () {
+    if (!confirm("Mark the air filter as changed today?")) return;
+    fd.disabled = true;
+    api("/api/systems/" + S.sys.id + "/service/items/filter/done", { method: "POST", body: { date: localDate() } })
+      .then(function (d) { S.service = d; render(); }).catch(function (e) { fd.disabled = false; alert("Couldn't save: " + e.message); });
   });
   drawHomeChart();
 }
@@ -304,6 +327,54 @@ function homeNoticed(fresh) {
   if (!items.some(function (x) { return x.i.area === "cooling"; })) okAreas.push("airflow temperature");
   if (okAreas.length) h += '<div class="ok-row"><span class="st ok"></span>' + esc(okAreas.join(", ").replace(/^./, function (c) { return c.toUpperCase(); })) + " checks are normal.</div>";
   return h + "</div></section>";
+}
+
+// ---------- maintenance + contractor (design: .h-maint, .h-pro)
+var MAINT_ST = { due: ["caution", "Due now", "var(--caution)"], soon: ["advisory", "Due soon", "var(--advisory)"],
+  ok: ["ok", "Up to date", "var(--ok)"], unset: ["offline", "Not set", "var(--offline)"] };
+function homeMaint() {
+  var sv = S.service;
+  var h = '<section class="h-card" aria-label="Maintenance"><h2>Maintenance</h2>';
+  if (!sv) return h + '<div class="empty">Loading…</div></section>';
+  h += '<ul class="h-maint">' + sv.items.map(function (x) {
+    var m = MAINT_ST[x.status], txt, btn = "";
+    if (x.kind === "filter") {
+      txt = x.last_done ? "Changed " + dateWord(x.last_done) + " · " + daysAgo(x.days_since) +
+        (x.interval_run_hours ? " · " + Math.round(x.run_hours_since) + " of " + Math.round(x.interval_run_hours) + " hours of use" : "") +
+        (x.next_due && x.status !== "due" ? " · next about " + dateWord(x.next_due) : "")
+        : "Tell us when you change it and we'll remind you next time.";
+      btn = '<button class="h-btn" type="button" data-filter-done>' + "I changed it" + "</button>";
+    } else {
+      txt = x.last_done ? "Last visit " + dateWord(x.last_done, true) + (x.next_due ? " · next due " + dateWord(x.next_due, true) : "")
+        : "Your contractor records tune-ups here.";
+    }
+    var pct = x.progress === null ? 0 : Math.min(100, Math.round(x.progress * 100));
+    return "<li><b>" + esc(x.label) + "</b>" + st(m[0], m[1]) + "<span>" + esc(txt) + "</span>" + (btn || "<span></span>") +
+      '<div class="bar"><i style="width:' + pct + "%;background:" + m[2] + '"></i></div></li>';
+  }).join("") + "</ul>";
+  var c = sv.contractor;
+  if (c) {
+    var initials = (c.name || "?").replace(/&/g, " ").split(/\s+/).filter(Boolean).slice(0, 2).map(function (w) { return w.charAt(0).toUpperCase(); }).join("");
+    h += '<div class="h-pro"><div class="mono" aria-hidden="true">' + esc(initials) + "</div><div><b>" + esc(c.name || "Your contractor") + "</b><span>Your service contractor" +
+      (c.phone ? ' · <a class="muted" href="tel:' + esc(c.phone.replace(/[^0-9+]/g, "")) + '">' + esc(c.phone) + "</a>" : "") + "</span></div>" + requestBtn() + "</div>";
+  } else {
+    h += '<div class="h-pro"><div><span>No service contractor added yet. Your installer can add their details.</span></div></div>';
+  }
+  return h + "</section>";
+}
+// Request service opens the homeowner's own email (or phone) with the current issues filled in.
+function requestBtn() {
+  var c = S.service && S.service.contractor;
+  if (!c || !(c.email || c.phone)) return "";
+  if (!c.email) return '<a class="h-btn" href="tel:' + esc(c.phone.replace(/[^0-9+]/g, "")) + '">Call for service</a>';
+  var lines = flags().map(function (f) { var i = flagInfo(f); return "- " + i.title + " (" + f.text + ")"; });
+  var fi = serviceItem("filter");
+  var body = "Hello,\n\nI'd like to request a service visit for " + S.sys.name + ".\n\n" +
+    (lines.length ? "Fullscope is currently showing:\n" + lines.join("\n") + "\n\n" : "") +
+    (fi && fi.last_done ? "Air filter last changed " + dateWord(fi.last_done) + " (" + daysAgo(fi.days_since) + ").\n\n" : "") +
+    "Thank you.";
+  var href = "mailto:" + encodeURIComponent(c.email) + "?subject=" + encodeURIComponent("Service request: " + S.sys.name) + "&body=" + encodeURIComponent(body);
+  return '<a class="h-btn" href="' + esc(href) + '">Request service</a>';
 }
 
 function homeAlerts() {
@@ -752,10 +823,73 @@ function renderSetup() {
         '<tr><td colspan="2"><div class="acts-cell">' + field("f-int-" + nm, "s", "5", nm + " reporting interval") + actBtn("interval", "Set interval", nm) +
         actBtn("status", "Reload settings", nm) + actBtn("reboot", "Reboot", nm) + (nd && nd.ip ? '<span class="faint mono">' + esc(nd.ip) + "</span>" : "") + "</div></td></tr>";
     }).join("") + "</tbody></table></section></div>" +
+    '<div class="cfg">' + contractorPanel() + maintPanel() + "</div>" +
     commandLog() + "</main>";
   root.innerHTML = html;
   bindCommon();
 }
+
+// ---------- service contractor + maintenance schedule (saved in the cloud, not on a node)
+function textField(id, value, label, type) {
+  return '<label class="field wide"><input id="' + id + '" type="' + (type || "text") + '" autocomplete="off" aria-label="' + esc(label) + '" value="' + esc(value || "") + '"></label>';
+}
+function contractorPanel() {
+  var c = (S.service && S.service.contractor) || {};
+  return '<section class="panel" aria-label="Service contractor"><div class="ph"><h2>Service contractor</h2><span class="sub">Shown to the homeowner with a Request service button</span></div>' +
+    '<table class="dt"><tbody>' +
+    "<tr><th>Company</th><td>" + textField("f-ctr-name", c.name, "Contractor name") + "</td></tr>" +
+    "<tr><th>Phone</th><td>" + textField("f-ctr-phone", c.phone, "Contractor phone", "tel") + "</td></tr>" +
+    "<tr><th>Email</th><td>" + textField("f-ctr-email", c.email, "Contractor email", "email") + "</td></tr>" +
+    '<tr><td colspan="2"><div class="acts-cell"><button class="btn" type="button" data-svc="contractor">Save contractor</button>' +
+    '<span class="faint">Service requests open the homeowner\'s email to this address</span></div></td></tr></tbody></table></section>';
+}
+function maintPanel() {
+  var items = (S.service && S.service.items) || [];
+  var rows = items.map(function (x) {
+    var k = x.kind, m = MAINT_ST[x.status];
+    return "<tr><th>" + esc(x.label) + "</th>" +
+      "<td>" + field("f-days-" + k, "days", "", x.label + " interval in days").replace("<input ", '<input value="' + (x.interval_days || "") + '" ') + "</td>" +
+      "<td>" + (k === "filter" ? field("f-hours-" + k, "h", "off", x.label + " interval in run hours").replace("<input ", '<input value="' + (x.interval_run_hours || "") + '" ') : '<span class="faint">—</span>') + "</td>" +
+      "<td>" + textField("f-last-" + k, x.last_done, x.label + " last done", "date") + "</td>" +
+      "<td>" + st(m[0], m[1]) + (x.run_hours_since !== null && k === "filter" ? ' <span class="faint n">' + Math.round(x.run_hours_since) + " h</span>" : "") + "</td>" +
+      '<td><button class="btn" type="button" data-svc="item" data-kind="' + k + '">Save</button></td></tr>';
+  }).join("");
+  return '<section class="panel" aria-label="Maintenance schedule"><div class="ph"><h2>Maintenance schedule</h2><span class="sub">Due after the days or the blower run hours, whichever comes first</span></div>' +
+    '<table class="dt"><thead><tr><th>Item</th><th>Every</th><th>Or every</th><th>Last done</th><th>Status</th><th></th></tr></thead><tbody>' +
+    (rows || '<tr><td colspan="6" class="faint">Loading…</td></tr>') + "</tbody></table>" +
+    '<div class="na-note">The homeowner can mark the filter changed from their page. Leave run hours empty to go by days only.</div></section>';
+}
+function saveService(path, method, body, keys) {
+  api("/api/systems/" + S.sys.id + "/service" + path, { method: method, body: body }).then(function (d) {
+    S.service = d; keys.forEach(function (k) { delete S.form[k]; }); S.msg = "Saved."; render();
+  }).catch(function (e) { S.msg = "Couldn't save: " + e.message; render(); });
+}
+root.addEventListener("click", function (e) {
+  var b = e.target.closest && e.target.closest("[data-svc]");
+  if (!b || S.view !== "setup") return;
+  function cur(id) { var el = document.getElementById(id); return el ? el.value.trim() : ""; }
+  S.msg = null;
+  if (b.dataset.svc === "contractor") {
+    saveService("/contractor", "PUT", { name: cur("f-ctr-name"), phone: cur("f-ctr-phone"), email: cur("f-ctr-email") },
+      ["f-ctr-name", "f-ctr-phone", "f-ctr-email"]);
+    return;
+  }
+  var k = b.dataset.kind, days = parseInt(cur("f-days-" + k), 10), body = {};
+  if (!(days >= 1 && days <= 3650)) { S.msg = "Enter how many days between visits (1 to 3650)."; render(); return; }
+  body.interval_days = days;
+  if (k === "filter") {
+    var hrs = cur("f-hours-" + k);
+    if (hrs === "") body.interval_run_hours = null;
+    else if (!(parseFloat(hrs) > 0 && parseFloat(hrs) <= 20000)) { S.msg = "Enter run hours between 1 and 20000, or leave it empty."; render(); return; }
+    else body.interval_run_hours = parseFloat(hrs);
+  }
+  var last = cur("f-last-" + k);
+  if (last) {
+    if (last > localDate()) { S.msg = "The last-done date can't be in the future."; render(); return; }
+    body.last_done = last;
+  }
+  saveService("/items/" + k, "PATCH", body, ["f-days-" + k, "f-hours-" + k, "f-last-" + k]);
+});
 
 function cmdText(c) {
   var parts = [];
