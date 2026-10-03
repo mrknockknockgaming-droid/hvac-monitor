@@ -7,11 +7,12 @@ superheat / subcooling / fault-flag math.
 | Part | What it does |
 |---|---|
 | `hvaccloud/ingest.py` | Subscribes to `hvac/<site>/<node>/{telemetry,status,reply}`, stores raw telemetry, derived snapshots and node status, pairs command replies |
+| `hvaccloud/alerts.py` | Turns fault flags that last 5 min into alerts, adds "no data" alerts, emails the account |
 | `hvaccloud/api.py` | FastAPI: systems, live state, history, CSV export, settings, commands to nodes |
 | `hvaccloud/calc.py` | Port of the dashboard's `Hub.compute` / `Hub.flags`; `tests/test_calc.py` checks they match |
 | `hvaccloud/db.py` | SQLAlchemy models; SQLite in development, TimescaleDB hypertables in production |
 | `web/` | Fullscope web app (homeowner + technician views), served by the API at `/app/` |
-| `manage.py` | Create accounts, API keys and systems |
+| `manage.py` | Create accounts, API keys and systems; send a test alert email |
 | `demo_publisher.py` | Simulated outdoor + indoor nodes over MQTT (site `demo`) |
 
 A system's `site_id` is the node's `SITE_ID` in `hvac-firmware/include/config.h`, so the
@@ -49,7 +50,24 @@ Plain HTML/CSS/JS in `web/`, no build step; styles are copied from the Fullscope
   noticed (each fault flag explained for a homeowner), system health, last 24 hours.
 - **Monitor** (`#/monitor/<id>`): superheat, subcooling, delta-T, condensing over ambient,
   compression ratio; live trend (15 min to 7 days); operating state; sensor health from the
-  nodes' own error codes; refrigerant and air-side tables; current diagnostics; CSV export.
+  nodes' own error codes; refrigerant and air-side tables; current diagnostics; alert log;
+  CSV export.
+
+Both views list the last 7 days of alerts (homeowner: "Recent alerts"; technician: "Alert log").
+
+## Alerts and email
+
+- A fault flag opens an alert once it has lasted `ALERT_HOLD_SECONDS` (5 min), and the alert
+  clears once the flag has been gone that long, so a value hovering at a limit gives one alert.
+- If a system that has reported goes silent for `ALERT_NO_DATA_SECONDS` (10 min), the ingest
+  worker's once-a-minute sweep opens a "no data" alert; it clears on the next reading.
+- Raised alerts are emailed to the account's address, at most once per fault type per
+  `ALERT_EMAIL_COOLDOWN_HOURS` (6 h); a "cleared" email follows an emailed alert.
+- Email is off until SMTP is set up. Copy `.env.example` to `.env` (never committed) and fill
+  in the `SMTP_*` lines. For Gmail, use `smtp.gmail.com`, port 587 and an App Password
+  (Google account > Security > 2-Step Verification > App passwords). Then check it with
+  `.venv\Scripts\python.exe manage.py test-email 1` and restart the ingest worker. Set where emails
+  go with `manage.py set-email 1 <address>`.
 
 Values the hardware does not measure yet (indoor humidity, static pressure, capacity) are
 shown as "Not installed", never estimated. The API key is kept in the browser's local
@@ -68,6 +86,7 @@ All endpoints except `/health` need the header `X-API-Key: <key from manage.py c
 | GET | `/api/systems/{id}/summary?hours=24` | Compressor runtime, cycles, average on-time, outside high, inside average |
 | GET | `/api/systems/{id}/history?minutes=60` | Averaged series, at most ~600 points |
 | GET | `/api/systems/{id}/export.csv?minutes=1440` | Snapshots as CSV (UTC times) |
+| GET | `/api/systems/{id}/alerts?days=7` | Raised alerts open during the last `days`, newest first |
 | POST | `/api/systems/{id}/commands` | `{"node":"outdoor","cmd":{"cmd":"cal_zero","ch":"p_liq"}}` |
 | GET | `/api/systems/{id}/commands` | Recent commands with the node's reply |
 
@@ -91,7 +110,6 @@ Commands are the firmware's (see the top of `hvac-firmware/src/node_outdoor.cpp`
 ## Not done yet
 
 - Web app: per-user sign-in, maintenance reminders, contractor details, service requests,
-  a diagnostics history (only current flags are shown), calibration from the browser.
-- Alerts and email when a flag appears.
+  calibration from the browser, acknowledging or muting alerts, choosing who gets emails.
 - Per-device MQTT accounts and topic ACLs (every node shares one account for now).
 - HTTPS / MQTT TLS (Phase 8, going live).

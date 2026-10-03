@@ -78,9 +78,14 @@ temperatures, superheat, subcooling and delta-T.
     show "Not installed" / "Not measured", never estimates.
   - Ingest restarts the compressor-run timer after a data gap longer than STALE_SECONDS, so a
     power/WiFi outage mid-cooling can't create a multi-day "cycle" and false flags.
-  - Tests: `.venv\Scripts\python.exe -m pytest -q` in `hvac-cloud/` (22 pass). Not done:
-    per-user sign-in (API key in browser storage for now), alerts/email, maintenance and
-    contractor info, diagnostics history, per-device MQTT accounts and ACLs, TLS.
+  - Alerts (`hvaccloud/alerts.py`): a flag that holds 5 min raises an alert, gone 5 min clears
+    it; ingest sweeps once a minute for "no data" (10 min silent). Shown in both web views and
+    emailed to the account's email (6 h cooldown per code). Email is OFF until `hvac-cloud/.env`
+    has SMTP_* (see `.env.example`; Gmail needs an App Password, which the user must create and
+    paste themselves). Test with `manage.py test-email 1`. Settings also read `.env`.
+  - Tests: `.venv\Scripts\python.exe -m pytest -q` in `hvac-cloud/` (30 pass). Not done:
+    per-user sign-in (API key in browser storage for now), maintenance and contractor info,
+    alert acknowledge/mute, per-device MQTT accounts and ACLs, TLS.
 
 ## Hardware
 - Boards: 3x ESP-WROOM-32 30-pin dev boards (PCB antenna, no u.FL). Outdoor on COM4, indoor on COM5 (both CP210x; tell them apart by port).

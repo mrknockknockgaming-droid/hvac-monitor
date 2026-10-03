@@ -123,6 +123,23 @@ class Command(Base):
     replied_at: Mapped[dt.datetime | None]
 
 
+class Alert(Base):
+    """A diagnostic flag (calc.flags code, plus node for per-node flags) seen on a system. Pending
+    until it has held for ALERT_HOLD_SECONDS (raised_at), cleared once it has been gone that long."""
+    __tablename__ = "alerts"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    system_id: Mapped[int] = mapped_column(ForeignKey("systems.id"))
+    code: Mapped[str] = mapped_column(String(32))
+    node: Mapped[str | None] = mapped_column(String(16))
+    level: Mapped[str] = mapped_column(String(8))
+    text: Mapped[str] = mapped_column(String(300))
+    started_at: Mapped[dt.datetime]
+    last_seen: Mapped[dt.datetime]
+    raised_at: Mapped[dt.datetime | None]
+    cleared_at: Mapped[dt.datetime | None]
+    emailed_at: Mapped[dt.datetime | None]
+
+
 def make_engine(url=None):
     url = url or settings.DATABASE_URL
     if url.startswith("sqlite"):

@@ -21,7 +21,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 
 from . import calc, settings
-from .db import (ApiKey, Command, Device, Snapshot, System, Telemetry, as_utc, hash_key, init_db,
+from .db import (Alert, ApiKey, Command, Device, Snapshot, System, Telemetry, as_utc, hash_key, init_db,
                  make_engine, session_factory, utcnow)
 from .refrigerants import FLUIDS
 
@@ -222,6 +222,15 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS):
         return PlainTextResponse(buf.getvalue(), media_type="text/csv", headers={
             "Content-Disposition": f"attachment; filename={system.site_id}-export.csv"})
 
+    @app.get("/api/systems/{system_id}/alerts")
+    def list_alerts(days: float = Query(7, gt=0, le=365), system=Depends(own_system), s=Depends(db)):
+        """Raised alerts that were open at any time in the last `days`, newest first (pending ones are left out)."""
+        since = utcnow() - dt.timedelta(days=days)
+        rows = s.scalars(select(Alert).where(Alert.system_id == system.id, Alert.raised_at.is_not(None))
+                         .where((Alert.cleared_at.is_(None)) | (Alert.cleared_at >= since))
+                         .order_by(Alert.started_at.desc()).limit(200))
+        return [_alert_view(a) for a in rows]
+
     @app.post("/api/systems/{system_id}/commands")
     def send_command(body: CommandIn, system=Depends(own_system), s=Depends(db)):
         if not isinstance(body.cmd.get("cmd"), str):
@@ -260,6 +269,16 @@ def _avg(t, acc):
     for k, vals in acc.items():
         row[k] = round(sum(vals) / len(vals), 1)
     return row
+
+
+def _iso(t):
+    return as_utc(t).isoformat() if t else None
+
+
+def _alert_view(a):
+    return {"id": a.id, "code": a.code, "node": a.node, "level": a.level, "text": a.text,
+            "open": a.cleared_at is None, "started_at": _iso(a.started_at), "raised_at": _iso(a.raised_at),
+            "cleared_at": _iso(a.cleared_at), "emailed_at": _iso(a.emailed_at)}
 
 
 def _command_view(c, node):

@@ -23,7 +23,7 @@ $("#theme").addEventListener("click", function () {
 // ---------------------------------------------------------------- state
 var S = {
   key: load("fs_key"), systems: null, sys: null, view: null,
-  latest: null, summary: null, history: {}, range: load("fs_range") || "1h",
+  latest: null, summary: null, history: {}, alerts: null, range: load("fs_range") || "1h",
   preset: load("fs_preset") || "refrigerant", off: {}, lastOk: null, error: null, timers: []
 };
 var LIVE_MS = 5000, STALE_S = 30, OUTAGE_S = 90;   // a gap longer than OUTAGE_S breaks chart lines
@@ -51,6 +51,8 @@ function clock(t, secs) {
   return p(d.getHours()) + ":" + p(d.getMinutes()) + (secs ? ":" + p(d.getSeconds()) : "");
 }
 function ampm(t) { return new Date(t).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); }
+function when(t) { return new Date(t).toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" }) + ", " + ampm(t); }
+function lasted(a) { return ago(((a.cleared_at ? new Date(a.cleared_at) : new Date()).getTime() - new Date(a.started_at).getTime()) / 1000); }
 function ago(s) { return !isNum(s) ? "—" : s < 90 ? Math.round(s) + " s" : s < 5400 ? Math.round(s / 60) + " min" : (s / 3600).toFixed(1) + " h"; }
 var LOGO = '<div class="brand logo" title="Fullscope — Continuous diagnostics &amp; control"><img src="fullscope-wordmark.webp" alt="Fullscope"></div>';
 var TAGLINE = '<div class="tagline caps">Continuous diagnostics &amp; control</div>';
@@ -83,7 +85,10 @@ var FLAG_INFO = {
     todo: ["Nothing to do on your own; your contractor can check it."] },
   sensor_issue: { level: "advisory", area: "monitoring", title: "A monitoring sensor isn't reporting",
     sub: "Doesn't affect heating or cooling.", why: "One sensor isn't giving a reading. Your system runs the same; it only gives your technician extra information.",
-    todo: ["Nothing to do on your own; your contractor can check it."] }
+    todo: ["Nothing to do on your own; your contractor can check it."] },
+  no_data: { level: "advisory", area: "monitoring", title: "We lost contact with your monitors",
+    sub: "Usually WiFi or power.", why: "Neither monitor was sending readings, so no checks could run.",
+    todo: ["Check that your WiFi is working.", "If it keeps happening, your contractor can check the monitors."] }
 };
 var LEVEL = { fault: { word: "Service needed", rank: 3 }, caution: { word: "Check soon", rank: 2 }, advisory: { word: "Good to know", rank: 1 }, ok: { word: "Good", rank: 0 } };
 var TECH_LEVEL = { fault: "Fault", caution: "Warning", advisory: "Advisory" };
@@ -119,7 +124,7 @@ function route() {
   var changed = !S.sys || S.sys.id !== id;
   S.view = m[1];
   S.sys = sys;
-  if (changed) { S.latest = null; S.summary = null; S.history = {}; stopTimers(); startTimers(); }
+  if (changed) { S.latest = null; S.summary = null; S.history = {}; S.alerts = null; stopTimers(); startTimers(); }
   render();
 }
 window.addEventListener("hashchange", route);
@@ -132,9 +137,10 @@ function start() {
 
 function stopTimers() { S.timers.forEach(clearInterval); S.timers = []; }
 function startTimers() {
-  pollLatest(); pollSummary(); pollHistory();
+  pollLatest(); pollSummary(); pollHistory(); pollAlerts();
   S.timers.push(setInterval(pollLatest, LIVE_MS));
   S.timers.push(setInterval(pollSummary, 60000));
+  S.timers.push(setInterval(pollAlerts, 30000));
   S.timers.push(setInterval(pollHistory, 30000));
 }
 function pollLatest() {
@@ -147,6 +153,10 @@ function pollLatest() {
 function pollSummary() {
   var id = S.sys.id;
   api("/api/systems/" + id + "/summary?hours=24").then(function (d) { if (S.sys && S.sys.id === id) { S.summary = d; render(); } }).catch(function () {});
+}
+function pollAlerts() {
+  var id = S.sys.id;
+  api("/api/systems/" + id + "/alerts?days=7").then(function (d) { if (S.sys && S.sys.id === id) { S.alerts = d; render(); } }).catch(function () {});
 }
 var RANGES = { "15m": { min: 15, label: "15 min" }, "1h": { min: 60, label: "1 hr" }, "6h": { min: 360, label: "6 hr" }, "24h": { min: 1440, label: "24 hr" }, "7d": { min: 10080, label: "7 days" } };
 function pollHistory() {
@@ -247,7 +257,7 @@ function renderHome() {
     "<div><span>Running, last 24 h</span><b>" + (isNum(sm.runtime_hours) ? fmt(sm.runtime_hours, 1) + "<small>hr</small>" : "—") + "</b><em>" +
     (isNum(sm.cycles) ? sm.cycles + " cycle" + (sm.cycles === 1 ? "" : "s") : "") + "</em></div>" +
     "</div></section>" +
-    '<div class="h-grid"><div class="h-col">' + homeNoticed(fresh) + "</div>" +
+    '<div class="h-grid"><div class="h-col">' + homeNoticed(fresh) + homeAlerts() + "</div>" +
     '<div class="h-col">' + homeHealth(fresh, running) + homeChart() + "</div></div>" +
     '<div class="h-foot"><span class="foot-brand"><b>Fullscope</b><span class="caps">Continuous diagnostics &amp; control</span></span><span>Checks run every 5 seconds while the system is on</span></div>' +
     "</main>";
@@ -286,6 +296,19 @@ function homeNoticed(fresh) {
   if (!items.some(function (x) { return x.i.area === "cooling"; })) okAreas.push("airflow temperature");
   if (okAreas.length) h += '<div class="ok-row"><span class="st ok"></span>' + esc(okAreas.join(", ").replace(/^./, function (c) { return c.toUpperCase(); })) + " checks are normal.</div>";
   return h + "</div></section>";
+}
+
+function homeAlerts() {
+  var list = S.alerts;
+  var h = '<section class="h-card" aria-label="Recent alerts"><h2>Recent alerts</h2>' +
+    '<div class="h-sub">Problems that lasted at least 5 minutes, last 7 days</div>';
+  if (!list) return h + '<div class="empty">Loading…</div></section>';
+  if (!list.length) return h + '<ul class="h-health"><li><b>None</b>' + st("ok", "Good") + "<p>Nothing needed attention in the last 7 days.</p></li></ul></section>";
+  return h + '<ul class="h-health">' + list.slice(0, 8).map(function (a) {
+    var i = flagInfo(a);
+    return "<li><b>" + esc(i.title) + "</b>" + (a.open ? st(i.level, "Ongoing") : st("ok", "Cleared")) +
+      "<p>" + esc(when(a.started_at)) + " · " + (a.open ? "for " : "lasted ") + esc(lasted(a)) + "</p></li>";
+  }).join("") + "</ul></section>";
 }
 
 function homeHealth(fresh, running) {
@@ -397,7 +420,7 @@ function renderMonitor() {
     seg("range", Object.keys(RANGES).map(function (k) { return [k, RANGES[k].label]; }), S.range) +
     '</div></div><div class="chart-wrap"><div class="plot" id="plot"><div class="tip" role="status"></div></div><div class="legend" id="legend" aria-label="Channels"></div></div></section>' +
     '<div class="rail">' + opState(d, sm, obWord) + sensorHealth(n) + "</div></div>" +
-    '<div class="grid-b">' + refrigTable(d) + airTable(d) + diagPanel(fl, d) + "</div>" +
+    '<div class="grid-b">' + refrigTable(d) + airTable(d) + diagPanel(fl, d) + "</div>" + alertLog() +
     '<div class="foot-legend"><span><span class="src">meas</span> measured by a sensor</span><span><span class="src calc">calc</span> calculated</span>' +
     "<span>Judged after 10 min of steady running · inferences, not confirmed diagnoses</span></div></main>";
   root.innerHTML = html;
@@ -567,6 +590,20 @@ function diagPanel(fl, d) {
     '<table class="dt diag"><thead><tr><th>Severity</th><th>Condition</th><th class="cause">What it usually means</th></tr></thead><tbody>' +
     (rows || '<tr class="normal"><td>' + st("ok", "Normal") + '</td><td class="cond" colspan="2">No conditions flagged.</td></tr>') +
     '</tbody></table><div class="na-note">' + esc(note) + "</div></section>";
+}
+
+function alertLog() {
+  var list = S.alerts, body;
+  if (!list) body = '<tr><td colspan="5" class="faint">Loading…</td></tr>';
+  else if (!list.length) body = '<tr class="normal"><td>' + st("ok", "Normal") + '</td><td class="cond" colspan="4">No alerts in the last 7 days.</td></tr>';
+  else body = list.map(function (a) {
+    var i = flagInfo(a), sensor = ["sensor_issue", "node_offline", "no_data"].indexOf(a.code) >= 0;
+    return "<tr><td>" + st(sensor ? "sensor" : i.level, sensor ? "Sensor" : TECH_LEVEL[i.level]) + '</td><td class="cond">' + esc(a.text) + "</td>" +
+      '<td class="n">' + esc(when(a.started_at)) + "</td><td>" + (a.open ? st(i.level === "advisory" ? "advisory" : "caution", "Active") + ' <span class="faint n">' + esc(lasted(a)) + "</span>" : '<span class="n">' + esc(lasted(a)) + "</span>") +
+      '</td><td class="faint n">' + (a.emailed_at ? "Emailed " + esc(ampm(a.emailed_at)) : "—") + "</td></tr>";
+  }).join("");
+  return '<section class="panel" id="alert-log" aria-label="Alert log"><div class="ph"><h2>Alert log</h2><span class="sub">Last 7 days · raised after 5 min, cleared after 5 min without the condition</span></div>' +
+    '<table class="dt diag"><thead><tr><th>Severity</th><th>Condition</th><th>Started</th><th>Duration</th><th>Email</th></tr></thead><tbody>' + body + "</tbody></table></section>";
 }
 
 // ---------------------------------------------------------------- CSV export

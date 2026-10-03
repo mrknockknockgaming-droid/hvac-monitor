@@ -5,12 +5,15 @@
   python manage.py create-key 1                      (prints the API key once)
   python manage.py create-system 1 "Home" home --refrigerant R-410A --atm-psia 14.0
   python manage.py list
+  python manage.py set-email 1 you@gmail.com        (where alert emails go)
+  python manage.py test-email 1                      (needs SMTP_* in .env)
 """
 import argparse
 import sys
 
 from sqlalchemy import select
 
+from hvaccloud.alerts import Mailer
 from hvaccloud.db import Account, ApiKey, Device, System, init_db, make_engine, session_factory
 from hvaccloud.refrigerants import FLUIDS
 
@@ -33,6 +36,11 @@ def main(argv=None):
     y.add_argument("--no-heat-pump", action="store_true")
     y.add_argument("--ob", choices=["cool", "heat"], default="cool", help="cool = O terminal, heat = B")
     sub.add_parser("list")
+    m = sub.add_parser("set-email", help="change an account's email (alerts are sent there)")
+    m.add_argument("account_id", type=int)
+    m.add_argument("email")
+    e = sub.add_parser("test-email", help="send a test alert email to an account (checks the SMTP_* settings)")
+    e.add_argument("account_id", type=int)
     args = ap.parse_args(argv)
 
     engine = make_engine()
@@ -70,6 +78,22 @@ def main(argv=None):
                         select(Device).where(Device.system_id == system.id)))) or "no nodes yet"
                     print(f"  system {system.id}: {system.name} (site {system.site_id!r}, "
                           f"{system.refrigerant}) - {nodes}")
+        elif args.cmd == "set-email":
+            acct = s.get(Account, args.account_id)
+            if acct is None:
+                sys.exit(f"no account {args.account_id}")
+            acct.email = args.email
+            print(f"account {acct.id}: {acct.name} <{acct.email}>")
+        elif args.cmd == "test-email":
+            acct = s.get(Account, args.account_id)
+            if acct is None:
+                sys.exit(f"no account {args.account_id}")
+            mailer = Mailer()
+            if not mailer.enabled:
+                sys.exit("email is off: set SMTP_HOST, SMTP_USER and SMTP_PASS in hvac-cloud/.env")
+            ok = mailer.send(acct.email, "[Fullscope] Test alert email",
+                             "Alert emails from your Fullscope cloud are set up and working.")
+            sys.exit(0 if ok else f"sending to {acct.email} failed; see the message above")
 
 
 if __name__ == "__main__":
