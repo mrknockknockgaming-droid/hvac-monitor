@@ -26,7 +26,7 @@ from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import func, select
 
 from . import alerts, auth, calc, equipment, service, settings
-from .db import (Account, Alert, AlertMute, AlertPrefs, ApiKey, Command, Device, Invite, ServiceInfo, Snapshot,
+from .db import (Account, Alert, AlertMute, AlertPrefs, ApiKey, Command, Device, Invite, PasswordReset, ServiceInfo, Snapshot,
                  System, SystemMember, Telemetry, User, as_utc, hash_key, init_db, make_engine, session_factory, utcnow)
 from .refrigerants import FLUIDS
 
@@ -34,6 +34,7 @@ mimetypes.add_type("font/woff", ".woff")   # Windows does not know it; StaticFil
 WEB_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "web")
 HISTORY_KEYS = ["p_low", "p_high", "sat_low", "sat_high", "t_suc", "t_liq", "sh", "sc", "oat", "t_sup", "t_ret", "dt"]
 INVITE_DAYS = 7
+RESET_HOURS = 1                    # a forgotten-password link works this long, once
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 LEVEL_RANK = {"fault": 4, "offline": 3, "caution": 2, "advisory": 1, "ok": 0}
 CSV_COLS = ["mode", "p_low", "p_high", "sat_low", "sat_high", "t_suc", "t_liq", "sh", "sc",
@@ -150,6 +151,14 @@ class TokenIn(BaseModel):
     token: str = Field(max_length=100)
 
 
+class ForgotIn(BaseModel):
+    email: str = Field(max_length=320)
+
+
+class ResetIn(TokenIn):
+    password: str = Field(max_length=200)
+
+
 class AcceptIn(TokenIn):
     name: str | None = Field(default=None, max_length=200)
     password: str = Field(max_length=200)
@@ -167,6 +176,7 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
         sessions = session_factory(engine)
     publish = publisher or MqttPublisher()
     throttle = auth.Throttle()
+    reset_throttle = auth.Throttle(limit=3, window=60 * 60)      # reset emails per address per hour
     mailer = mailer or alerts.Mailer()
     app = FastAPI(title="HVAC Monitor cloud API", version="0.1.0")
 
@@ -286,6 +296,60 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
         auth.end_other_sessions(s, user.id, keep=fs_session)       # anyone else signed in as this user is out
         s.commit()
         return {"ok": True}
+
+    # ---------- forgotten password ----------
+    def make_reset(s, user):
+        """Revoke the user's older links and return a new one."""
+        for old in s.scalars(select(PasswordReset).where(PasswordReset.user_id == user.id, PasswordReset.used_at.is_(None))):
+            s.delete(old)
+        token = secrets.token_urlsafe(24)
+        s.add(PasswordReset(token_hash=hash_key(token), user_id=user.id,
+                            expires_at=utcnow() + dt.timedelta(hours=RESET_HOURS)))
+        s.commit()
+        return f"{settings.APP_URL}#/reset/{token}"
+
+    @app.post("/api/auth/forgot")
+    def forgot_password(body: ForgotIn, s=Depends(db)):
+        """Email a reset link. The answer never says whether the email has a sign-in."""
+        email = body.email.strip().lower()
+        if not mailer.enabled:
+            return {"ok": True, "email_enabled": False}
+        user = s.scalar(select(User).where(User.email == email))
+        if user is not None and not reset_throttle.blocked(email):
+            reset_throttle.fail(email)
+            url = make_reset(s, user)
+            send_invite(email, "Reset your Fullscope password",
+                        f"Someone asked to reset the password for {email} on Fullscope.\n\n"
+                        f"Choose a new password here (the link works once, for {RESET_HOURS} hour):\n{url}\n\n"
+                        f"If it wasn't you, ignore this email; your password stays the same.")
+        return {"ok": True, "email_enabled": True}
+
+    @app.post("/api/systems/{system_id}/members/{user_id}/reset-link")
+    def member_reset_link(user_id: int, system=Depends(tech_system), s=Depends(db)):
+        """A reset link for one of this system's homeowners, to pass on yourself (works without email)."""
+        if s.get(SystemMember, (system.id, user_id)) is None:
+            raise HTTPException(404, "not a member")
+        user = s.get(User, user_id)
+        return {"url": make_reset(s, user), "email": user.email, "hours": RESET_HOURS}
+
+    @app.post("/api/auth/reset")
+    def reset_password(body: ResetIn, response: Response, s=Depends(db)):
+        row = s.get(PasswordReset, hash_key(body.token))
+        if row is None or row.used_at is not None or as_utc(row.expires_at) <= utcnow():
+            raise HTTPException(410, "This reset link has expired or was already used. Ask for a new one.")
+        problem = auth.password_problem(body.password)
+        if problem:
+            raise HTTPException(422, problem)
+        user = s.get(User, row.user_id)
+        user.password_hash = auth.hash_password(body.password)
+        user.last_login = utcnow()
+        row.used_at = utcnow()
+        auth.end_other_sessions(s, user.id, keep=None)              # whoever had the old password is out
+        token = auth.new_session(s, user.id)
+        s.commit()
+        throttle.clear(user.email)
+        set_cookie(response, token)
+        return me_view(s, auth.Principal(role=user.role, account_id=user.account_id, user_id=user.id))
 
     # ---------- equipment ----------
     @app.get("/api/systems/{system_id}/equipment")
@@ -418,6 +482,8 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
         auth.end_other_sessions(s, user.id, keep=None)
         for inv in s.scalars(select(Invite).where(Invite.invited_by == user.id)):
             inv.invited_by = None
+        for r in s.scalars(select(PasswordReset).where(PasswordReset.user_id == user.id)):
+            s.delete(r)
         s.delete(user)
         s.commit()
         return {"ok": True}
