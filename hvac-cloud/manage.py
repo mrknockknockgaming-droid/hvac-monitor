@@ -6,6 +6,8 @@
   python manage.py create-system 1 "Home" home --refrigerant R-410A --atm-psia 14.0
   python manage.py list
   python manage.py set-email 1 you@gmail.com        (where alert emails go)
+  python manage.py backup                            (copy dev.db into backups/, keeps 7)
+  python manage.py prune                             (thin data older than 30 days, drop older than 365)
   python manage.py test-email 1                      (needs SMTP_* in .env)
 """
 import argparse
@@ -13,6 +15,7 @@ import sys
 
 from sqlalchemy import select
 
+from hvaccloud import maintenance
 from hvaccloud.alerts import Mailer
 from hvaccloud.db import Account, ApiKey, Device, System, init_db, make_engine, session_factory
 from hvaccloud.refrigerants import FLUIDS
@@ -39,12 +42,20 @@ def main(argv=None):
     m = sub.add_parser("set-email", help="change an account's email (alerts are sent there)")
     m.add_argument("account_id", type=int)
     m.add_argument("email")
+    sub.add_parser("backup", help="copy the SQLite database into BACKUP_DIR (keeps the newest BACKUP_KEEP)")
+    sub.add_parser("prune", help="average snapshots older than FULL_DETAIL_DAYS per minute, delete older than KEEP_DAYS")
     e = sub.add_parser("test-email", help="send a test alert email to an account (checks the SMTP_* settings)")
     e.add_argument("account_id", type=int)
     args = ap.parse_args(argv)
 
     engine = make_engine()
     init_db(engine)
+    if args.cmd == "backup":
+        path = maintenance.backup()
+        sys.exit(0 if path else "backup skipped: the database is not a SQLite file (use pg_dump)")
+    if args.cmd == "prune":
+        print(maintenance.prune(session_factory(engine)))
+        return
     with session_factory(engine)() as s, s.begin():
         if args.cmd == "init-db":
             print("database ready:", engine.url.render_as_string(hide_password=True))

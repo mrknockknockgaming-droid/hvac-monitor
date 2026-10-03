@@ -27,7 +27,10 @@ MQTT_USER = os.environ.get("MQTT_USER", "")
 MQTT_PASS = os.environ.get("MQTT_PASS", "")
 
 STALE_SECONDS = float(os.environ.get("STALE_SECONDS", "30"))   # node counts as offline after this
-KEEP_DAYS = int(os.environ.get("KEEP_DAYS", "365"))              # TimescaleDB retention
+KEEP_DAYS = int(os.environ.get("KEEP_DAYS", "365"))              # older data is deleted
+FULL_DETAIL_DAYS = int(os.environ.get("FULL_DETAIL_DAYS", "30"))  # then thinned to 1-minute averages (SQLite)
+BACKUP_DIR = os.environ.get("BACKUP_DIR", os.path.join(HERE, "backups"))
+BACKUP_KEEP = int(os.environ.get("BACKUP_KEEP", "7"))            # nightly copies of dev.db to keep
 
 # Alerts: a flag must hold this long to raise an alert, and be gone this long to clear it
 ALERT_HOLD_SECONDS = float(os.environ.get("ALERT_HOLD_SECONDS", "300"))
