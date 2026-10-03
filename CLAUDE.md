@@ -108,6 +108,8 @@ temperatures, superheat, subcooling and delta-T.
     Known and accepted: anyone can lock an email out for 15 min with wrong passwords; the API key
     sign-in keeps the key in localStorage; COOKIE_SECURE must be true once on HTTPS; MQTT has no
     per-device accounts yet.
+  - Password reset (`password_resets`, token hashed, 1 h, single use): /api/auth/forgot emails
+    it (needs SMTP); contractors can make one per homeowner in "Homeowner access".
   - Schema changes: `db.add_missing_columns` adds new NULLABLE columns to existing tables at
     startup (create_all only makes new tables). Non-null new columns need a real migration.
   - Maintenance card (home): filter due at 90 days or 500 blower hours, tune-up 182 days,
@@ -117,8 +119,8 @@ temperatures, superheat, subcooling and delta-T.
     `hvac-cloud/backups/` (keeps 7, git-ignored) and prunes: >30 days thinned to 1-minute
     averages, raw telemetry >30 days dropped, >365 days deleted (`hvaccloud/maintenance.py`;
     `manage.py backup` / `prune` by hand). Restore steps are in hvac-cloud/README.md.
-  - Tests: `.venv\Scripts\python.exe -m pytest -q` in `hvac-cloud/` (75 pass). Not done:
-    password reset by email, per-device MQTT accounts and ACLs, TLS.
+  - Tests: `.venv\Scripts\python.exe -m pytest -q` in `hvac-cloud/` (79 pass). Not done:
+    per-device MQTT accounts and ACLs, TLS.
 
 ## Hardware
 - Boards: 3x ESP-WROOM-32 30-pin dev boards (PCB antenna, no u.FL). Outdoor on COM4, indoor on COM5 (both CP210x; tell them apart by port).

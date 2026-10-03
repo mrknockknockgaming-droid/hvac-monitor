@@ -99,6 +99,16 @@ class Invite(Base):
     accepted_at: Mapped[dt.datetime | None]
 
 
+class PasswordReset(Base):
+    """A one-time link to set a new password. Only a SHA-256 of the link token is stored."""
+    __tablename__ = "password_resets"
+    token_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    created_at: Mapped[dt.datetime] = mapped_column(default=utcnow)
+    expires_at: Mapped[dt.datetime]
+    used_at: Mapped[dt.datetime | None]
+
+
 def hash_key(key):
     return hashlib.sha256(key.encode()).hexdigest()
 

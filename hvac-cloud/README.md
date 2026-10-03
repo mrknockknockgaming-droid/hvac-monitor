@@ -57,6 +57,11 @@ Interactive API docs: http://localhost:8000/docs (click Authorize and paste the 
   one email lock it for 15 minutes; unknown emails take as long to answer as wrong passwords.
   Users change their password on the Account page, which signs out their other sessions.
   Contractors can remove a colleague from "Your team".
+- **Forgotten password:** "Forgot password?" on the sign-in page emails a one-time link
+  (`#/reset/<token>`, 1 hour, at most 3 emails an hour per address; the answer never says
+  whether the email has a sign-in). Using it sets the new password, ends every other session
+  and signs the person in. Without SMTP, a contractor can make the link for a homeowner from
+  "Homeowner access" (**Reset link**) and pass it on; `manage.py set-password` also works.
 - API keys still work (header `X-API-Key`) and act as a contractor of their account.
 - **Invites:** on a system's Sensors & calibration page ("Homeowner access") a contractor invites
   a homeowner by email; on the Account page ("Your team") a colleague. The person opens the
@@ -173,6 +178,8 @@ header `X-API-Key: <key from manage.py create-key>`. Endpoints marked *tech* ans
 | POST / GET | `/api/account/invites`, `/api/account/people` | *tech* Invite a colleague; list the team |
 | DELETE | `/api/account/users/{user_id}` | *tech* Remove a colleague (deletes their sign-in, signs them out) |
 | DELETE | `/api/invites/{id}` | *tech* Revoke an invite |
+| POST | `/api/auth/forgot`, `/api/auth/reset` | `{"email"}` sends a reset link; `{"token","password"}` uses it |
+| POST | `/api/systems/{id}/members/{user_id}/reset-link` | *tech* A reset link for one of the system's homeowners |
 | POST | `/api/invites/lookup`, `/api/invites/accept` | `{"token"}` / `{"token","name","password"}`: open an invite link and create the sign-in (the token is never in a URL the server logs) |
 | GET | `/api/systems/{id}` | Settings + nodes (online, age, fw, ip, rssi) |
 | PATCH | `/api/systems/{id}` | `refrigerant`, `heat_pump`, `ob_energized` (`cool`/`heat`), `atm_psia` |
@@ -210,7 +217,7 @@ Commands are the firmware's (see the top of `hvac-firmware/src/node_outdoor.cpp`
 
 ## Not done yet
 
-- Web app: password reset by email, service requests sent through the cloud (now the homeowner's email),
+- Web app: service requests sent through the cloud (now the homeowner's email),
   sending the homeowner and contractor emails from separate per-user accounts.
 - Per-device MQTT accounts and topic ACLs (every node shares one account for now).
 - HTTPS / MQTT TLS (Phase 8, going live).

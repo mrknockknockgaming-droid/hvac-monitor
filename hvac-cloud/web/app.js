@@ -123,6 +123,8 @@ function dataFresh() {
 function route() {
   var inv = location.hash.match(/^#\/invite\/([\w-]+)/);
   if (inv) { stopTimers(); S.view = null; S.sys = null; return renderInvite(inv[1]); }
+  var rs = location.hash.match(/^#\/reset\/([\w-]+)/);
+  if (rs) { stopTimers(); S.view = null; S.sys = null; return renderReset(rs[1]); }
   if (!S.me) return start();
   if (location.hash === "#/account") { stopTimers(); S.view = null; S.sys = null; if (isTech()) pollTeam(); return renderAccount(); }
   if (location.hash === "#/fleet") {
@@ -224,6 +226,7 @@ function signOut(msg) {
 // ---------------------------------------------------------------- sign-in
 function renderLogin() {
   root.className = "fs home";
+  if (S.loginMode === "forgot") return renderForgot();
   var byKey = S.loginMode === "key";
   root.innerHTML =
     '<header class="h-top">' + LOGO + TAGLINE + "</header>" +
@@ -235,8 +238,10 @@ function renderLogin() {
         '<label class="lbl" for="pw">Password</label><input id="pw" type="password" autocomplete="current-password" aria-label="Password">') +
     '<div class="row"><button class="h-btn primary" type="submit">Sign in</button></div>' +
     '<div class="err" role="alert">' + esc(S.error || "") + "</div></form>" +
-    '<p class="alt"><a class="muted" href="#" id="mode">' + (byKey ? "Sign in with email and password" : "Use an API key instead") + "</a></p></div></div>";
+    '<p class="alt">' + (byKey ? "" : '<a class="muted" href="#" id="forgot">Forgot password?</a> · ') +
+    '<a class="muted" href="#" id="mode">' + (byKey ? "Sign in with email and password" : "Use an API key instead") + "</a></p></div></div>";
   $("#mode").addEventListener("click", function (e) { e.preventDefault(); S.loginMode = byKey ? "password" : "key"; S.error = null; renderLogin(); });
+  if ($("#forgot")) $("#forgot").addEventListener("click", function (e) { e.preventDefault(); S.loginMode = "forgot"; S.error = null; renderLogin(); });
   $("#lf").addEventListener("submit", function (e) {
     e.preventDefault();
     if (byKey) {
@@ -255,6 +260,47 @@ function renderLogin() {
   });
   var first = $("#k") || $("#em");
   if (first) first.focus();
+}
+
+// ---------------------------------------------------------------- forgotten password
+function renderForgot() {
+  root.innerHTML = '<header class="h-top">' + LOGO + TAGLINE + "</header>" +
+    '<div class="login"><div class="h-card"><h1>Reset your password</h1><p>Enter the email you sign in with and we\'ll send a link to choose a new password.</p>' +
+    '<form id="ff"><label class="lbl" for="fe">Email</label><input id="fe" type="email" autocomplete="username">' +
+    '<div class="row"><button class="h-btn primary" type="submit">Send the link</button></div><div class="err" role="status" id="fm"></div></form>' +
+    '<p class="alt"><a class="muted" href="#" id="back">Back to sign in</a></p></div></div>';
+  $("#back").addEventListener("click", function (e) { e.preventDefault(); S.loginMode = "password"; renderLogin(); });
+  $("#fe").focus();
+  $("#ff").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var em = $("#fe").value.trim();
+    if (!em) return;
+    $("#ff button").disabled = true;
+    api("/api/auth/forgot", { method: "POST", body: { email: em }, keep401: true }).then(function (r) {
+      var m = $("#fm");
+      m.style.color = r.email_enabled ? "var(--ink)" : "";
+      m.textContent = r.email_enabled ? "If " + em + " has a sign-in, a link is on its way. It works once, for 1 hour."
+        : "Email isn't set up on this server yet, so we can't send a link. Ask your contractor for a reset link.";
+    }).catch(function (err) { $("#ff button").disabled = false; $("#fm").textContent = err.message; });
+  });
+}
+function renderReset(token) {
+  root.className = "fs home";
+  root.innerHTML = '<header class="h-top">' + LOGO + TAGLINE + "</header>" +
+    '<div class="login"><div class="h-card"><h1>Choose a new password</h1>' +
+    '<form id="rf"><label class="lbl" for="rp">New password (at least 10 characters)</label><input id="rp" type="password" autocomplete="new-password">' +
+    '<label class="lbl" for="rp2">New password again</label><input id="rp2" type="password" autocomplete="new-password">' +
+    '<div class="row"><button class="h-btn primary" type="submit">Save and sign in</button></div><div class="err" role="alert" id="re"></div></form></div></div>';
+  $("#rp").focus();
+  $("#rf").addEventListener("submit", function (e) {
+    e.preventDefault();
+    if ($("#rp").value !== $("#rp2").value) { $("#re").textContent = "The passwords don't match."; return; }
+    $("#rf button").disabled = true;
+    api("/api/auth/reset", { method: "POST", body: { token: token, password: $("#rp").value }, keep401: true }).then(function (me) {
+      S.me = me; S.key = null; save("fs_key", null); S.systems = null; S.loginMode = "password";
+      location.hash = me.role === "contractor" ? "#/fleet" : "#/";
+    }).catch(function (err) { $("#rf button").disabled = false; $("#re").textContent = err.message; });
+  });
 }
 
 // ---------------------------------------------------------------- account (change password)
@@ -1232,15 +1278,19 @@ function inviteResult(r) {
   if (!r) return "";
   if (r.error) return '<div class="na-note" style="color:var(--fault)">' + esc(r.error) + "</div>";
   if (r.status === "added") return '<div class="na-note">' + esc(r.email) + " already had a sign-in and now has access.</div>";
+  if (r.status === "reset") return '<div class="invite-out">Send ' + esc(r.email) + " this link to choose a new password:" +
+    '<div class="acts-cell"><input class="mono" readonly value="' + esc(r.url) + '" aria-label="Reset link" id="inv-link"><button class="btn" type="button" data-copy-invite>Copy link</button></div>' +
+    '<span class="faint">Works once, for 1 hour. Their other sign-ins end when they use it.</span></div>';
   return '<div class="invite-out">' + (r.emailed ? "Invite emailed to " + esc(r.email) + ". You can also send them this link:" : "Email is off, so send " + esc(r.email) + " this link yourself:") +
     '<div class="acts-cell"><input class="mono" readonly value="' + esc(r.url) + '" aria-label="Invite link" id="inv-link"><button class="btn" type="button" data-copy-invite>Copy link</button></div>' +
     '<span class="faint">Works once, for 7 days.</span></div>';
 }
-function personRows(list, removeAttr) {
+function personRows(list, removeAttr, resetAttr) {
   var self = S.me && S.me.user && S.me.user.id;
   return list.map(function (u) {
+    var reset = resetAttr ? '<button class="btn" type="button" ' + resetAttr + '="' + u.user_id + '">Reset link</button>' : "";
     return "<tr><th>" + esc(u.name || u.email) + (u.name ? ' <span class="faint">' + esc(u.email) + "</span>" : "") + (u.user_id === self ? ' <span class="faint">(you)</span>' : "") + '</th><td class="faint">' +
-      (u.last_login ? "Last signed in " + esc(when(u.last_login)) : "Never signed in") + "</td><td>" + (removeAttr && u.user_id !== self ? '<button class="btn" type="button" ' + removeAttr + '="' + u.user_id + '">Remove</button>' : "") + "</td></tr>";
+      (u.last_login ? "Last signed in " + esc(when(u.last_login)) : "Never signed in") + "</td><td><div class=\"acts-cell\">" + reset + (removeAttr && u.user_id !== self ? '<button class="btn" type="button" ' + removeAttr + '="' + u.user_id + '">Remove</button>' : "") + "</div></td></tr>";
   }).join("");
 }
 function inviteRows(list) {
@@ -1258,7 +1308,7 @@ function pollPeople() {
 function peoplePanel() {
   var p = S.people;
   var rows = !p ? '<tr><td colspan="3" class="faint">Loading…</td></tr>'
-    : (personRows(p.members, "data-remove-member") + inviteRows(p.invites)) || '<tr><td colspan="3" class="faint">No homeowner has access yet.</td></tr>';
+    : (personRows(p.members, "data-remove-member", "data-reset-member") + inviteRows(p.invites)) || '<tr><td colspan="3" class="faint">No homeowner has access yet.</td></tr>';
   return '<section class="panel" aria-label="Homeowner access"><div class="ph"><h2>Homeowner access</h2><span class="sub">They see the homeowner page for this system only</span></div>' +
     '<table class="dt"><tbody>' + rows + "</tbody></table>" +
     '<div class="invite-form"><div class="acts-cell">' + textField("f-inv-email", "", "Homeowner email", "email").replace("<input ", '<input placeholder="homeowner@example.com" ') +
@@ -1280,7 +1330,7 @@ function teamPanel() {
 
 // ---------- shared click handling for invites
 root.addEventListener("click", function (e) {
-  var t = e.target.closest && e.target.closest("[data-invite],[data-remove-member],[data-remove-teammate],[data-revoke-invite],[data-copy-invite]");
+  var t = e.target.closest && e.target.closest("[data-invite],[data-remove-member],[data-reset-member],[data-remove-teammate],[data-revoke-invite],[data-copy-invite]");
   if (!t) return;
   if (t.hasAttribute("data-copy-invite")) {
     var inp = $("#inv-link", t.parentNode);
@@ -1306,6 +1356,10 @@ root.addEventListener("click", function (e) {
   } else if (t.dataset.removeMember) {
     if (!confirm("Remove this person's access to " + S.sys.name + "?")) return;
     api("/api/systems/" + S.sys.id + "/members/" + t.dataset.removeMember, { method: "DELETE" }).then(after).catch(function (err) { alert(err.message); });
+  } else if (t.dataset.resetMember) {
+    api("/api/systems/" + S.sys.id + "/members/" + t.dataset.resetMember + "/reset-link", { method: "POST" }).then(function (r) {
+      S.inviteResult = { status: "reset", email: r.email, url: r.url }; render();
+    }).catch(function (err) { alert(err.message); });
   } else if (t.dataset.removeTeammate) {
     if (!confirm("Remove this colleague? Their sign-in is deleted and they are signed out everywhere.")) return;
     api("/api/account/users/" + t.dataset.removeTeammate, { method: "DELETE" }).then(after).catch(function (err) { alert(err.message); });
