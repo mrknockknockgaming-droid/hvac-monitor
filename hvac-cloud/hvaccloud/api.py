@@ -21,7 +21,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 
 from . import calc, service, settings
-from .db import (Alert, ApiKey, Command, ServiceInfo, Device, Snapshot, System, Telemetry, as_utc, hash_key, init_db,
+from .db import (Account, Alert, AlertMute, AlertPrefs, ApiKey, Command, ServiceInfo, Device, Snapshot, System, Telemetry, as_utc, hash_key, init_db,
                  make_engine, session_factory, utcnow)
 from .refrigerants import FLUIDS
 
@@ -79,6 +79,19 @@ class ItemIn(BaseModel):
     interval_days: int | None = Field(default=None, ge=1, le=3650)
     interval_run_hours: float | None = Field(default=None, gt=0, le=20000)
     last_done: dt.date | None = None
+
+
+class AckIn(BaseModel):
+    ack: bool = True
+
+
+class AlertSettingsIn(BaseModel):
+    email_owner: bool | None = None
+    email_contractor: bool | None = None
+
+
+class MuteIn(BaseModel):
+    hours: float = Field(ge=0, le=24 * 90)     # 0 = unmute
 
 
 class DoneIn(BaseModel):
@@ -252,6 +265,60 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS):
         if kind not in service.KINDS:
             raise HTTPException(404, f"kind must be one of {list(service.KINDS)}")
 
+    @app.post("/api/systems/{system_id}/alerts/{alert_id}/ack")
+    def ack_alert(alert_id: int, body: AckIn | None = None, system=Depends(own_system), s=Depends(db)):
+        """Mark an alert as being handled (or undo with {"ack": false})."""
+        a = s.get(Alert, alert_id)
+        if a is None or a.system_id != system.id:
+            raise HTTPException(404, "no such alert")
+        a.acked_at = utcnow() if (body is None or body.ack) else None
+        s.commit()
+        return _alert_view(a)
+
+    def alert_settings_view(s, system):
+        prefs = s.get(AlertPrefs, system.id)
+        acct, info = s.get(Account, system.account_id), s.get(ServiceInfo, system.id)
+        now = utcnow()
+        mutes = [{"code": m.code, "until": _iso(m.until)} for m in
+                 s.scalars(select(AlertMute).where(AlertMute.system_id == system.id).order_by(AlertMute.code))
+                 if as_utc(m.until) > now]
+        return {"email_owner": True if prefs is None else prefs.email_owner,
+                "email_contractor": False if prefs is None else prefs.email_contractor,
+                "owner_email": acct.email if acct else None, "contractor_email": info.email if info else None,
+                "email_enabled": bool(settings.SMTP_HOST), "mutes": mutes}
+
+    @app.get("/api/systems/{system_id}/alert-settings")
+    def get_alert_settings(system=Depends(own_system), s=Depends(db)):
+        """Who gets alert emails, and which alert codes are muted."""
+        return alert_settings_view(s, system)
+
+    @app.put("/api/systems/{system_id}/alert-settings")
+    def set_alert_settings(body: AlertSettingsIn, system=Depends(own_system), s=Depends(db)):
+        prefs = s.get(AlertPrefs, system.id) or AlertPrefs(system_id=system.id, email_owner=True, email_contractor=False)
+        if body.email_owner is not None:
+            prefs.email_owner = body.email_owner
+        if body.email_contractor is not None:
+            prefs.email_contractor = body.email_contractor
+        s.add(prefs)
+        s.commit()
+        return alert_settings_view(s, system)
+
+    @app.put("/api/systems/{system_id}/alert-mutes/{code}")
+    def mute_alerts(code: str, body: MuteIn, system=Depends(own_system), s=Depends(db)):
+        """No emails for this alert code for `hours` (0 unmutes). Alerts are still recorded and shown."""
+        if not code.replace("_", "").isalnum() or len(code) > 32:
+            raise HTTPException(422, "bad alert code")
+        m = s.get(AlertMute, (system.id, code))
+        if body.hours == 0:
+            if m is not None:
+                s.delete(m)
+        else:
+            m = m or AlertMute(system_id=system.id, code=code, until=utcnow())
+            m.until = utcnow() + dt.timedelta(hours=body.hours)
+            s.add(m)
+        s.commit()
+        return alert_settings_view(s, system)
+
     @app.get("/api/systems/{system_id}/service")
     def get_service(system=Depends(own_system), s=Depends(db)):
         """Service contractor and maintenance reminders (air filter, tune-up)."""
@@ -331,7 +398,7 @@ def _iso(t):
 def _alert_view(a):
     return {"id": a.id, "code": a.code, "node": a.node, "level": a.level, "text": a.text,
             "open": a.cleared_at is None, "started_at": _iso(a.started_at), "raised_at": _iso(a.raised_at),
-            "cleared_at": _iso(a.cleared_at), "emailed_at": _iso(a.emailed_at)}
+            "cleared_at": _iso(a.cleared_at), "emailed_at": _iso(a.emailed_at), "acked_at": _iso(a.acked_at)}
 
 
 def _command_view(c, node):

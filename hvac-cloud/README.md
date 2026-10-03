@@ -77,8 +77,14 @@ Both views list the last 7 days of alerts (homeowner: "Recent alerts"; technicia
   clears once the flag has been gone that long, so a value hovering at a limit gives one alert.
 - If a system that has reported goes silent for `ALERT_NO_DATA_SECONDS` (10 min), the ingest
   worker's once-a-minute sweep opens a "no data" alert; it clears on the next reading.
-- Raised alerts are emailed to the account's address, at most once per fault type per
-  `ALERT_EMAIL_COOLDOWN_HOURS` (6 h); a "cleared" email follows an emailed alert.
+- Raised alerts are emailed at most once per fault type per `ALERT_EMAIL_COOLDOWN_HOURS` (6 h);
+  a "back to normal" email follows an emailed alert unless someone acknowledged it.
+- **Recipients** (Sensors & calibration page, "Alert email"): the account owner (default) and/or
+  the service contractor's email. The owner gets plain language with what to do; the
+  contractor gets the technical reading, the site id and a link to the technician view.
+- **Acknowledge** (Alert log) marks an open alert as being handled; the homeowner sees "Being
+  handled". **Mute** stops emails for one kind of alert on a system for 1, 7 or 30 days; alerts
+  are still recorded and shown.
 - Email is off until SMTP is set up. Copy `.env.example` to `.env` (never committed) and fill
   in the `SMTP_*` lines. For Gmail, use `smtp.gmail.com`, port 587 and an App Password
   (Google account > Security > 2-Step Verification > App passwords). Then check it with
@@ -120,6 +126,9 @@ All endpoints except `/health` need the header `X-API-Key: <key from manage.py c
 | GET | `/api/systems/{id}/history?minutes=60` | Averaged series, at most ~600 points |
 | GET | `/api/systems/{id}/export.csv?minutes=1440` | Snapshots as CSV (UTC times) |
 | GET | `/api/systems/{id}/alerts?days=7` | Raised alerts open during the last `days`, newest first |
+| POST | `/api/systems/{id}/alerts/{alert_id}/ack` | `{"ack": true}` (false undoes) |
+| GET / PUT | `/api/systems/{id}/alert-settings` | `email_owner`, `email_contractor`; GET also lists active mutes |
+| PUT | `/api/systems/{id}/alert-mutes/{code}` | `{"hours": 24}`; 0 unmutes |
 | GET | `/api/systems/{id}/service` | Contractor + maintenance items (status, days and run hours since, next due) |
 | PUT | `/api/systems/{id}/service/contractor` | `{"name","phone","email"}` |
 | PATCH | `/api/systems/{id}/service/items/{filter\|tuneup}` | `interval_days`, `interval_run_hours` (null = days only), `last_done` |
@@ -147,6 +156,6 @@ Commands are the firmware's (see the top of `hvac-firmware/src/node_outdoor.cpp`
 ## Not done yet
 
 - Web app: per-user sign-in, service requests sent through the cloud (now the homeowner's email),
-  acknowledging or muting alerts, choosing who gets emails.
+  sending the homeowner and contractor emails from separate per-user accounts.
 - Per-device MQTT accounts and topic ACLs (every node shares one account for now).
 - HTTPS / MQTT TLS (Phase 8, going live).

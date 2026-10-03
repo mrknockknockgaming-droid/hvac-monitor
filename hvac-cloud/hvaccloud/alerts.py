@@ -14,7 +14,7 @@ from email.message import EmailMessage
 from sqlalchemy import select
 
 from . import settings
-from .db import Account, Alert, Snapshot, as_utc
+from .db import Account, Alert, AlertMute, AlertPrefs, ServiceInfo, Snapshot, as_utc
 
 log = logging.getLogger("alerts")
 
@@ -72,40 +72,100 @@ def no_data_flags(s, system, now, silence):
         {"level": "warn", "code": NO_DATA, "text": f"No readings from either node for {round(quiet / 60)} min"}]
 
 
+# Homeowner wording for owner emails. Keep in step with FLAG_INFO in web/app.js.
+PLAIN = {
+    "sh_low": ("Refrigerant flow needs a check", "Liquid refrigerant may be reaching the compressor, which can damage it over time.",
+               "Request a service visit."),
+    "sh_high": ("Refrigerant may be low or restricted", "Your system works harder and cools less.",
+                "Request a service visit, and check that the outdoor unit isn't blocked."),
+    "sc_low": ("Refrigerant charge may be low", "Low charge reduces cooling and usually means a leak.", "Request a service visit."),
+    "sc_high": ("Refrigerant may be overcharged or restricted", "This raises pressures and strains the compressor.",
+                "Request a service visit."),
+    "dt_low": ("Air from your vents isn't as cool as it should be", "Your system runs longer and uses more electricity.",
+               "Check your air filter and replace it if it looks grey or dusty, and make sure vents aren't blocked."),
+    "ctoa_high": ("Outdoor unit isn't releasing heat well", "The compressor runs hotter and uses more electricity.",
+                  "Clear debris from around the outdoor unit (about 2 ft), then request a coil cleaning."),
+    "node_offline": ("A monitor isn't reporting", "Heating and cooling are not affected; some checks are paused.",
+                     "Nothing to do on your own; your contractor can check it."),
+    "sensor_issue": ("A monitoring sensor isn't reporting", "Heating and cooling are not affected.",
+                     "Nothing to do on your own; your contractor can check it."),
+    NO_DATA: ("We lost contact with your monitors", "No checks can run until readings come back.",
+              "Check that your WiFi is working."),
+}
+
+
+def recipients(s, system):
+    """[(address, "owner" | "contractor")] from the system's alert preferences."""
+    prefs = s.get(AlertPrefs, system.id)
+    owner_on = True if prefs is None else prefs.email_owner
+    contractor_on = False if prefs is None else prefs.email_contractor
+    out = []
+    acct = s.get(Account, system.account_id)
+    if owner_on and acct is not None and acct.email:
+        out.append((acct.email, "owner"))
+    info = s.get(ServiceInfo, system.id)
+    if contractor_on and info is not None and info.email and all(info.email != a for a, _ in out):
+        out.append((info.email, "contractor"))
+    return out
+
+
+def muted(s, system_id, code, now):
+    m = s.get(AlertMute, (system_id, code))
+    return m is not None and as_utc(m.until).timestamp() > now
+
+
+def compose(system, a, kind, who):
+    """(subject, body) for one recipient. Owners get plain words, contractors the technical text."""
+    if who == "contractor":
+        tag = f"{system.name} (site {system.site_id})"
+        if kind == "raised":
+            subject = f"[Fullscope] {tag}: {a.text}"
+            lines = [f"{LEVEL_WORD.get(a.level, 'Alert')}: {a.text}.",
+                     f"First seen {local(a.started_at)}, still present at {local(a.raised_at)}."]
+        else:
+            subject = f"[Fullscope] {tag}: cleared - {a.text}"
+            lines = [f"Cleared: {a.text}.", f"Started {local(a.started_at)}, cleared {local(a.cleared_at)}."]
+        return subject, "\n\n".join(lines + [f"Technician view: {settings.APP_URL}#/monitor/{system.id}"])
+    title, why, todo = PLAIN.get(a.code, (a.text, "", ""))
+    if kind == "raised":
+        subject = f"[Fullscope] {system.name}: {title}"
+        lines = [f"{title}.", why, f"What you can do: {todo}" if todo else "",
+                 f"For your contractor: {a.text} (since {local(a.started_at)})."]
+    else:
+        subject = f"[Fullscope] {system.name}: back to normal - {title}"
+        lines = [f"Back to normal: {title.lower()}.", f"Started {local(a.started_at)}, cleared {local(a.cleared_at)}."]
+    return subject, "\n\n".join([x for x in lines if x] + [f"Your system: {settings.APP_URL}#/home/{system.id}"])
+
+
 def emails_for(s, system, events, now, cooldown_s):
-    """Email jobs for these events: (alert id or None, to, subject, body). Raises are skipped when the
-    same code was emailed for this system within the cooldown; clears only follow an emailed raise."""
+    """Email jobs for these events: (alert id or None, to, subject, body). Nothing for muted codes;
+    raises are skipped when the same code was emailed within the cooldown; clears only follow an
+    emailed raise that nobody acknowledged."""
     if not events:
         return []
-    acct = s.get(Account, system.account_id)
-    if acct is None or not acct.email:
+    to = recipients(s, system)
+    if not to:
         return []
     jobs = []
     for kind, a in events:
+        if muted(s, system.id, a.code, now):
+            continue
         if kind == "raised":
             recent = s.scalar(select(Alert.id).where(
                 Alert.system_id == system.id, Alert.code == a.code, Alert.id != a.id,
                 Alert.emailed_at >= ts(now - cooldown_s)).limit(1))
             if recent is not None:
                 continue
-            subject = f"[Fullscope] {system.name}: {a.text}"
-            lead = f"{LEVEL_WORD.get(a.level, 'Alert')} on {system.name}: {a.text}."
-            when = f"First seen {local(a.started_at)}, still present at {local(a.raised_at)}."
-            jobs.append((a.id, acct.email, subject, "\n\n".join([lead, when, link(system)])))
-        elif a.emailed_at is not None:
-            subject = f"[Fullscope] {system.name}: cleared - {a.text}"
-            lead = f"Cleared on {system.name}: {a.text}."
-            when = f"Started {local(a.started_at)}, cleared {local(a.cleared_at)}."
-            jobs.append((None, acct.email, subject, "\n\n".join([lead, when, link(system)])))
+        elif a.emailed_at is None or a.acked_at is not None:
+            continue
+        for addr, who in to:
+            subject, body = compose(system, a, kind, who)
+            jobs.append((a.id if kind == "raised" else None, addr, subject, body))
     return jobs
 
 
 def local(t):
     return as_utc(t).astimezone().strftime("%a %b %d, %I:%M %p").replace(" 0", " ")
-
-
-def link(system):
-    return f"Details: {settings.APP_URL}#/monitor/{system.id}"
 
 
 class Mailer:
