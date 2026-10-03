@@ -22,7 +22,7 @@ from typing import Literal
 from fastapi import Cookie, Depends, FastAPI, Header, HTTPException, Query, Request, Response
 from fastapi.responses import PlainTextResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import func, select
 
 from . import alerts, auth, calc, equipment, service, settings
@@ -82,11 +82,19 @@ class ContractorIn(BaseModel):
     email: str | None = Field(default=None, max_length=320)
 
 
+def past_date(d):
+    """A done date: not in the future (a day of slack for time zones) and not absurdly old."""
+    if d is not None and not (dt.date(2000, 1, 1) <= d <= dt.date.today() + dt.timedelta(days=1)):
+        raise ValueError("the date must be between 2000 and today")
+    return d
+
+
 class ItemIn(BaseModel):
     """Only the fields sent are changed; send interval_run_hours: null to stop counting run hours."""
     interval_days: int | None = Field(default=None, ge=1, le=3650)
     interval_run_hours: float | None = Field(default=None, gt=0, le=20000)
     last_done: dt.date | None = None
+    _check = field_validator("last_done")(past_date)
 
 
 class AckIn(BaseModel):
@@ -104,6 +112,7 @@ class MuteIn(BaseModel):
 
 class DoneIn(BaseModel):
     date: dt.date | None = None        # the viewer's local date; the server's when left out
+    _check = field_validator("date")(past_date)
 
 
 class LoginIn(BaseModel):
@@ -137,7 +146,11 @@ class InviteIn(BaseModel):
     email: str = Field(max_length=320)
 
 
-class AcceptIn(BaseModel):
+class TokenIn(BaseModel):
+    token: str = Field(max_length=100)
+
+
+class AcceptIn(TokenIn):
     name: str | None = Field(default=None, max_length=200)
     password: str = Field(max_length=200)
 
@@ -238,7 +251,8 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
         if throttle.blocked(email):
             raise HTTPException(429, "Too many attempts. Try again in 15 minutes.")
         user = s.scalar(select(User).where(User.email == email))
-        if user is None or not auth.check_password(body.password, user.password_hash):
+        stored = user.password_hash if user is not None and user.password_hash else auth.DUMMY_HASH
+        if not auth.check_password(body.password, stored) or user is None:     # same work either way
             throttle.fail(email)
             raise HTTPException(401, "Email or password is not right.")
         throttle.clear(email)
@@ -259,7 +273,7 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
         return me_view(s, who)
 
     @app.post("/api/auth/password")
-    def change_password(body: PasswordIn, who=Depends(principal), s=Depends(db)):
+    def change_password(body: PasswordIn, who=Depends(principal), s=Depends(db), fs_session: str | None = Cookie(None)):
         user = s.get(User, who.user_id) if who.user_id else None
         if user is None:
             raise HTTPException(400, "API keys have no password")
@@ -269,6 +283,7 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
         if problem:
             raise HTTPException(422, problem)
         user.password_hash = auth.hash_password(body.new)
+        auth.end_other_sessions(s, user.id, keep=fs_session)       # anyone else signed in as this user is out
         s.commit()
         return {"ok": True}
 
@@ -392,6 +407,21 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
         return {"users": [{"user_id": u.id, "email": u.email, "name": u.name, "last_login": _iso(u.last_login)} for u in users],
                 "invites": [invite_view(i) for i in invites]}
 
+    @app.delete("/api/account/users/{user_id}")
+    def remove_teammate(user_id: int, who=Depends(principal), s=Depends(db)):
+        """Take a colleague off the account: their sign-in is deleted and they are signed out."""
+        user = s.get(User, user_id)
+        if not who.is_tech or user is None or user.role != "contractor" or user.account_id != who.account_id:
+            raise HTTPException(404, "no such teammate")
+        if user.id == who.user_id:
+            raise HTTPException(409, "You can't remove yourself.")
+        auth.end_other_sessions(s, user.id, keep=None)
+        for inv in s.scalars(select(Invite).where(Invite.invited_by == user.id)):
+            inv.invited_by = None
+        s.delete(user)
+        s.commit()
+        return {"ok": True}
+
     @app.delete("/api/invites/{invite_id}")
     def revoke_invite(invite_id: int, who=Depends(principal), s=Depends(db)):
         inv = s.get(Invite, invite_id)
@@ -412,19 +442,20 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
             raise HTTPException(410, "This invite link has expired. Ask for a new one.")
         return inv
 
-    @app.get("/api/invites/{token}")
-    def invite_info(token: str, s=Depends(db)):
-        """What an invite link is for (no sign-in needed: the link itself is the secret)."""
-        inv = open_invite(s, token)
+    @app.post("/api/invites/lookup")
+    def invite_info(body: TokenIn, s=Depends(db)):
+        """What an invite link is for (no sign-in needed: the link itself is the secret, so it is
+        sent in the body, where access logs don't record it)."""
+        inv = open_invite(s, body.token)
         system = s.get(System, inv.system_id) if inv.system_id else None
         acct = s.get(Account, system.account_id if system else inv.account_id)
         return {"email": inv.email, "role": inv.role, "system": system.name if system else None,
                 "account": acct.name if acct else None, "expires_at": _iso(inv.expires_at),
                 "has_user": s.scalar(select(User.id).where(User.email == inv.email)) is not None}
 
-    @app.post("/api/invites/{token}/accept")
-    def accept_invite(token: str, body: AcceptIn, response: Response, s=Depends(db)):
-        inv = open_invite(s, token)
+    @app.post("/api/invites/accept")
+    def accept_invite(body: AcceptIn, response: Response, s=Depends(db)):
+        inv = open_invite(s, body.token)
         if s.scalar(select(User).where(User.email == inv.email)):
             raise HTTPException(409, "This email already has a sign-in. Sign in instead.")
         problem = auth.password_problem(body.password)
@@ -552,7 +583,7 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
                 "cycle_started_at": as_utc(system.run_started_at).isoformat() if system.run_started_at else None}
 
     @app.get("/api/systems/{system_id}/history")
-    def history(minutes: float = Query(60, gt=0, le=60 * 24 * 90), system=Depends(own_system), s=Depends(db)):
+    def history(minutes: float = Query(60, gt=0, le=60 * 24 * 31), system=Depends(own_system), s=Depends(db)):
         """Averaged into at most ~600 points per series, like the PC dashboard."""
         bucket = max(1, int(minutes * 60 / 600))
         out, acc, cur = [], {}, None
@@ -606,15 +637,14 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
         return _alert_view(a)
 
     def alert_settings_view(s, system):
-        prefs = s.get(AlertPrefs, system.id)
-        acct, info = s.get(Account, system.account_id), s.get(ServiceInfo, system.id)
+        owners_on, contractor_on = alerts.wants(s, system.id)
         now = utcnow()
         mutes = [{"code": m.code, "until": _iso(m.until)} for m in
                  s.scalars(select(AlertMute).where(AlertMute.system_id == system.id).order_by(AlertMute.code))
                  if as_utc(m.until) > now]
-        return {"email_owner": True if prefs is None else prefs.email_owner,
-                "email_contractor": False if prefs is None else prefs.email_contractor,
-                "owner_email": acct.email if acct else None, "contractor_email": info.email if info else None,
+        return {"email_owner": owners_on, "email_contractor": contractor_on,
+                "homeowner_emails": alerts.homeowner_emails(s, system.id),
+                "contractor_email": alerts.contractor_email(s, system),
                 "email_enabled": bool(settings.SMTP_HOST), "mutes": mutes}
 
     @app.get("/api/systems/{system_id}/alert-settings")
@@ -624,7 +654,7 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
 
     @app.put("/api/systems/{system_id}/alert-settings")
     def set_alert_settings(body: AlertSettingsIn, system=Depends(tech_system), s=Depends(db)):
-        prefs = s.get(AlertPrefs, system.id) or AlertPrefs(system_id=system.id, email_owner=True, email_contractor=False)
+        prefs = s.get(AlertPrefs, system.id) or AlertPrefs(system_id=system.id, email_owner=True, email_contractor=True)
         if body.email_owner is not None:
             prefs.email_owner = body.email_owner
         if body.email_contractor is not None:

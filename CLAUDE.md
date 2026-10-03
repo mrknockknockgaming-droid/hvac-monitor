@@ -86,8 +86,9 @@ temperatures, superheat, subcooling and delta-T.
     emailed to the account's email (6 h cooldown per code). Email is OFF until `hvac-cloud/.env`
     has SMTP_* (see `.env.example`; Gmail needs an App Password, which the user must create and
     paste themselves). Test with `manage.py test-email 1`. Settings also read `.env`.
-    Recipients per system (owner and/or contractor email; owner gets plain wording from
-    alerts.PLAIN, which must match FLAG_INFO in web/app.js), acknowledge, and per-code mutes.
+    Recipients per system: the system's HOMEOWNER users (plain wording from alerts.PLAIN, which
+    must match FLAG_INFO in web/app.js) and the contractor (service_info email, else the
+    account email; technical). alert_prefs.email_owner means "homeowners". Acknowledge, mutes.
   - Sign-in (`hvaccloud/auth.py`): users with role contractor (account_id, sees the account's
     systems + technician pages) or homeowner (system_members, home page only, can mark the
     filter changed). scrypt passwords, HttpOnly session cookie (SESSION_DAYS 30), mutating
@@ -101,6 +102,12 @@ temperatures, superheat, subcooling and delta-T.
     Sensors & calibration page) and contractor teammates (Account page); links use APP_URL.
     Contractors land on `#/fleet` (GET /api/fleet, worst first: alerts.LEVEL mirrors the
     FLAG_INFO levels in web/app.js).
+  - Review 2026-10-03 (PR "review fixes"): recipients fixed as above; password change signs out
+    other sessions; DELETE /api/account/users/{id}; invite tokens only in POST bodies; dummy
+    scrypt for unknown emails; done dates can't be in the future; throttle prunes; history <= 31 d.
+    Known and accepted: anyone can lock an email out for 15 min with wrong passwords; the API key
+    sign-in keeps the key in localStorage; COOKIE_SECURE must be true once on HTTPS; MQTT has no
+    per-device accounts yet.
   - Schema changes: `db.add_missing_columns` adds new NULLABLE columns to existing tables at
     startup (create_all only makes new tables). Non-null new columns need a real migration.
   - Maintenance card (home): filter due at 90 days or 500 blower hours, tune-up 182 days,
@@ -110,7 +117,7 @@ temperatures, superheat, subcooling and delta-T.
     `hvac-cloud/backups/` (keeps 7, git-ignored) and prunes: >30 days thinned to 1-minute
     averages, raw telemetry >30 days dropped, >365 days deleted (`hvaccloud/maintenance.py`;
     `manage.py backup` / `prune` by hand). Restore steps are in hvac-cloud/README.md.
-  - Tests: `.venv\Scripts\python.exe -m pytest -q` in `hvac-cloud/` (67 pass). Not done:
+  - Tests: `.venv\Scripts\python.exe -m pytest -q` in `hvac-cloud/` (75 pass). Not done:
     password reset by email, per-device MQTT accounts and ACLs, TLS.
 
 ## Hardware

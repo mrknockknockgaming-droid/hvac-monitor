@@ -6,7 +6,7 @@ from sqlalchemy import select
 
 from hvaccloud import alerts
 from hvaccloud.api import create_app
-from hvaccloud.db import Alert, AlertMute, AlertPrefs, ServiceInfo, System, init_db, make_engine
+from hvaccloud.db import Alert, AlertMute, AlertPrefs, ServiceInfo, System, SystemMember, User, init_db, make_engine
 
 T0 = 1_790_000_000.0
 FLAG = {"level": "warn", "code": "dt_low", "text": "Air delta-T 9.0°F is low"}
@@ -39,32 +39,43 @@ def setup_contractor(sessions, owner=True, contractor=True, email="shop@example.
         s.add(AlertPrefs(system_id=sid, email_owner=owner, email_contractor=contractor))
 
 
-def test_owner_only_by_default_in_plain_words(sessions, seeded):
+def add_homeowner(sessions, email="pat@example.com"):
+    with sessions() as s, s.begin():
+        u = User(email=email, role="homeowner")
+        s.add(u)
+        s.flush()
+        s.add(SystemMember(system_id=system(s).id, user_id=u.id))
+
+
+def test_no_homeowners_yet_means_the_contractor_account_only(sessions, seeded):
     up, down = raise_and_clear(sessions)
-    assert [j[1] for j in up] == ["t@example.com"]
-    assert up[0][2] == "[Fullscope] Home: Air from your vents isn't as cool as it should be"
-    assert "Check your air filter" in up[0][3] and "For your contractor: Air delta-T 9.0°F is low" in up[0][3]
-    assert "#/home/" in up[0][3]
-    assert "back to normal" in down[0][2]
+    assert [j[1] for j in up] == ["t@example.com"]                       # the contractor account's email
+    assert up[0][2] == "[Fullscope] Home (site home): Air delta-T 9.0°F is low"
+    assert "cleared" in down[0][2]
 
 
-def test_contractor_gets_the_technical_version(sessions, seeded):
+def test_homeowners_get_plain_words_and_the_contractor_the_technical_version(sessions, seeded):
+    add_homeowner(sessions)
     setup_contractor(sessions)
-    up, _ = raise_and_clear(sessions)
+    up, down = raise_and_clear(sessions)
     by = {j[1]: j for j in up}
-    assert set(by) == {"t@example.com", "shop@example.com"}
+    assert set(by) == {"pat@example.com", "shop@example.com"}            # not the account email any more
+    assert by["pat@example.com"][2] == "[Fullscope] Home: Air from your vents isn't as cool as it should be"
+    assert "Check your air filter" in by["pat@example.com"][3] and "#/home/" in by["pat@example.com"][3]
     assert by["shop@example.com"][2] == "[Fullscope] Home (site home): Air delta-T 9.0°F is low"
     assert "#/monitor/" in by["shop@example.com"][3]
+    assert any("back to normal" in j[2] for j in down)
 
 
-def test_contractor_only_and_no_address(sessions, seeded):
+def test_switching_recipients_off(sessions, seeded):
+    add_homeowner(sessions)
     setup_contractor(sessions, owner=False)
     up, _ = raise_and_clear(sessions)
     assert [j[1] for j in up] == ["shop@example.com"]
     with sessions() as s, s.begin():
-        s.get(ServiceInfo, system(s).id).email = None
+        s.get(AlertPrefs, system(s).id).email_contractor = False
     up, _ = raise_and_clear(sessions, start=T0 + 7 * 3600)
-    assert up == []                                       # nobody to send to
+    assert up == []                                                       # nobody to send to
 
 
 def test_mute_stops_emails_until_it_ends(sessions, seeded):
@@ -92,9 +103,10 @@ def test_alert_api(sessions, seeded):
     assert c.post(f"/api/systems/{sid}/alerts/{aid}/ack", headers=h, json={"ack": False}).json()["acked_at"] is None
     assert c.post(f"/api/systems/{sid}/alerts/{aid}/ack", headers=h2).status_code == 404
     v = c.get(f"/api/systems/{sid}/alert-settings", headers=h).json()
-    assert v["email_owner"] is True and v["email_contractor"] is False and v["owner_email"] == "t@example.com"
-    v = c.put(f"/api/systems/{sid}/alert-settings", headers=h, json={"email_contractor": True}).json()
     assert v["email_owner"] is True and v["email_contractor"] is True
+    assert v["homeowner_emails"] == [] and v["contractor_email"] == "t@example.com"
+    v = c.put(f"/api/systems/{sid}/alert-settings", headers=h, json={"email_owner": False}).json()
+    assert v["email_owner"] is False and v["email_contractor"] is True
     v = c.put(f"/api/systems/{sid}/alert-mutes/dt_low", headers=h, json={"hours": 24}).json()
     assert [m["code"] for m in v["mutes"]] == ["dt_low"]
     v = c.put(f"/api/systems/{sid}/alert-mutes/dt_low", headers=h, json={"hours": 0}).json()

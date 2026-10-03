@@ -55,13 +55,13 @@ def test_homeowner_invite_round_trip(world, sessions):
     assert people["members"] == [] and [i["email"] for i in people["invites"]] == ["owner@example.com"]
 
     guest = TestClient(c.app)                                          # the homeowner's browser
-    info = guest.get(f"/api/invites/{token_of(r['url'])}").json()
+    info = guest.post("/api/invites/lookup", json={"token": token_of(r['url'])}).json()
     assert info == {**info, "email": "owner@example.com", "role": "homeowner", "system": "Home", "has_user": False}
-    assert guest.post(f"/api/invites/{token_of(r['url'])}/accept", json={"password": "short"}).status_code == 422
-    me = guest.post(f"/api/invites/{token_of(r['url'])}/accept", json={"name": "Pat", "password": PW}).json()
+    assert guest.post("/api/invites/accept", json={"token": token_of(r['url']), "password": "short"}).status_code == 422
+    me = guest.post("/api/invites/accept", json={"token": token_of(r['url']), "name": "Pat", "password": PW}).json()
     assert me["role"] == "homeowner" and me["user"]["name"] == "Pat"
     assert [x["id"] for x in guest.get("/api/systems").json()] == [sid]           # signed in, sees the system
-    assert guest.get(f"/api/invites/{token_of(r['url'])}").status_code == 404     # used up
+    assert guest.post("/api/invites/lookup", json={"token": token_of(r['url'])}).status_code == 404     # used up
     people = c.get(f"/api/systems/{sid}/people").json()
     assert [m["email"] for m in people["members"]] == ["owner@example.com"] and people["invites"] == []
 
@@ -87,13 +87,13 @@ def test_expired_revoked_and_foreign_invites(world, sessions):
     url = c.post(f"/api/systems/{sid}/invites", json={"email": "a@example.com"}, headers=XRW).json()["url"]
     with sessions() as s, s.begin():
         s.scalar(select(Invite)).expires_at = utcnow() - dt.timedelta(minutes=1)
-    assert TestClient(c.app).get(f"/api/invites/{token_of(url)}").status_code == 410
+    assert TestClient(c.app).post("/api/invites/lookup", json={"token": token_of(url)}).status_code == 410
     url2 = c.post(f"/api/systems/{sid}/invites", json={"email": "a@example.com"}, headers=XRW).json()["url"]
-    assert TestClient(c.app).get(f"/api/invites/{token_of(url)}").status_code == 404   # replaced by the new one
+    assert TestClient(c.app).post("/api/invites/lookup", json={"token": token_of(url)}).status_code == 404   # replaced by the new one
     iid = c.get(f"/api/systems/{sid}/people").json()["invites"][0]["id"]
     assert c.delete(f"/api/invites/{iid}", headers=world["key2"]).status_code == 404     # another account
     assert c.delete(f"/api/invites/{iid}", headers=XRW).status_code == 200
-    assert TestClient(c.app).get(f"/api/invites/{token_of(url2)}").status_code == 404
+    assert TestClient(c.app).post("/api/invites/lookup", json={"token": token_of(url2)}).status_code == 404
     assert c.post(f"/api/systems/{world['other']}/invites", json={"email": "b@example.com"}, headers=XRW).status_code == 404
 
 
@@ -101,7 +101,7 @@ def test_teammate_invite(world):
     c = world["c"]
     r = c.post("/api/account/invites", json={"email": "helper@example.com"}, headers=XRW).json()
     guest = TestClient(c.app)
-    me = guest.post(f"/api/invites/{token_of(r['url'])}/accept", json={"password": PW}).json()
+    me = guest.post("/api/invites/accept", json={"token": token_of(r['url']), "password": PW}).json()
     assert me["role"] == "contractor" and me["account"]["name"] == "Tyler"
     assert [x["site_id"] for x in guest.get("/api/systems").json()] == ["home"]
     assert {u["email"] for u in c.get("/api/account/people").json()["users"]} == {"tech@example.com", "helper@example.com"}
@@ -112,7 +112,7 @@ def test_homeowners_cannot_invite_or_see_the_fleet(world, sessions):
     c, sid = world["c"], world["home"]
     url = c.post(f"/api/systems/{sid}/invites", json={"email": "o@example.com"}, headers=XRW).json()["url"]
     owner = TestClient(c.app)
-    owner.post(f"/api/invites/{token_of(url)}/accept", json={"password": PW})
+    owner.post("/api/invites/accept", json={"token": token_of(url), "password": PW})
     assert owner.post(f"/api/systems/{sid}/invites", json={"email": "x@example.com"}, headers=XRW).status_code == 403
     assert owner.post("/api/account/invites", json={"email": "x@example.com"}, headers=XRW).status_code == 403
     assert owner.get("/api/fleet").status_code == 403

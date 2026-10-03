@@ -54,7 +54,9 @@ Interactive API docs: http://localhost:8000/docs (click Authorize and paste the 
   cookie for `SESSION_DAYS` (30, renewed while in use); set `COOKIE_SECURE=true` once the site
   runs on HTTPS. Requests that change something with the cookie must carry `X-Requested-With`
   (the web app adds it), which stops other sites from forging them. Eight wrong passwords for
-  one email lock it for 15 minutes. Users change their password on the Account page.
+  one email lock it for 15 minutes; unknown emails take as long to answer as wrong passwords.
+  Users change their password on the Account page, which signs out their other sessions.
+  Contractors can remove a colleague from "Your team".
 - API keys still work (header `X-API-Key`) and act as a contractor of their account.
 - **Invites:** on a system's Sensors & calibration page ("Homeowner access") a contractor invites
   a homeowner by email; on the Account page ("Your team") a colleague. The person opens the
@@ -117,9 +119,10 @@ Both views list the last 7 days of alerts (homeowner: "Recent alerts"; technicia
   worker's once-a-minute sweep opens a "no data" alert; it clears on the next reading.
 - Raised alerts are emailed at most once per fault type per `ALERT_EMAIL_COOLDOWN_HOURS` (6 h);
   a "back to normal" email follows an emailed alert unless someone acknowledged it.
-- **Recipients** (Sensors & calibration page, "Alert email"): the account owner (default) and/or
-  the service contractor's email. The owner gets plain language with what to do; the
-  contractor gets the technical reading, the site id and a link to the technician view.
+- **Recipients** (Sensors & calibration page, "Alert email"), both on by default: the
+  system's **homeowners** (everyone with homeowner access) get plain language with what to do;
+  the **contractor** (the contractor panel's email, else the account's email) gets the technical
+  reading, the site id and a link to the technician view.
 - **Acknowledge** (Alert log) marks an open alert as being handled; the homeowner sees "Being
   handled". **Mute** stops emails for one kind of alert on a system for 1, 7 or 30 days; alerts
   are still recorded and shown.
@@ -168,8 +171,9 @@ header `X-API-Key: <key from manage.py create-key>`. Endpoints marked *tech* ans
 | GET | `/api/systems/{id}/people` | *tech* Homeowners with access and pending invites |
 | DELETE | `/api/systems/{id}/members/{user_id}` | *tech* Remove a homeowner's access |
 | POST / GET | `/api/account/invites`, `/api/account/people` | *tech* Invite a colleague; list the team |
+| DELETE | `/api/account/users/{user_id}` | *tech* Remove a colleague (deletes their sign-in, signs them out) |
 | DELETE | `/api/invites/{id}` | *tech* Revoke an invite |
-| GET / POST | `/api/invites/{token}`, `/api/invites/{token}/accept` | Open an invite link; `{"name","password"}` creates the sign-in |
+| POST | `/api/invites/lookup`, `/api/invites/accept` | `{"token"}` / `{"token","name","password"}`: open an invite link and create the sign-in (the token is never in a URL the server logs) |
 | GET | `/api/systems/{id}` | Settings + nodes (online, age, fw, ip, rssi) |
 | PATCH | `/api/systems/{id}` | `refrigerant`, `heat_pump`, `ob_energized` (`cool`/`heat`), `atm_psia` |
 | GET | `/api/systems/{id}/latest` | Newest derived snapshot (mode, pressures, sat temps, SH, SC, delta-T, flags) + each node's raw telemetry |
