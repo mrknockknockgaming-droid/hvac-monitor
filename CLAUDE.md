@@ -88,6 +88,12 @@ temperatures, superheat, subcooling and delta-T.
     paste themselves). Test with `manage.py test-email 1`. Settings also read `.env`.
     Recipients per system (owner and/or contractor email; owner gets plain wording from
     alerts.PLAIN, which must match FLAG_INFO in web/app.js), acknowledge, and per-code mutes.
+  - Sign-in (`hvaccloud/auth.py`): users with role contractor (account_id, sees the account's
+    systems + technician pages) or homeowner (system_members, home page only, can mark the
+    filter changed). scrypt passwords, HttpOnly session cookie (SESSION_DAYS 30), mutating
+    cookie requests need `X-Requested-With`, 8 failures lock an email 15 min. API keys still
+    act as a contractor. Create users with `manage.py create-user` / `set-password` (hidden
+    password prompt: the user types it, never put a password on the command line).
   - Schema changes: `db.add_missing_columns` adds new NULLABLE columns to existing tables at
     startup (create_all only makes new tables). Non-null new columns need a real migration.
   - Maintenance card (home): filter due at 90 days or 500 blower hours, tune-up 182 days,
@@ -97,8 +103,8 @@ temperatures, superheat, subcooling and delta-T.
     `hvac-cloud/backups/` (keeps 7, git-ignored) and prunes: >30 days thinned to 1-minute
     averages, raw telemetry >30 days dropped, >365 days deleted (`hvaccloud/maintenance.py`;
     `manage.py backup` / `prune` by hand). Restore steps are in hvac-cloud/README.md.
-  - Tests: `.venv\Scripts\python.exe -m pytest -q` in `hvac-cloud/` (48 pass). Not done:
-    per-user sign-in (API key in browser storage for now), per-device MQTT accounts and ACLs, TLS.
+  - Tests: `.venv\Scripts\python.exe -m pytest -q` in `hvac-cloud/` (55 pass). Not done:
+    invites + contractor fleet page (part 2 of accounts), per-device MQTT accounts and ACLs, TLS.
 
 ## Hardware
 - Boards: 3x ESP-WROOM-32 30-pin dev boards (PCB antenna, no u.FL). Outdoor on COM4, indoor on COM5 (both CP210x; tell them apart by port).

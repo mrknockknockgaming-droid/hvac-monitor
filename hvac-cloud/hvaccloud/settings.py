@@ -38,6 +38,10 @@ ALERT_NO_DATA_SECONDS = float(os.environ.get("ALERT_NO_DATA_SECONDS", "600"))   
 ALERT_EMAIL_COOLDOWN_HOURS = float(os.environ.get("ALERT_EMAIL_COOLDOWN_HOURS", "6"))   # per system + code
 APP_URL = os.environ.get("APP_URL", "http://localhost:8000/app/")
 
+# Sign-in sessions (cookie). Set COOKIE_SECURE=true once the site is served over HTTPS.
+SESSION_DAYS = float(os.environ.get("SESSION_DAYS", "30"))
+COOKIE_SECURE = os.environ.get("COOKIE_SECURE", "false").lower() in ("1", "true", "yes")
+
 # Email: alerts go to the account's address. Leave SMTP_HOST empty to turn email off.
 SMTP_HOST = os.environ.get("SMTP_HOST", "")
 SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))             # 587 = STARTTLS, 465 = SSL

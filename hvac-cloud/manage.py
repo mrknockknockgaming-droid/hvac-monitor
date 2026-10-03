@@ -9,15 +9,20 @@
   python manage.py backup                            (copy dev.db into backups/, keeps 7)
   python manage.py prune                             (thin data older than 30 days, drop older than 365)
   python manage.py test-email 1                      (needs SMTP_* in .env)
+  python manage.py create-user you@gmail.com --name "Tyler" --account 1        (contractor; asks for a password)
+  python manage.py create-user owner@example.com --role homeowner --system 1   (sees system 1 only)
+  python manage.py set-password you@gmail.com
 """
 import argparse
+import getpass
 import sys
 
 from sqlalchemy import select
 
-from hvaccloud import maintenance
+from hvaccloud import auth, maintenance
 from hvaccloud.alerts import Mailer
-from hvaccloud.db import Account, ApiKey, Device, System, init_db, make_engine, session_factory
+from hvaccloud.db import (Account, ApiKey, Device, System, SystemMember, User, init_db, make_engine,
+                          session_factory)
 from hvaccloud.refrigerants import FLUIDS
 
 
@@ -44,6 +49,15 @@ def main(argv=None):
     m.add_argument("email")
     sub.add_parser("backup", help="copy the SQLite database into BACKUP_DIR (keeps the newest BACKUP_KEEP)")
     sub.add_parser("prune", help="average snapshots older than FULL_DETAIL_DAYS per minute, delete older than KEEP_DAYS")
+    u = sub.add_parser("create-user", help="add a person who signs in with email and password")
+    u.add_argument("email")
+    u.add_argument("--name")
+    u.add_argument("--role", choices=["contractor", "homeowner"], default="contractor")
+    u.add_argument("--account", type=int, help="contractor's account id")
+    u.add_argument("--system", type=int, action="append", default=[], help="homeowner's system id (repeatable)")
+    u.add_argument("--no-password", action="store_true", help="don't ask now; set it later with set-password")
+    pw = sub.add_parser("set-password", help="set or reset a user's password")
+    pw.add_argument("email")
     e = sub.add_parser("test-email", help="send a test alert email to an account (checks the SMTP_* settings)")
     e.add_argument("account_id", type=int)
     args = ap.parse_args(argv)
@@ -56,6 +70,9 @@ def main(argv=None):
     if args.cmd == "prune":
         print(maintenance.prune(session_factory(engine)))
         return
+    password = None
+    if args.cmd == "set-password" or (args.cmd == "create-user" and not args.no_password):
+        password = ask_password()
     with session_factory(engine)() as s, s.begin():
         if args.cmd == "init-db":
             print("database ready:", engine.url.render_as_string(hide_password=True))
@@ -89,12 +106,42 @@ def main(argv=None):
                         select(Device).where(Device.system_id == system.id)))) or "no nodes yet"
                     print(f"  system {system.id}: {system.name} (site {system.site_id!r}, "
                           f"{system.refrigerant}) - {nodes}")
+            for user in s.scalars(select(User).order_by(User.id)):
+                where = (f"account {user.account_id}" if user.role == "contractor" else "systems " + ", ".join(
+                    str(m.system_id) for m in s.scalars(select(SystemMember).where(SystemMember.user_id == user.id))))
+                print(f"user {user.id}: {user.email} ({user.role}, {where})" + ("" if user.password_hash else " - no password"))
         elif args.cmd == "set-email":
             acct = s.get(Account, args.account_id)
             if acct is None:
                 sys.exit(f"no account {args.account_id}")
             acct.email = args.email
             print(f"account {acct.id}: {acct.name} <{acct.email}>")
+        elif args.cmd == "create-user":
+            email = args.email.strip().lower()
+            if s.scalar(select(User).where(User.email == email)):
+                sys.exit(f"{email} already has a sign-in (use set-password to change it)")
+            if args.role == "contractor":
+                if args.account is None or s.get(Account, args.account) is None:
+                    sys.exit("a contractor needs --account <id> of an existing account (see list)")
+            elif not args.system:
+                sys.exit("a homeowner needs at least one --system <id>")
+            for sid in args.system:
+                if s.get(System, sid) is None:
+                    sys.exit(f"no system {sid}")
+            user = User(email=email, name=args.name, role=args.role,
+                        account_id=args.account if args.role == "contractor" else None,
+                        password_hash=auth.hash_password(password) if password else None)
+            s.add(user)
+            s.flush()
+            for sid in args.system:
+                s.add(SystemMember(system_id=sid, user_id=user.id))
+            print(f"user {user.id}: {email} ({args.role})" + ("" if password else " - no password yet"))
+        elif args.cmd == "set-password":
+            user = s.scalar(select(User).where(User.email == args.email.strip().lower()))
+            if user is None:
+                sys.exit(f"no user {args.email}")
+            user.password_hash = auth.hash_password(password)
+            print(f"password set for {user.email}")
         elif args.cmd == "test-email":
             acct = s.get(Account, args.account_id)
             if acct is None:
@@ -105,6 +152,20 @@ def main(argv=None):
             ok = mailer.send(acct.email, "[Fullscope] Test alert email",
                              "Alert emails from your Fullscope cloud are set up and working.")
             sys.exit(0 if ok else f"sending to {acct.email} failed; see the message above")
+
+
+def ask_password():
+    """Typed twice at a hidden prompt, so it never appears on screen or in shell history."""
+    while True:
+        first = getpass.getpass("New password (at least %d characters): " % auth.MIN_PASSWORD)
+        problem = auth.password_problem(first)
+        if problem:
+            print(problem)
+            continue
+        if getpass.getpass("Same password again: ") != first:
+            print("They don't match; try again.")
+            continue
+        return first
 
 
 if __name__ == "__main__":

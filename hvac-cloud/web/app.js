@@ -22,24 +22,34 @@ $("#theme").addEventListener("click", function () {
 
 // ---------------------------------------------------------------- state
 var S = {
-  key: load("fs_key"), systems: null, sys: null, view: null,
+  key: load("fs_key"), me: null, loginMode: load("fs_key") ? "key" : "password", systems: null, sys: null, view: null,
   latest: null, summary: null, history: {}, alerts: null, alertSettings: null, service: null, commands: null, pending: {}, form: {}, msg: null, range: load("fs_range") || "1h",
   preset: load("fs_preset") || "refrigerant", off: {}, lastOk: null, error: null, timers: []
 };
 var LIVE_MS = 5000, STALE_S = 30, OUTAGE_S = 90;   // a gap longer than OUTAGE_S breaks chart lines
 
 // ---------------------------------------------------------------- API
+// Signed in with the session cookie (sent automatically), or with an API key kept in this browser.
+// X-Requested-With marks requests as coming from this app (the server's cross-site check).
 function api(path, opts) {
   opts = opts || {};
-  var headers = { "X-API-Key": S.key };
+  var headers = { "X-Requested-With": "fullscope" };
+  if (S.key) headers["X-API-Key"] = S.key;
   if (opts.body) headers["Content-Type"] = "application/json";
-  return fetch(path, { method: opts.method || "GET", headers: headers, body: opts.body ? JSON.stringify(opts.body) : undefined })
+  return fetch(path, { method: opts.method || "GET", headers: headers, credentials: "same-origin", body: opts.body ? JSON.stringify(opts.body) : undefined })
     .then(function (r) {
-      if (r.status === 401) { signOut("That API key was not accepted."); throw new Error("401"); }
-      if (!r.ok) throw new Error(r.status + " " + r.statusText);
+      if (r.status === 401 && !opts.keep401) {
+        signOut(S.key ? "That API key was not accepted." : S.me ? "You were signed out. Please sign in again." : null);
+        throw new Error("401");
+      }
+      if (!r.ok) return r.json().catch(function () { return {}; }).then(function (b) {
+        var err = new Error(typeof b.detail === "string" ? b.detail : r.status + " " + r.statusText);
+        err.status = r.status; throw err;
+      });
       return opts.raw ? r : r.json();
     });
 }
+function isTech() { return S.me && S.me.role === "contractor"; }
 
 // ---------------------------------------------------------------- formatting
 function esc(s) { return String(s === null || s === undefined ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
@@ -111,9 +121,10 @@ function dataFresh() {
 
 // ---------------------------------------------------------------- routing / loop
 function route() {
+  if (!S.me) return start();
+  if (location.hash === "#/account") { stopTimers(); S.view = null; S.sys = null; return renderAccount(); }
   var m = location.hash.match(/^#\/(home|monitor|setup)\/(\d+)/);
-  if (!S.key) return renderLogin();
-  if (!S.systems) return start();
+  if (!S.systems) return loadSystems();
   if (!m) {
     if (!S.systems.length) return renderNoSystems();
     location.replace("#/home/" + S.systems[0].id);
@@ -121,16 +132,24 @@ function route() {
   }
   var id = +m[2], sys = S.systems.filter(function (x) { return x.id === id; })[0];
   if (!sys) { location.replace("#/home/" + S.systems[0].id); return; }
+  if (m[1] !== "home" && !isTech()) { location.replace("#/home/" + id); return; }   // technician pages are for contractors
   var changed = !S.sys || S.sys.id !== id;
   S.view = m[1];
   S.sys = sys;
   if (changed) { S.latest = null; S.summary = null; S.history = {}; S.alerts = null; S.alertSettings = null; S.service = null; S.commands = null; S.pending = {}; S.form = {}; stopTimers(); startTimers(); }
   if (S.view === "setup") pollCommands();
+  if (!changed && S.view !== "home" && !S.alertSettings) pollAlerts();   // the home page doesn't load them
   render();
 }
 window.addEventListener("hashchange", route);
 
+// Who is signed in (cookie or saved API key); a 401 shows the sign-in form.
 function start() {
+  root.innerHTML = '<div class="login"><div class="empty">Loading…</div></div>';
+  api("/api/auth/me").then(function (me) { S.me = me; S.systems = null; route(); })
+    .catch(function (e) { if (e.message !== "401") { S.error = e.message; renderLogin(); } });
+}
+function loadSystems() {
   root.innerHTML = '<div class="login"><div class="empty">Loading…</div></div>';
   api("/api/systems").then(function (list) { S.systems = list; route(); })
     .catch(function (e) { if (e.message !== "401") { S.error = e.message; renderLogin(); } });
@@ -185,35 +204,82 @@ function pollHistory() {
 
 function signOut(msg) {
   stopTimers();
-  S.key = null; S.systems = null; S.sys = null; S.view = null; S.error = msg || null;
+  if (S.me && S.me.via === "session") {        // plain fetch: this must not loop back through api()'s 401 handling
+    fetch("/api/auth/logout", { method: "POST", headers: { "X-Requested-With": "fullscope" }, credentials: "same-origin" }).catch(function () {});
+  }
+  S.key = null; S.me = null; S.systems = null; S.sys = null; S.view = null; S.error = msg || null;
   save("fs_key", null);
   renderLogin();
 }
 
-// ---------------------------------------------------------------- login
+// ---------------------------------------------------------------- sign-in
 function renderLogin() {
   root.className = "fs home";
+  var byKey = S.loginMode === "key";
   root.innerHTML =
     '<header class="h-top">' + LOGO + TAGLINE + "</header>" +
-    '<div class="login"><div class="h-card">' +
-    "<h1>Sign in</h1><p>Paste the API key for your account (from <span class=\"mono\">manage.py create-key</span>).</p>" +
-    '<form id="lf"><input id="k" type="password" autocomplete="off" placeholder="hvk_…" aria-label="API key">' +
+    '<div class="login"><div class="h-card"><h1>Sign in</h1>' +
+    (byKey
+      ? "<p>Paste the API key for your account (from <span class=\"mono\">manage.py create-key</span>).</p>" +
+        '<form id="lf"><input id="k" type="password" autocomplete="off" placeholder="hvk_…" aria-label="API key">'
+      : '<form id="lf"><label class="lbl" for="em">Email</label><input id="em" type="email" autocomplete="username" aria-label="Email">' +
+        '<label class="lbl" for="pw">Password</label><input id="pw" type="password" autocomplete="current-password" aria-label="Password">') +
     '<div class="row"><button class="h-btn primary" type="submit">Sign in</button></div>' +
-    '<div class="err" role="alert">' + esc(S.error || "") + "</div></form></div></div>";
+    '<div class="err" role="alert">' + esc(S.error || "") + "</div></form>" +
+    '<p class="alt"><a class="muted" href="#" id="mode">' + (byKey ? "Sign in with email and password" : "Use an API key instead") + "</a></p></div></div>";
+  $("#mode").addEventListener("click", function (e) { e.preventDefault(); S.loginMode = byKey ? "password" : "key"; S.error = null; renderLogin(); });
   $("#lf").addEventListener("submit", function (e) {
     e.preventDefault();
-    var k = $("#k").value.trim();
-    if (!k) return;
-    S.key = k; S.error = null; save("fs_key", k); S.systems = null;
-    route();
+    if (byKey) {
+      var k = $("#k").value.trim();
+      if (!k) return;
+      S.key = k; S.error = null; save("fs_key", k); S.me = null; S.systems = null;
+      route();
+      return;
+    }
+    var em = $("#em").value.trim(), pw = $("#pw").value, btn = $("#lf button");
+    if (!em || !pw) return;
+    btn.disabled = true;
+    api("/api/auth/login", { method: "POST", body: { email: em, password: pw }, keep401: true }).then(function (me) {
+      S.me = me; S.error = null; S.systems = null; route();
+    }).catch(function (err) { S.error = err.message; renderLogin(); $("#em").value = em; $("#pw").focus(); });
   });
-  $("#k").focus();
+  var first = $("#k") || $("#em");
+  if (first) first.focus();
+}
+
+// ---------------------------------------------------------------- account (change password)
+function renderAccount() {
+  root.className = "fs home";
+  var me = S.me, u = me.user, back = S.systems && S.systems.length ? "#/home/" + S.systems[0].id : "#/";
+  var who = u ? esc(u.name || u.email) + ' <span class="muted">· ' + esc(u.email) + "</span>" : "Signed in with an API key" + (me.account ? " for " + esc(me.account.name) : "");
+  root.innerHTML =
+    '<header class="h-top">' + LOGO + TAGLINE + '<div class="upd"><a class="muted" href="' + back + '" style="font-size:12px">← Back</a>' +
+    '<a class="muted" href="#" data-signout style="font-size:12px">Sign out</a></div></header>' +
+    '<div class="login"><div class="h-card"><h1>Your account</h1><p>' + who + "<br>" + (me.role === "contractor" ? "Contractor" : "Homeowner") + "</p>" +
+    (u ? '<form id="pf"><label class="lbl" for="cur">Current password</label><input id="cur" type="password" autocomplete="current-password">' +
+      '<label class="lbl" for="np">New password (at least 10 characters)</label><input id="np" type="password" autocomplete="new-password">' +
+      '<label class="lbl" for="np2">New password again</label><input id="np2" type="password" autocomplete="new-password">' +
+      '<div class="row"><button class="h-btn primary" type="submit">Change password</button></div><div class="err" role="alert" id="pe"></div></form>'
+      : "<p class=\"muted\">To sign in with a password, ask for a user to be created with <span class=\"mono\">manage.py create-user</span>.</p>") +
+    "</div></div>";
+  bindCommon();
+  var f = $("#pf");
+  if (f) f.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var pe = $("#pe");
+    if ($("#np").value !== $("#np2").value) { pe.textContent = "The new passwords don't match."; return; }
+    api("/api/auth/password", { method: "POST", body: { current: $("#cur").value, "new": $("#np").value }, keep401: true }).then(function () {
+      f.reset(); pe.style.color = "var(--ok)"; pe.textContent = "Password changed.";
+    }).catch(function (err) { pe.style.color = ""; pe.textContent = err.message; });
+  });
 }
 
 function renderNoSystems() {
   root.className = "fs home";
   root.innerHTML = '<div class="login"><div class="h-card"><h1>No systems yet</h1>' +
-    "<p>Create one with <span class=\"mono\">manage.py create-system</span>, then reload.</p>" +
+    (isTech() ? "<p>Create one with <span class=\"mono\">manage.py create-system</span>, then reload.</p>"
+      : "<p>No system is linked to your sign-in yet. Your contractor can add it.</p>") +
     '<div class="row"><button class="h-btn" type="button" id="so">Sign out</button></div></div></div>';
   $("#so").addEventListener("click", function () { signOut(); });
 }
@@ -268,7 +334,8 @@ function renderHome() {
     '<div class="upd">' + (fresh ? '<span class="live">LIVE</span>' : st("offline", "Offline")) +
     "<span>" + (L && L.time ? "Updated " + ampm(L.time) : "") + "</span>" +
     systemPicker("home") +
-    '<a class="muted" href="#/monitor/' + S.sys.id + '" style="font-size:12px">Details for your technician →</a>' +
+    (isTech() ? '<a class="muted" href="#/monitor/' + S.sys.id + '" style="font-size:12px">Details for your technician →</a>' : "") +
+    '<a class="muted" href="#/account" style="font-size:12px">Account</a>' +
     '<a class="muted" href="#" data-signout style="font-size:12px">Sign out</a></div></header>' +
     '<main class="h-wrap">' +
     '<section class="h-card h-hero" aria-label="System status" style="border-top-color:' + heroColor + '"><div class="msg">' +
@@ -493,7 +560,7 @@ function techHeader(page) {
     '<a href="#/home/' + S.sys.id + '">Homeowner view</a>' +
     '<span class="spacer"></span><div class="tools">' +
     (fresh ? '<span class="live">LIVE · 5 s</span>' : st("offline", "Offline")) + systemPicker(page) +
-    (page === "monitor" ? '<button class="btn" type="button" data-export>Export CSV</button>' : "") + '<button class="btn" type="button" data-signout>Sign out</button></div></nav></header>' +
+    (page === "monitor" ? '<button class="btn" type="button" data-export>Export CSV</button>' : "") + '<a class="btn" href="#/account" style="text-decoration:none">Account</a><button class="btn" type="button" data-signout>Sign out</button></div></nav></header>' +
     (S.error ? '<div class="stale-banner">Can\'t reach the server: ' + esc(S.error) + "</div>" : !fresh && L ? '<div class="stale-banner">No readings for ' + ago((Date.now() - new Date(L.time).getTime()) / 1000) + ". Values below are the last ones received.</div>" : ""));
 }
 function navLink(page, label, cur) {
