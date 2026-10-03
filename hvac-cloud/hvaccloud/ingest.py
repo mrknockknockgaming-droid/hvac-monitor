@@ -3,7 +3,8 @@
 Listens on hvac/<site>/<node>/{telemetry,status,reply}, the topics the firmware already
 uses. <site> must match a system's site_id (create it with manage.py); messages from
 unknown sites are ignored. Every message also updates the system's alerts (alerts.py), and once a
-minute systems whose nodes have gone quiet get a "no data" alert.
+minute systems whose nodes have gone quiet get a "no data" alert. Once a night the SQLite
+database is backed up and old data thinned (maintenance.py).
 
 Run:  python -m hvaccloud.ingest
 """
@@ -16,7 +17,7 @@ import time
 
 from sqlalchemy import select
 
-from . import alerts, calc, settings
+from . import alerts, calc, maintenance, settings
 from .db import (Alert, Command, Device, Snapshot, System, Telemetry, as_utc, init_db, make_engine,
                  session_factory, utcnow)
 from .refrigerants import Tables
@@ -222,6 +223,12 @@ def run():
             ingest.sweep()
         except Exception:
             log.exception("alert sweep failed")
+        if maintenance.sqlite_path(settings.DATABASE_URL) and maintenance.nightly_due():
+            try:
+                maintenance.backup()
+                maintenance.prune(ingest.sessions, lock=ingest._lock)
+            except Exception:
+                log.exception("nightly backup / prune failed")
 
 
 if __name__ == "__main__":

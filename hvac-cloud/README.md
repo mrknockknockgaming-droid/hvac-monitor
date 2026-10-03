@@ -12,7 +12,8 @@ superheat / subcooling / fault-flag math.
 | `hvaccloud/calc.py` | Port of the dashboard's `Hub.compute` / `Hub.flags`; `tests/test_calc.py` checks they match |
 | `hvaccloud/db.py` | SQLAlchemy models; SQLite in development, TimescaleDB hypertables in production |
 | `web/` | Fullscope web app (homeowner + technician views), served by the API at `/app/` |
-| `manage.py` | Create accounts, API keys and systems; send a test alert email |
+| `hvaccloud/maintenance.py` | Nightly backup of `dev.db` and thinning of old data |
+| `manage.py` | Create accounts, API keys and systems; send a test alert email; backup / prune by hand |
 | `demo_publisher.py` | Simulated outdoor + indoor nodes over MQTT (site `demo`) |
 
 A system's `site_id` is the node's `SITE_ID` in `hvac-firmware/include/config.h`, so the
@@ -78,6 +79,23 @@ Both views list the last 7 days of alerts (homeowner: "Recent alerts"; technicia
 Values the hardware does not measure yet (indoor humidity, static pressure, capacity) are
 shown as "Not installed", never estimated. The API key is kept in the browser's local
 storage; real per-user sign-in comes with going live (roadmap phase 8).
+
+## Backups and data cleanup (SQLite)
+
+Each node reports every 5 s, so `dev.db` grows by tens of MB a day. The ingest worker looks
+after it once a night (3 AM, or on its next start if the PC was off then):
+
+1. **Backup:** a consistent copy to `backups/dev-YYYYMMDD-HHMM.db` (safe while running),
+   keeping the newest `BACKUP_KEEP` (7). `backups/` is not committed.
+2. **Prune:** snapshots older than `FULL_DETAIL_DAYS` (30) are averaged into one per minute,
+   raw telemetry older than that is deleted (each node's newest message is kept), and anything
+   older than `KEEP_DAYS` (365) is deleted. Charts, history, summaries and CSV export work the
+   same on thinned data, at 1-minute resolution.
+
+Run either by hand with `manage.py backup` and `manage.py prune`. SQLite reuses the freed
+space instead of shrinking the file. To restore: close the two cloud windows, delete
+`dev.db-wal` and `dev.db-shm`, copy a backup over `dev.db`, then run `start-cloud.bat`.
+On PostgreSQL, TimescaleDB's retention policy expires old data; back up with `pg_dump`.
 
 ## API
 
