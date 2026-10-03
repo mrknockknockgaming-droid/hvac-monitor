@@ -2,7 +2,8 @@
 
 Listens on hvac/<site>/<node>/{telemetry,status,reply}, the topics the firmware already
 uses. <site> must match a system's site_id (create it with manage.py); messages from
-unknown sites are ignored.
+unknown sites are ignored. Every message also updates the system's alerts (alerts.py), and once a
+minute systems whose nodes have gone quiet get a "no data" alert.
 
 Run:  python -m hvaccloud.ingest
 """
@@ -10,12 +11,14 @@ import datetime as dt
 import json
 import logging
 import random
+import threading
 import time
 
 from sqlalchemy import select
 
-from . import calc, settings
-from .db import Command, Device, Snapshot, System, Telemetry, as_utc, init_db, make_engine, session_factory
+from . import alerts, calc, settings
+from .db import (Alert, Command, Device, Snapshot, System, Telemetry, as_utc, init_db, make_engine,
+                 session_factory, utcnow)
 from .refrigerants import Tables
 
 log = logging.getLogger("ingest")
@@ -26,17 +29,26 @@ def ts(epoch):
 
 
 class Ingest:
-    def __init__(self, sessions, tables=None, stale=settings.STALE_SECONDS):
+    def __init__(self, sessions, tables=None, stale=settings.STALE_SECONDS, hold=settings.ALERT_HOLD_SECONDS,
+                 silence=settings.ALERT_NO_DATA_SECONDS, mailer=None,
+                 cooldown_s=settings.ALERT_EMAIL_COOLDOWN_HOURS * 3600):
         self.sessions = sessions
         self.tables = tables or Tables(log.info)
         self.stale = stale
+        self.hold, self.silence, self.cooldown_s = hold, silence, cooldown_s
+        self.mailer = mailer          # None = no email (tests); run() passes alerts.Mailer()
         self.latest = {}              # (system_id, node) -> (epoch, data)
         self._unknown_sites = set()
+        self._lock = threading.Lock()   # MQTT thread (handle) vs. the once-a-minute sweep
 
     # ---------- routing ----------
     def handle(self, topic, payload, now=None):
         """Process one MQTT message. Returns what was stored, for logging and tests."""
         now = time.time() if now is None else now
+        with self._lock:
+            return self._handle(topic, payload, now)
+
+    def _handle(self, topic, payload, now):
         parts = topic.split("/")
         if len(parts) != 4 or parts[0] != "hvac" or parts[2] not in calc.NODES:
             return None
@@ -57,12 +69,17 @@ class Ingest:
                 return None
             device = self._device(s, system, node)
             if kind == "telemetry":
-                return self.on_telemetry(s, system, device, data, now)
-            if kind == "status":
+                snap = self.on_telemetry(s, system, device, data, now)
+                events = alerts.sync(s, system, snap["flags"], now, self.hold)
+                jobs = alerts.emails_for(s, system, events, now, self.cooldown_s)
+            elif kind == "status":
                 return self.on_status(device, data, now)
-            if kind == "reply":
+            elif kind == "reply":
                 return self.on_reply(s, device, data, now)
-        return None
+            else:
+                return None
+        self._email(jobs)          # after commit, so the alerts exist when emailed_at is written
+        return snap
 
     @staticmethod
     def _device(s, system, node):
@@ -73,6 +90,36 @@ class Ingest:
             s.flush()
             log.info("new device: %s/%s", system.site_id, node)
         return d
+
+    # ---------- alerts ----------
+    def sweep(self, now=None):
+        """Raise (or keep open) "no data" alerts for systems whose nodes have gone quiet."""
+        now = time.time() if now is None else now
+        jobs = []
+        with self._lock, self.sessions() as s, s.begin():
+            for system in s.scalars(select(System).order_by(System.id)):
+                flags = alerts.no_data_flags(s, system, now, self.silence)
+                if flags is not None:
+                    events = alerts.sync(s, system, flags, now, self.hold)
+                    jobs += alerts.emails_for(s, system, events, now, self.cooldown_s)
+        self._email(jobs)
+
+    def _email(self, jobs):
+        if jobs and self.mailer is not None:
+            self.spawn(self._send, jobs)
+
+    @staticmethod
+    def spawn(fn, *args):
+        """SMTP can take seconds; don't hold up MQTT messages. Tests replace this to run inline."""
+        threading.Thread(target=fn, args=args, daemon=True).start()
+
+    def _send(self, jobs):
+        for alert_id, to, subject, body in jobs:
+            if self.mailer.send(to, subject, body) and alert_id is not None:
+                with self.sessions() as s, s.begin():
+                    a = s.get(Alert, alert_id)
+                    if a is not None:
+                        a.emailed_at = utcnow()
 
     # ---------- message kinds ----------
     def on_telemetry(self, s, system, device, data, now):
@@ -142,7 +189,9 @@ def run():
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
     engine = make_engine()
     init_db(engine)
-    ingest = Ingest(session_factory(engine))
+    mailer = alerts.Mailer()
+    ingest = Ingest(session_factory(engine), mailer=mailer)
+    log.info("alert email %s", f"on via {mailer.host}" if mailer.enabled else "off (set SMTP_HOST in .env)")
 
     def on_connect(client, userdata, flags, reason_code, properties=None):
         if reason_code == 0:
@@ -166,7 +215,13 @@ def run():
     client.on_message = on_message
     client.reconnect_delay_set(1, 30)
     client.connect_async(settings.MQTT_HOST, settings.MQTT_PORT, keepalive=30)
-    client.loop_forever(retry_first_connection=True)
+    client.loop_start()
+    while True:
+        time.sleep(60)
+        try:
+            ingest.sweep()
+        except Exception:
+            log.exception("alert sweep failed")
 
 
 if __name__ == "__main__":
