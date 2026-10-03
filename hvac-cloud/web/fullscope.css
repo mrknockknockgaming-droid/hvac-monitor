@@ -431,3 +431,13 @@ select.sel{background-color:var(--surface-2);border:1px solid var(--line-strong)
 .theme-t{position:fixed;right:10px;bottom:10px;z-index:9}
 .login-bar{display:flex;align-items:center;gap:16px}
 .foot-brand{display:inline-flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+/* sensors & calibration */
+.acts-cell{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.acts-cell .field input{width:64px}
+.dt td .acts-cell{min-height:26px}
+.btn[disabled],.seg button[disabled]{opacity:.45;cursor:not-allowed}
+.btn[disabled]:hover{background:var(--surface-2)}
+.setup-kv>div{display:flex;flex-direction:column;gap:4px}
+.howto{margin:0;padding:8px 12px 10px 30px;font-size:12px;line-height:18px;color:var(--ink-muted);border-top:1px solid var(--line)}
+.howto b{color:var(--ink);font-weight:600}
+.ph .right .st+.faint{font-size:11px;margin-left:4px}

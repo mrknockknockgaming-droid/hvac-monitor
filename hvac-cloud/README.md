@@ -52,6 +52,12 @@ Plain HTML/CSS/JS in `web/`, no build step; styles are copied from the Fullscope
   compression ratio; live trend (15 min to 7 days); operating state; sensor health from the
   nodes' own error codes; refrigerant and air-side tables; current diagnostics; alert log;
   CSV export.
+- **Sensors & calibration** (`#/setup/<id>`): for commissioning. Per channel: on/off, live
+  reading, raw sensor volts or ohms, and the calibration stored on the node. Buttons send the
+  firmware's commands (zero, span, ice bath / reference temperature, reset, range, B-value,
+  measured 3.3 V rail, swap indoor probes, rescan, reporting interval, reboot). The command log
+  shows each node's reply; after a change the page asks the node for its settings again. Buttons
+  are disabled while a node is offline, and zero / reset / reboot ask for confirmation.
 
 Both views list the last 7 days of alerts (homeowner: "Recent alerts"; technician: "Alert log").
 
@@ -110,6 +116,6 @@ Commands are the firmware's (see the top of `hvac-firmware/src/node_outdoor.cpp`
 ## Not done yet
 
 - Web app: per-user sign-in, maintenance reminders, contractor details, service requests,
-  calibration from the browser, acknowledging or muting alerts, choosing who gets emails.
+  acknowledging or muting alerts, choosing who gets emails.
 - Per-device MQTT accounts and topic ACLs (every node shares one account for now).
 - HTTPS / MQTT TLS (Phase 8, going live).
