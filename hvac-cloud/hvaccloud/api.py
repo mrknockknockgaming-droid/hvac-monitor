@@ -25,7 +25,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import func, select
 
-from . import alerts, auth, calc, equipment, service, settings
+from . import alerts, auth, calc, electrical, equipment, service, settings
 from .db import (Account, Alert, AlertMute, AlertPrefs, ApiKey, Command, Device, Invite, PasswordReset, ServiceInfo, ServiceVisit, Snapshot,
                  System, SystemMember, Telemetry, User, as_utc, hash_key, init_db, make_engine, session_factory, utcnow)
 from .refrigerants import FLUIDS
@@ -137,6 +137,13 @@ class EquipmentIn(BaseModel):
     rated_cfm: float | None = Field(default=None, ge=100, le=20000)
     max_esp: float | None = Field(default=None, gt=0, le=2)
     elevation_ft: float | None = Field(default=None, ge=-1500, le=12000)
+    comp_rla: float | None = Field(default=None, gt=0, le=200)
+    comp_lra: float | None = Field(default=None, gt=0, le=600)
+    fan_fla: float | None = Field(default=None, gt=0, le=20)
+    cap_herm_uf: float | None = Field(default=None, gt=0, le=200)
+    cap_fan_uf: float | None = Field(default=None, gt=0, le=30)
+    volt_min: float | None = Field(default=None, ge=100, le=600)
+    volt_max: float | None = Field(default=None, ge=100, le=600)
     refrigerant: str
     heat_pump: bool
     ob_energized: Literal["cool", "heat"]
@@ -372,7 +379,10 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
         if body.refrigerant not in FLUIDS:
             raise HTTPException(422, f"refrigerant must be one of {list(FLUIDS)}")
         eq = equipment.get_or_new(s, system.id)
-        for k in ("system_type", "metering", "tonnage", "sc_target", "rated_btuh", "rated_cfm", "max_esp", "elevation_ft"):
+        if body.volt_min and body.volt_max and body.volt_min >= body.volt_max:
+            raise HTTPException(422, "the minimum voltage must be below the maximum")
+        for k in ("system_type", "metering", "tonnage", "sc_target", "rated_btuh", "rated_cfm", "max_esp", "elevation_ft",
+                  "comp_rla", "comp_lra", "fan_fla", "cap_herm_uf", "cap_fan_uf", "volt_min", "volt_max"):
             setattr(eq, k, getattr(body, k))
         eq.sc_tolerance = body.sc_tolerance if body.sc_tolerance is not None else equipment.DEFAULT_SC_TOL
         system.refrigerant, system.heat_pump, system.ob_energized = body.refrigerant, body.heat_pump, body.ob_energized
@@ -625,7 +635,7 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
         row = s.execute(select(Snapshot.time, Snapshot.data).where(Snapshot.system_id == system.id)
                         .order_by(Snapshot.time.desc()).limit(1)).first()
         nodes = {}
-        for n in calc.NODES:
+        for n in calc.NODES + (electrical.NODE,):
             d = devices.get(n)
             if d is None:
                 nodes[n] = None

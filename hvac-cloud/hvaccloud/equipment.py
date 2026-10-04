@@ -64,7 +64,8 @@ def view(eq, system):
     """Equipment page data: the stored details plus the system's own settings and the targets in use."""
     lo, hi, source = sc_band(eq, "cooling")
     fields = ["system_type", "metering", "tonnage", "sc_target", "sc_tolerance", "rated_btuh", "rated_cfm",
-              "max_esp", "elevation_ft"]
+              "max_esp", "elevation_ft", "comp_rla", "comp_lra", "fan_fla", "cap_herm_uf", "cap_fan_uf",
+              "volt_min", "volt_max"]
     out = {k: getattr(eq, k) if eq is not None else None for k in fields}
     if out["sc_tolerance"] is None:
         out["sc_tolerance"] = DEFAULT_SC_TOL

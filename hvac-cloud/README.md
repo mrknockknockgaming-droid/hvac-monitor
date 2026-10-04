@@ -12,6 +12,7 @@ superheat / subcooling / fault-flag math.
 | `hvaccloud/calc.py` | Port of the dashboard's `Hub.compute` / `Hub.flags`; `tests/test_calc.py` checks they match |
 | `hvaccloud/db.py` | SQLAlchemy models; SQLite in development, TimescaleDB hypertables in production |
 | `web/` | Fullscope web app (homeowner + technician views), served by the API at `/app/` |
+| `hvaccloud/electrical.py` | Optional electrical module (third node `electrical`): amps, voltage, capacitor, contactor rules |
 | `hvaccloud/equipment.py` | Equipment details; nameplate subcooling targets applied after `calc` (cloud only) |
 | `hvaccloud/auth.py` | Passwords (scrypt), sign-in sessions, who is asking (contractor / homeowner / API key) |
 | `hvaccloud/service.py` | Maintenance reminders (air filter, tune-up) and the service contractor |
@@ -105,6 +106,11 @@ Plain HTML/CSS/JS in `web/`, no build step; styles are copied from the Fullscope
   Superheat keeps the generic 3–30 °F (the valve controls it; a piston's target needs indoor
   humidity, phase 6). Ratings and static are stored for phase 6 and marked "not used yet". The
   PC dashboard and `calc.py` are unchanged, so the parity test still holds.
+- **Electrical module** (optional, design in `../electrical/README.md`): readings on
+  `hvac/<site>/electrical/telemetry` are joined to the next snapshot as `elec` and judged against
+  the nameplate RLA / LRA / FLA / capacitor µF / voltage range on the Equipment page. They show as
+  rows in Monitor's Operating state table ("Not installed" without a module) and roll up into the
+  homeowner's "Outdoor unit" area. Try it: `demo_publisher.py --electrical --fault weak_cap`.
 - **Service history** (`#/service/<id>`): log a visit (date, type, technician, work done,
   "replaced the air filter", "attach the current readings" from a snapshot under 15 minutes
   old). A tune-up moves the tune-up reminder and a changed filter the filter reminder forward
