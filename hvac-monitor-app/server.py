@@ -84,12 +84,17 @@ class Hub:
     # ---------- incoming data ----------
     def on_telemetry(self, node, data):
         now = time.time()
+        # Firmware 0.2+ stamps readings ("ts") and sends the ones kept during an outage on reconnect:
+        # store those at their own time (if plausible) so history has no burst; "online" uses arrival.
+        ts = data.get("ts")
+        at = min(float(ts), now) if isinstance(ts, (int, float)) and not isinstance(ts, bool) \
+            and now - 86400 <= ts <= now + 60 else now
         with self.lock:
             self.latest[node] = {"ts": now, "data": data}
-            self.db.execute("INSERT INTO telemetry VALUES (?,?,?)", (now, node, json.dumps(data)))
+            self.db.execute("INSERT INTO telemetry VALUES (?,?,?)", (at, node, json.dumps(data)))
             snap = self.compute(now)
             self.derived = snap
-            self.db.execute("INSERT INTO snapshots VALUES (?,?)", (now, json.dumps(snap)))
+            self.db.execute("INSERT INTO snapshots VALUES (?,?)", (at, json.dumps(snap)))
             self.db.commit()
             self._prune(now)
         self.push({"type": "state", "state": self.state()})

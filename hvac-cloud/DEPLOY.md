@@ -73,9 +73,11 @@ Then invite homeowners and colleagues from the web app; links now use the real d
 
 ## 7. Point the nodes at it
 
-Needs firmware with MQTT over TLS (roadmap, firmware v0.2): `MQTT_HOST` = the domain,
-`MQTT_PORT 8883`, `MQTT_USER` = `MQTT_NODES_USER`, `MQTT_PASS` = `MQTT_NODES_PASS`, and
-`tls/ca.crt` as the trusted CA. Each node's `SITE_ID` must match its system's site id.
+Firmware 0.2.0 or later, with `config.h` set for the server (`hvac-firmware/README.md`,
+"Cloud server"): `MQTT_HOST` = the domain, `MQTT_PORT 8883`, `MQTT_TLS 1`, `MQTT_USER` /
+`MQTT_PASS` = `MQTT_NODES_USER` / `MQTT_NODES_PASS`, and `tls/ca.crt` pasted in as
+`MQTT_CA_CERT`. Each node's `SITE_ID` must match its system's site id. The technician view's
+node detail shows "TLS" once a node is connected this way.
 
 ## 8. Backups
 

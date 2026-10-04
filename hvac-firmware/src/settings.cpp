@@ -5,11 +5,12 @@ static Preferences prefs;
 
 void settingsBegin() { prefs.begin("hvac", false); }
 
-float setGetF(const char* k, float d)       { return prefs.getFloat(k, d); }
+// Missing keys return the default without asking NVS, which would log "nvs_get_blob ... NOT_FOUND".
+float setGetF(const char* k, float d)       { return prefs.isKey(k) ? prefs.getFloat(k, d) : d; }
 void  setPutF(const char* k, float v)       { prefs.putFloat(k, v); }
-bool  setGetB(const char* k, bool d)        { return prefs.getBool(k, d); }
+bool  setGetB(const char* k, bool d)        { return prefs.isKey(k) ? prefs.getBool(k, d) : d; }
 void  setPutB(const char* k, bool v)        { prefs.putBool(k, v); }
-uint32_t setGetU(const char* k, uint32_t d) { return prefs.getUInt(k, d); }
+uint32_t setGetU(const char* k, uint32_t d) { return prefs.isKey(k) ? prefs.getUInt(k, d) : d; }
 void  setPutU(const char* k, uint32_t v)    { prefs.putUInt(k, v); }
 void  setClear(const char* k)               { if (prefs.isKey(k)) prefs.remove(k); }
 

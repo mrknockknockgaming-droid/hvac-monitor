@@ -24,6 +24,8 @@ from .refrigerants import Tables
 
 log = logging.getLogger("ingest")
 RUN_GAP_S = 60          # longer gaps between snapshots don't count as run time (same rule as /summary)
+TS_MAX_AGE_S = 24 * 3600   # a node's own reading time is trusted up to this old (firmware keeps 10 min)
+TS_MAX_AHEAD_S = 60        # ... and this far in the future (clock drift)
 
 
 def ts(epoch):
@@ -71,9 +73,10 @@ class Ingest:
                 return None
             device = self._device(s, system, node)
             if kind == "telemetry":
-                snap = self.on_telemetry(s, system, device, data, now)
-                events = alerts.sync(s, system, snap["flags"], now, self.hold)
-                jobs = alerts.emails_for(s, system, events, now, self.cooldown_s)
+                at = self.reading_time(data, now)
+                snap = self.on_telemetry(s, system, device, data, at)
+                events = alerts.sync(s, system, snap["flags"], at, self.hold)
+                jobs = alerts.emails_for(s, system, events, at, self.cooldown_s)
             elif kind == "status":
                 return self.on_status(device, data, now)
             elif kind == "reply":
@@ -82,6 +85,15 @@ class Ingest:
                 return None
         self._email(jobs)          # after commit, so the alerts exist when emailed_at is written
         return snap
+
+    @staticmethod
+    def reading_time(data, now):
+        """When a reading was taken: the node's own "ts" (firmware 0.2+, UTC seconds) if it is
+        plausible, so readings kept during an outage land where they belong; else arrival time."""
+        v = data.get("ts")
+        if isinstance(v, (int, float)) and not isinstance(v, bool) and now - TS_MAX_AGE_S <= v <= now + TS_MAX_AHEAD_S:
+            return min(float(v), now)
+        return now
 
     @staticmethod
     def _device(s, system, node):
@@ -125,7 +137,11 @@ class Ingest:
 
     # ---------- message kinds ----------
     def on_telemetry(self, s, system, device, data, now):
-        device.last_seen = ts(now)
+        # two readings on the same millisecond (both nodes catching up) would collide on the key
+        while s.get(Snapshot, (system.id, ts(now))) is not None or s.get(Telemetry, (device.id, ts(now))) is not None:
+            now += 0.001
+        if device.last_seen is None or ts(now) > as_utc(device.last_seen):
+            device.last_seen = ts(now)
         device.connected = True
         for k in ("fw", "rssi"):
             if k in data:

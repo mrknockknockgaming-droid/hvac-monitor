@@ -1,4 +1,4 @@
-# HVAC Monitor firmware (v0.1.0)
+# HVAC Monitor firmware (v0.2.0)
 
 One PlatformIO project builds both nodes:
 
@@ -22,6 +22,34 @@ Pins and net names match the rev A schematics.
 
 ## 2. Configure
 Copy `include/config.example.h` to `include/config.h` and fill in WiFi, the PC's IP (`MQTT_HOST`), and an OTA password. Use the same OTA password in the `*_ota` sections of `platformio.ini`.
+
+**Bench / PC broker:** `MQTT_TLS 0`, port 1883 (as before; a 0.1.0 `config.h` still builds).
+
+**Cloud server** (see `hvac-cloud/DEPLOY.md`): `MQTT_HOST` = the server's domain (the name in
+its certificate), `MQTT_PORT 8883`, `MQTT_TLS 1`, `MQTT_USER` / `MQTT_PASS` = the server's
+`MQTT_NODES_USER` / `MQTT_NODES_PASS`, and the server's `tls/ca.crt` pasted into `config.h` as
+
+```cpp
+static const char MQTT_CA_CERT[] = R"PEM(
+-----BEGIN CERTIFICATE-----
+...
+-----END CERTIFICATE-----
+)PEM";
+```
+
+(a string constant: a `#define` can't hold the multi-line certificate). The node checks the
+broker's certificate and name against it. TLS needs the right date, so the node sets its
+clock by NTP after WiFi connects and waits up to 15 s for it before the first TLS attempt.
+
+### What 0.2.0 changed
+- MQTT over TLS (above). Builds: plain 66 % flash, TLS 76 %.
+- Every reading carries `"ts"` (UTC seconds) once NTP has set the clock. While the broker
+  can't be reached, up to 120 readings (10 min at 5 s) are kept in memory and sent oldest first
+  on reconnect; the cloud and the PC dashboard file them under their own time. Status reports
+  `backlog` and `dropped` (readings lost to a longer outage) and `tls`.
+- After any successful command the node re-publishes its retained status, so new settings
+  show up at once; status now includes `interval_ms`.
+- No more `nvs_get_blob ... NOT_FOUND` lines at boot for settings that were never saved.
 
 ## 3. Flash
 With **24 VAC disconnected**, plug the ESP32 into USB, then:

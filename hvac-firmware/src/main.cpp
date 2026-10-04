@@ -10,8 +10,22 @@
 static uint32_t lastPublish = 0;
 static uint32_t intervalMs  = 5000;
 
-// Commands every node understands; anything else goes to the node file.
+static void handleCommandInner(JsonDocument& cmd, JsonDocument& reply);
+
+// Every successful change re-publishes the retained status, so the cloud shows the new settings.
 static void handleCommand(JsonDocument& cmd, JsonDocument& reply) {
+  handleCommandInner(cmd, reply);
+  const char* c = cmd["cmd"] | "";
+  if ((reply["ok"] | false) && strcmp(c, "status") && strcmp(c, "reboot")) netPublishStatus();
+}
+
+static void fillStatus(JsonDocument& doc) {
+  doc["interval_ms"] = intervalMs;
+  nodeFillStatus(doc);
+}
+
+// Commands every node understands; anything else goes to the node file.
+static void handleCommandInner(JsonDocument& cmd, JsonDocument& reply) {
   const char* c = cmd["cmd"] | "";
   if (!strcmp(c, "reboot")) {
     reply["ok"] = true;
@@ -53,7 +67,7 @@ void setup() {
   settingsBegin();
   intervalMs = setGetU("interval", 5000);
   nodeSetup();
-  netBegin(handleCommand, nodeFillStatus);
+  netBegin(handleCommand, fillStatus);
 }
 
 void loop() {
@@ -69,6 +83,7 @@ void loop() {
     doc["fw"]     = FW_VERSION;
     doc["uptime"] = now / 1000;
     doc["rssi"]   = WiFi.status() == WL_CONNECTED ? WiFi.RSSI() : 0;
+    if (netTimeValid()) doc["ts"] = serialized(String(netEpoch(), 3));   // when it was measured (UTC)
     nodeFillTelemetry(doc);
     String out;
     serializeJson(doc, out);
