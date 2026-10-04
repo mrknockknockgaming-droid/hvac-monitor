@@ -11,6 +11,13 @@ pw=/mosquitto/data/passwd
 rm -f "$pw"
 mosquitto_passwd -c -b "$pw" "$MQTT_BACKEND_USER" "$MQTT_BACKEND_PASS"
 mosquitto_passwd -b "$pw" "$MQTT_NODES_USER" "$MQTT_NODES_PASS"
+
+# docker-compose.prod.yml mounts tls/ here: copy so the mosquitto user owns readable copies
+if [ -f /mosquitto/certs/server.crt ]; then
+  mkdir -p /mosquitto/data/certs
+  cp /mosquitto/certs/ca.crt /mosquitto/certs/server.crt /mosquitto/certs/server.key /mosquitto/data/certs/
+  chmod 0600 /mosquitto/data/certs/server.key
+fi
 chown -R mosquitto:mosquitto /mosquitto/data
 chmod 0700 "$pw"
 exec /usr/sbin/mosquitto -c /mosquitto/config/mosquitto.conf

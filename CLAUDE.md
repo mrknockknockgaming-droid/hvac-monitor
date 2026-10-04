@@ -62,6 +62,9 @@ temperatures, superheat, subcooling and delta-T.
   SQLite `dev.db` in development, TimescaleDB via `docker-compose.yml` (Mosquitto on host
   port 1884, API on :8000). Docker Desktop + WSL are installed (2026-10-03) and the Compose stack
   was tested end to end; the broker's passwords come from .env via `mosquitto/start.sh`.
+  Production: `docker-compose.prod.yml` (Caddy HTTPS, MQTT TLS 8883 with private CA from
+    `tls/make-certs.sh`, COOKIE_SECURE, daily pg_dump to backups-pg/) + `hvac-cloud/DEPLOY.md`;
+    all tested locally as DOMAIN=localhost incl. a backup restore. Keys/certs/backups git-ignored.
   Docker isn't on PATH in shells started before the install: use
   "C:\Program Files\Docker\Docker\resources\bin\docker.exe".
   - Uses the firmware's existing topics `hvac/<site>/<node>/...`; a system's `site_id` =

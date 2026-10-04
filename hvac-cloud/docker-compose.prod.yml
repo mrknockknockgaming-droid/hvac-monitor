@@ -1,0 +1,60 @@
+# Public server, on top of docker-compose.yml: HTTPS through Caddy, MQTT over TLS for the nodes,
+# a daily database backup, and nothing else reachable from outside. See DEPLOY.md.
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+
+x-prod-env: &prod-env
+  COOKIE_SECURE: "true"
+  APP_URL: https://${DOMAIN:?set DOMAIN in .env}/app/
+
+services:
+  api:
+    ports: !reset []                    # only Caddy talks to the API
+    command: ["uvicorn", "hvaccloud.api:app", "--host", "0.0.0.0", "--port", "8000",
+              "--proxy-headers", "--forwarded-allow-ips", "*"]
+    environment: *prod-env
+
+  ingest:
+    environment: *prod-env
+
+  mqtt:
+    ports: !override
+      - "8883:8883"                     # nodes, TLS; plain 1883 stays inside the Docker network
+    volumes: !override
+      - ./mosquitto/mosquitto.prod.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./mosquitto/start.sh:/mosquitto/config/start.sh:ro
+      - ./tls:/mosquitto/certs:ro       # from tls/make-certs.sh
+      - mqttdata:/mosquitto/data
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env}
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddydata:/data                 # certificates; keep this volume
+      - caddyconfig:/config
+    depends_on:
+      - api
+
+  backup:
+    image: timescale/timescaledb:latest-pg16
+    restart: unless-stopped
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-14}
+    entrypoint: ["/bin/sh", "/pg-backup.sh"]
+    volumes:
+      - ./scripts/pg-backup.sh:/pg-backup.sh:ro
+      - ./backups-pg:/backups
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  caddydata:
+  caddyconfig:

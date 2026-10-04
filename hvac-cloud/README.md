@@ -225,9 +225,13 @@ broker logins refused, web app served from the container.
 The SQLite nightly backup / thinning doesn't run here; TimescaleDB's retention policy expires
 old rows. Back up with `docker compose exec db pg_dump -U hvac hvac > backup.sql`.
 
+**Public server:** add `-f docker-compose.prod.yml` for HTTPS (Caddy), MQTT over TLS on 8883
+with a private CA (`tls/make-certs.sh`), the secure cookie and a daily `pg_dump` backup. Step by
+step in [DEPLOY.md](DEPLOY.md).
+
 ## Not done yet
 
 - Web app: service requests sent through the cloud (now the homeowner's email),
   sending the homeowner and contractor emails from separate per-user accounts.
 - Per-device MQTT accounts and topic ACLs (every node shares one account for now).
-- HTTPS / MQTT TLS (Phase 8, going live).
+- Firmware with MQTT over TLS (the server side is ready, see DEPLOY.md).

@@ -28,6 +28,10 @@ hardware/scripts/__pycache__/
 hvac-cloud/.venv/
 hvac-cloud/dev.db*
 hvac-cloud/backups/
+hvac-cloud/backups-pg/
+hvac-cloud/tls/*.crt
+hvac-cloud/tls/*.key
+hvac-cloud/tls/*.srl
 hvac-cloud/.env
 hvac-cloud/mosquitto/passwd
 hvac-cloud/**/__pycache__/
