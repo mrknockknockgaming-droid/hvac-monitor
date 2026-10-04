@@ -1,0 +1,55 @@
+{
+  "format_version": 1,
+  "key_hex": "000102030405060708090a0b0c0d0e0f",
+  "tag_len": 8,
+  "frames": [
+    {
+      "name": "outdoor reading",
+      "device_id": 168496141,
+      "counter": 1,
+      "type": 1,
+      "payload_hex": "0000010400700cc10400801e02c10300800080150476006638010000",
+      "frame_hex": "110d0c0b0a01000000d544a03ec2d0bfc01f5b2786963fbd1553db5660bfba140ec4e434ad98dc3939a797940a"
+    },
+    {
+      "name": "outdoor reading kept 300 s",
+      "device_id": 168496141,
+      "counter": 2,
+      "type": 1,
+      "payload_hex": "2c01010400700cc10400801e02c10300800080150476006638010000",
+      "frame_hex": "110d0c0b0a02000000c72abc81313669ea6d8c162c67a0d9b79eac603eed294c2a3ee092f3e2c5399168eb7638"
+    },
+    {
+      "name": "indoor reading",
+      "device_id": 16909060,
+      "counter": 1,
+      "type": 2,
+      "payload_hex": "00000b00002e02f70263000000",
+      "frame_hex": "120403020101000000c6da6f8fbce9ff680d5c4d3f5ed7a29a1fd5474502"
+    },
+    {
+      "name": "status",
+      "device_id": 16909060,
+      "counter": 2,
+      "type": 3,
+      "payload_hex": "0003000500000000",
+      "frame_hex": "130403020102000000cbcc258ff829f0296509b104f27db14f"
+    },
+    {
+      "name": "command cal_span",
+      "device_id": 168496141,
+      "counter": 3,
+      "type": 4,
+      "payload_hex": "04020000964300",
+      "frame_hex": "140d0c0b0a03000000040eb1e0987f41e4c8e888dce91f31"
+    },
+    {
+      "name": "reply cal_zero",
+      "device_id": 168496141,
+      "counter": 4,
+      "type": 5,
+      "payload_hex": "0301000000c0bf0000803f",
+      "frame_hex": "150d0c0b0a04000000aeb234a7336af7ef58dd131bd652d8a1225be2"
+    }
+  ]
+}

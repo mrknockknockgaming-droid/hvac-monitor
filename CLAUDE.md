@@ -130,6 +130,15 @@ temperatures, superheat, subcooling and delta-T.
   - Tests: `.venv\Scripts\python.exe -m pytest -q` in `hvac-cloud/` (83 pass). Not done:
     per-device MQTT accounts and ACLs, TLS.
 
+## 900 MHz radio (decision point before Phase 9): `radio/`
+- `radio/README.md` is the design: FCC 15.247 means a fixed LoRa channel must be 500 kHz wide
+  (DTS) or hop; chosen 500 kHz, SF9 (77 ms per 45-byte frame), AES-128-CCM frames with
+  per-device keys and counters, a gateway that republishes the WiFi firmware's exact JSON on
+  the same MQTT topics (cloud unchanged). `lorafmt.py` is the tested reference (own venv:
+  radio/.venv, `pip install -r requirements.txt`); `vectors.json` is for the C++ port;
+  `rangetest/` builds for Heltec V3 (not run). Production module candidates with FCC modular
+  approval: Heltec HT-CT62, Seeed Wio-SX1262, RAK3172.
+
 ## Hardware
 - Boards: 3x ESP-WROOM-32 30-pin dev boards (PCB antenna, no u.FL). Outdoor on COM4, indoor on COM5 (both CP210x; tell them apart by port).
 - Power: 24 VAC from the equipment -> fuse -> SMBJ48CA TVS -> 1N4007 half-wave -> 470 uF
