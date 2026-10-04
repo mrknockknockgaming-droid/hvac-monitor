@@ -128,7 +128,13 @@ temperatures, superheat, subcooling and delta-T.
     thermostat reports cfg_ver. Ingest stores thermostat telemetry without a snapshot; the next
     indoor/outdoor snapshot carries `tstat` + flags room_hot, room_cold, setpoint_not_reached,
     call_mismatch. heat_pump / ob_energized come from the Equipment page, not the tech config.
-    Simulator: demo_publisher.py --thermostat.
+    Simulator: demo_publisher.py --thermostat. Branch also contains cloud/electrical (merged in).
+    Thermostat screen: display.py builds the feed (plain alerts, health areas, key numbers, 6 h
+    trend at 2 min, electrical markers from raised alerts); ingest publishes it retained to
+    hvac/<site>/thermostat/display (<= 1/min, at once on raise/clear); browser preview
+    web/thermostat.html#<id> (Home / Alerts / Service behind tech.service_pin, default 0000).
+  - Alerts: `alerts.unjudged(snap)` = codes whose checks couldn't run (idle, not steady, node or
+    electrical module offline); their raised alerts stay open instead of clearing every cycle.
   - Schema changes: `db.add_missing_columns` adds new NULLABLE columns to existing tables at
     startup (create_all only makes new tables). Non-null new columns need a real migration.
   - Maintenance card (home): filter due at 90 days or 500 blower hours, tune-up 182 days,
@@ -138,7 +144,7 @@ temperatures, superheat, subcooling and delta-T.
     `hvac-cloud/backups/` (keeps 7, git-ignored) and prunes: >30 days thinned to 1-minute
     averages, raw telemetry >30 days dropped, >365 days deleted (`hvaccloud/maintenance.py`;
     `manage.py backup` / `prune` by hand). Restore steps are in hvac-cloud/README.md.
-  - Tests: `.venv\Scripts\python.exe -m pytest -q` in `hvac-cloud/` (118 pass). Not done:
+  - Tests: `.venv\Scripts\python.exe -m pytest -q` in `hvac-cloud/` (121 pass). Not done:
     per-device MQTT accounts and ACLs, TLS.
 
 ## Electrical module (phase 11): `electrical/README.md` + `hvac-cloud/hvaccloud/electrical.py`

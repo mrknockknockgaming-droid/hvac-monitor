@@ -23,13 +23,37 @@ CLEAR_AT_ONCE = {NO_DATA}       # readings are back: no reason to wait
 SLACK_S = 0.001                 # stored times are rounded to microseconds, so "now - started" can be a hair negative
 LEVEL_WORD = {"alert": "Fault", "warn": "Warning"}
 
+# Checks that can only be judged while the equipment runs. Between cycles their alerts stay as
+# they are instead of "clearing" every time the compressor stops: a weak capacitor or low charge
+# is still there while the unit is idle. They clear when a judged reading no longer shows them.
+STEADY_CODES = frozenset({"sh_low", "sh_high", "sc_low", "sc_high", "dt_low", "ctoa_high"})     # calc: 10 min steady
+SETTLED_CODES = frozenset({"contactor_open", "comp_not_running", "fan_not_running", "comp_amps_high", "fan_amps_high"})
+RUNNING_CODES = SETTLED_CODES | {"cap_herm", "cap_fan", "contactor_drop", "voltage"}
+STEADY_MIN, SETTLE_MIN = 10, 1.0          # calc.flags and electrical.SETTLE_MIN
+
+
+def unjudged(snap):
+    """Codes whose checks could not run on this snapshot (see STEADY_CODES)."""
+    run_min = snap.get("run_min") or 0
+    out = set()
+    if snap.get("mode") not in ("cooling", "heating") or run_min < STEADY_MIN:
+        out |= STEADY_CODES
+    if not snap.get("Y") or not snap.get("elec"):             # idle, or the electrical module isn't reporting
+        out |= RUNNING_CODES
+    elif run_min < SETTLE_MIN:
+        out |= SETTLED_CODES
+    if any(f.get("code") == "node_offline" and f.get("node") in ("outdoor", "indoor") for f in snap.get("flags") or []):
+        out |= STEADY_CODES                                       # can't compute superheat etc. without both nodes
+    return out
+
 
 def ts(epoch):
     return dt.datetime.fromtimestamp(epoch, dt.timezone.utc)
 
 
-def sync(s, system, flags, now, hold):
-    """Update the system's open alerts from the current flags. Returns [("raised"|"cleared", Alert)]."""
+def sync(s, system, flags, now, hold, keep=frozenset()):
+    """Update the system's open alerts from the current flags. Returns [("raised"|"cleared", Alert)].
+    Raised alerts whose code is in `keep` (not judged this time, see unjudged) stay open."""
     open_ = {(a.code, a.node): a for a in s.scalars(
         select(Alert).where(Alert.system_id == system.id, Alert.cleared_at.is_(None)))}
     events, seen = [], set()
@@ -46,7 +70,7 @@ def sync(s, system, flags, now, hold):
             a.raised_at = ts(now)
             events.append(("raised", a))
     for key, a in open_.items():
-        if key in seen:
+        if key in seen or (a.code in keep and a.raised_at is not None):
             continue
         gone = now - as_utc(a.last_seen).timestamp()
         if a.code in CLEAR_AT_ONCE or gone >= hold - SLACK_S:

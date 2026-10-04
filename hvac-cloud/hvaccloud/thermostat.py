@@ -38,6 +38,7 @@ DEFAULT_TECH = {                       # technician-only (Thermostat page)
     "heat_pump": True, "ob_energized": "cool",   # sent from the system's Equipment page settings
     "has_aux": True,
     "tz": "America/Phoenix",           # the house's time zone, for the schedule
+    "service_pin": "0000",             # opens the technician page on the thermostat's screen
     "differential": 1.0,               # F: a call starts at setpoint +/- half of this and ends at -/+ half
     "min_on_s": 300, "min_off_s": 300, "max_starts_h": 4,
     "aux_lockout_f": 35.0,             # no aux heat above this outdoor temperature (emergency heat excepted)
@@ -99,6 +100,9 @@ def validate_tech(tech):
             errs.append(f"{k} must be between {lo:g} and {hi:g}")
     if "has_aux" in tech and not isinstance(tech["has_aux"], bool):
         errs.append("has_aux must be true or false")
+    if "service_pin" in tech and not (isinstance(tech["service_pin"], str) and tech["service_pin"].isdigit()
+                                      and 4 <= len(tech["service_pin"]) <= 6):
+        errs.append("service_pin must be 4 to 6 digits")
     if "tz" in tech:
         try:
             zoneinfo.ZoneInfo(str(tech["tz"]))

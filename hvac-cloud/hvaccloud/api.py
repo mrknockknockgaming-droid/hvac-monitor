@@ -25,7 +25,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import func, select
 
-from . import alerts, auth, calc, electrical, equipment, service, settings, thermostat
+from . import alerts, auth, calc, display, electrical, equipment, service, settings, thermostat
 from .db import (Account, Alert, AlertMute, AlertPrefs, ApiKey, Command, Device, Invite, PasswordReset, ServiceInfo, ServiceVisit, Snapshot,
                  System, SystemMember, Telemetry, ThermostatConfig, User, as_utc, hash_key, init_db, make_engine,
                  session_factory, utcnow)
@@ -456,6 +456,11 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
     @app.get("/api/systems/{system_id}/thermostat")
     def get_thermostat(system=Depends(own_system), s=Depends(db)):
         return tstat_view(s, system, s.get(ThermostatConfig, system.id))
+
+    @app.get("/api/systems/{system_id}/thermostat/display")
+    def thermostat_display(system=Depends(own_system), s=Depends(db)):
+        """The feed the thermostat's screen shows (display.py): alerts, health, technician trend."""
+        return display.build(s, system, utcnow().timestamp(), stale)
 
     @app.put("/api/systems/{system_id}/thermostat")
     def set_thermostat(body: ThermostatIn, system=Depends(own_system), s=Depends(db)):

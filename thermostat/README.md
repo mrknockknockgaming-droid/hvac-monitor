@@ -39,6 +39,50 @@ to stay safe.
 - **Time** comes from NTP, as on the nodes (firmware 0.2). The schedule is in the house's time
   zone (`tech.tz`). The firmware converts the IANA name to a POSIX TZ string.
 
+## The screen
+
+Three tabs on the 800 × 480 touchscreen. `hvac-cloud/web/thermostat.html` is a browser preview of
+the screen, driven by a system's live data; open it from the thermostat card ("See the
+thermostat's screen") or from the Equipment page.
+
+- **Home:** room temperature, setpoint −/+, mode, what it's doing ("Cooling to 76°", "Protecting
+  the compressor"), schedule or hold with Resume. Top bar: clock, outdoor temperature, humidity
+  and the monitoring status ("System OK", "Check soon"), which opens Alerts.
+- **Alerts (homeowner):** the monitoring system's open alerts in plain words, the same as the
+  emails. Tap one for why it matters and what to do. Beside them are the System health areas,
+  as on the homeowner web page, plus Comfort.
+- **Service (technician, behind the service PIN):**
+  - top: key numbers (mode and run time, superheat, subcooling, delta-T, suction, liquid, line
+    volts, compressor amps), outlined when one has an alert
+  - middle: a trend of suction and liquid pressure, and return, supply and outdoor air, over
+    1 or 6 hours, with the compressor's run times along the bottom and shaded, numbered markers
+    where the electrical module found a problem (weak capacitor, pitted contactor, high amps,
+    voltage…)
+  - bottom: the open diagnostics in technical words
+
+  It locks again after 5 minutes without a touch. The PIN is set on the Equipment page
+  (default 0000).
+
+### The display feed
+
+The cloud does the diagnosing, so the thermostat only draws. Ingest publishes a feed, retained,
+on `hvac/<site>/thermostat/display`: at most once a minute, and at once when an alert is raised
+or cleared. It is built by `hvaccloud/display.py` and is also available at
+`GET /api/systems/{id}/thermostat/display`. Contents:
+
+- status and headline
+- open alerts: plain title, why, what to do, technical text, since when
+- health areas
+- key numbers
+- the 6-hour trend at 2-minute steps
+- electrical markers: code, label, start, end
+
+It is about 6 KB. The firmware needs an MQTT buffer of at least 16 KB.
+
+Alerts on the screen are the raised ones (5-minute hold), so it doesn't flicker. Problems that
+can only be checked while the unit runs (refrigerant, delta-T, the electrical checks) stay
+shown between cycles. They clear only when a later run shows them gone.
+
 ## Settings
 
 Homeowner (`settings`): `mode` (off, heat, cool, auto, emergency_heat), `fan` (auto, on,
@@ -46,7 +90,7 @@ circulate), `heat_sp`, `cool_sp`, `schedule` (weekly periods: `{"days": [0-6], "
 "heat": 68, "cool": 78}`, Monday = 0) and `hold` (`{"heat", "cool", "until"}`; `until` null =
 until resumed).
 
-Technician only (`tech`; Equipment page): `has_aux`, `tz`, `differential`, `min_on_s`,
+Technician only (`tech`; Equipment page): `has_aux`, `tz`, `service_pin`, `differential`, `min_on_s`,
 `min_off_s` (at least 120 s), `max_starts_h`, `comp_lockout_f`, `aux_lockout_f`, `aux_droop_f`,
 `aux_delay_s`, `fan_purge_s`, `circulate_min_h`. Allowed ranges are in `TECH_LIMITS`.
 `heat_pump` and `ob_energized` come from the system's Equipment settings, so they are set in
@@ -88,7 +132,7 @@ step of simulated random days:
   enclosure).
 - **Terminals:** R, C, Y, W, G, O/B, labelled like a standard thermostat sub-base.
 
-## Diagnostics the cloud adds
+## Diagnostics the cloud adds (on top of the monitors' and the electrical module's)
 
 | Code | When | Level |
 |---|---|---|

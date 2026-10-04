@@ -76,7 +76,16 @@ cloud stores the settings and publishes them, retained and versioned, to
 Its state and diagnostics ride along in the system's snapshots, under `tstat`. Systems
 without a thermostat are unchanged. Homeowners get a thermostat card (setpoint, mode, fan,
 schedule, resume); technicians get thermostat rows on Monitor and its safety settings on
-Equipment. Try it with `python demo_publisher.py --site demo --thermostat`.
+Equipment. Try it with `python demo_publisher.py --site demo --thermostat` (add
+`--electrical --fault pitted_contactor` for the electrical module).
+
+The thermostat's own screen (Home, Alerts for homeowners, Service for technicians, with a trend
+and electrical fault markers) has a browser preview at `/app/thermostat.html#<system id>`, using
+the display feed from `hvaccloud/display.py`. Ingest publishes the feed retained to
+`hvac/<site>/thermostat/display`.
+
+Alerts for checks that only run while the unit runs (refrigerant, delta-T, electrical) stay open
+between cycles. They clear only when a later run shows the problem gone (`alerts.unjudged`).
 
 ## Sign-in and roles
 
@@ -240,6 +249,7 @@ header `X-API-Key: <key from manage.py create-key>`. Endpoints marked *tech* ans
 | PATCH | `/api/systems/{id}/service/items/{filter\|tuneup}` | `interval_days`, `interval_run_hours` (null = days only), `last_done` |
 | POST | `/api/systems/{id}/service/items/{kind}/done` | `{"date":"2026-10-03"}` (defaults to today) |
 | GET / PUT | `/api/systems/{id}/thermostat` | Display thermostat: settings, schedule, what it reports, whether it runs the latest version; PUT `mode`, `fan`, `heat_sp`, `cool_sp`, `schedule` (homeowners too) |
+| GET | `/api/systems/{id}/thermostat/display` | What the thermostat's screen shows: plain alerts, health areas, key numbers, 6 h trend, electrical markers |
 | POST / DELETE | `/api/systems/{id}/thermostat/hold` | `{"heat"?, "cool"?, "permanent"?}` holds until the next scheduled change; DELETE resumes the schedule |
 | PUT | `/api/systems/{id}/thermostat/tech` | *tech* Safety settings (compressor protection, aux heat lockouts, time zone) |
 | POST | `/api/systems/{id}/commands` | `{"node":"outdoor","cmd":{"cmd":"cal_zero","ch":"p_liq"}}` |

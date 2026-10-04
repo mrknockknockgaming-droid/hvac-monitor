@@ -614,7 +614,8 @@ function homeThermostat() {
     (heatOn ? stepper("heat", "Heat to") : "") + (coolOn ? stepper("cool", "Cool to") : "") + "</div>" +
     '<div class="tst-ctl"><label>Mode ' + eqSelect("t-mode", modes, mode, "Mode") + "</label>" +
     "<label>Fan " + eqSelect("t-fan", TSTAT_FANS, t.settings.fan, "Fan") + "</label>" +
-    (tstatApplied(t) || !t.version ? "" : '<span class="faint">Sending to the thermostat…</span>') + "</div>" +
+    (tstatApplied(t) || !t.version ? "" : '<span class="faint">Sending to the thermostat…</span>') +
+    '<a class="muted" href="thermostat.html#' + S.sys.id + '" target="_blank" rel="noopener" style="margin-left:auto">See the thermostat\'s screen</a></div>' +
     scheduleEditor(t) + "</section>";
 }
 function scheduleEditor(t) {
@@ -707,13 +708,16 @@ function tstatTechPanel() {
     '<table class="dt"><thead><tr><th>Field</th><th>Value</th><th>Used by</th></tr></thead><tbody>' +
     row("Auxiliary heat", eqSelect("f-tt-has_aux", [["1", "Installed"], ["0", "None"]], t.tech.has_aux ? "1" : "0", "Auxiliary heat"), "Heat pump staging") + rows +
     row("Time zone", '<input class="inp" id="f-tt-tz" value="' + esc(t.tech.tz) + '" aria-label="Time zone">', "Schedule times") +
+    row("Service PIN", '<input class="inp" id="f-tt-service_pin" inputmode="numeric" value="' + esc(t.tech.service_pin) + '" aria-label="Service PIN">',
+      'Opens the Service page on the thermostat · <a href="thermostat.html#' + S.sys.id + '" target="_blank" rel="noopener">Preview its screen</a>') +
     row("Heat pump · O/B", '<span class="faint">' + (t.tech.heat_pump ? "Heat pump · " + (t.tech.ob_energized === "cool" ? "O" : "B") : "Straight cool") + "</span>", "Set under System above") +
     "</tbody></table></section>";
 }
 root.addEventListener("click", function (e) {
   var b = e.target.closest && e.target.closest("[data-tt-save]");
   if (!b || S.view !== "equipment" || !S.tstat) return;
-  var body = { has_aux: (document.getElementById("f-tt-has_aux") || {}).value === "1", tz: ((document.getElementById("f-tt-tz") || {}).value || "").trim() };
+  var body = { has_aux: (document.getElementById("f-tt-has_aux") || {}).value === "1", tz: ((document.getElementById("f-tt-tz") || {}).value || "").trim(),
+    service_pin: ((document.getElementById("f-tt-service_pin") || {}).value || "").trim() };
   for (var i = 0; i < TSTAT_TECH_ROWS.length; i++) {
     var k = TSTAT_TECH_ROWS[i][0], el = document.getElementById("f-tt-" + k), v = el ? parseFloat(el.value.replace(",", ".")) : NaN;
     if (!isFinite(v)) { S.msg = "Check the thermostat numbers: one of them isn't a number."; render(); return; }

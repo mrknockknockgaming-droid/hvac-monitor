@@ -137,3 +137,25 @@ def test_alerts_api(sessions, seeded, tables):
     assert [a["code"] for a in got] == ["dt_low"]        # sc_low is still pending
     assert got[0]["open"] is True and got[0]["raised_at"]
     assert c.get(f"/api/systems/{sys_id}/alerts", headers={"X-API-Key": seeded["key2"]}).status_code == 404
+
+
+def test_run_only_alerts_stay_open_between_cycles(sessions, seeded):
+    """A low delta-T found while running isn't "fixed" by the compressor stopping."""
+    running = {"mode": "cooling", "Y": True, "run_min": 15}
+    idle = {"mode": "idle", "Y": False, "run_min": 0}
+    with sessions() as s, s.begin():
+        system = s.scalar(select(System).where(System.site_id == "home"))
+        alerts.sync(s, system, [FLAG], T0, 300, alerts.unjudged(running))
+        assert alerts.sync(s, system, [FLAG], T0 + 300, 300, alerts.unjudged(running))[0][0] == "raised"
+        for k in range(1, 30):                                         # 30 min idle: nothing to judge
+            assert alerts.sync(s, system, [], T0 + 300 + 60 * k, 300, alerts.unjudged(idle)) == []
+        starting = {"mode": "cooling", "Y": True, "run_min": 4}        # running again, not steady yet
+        assert alerts.sync(s, system, [], T0 + 2400, 300, alerts.unjudged(starting)) == []
+        ev = alerts.sync(s, system, [], T0 + 3000, 300, alerts.unjudged(running))   # judged fine: clears
+        assert [e[0] for e in ev] == ["cleared"]
+    assert alerts.unjudged({"mode": "cooling", "Y": True, "run_min": 15, "elec": {"line_v": 240}}) == set()
+    assert "contactor_drop" in alerts.unjudged({"mode": "cooling", "Y": True, "run_min": 15, "elec": None})
+    offline = {"mode": "cooling", "Y": True, "run_min": 15, "flags": [{"code": "node_offline", "node": "outdoor"}]}
+    assert "sh_low" in alerts.unjudged(offline)
+    assert "cap_herm" in alerts.unjudged(idle) and "voltage" in alerts.unjudged(idle)
+    assert "room_hot" not in alerts.unjudged(idle)                     # always judged

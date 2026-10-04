@@ -17,7 +17,7 @@ import time
 
 from sqlalchemy import select
 
-from . import alerts, calc, electrical, equipment, maintenance, settings, thermostat
+from . import alerts, calc, display, electrical, equipment, maintenance, settings, thermostat
 from .db import (Alert, Command, Device, Equipment, RuntimeDay, Snapshot, System, Telemetry, as_utc, init_db,
                  make_engine, session_factory, utcnow)
 from .refrigerants import Tables
@@ -27,6 +27,7 @@ ALL_NODES = calc.NODES + (electrical.NODE, thermostat.NODE)
 RUN_GAP_S = 60          # longer gaps between snapshots don't count as run time (same rule as /summary)
 TS_MAX_AGE_S = 24 * 3600   # a node's own reading time is trusted up to this old (firmware keeps 10 min)
 TS_MAX_AHEAD_S = 60        # ... and this far in the future (clock drift)
+DISPLAY_EVERY_S = 60       # the thermostat's display feed: at most this often, unless an alert changes
 
 
 def ts(epoch):
@@ -42,6 +43,8 @@ class Ingest:
         self.stale = stale
         self.hold, self.silence, self.cooldown_s = hold, silence, cooldown_s
         self.mailer = mailer          # None = no email (tests); run() passes alerts.Mailer()
+        self.publish = None           # (topic, payload) -> None, retained; run() sets it; None = no display feed
+        self._display_at = {}         # system_id -> when its display feed was last published
         self.latest = {}              # (system_id, node) -> (epoch, data)
         self._unknown_sites = set()
         self._lock = threading.Lock()   # MQTT thread (handle) vs. the once-a-minute sweep
@@ -80,8 +83,9 @@ class Ingest:
             if kind == "telemetry":
                 at = self.reading_time(data, now)
                 snap = self.on_telemetry(s, system, device, data, at)
-                events = alerts.sync(s, system, snap["flags"], at, self.hold)
+                events = alerts.sync(s, system, snap["flags"], at, self.hold, keep=alerts.unjudged(snap))
                 jobs = alerts.emails_for(s, system, events, at, self.cooldown_s)
+                show = self._display_due(s, system, events, now)
             elif kind == "status":
                 return self.on_status(device, data, now)
             elif kind == "reply":
@@ -89,7 +93,27 @@ class Ingest:
             else:
                 return None
         self._email(jobs)          # after commit, so the alerts exist when emailed_at is written
+        if show:
+            self._publish_display(*show, now)
         return snap
+
+    # ---------- the display thermostat's feed (display.py) ----------
+    def _display_due(self, s, system, events, now):
+        """(system_id, site) when this system's thermostat should get a fresh feed, else None."""
+        if self.publish is None or self._thermostat_state(s, system, now) is None:
+            return None
+        if events or now - self._display_at.get(system.id, 0) >= DISPLAY_EVERY_S:
+            return system.id, system.site_id
+        return None
+
+    def _publish_display(self, system_id, site, now):
+        self._display_at[system_id] = now
+        try:
+            with self.sessions() as s:
+                feed = display.build(s, s.get(System, system_id), now, self.stale)
+            self.publish(f"hvac/{site}/{thermostat.NODE}/display", feed)
+        except Exception:
+            log.exception("display feed for %s failed", site)
 
     @staticmethod
     def reading_time(data, now):
@@ -114,13 +138,18 @@ class Ingest:
     def sweep(self, now=None):
         """Raise (or keep open) "no data" alerts for systems whose nodes have gone quiet."""
         now = time.time() if now is None else now
-        jobs = []
-        with self._lock, self.sessions() as s, s.begin():
-            for system in s.scalars(select(System).order_by(System.id)):
-                flags = alerts.no_data_flags(s, system, now, self.silence)
-                if flags is not None:
-                    events = alerts.sync(s, system, flags, now, self.hold)
-                    jobs += alerts.emails_for(s, system, events, now, self.cooldown_s)
+        jobs, shows = [], []
+        with self._lock:
+            with self.sessions() as s, s.begin():
+                for system in s.scalars(select(System).order_by(System.id)):
+                    flags = alerts.no_data_flags(s, system, now, self.silence)
+                    if flags is not None:
+                        events = alerts.sync(s, system, flags, now, self.hold)
+                        jobs += alerts.emails_for(s, system, events, now, self.cooldown_s)
+                        if events and self.publish is not None and self._thermostat_state(s, system, now) is not None:
+                            shows.append((system.id, system.site_id))
+            for show in shows:
+                self._publish_display(*show, now)
         self._email(jobs)
 
     def _email(self, jobs):
@@ -296,6 +325,7 @@ def run():
         client.username_pw_set(settings.MQTT_USER, settings.MQTT_PASS)
     client.on_connect = on_connect
     client.on_message = on_message
+    ingest.publish = lambda topic, payload: client.publish(topic, json.dumps(payload, separators=(",", ":")), qos=1, retain=True)
     client.reconnect_delay_set(1, 30)
     client.connect_async(settings.MQTT_HOST, settings.MQTT_PORT, keepalive=30)
     client.loop_start()
