@@ -201,7 +201,7 @@ def test_settings_holds_and_tech_settings_over_the_api(sessions, tables):
     r = owner_c.post(url + "/hold", json={"heat": 76}, headers=XRW).json()
     assert r["settings"]["hold"]["cool"] == 79                                              # pushed along, not refused
     r = owner_c.delete(url + "/hold", headers=XRW).json()
-    assert r["settings"]["hold"] is None and r["version"] == 5
+    assert r["settings"]["hold"] is None and r["version"] == 4
 
     assert owner_c.put(url + "/tech", json={"min_off_s": 120}, headers=XRW).status_code == 403   # technician only
     assert tech_c.put(url + "/tech", json={"min_off_s": 30}, headers=XRW).status_code == 422     # below the floor
@@ -213,7 +213,7 @@ def test_settings_holds_and_tech_settings_over_the_api(sessions, tables):
     # the thermostat reports in; the next indoor/outdoor reading carries its state and flags
     ingest = Ingest(sessions, tables)
     now = time.time()
-    report = {"node": "thermostat", "cfg_ver": 6, "room": {"t": 94.0}, "mode": "auto", "fan": "auto",
+    report = {"node": "thermostat", "cfg_ver": 5, "room": {"t": 94.0}, "mode": "auto", "fan": "auto",
               "sp": {"heat": 67, "cool": 77}, "source": "manual", "out": {"Y": True, "W": False, "G": True, "OB": True},
               "call": "cool", "call_min": 3.0, "wait": None, "err": []}
     assert ingest.handle("hvac/home/thermostat/telemetry", _json.dumps(report).encode(), now=now - 2) == report
@@ -223,7 +223,7 @@ def test_settings_holds_and_tech_settings_over_the_api(sessions, tables):
     assert "room_hot" in {f["code"] for f in snap["flags"]}
     v = owner_c.get(url).json()
     assert v["present"] and v["applied"] and v["report"]["room"]["t"] == 94.0
-    assert owner_c.get(f"/api/systems/{sid}/latest").json()["nodes"]["thermostat"]["data"]["cfg_ver"] == 6
+    assert owner_c.get(f"/api/systems/{sid}/latest").json()["nodes"]["thermostat"]["data"]["cfg_ver"] == 5
 
 
 def test_systems_without_a_thermostat_are_unchanged(sessions, seeded, tables):
