@@ -232,3 +232,24 @@ def test_systems_without_a_thermostat_are_unchanged(sessions, seeded, tables):
     from tests.test_calc import COOL_IN
     snap = Ingest(sessions, tables).handle("hvac/home/indoor/telemetry", _json.dumps(COOL_IN).encode(), now=1.8e9)
     assert snap["tstat"] is None and all(f.get("node") != "thermostat" for f in snap["flags"])
+
+
+def test_changes_made_on_the_thermostat_come_back_as_a_newer_config(sessions, seeded, tables):
+    import json as _json
+    from hvaccloud.db import ThermostatConfig
+    from hvaccloud.ingest import Ingest
+    sent = []
+    ingest = Ingest(sessions, tables)
+    ingest.publish = lambda topic, payload: sent.append((topic, payload))
+    req = {"id": 1, "hold": {"heat": 66, "cool": 73, "until": "2026-10-05T17:00:00"}, "mode": "auto"}
+    cfg = ingest.handle("hvac/home/thermostat/request", _json.dumps(req).encode(), now=1.8e9)
+    assert cfg["ver"] == 1 and cfg["settings"]["mode"] == "auto" and cfg["settings"]["hold"]["cool"] == 73
+    assert sent == [("hvac/home/thermostat/config", cfg)]
+    cfg = ingest.handle("hvac/home/thermostat/request", _json.dumps({"resume": True}).encode(), now=1.8e9 + 5)
+    assert cfg["ver"] == 2 and cfg["settings"]["hold"] is None and cfg["settings"]["mode"] == "auto"
+    for bad in ({"cool_sp": 99}, {"hold": {"heat": 75, "cool": 76}}, {"mode": "party"}, {"hold": {"heat": 66, "cool": 73, "until": "soon"}}):
+        assert ingest.handle("hvac/home/thermostat/request", _json.dumps(bad).encode(), now=1.8e9 + 9) is None
+    assert len(sent) == 2
+    with sessions() as s:
+        row = s.get(ThermostatConfig, 1)
+        assert row.version == 2 and row.settings["mode"] == "auto"

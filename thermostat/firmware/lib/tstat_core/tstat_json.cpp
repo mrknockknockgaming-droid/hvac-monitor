@@ -77,6 +77,61 @@ bool parse_config(const char* json, size_t len, int& ver, Settings& settings, Te
     return true;
 }
 
+void format_iso(const LocalTime& t, char* out, size_t n) {
+    snprintf(out, n, "%04d-%02d-%02dT%02d:%02d:%02d", t.year, t.mon, t.day, t.hour, t.min, t.sec);
+}
+
+void config_to_json(JsonDocument& doc, int ver, const Settings& s, const Tech& t) {
+    doc.clear();
+    doc["ver"] = ver;
+    JsonObject o = doc["settings"].to<JsonObject>();
+    o["mode"] = name(s.mode);
+    o["fan"] = name(s.fan);
+    o["heat_sp"] = s.heat_sp;
+    o["cool_sp"] = s.cool_sp;
+    JsonArray sched = o["schedule"].to<JsonArray>();
+    for (const Period& p : s.schedule) {
+        JsonObject e = sched.add<JsonObject>();
+        JsonArray days = e["days"].to<JsonArray>();
+        for (uint8_t d : p.days) days.add(d);
+        char at[6];
+        snprintf(at, sizeof at, "%02d:%02d", p.minute / 60, p.minute % 60);
+        e["at"] = at;
+        e["heat"] = p.heat;
+        e["cool"] = p.cool;
+    }
+    if (s.hold.active) {
+        JsonObject h = o["hold"].to<JsonObject>();
+        h["heat"] = s.hold.heat;
+        h["cool"] = s.hold.cool;
+        if (s.hold.has_until) {
+            char iso[24];
+            format_iso(s.hold.until, iso, sizeof iso);
+            h["until"] = iso;
+        } else {
+            h["until"] = nullptr;
+        }
+    } else {
+        o["hold"] = nullptr;
+    }
+    JsonObject x = doc["tech"].to<JsonObject>();
+    x["heat_pump"] = t.heat_pump;
+    x["ob_energized"] = t.ob_cool ? "cool" : "heat";
+    x["has_aux"] = t.has_aux;
+    x["differential"] = t.differential;
+    x["min_on_s"] = t.min_on_s;
+    x["min_off_s"] = t.min_off_s;
+    x["max_starts_h"] = t.max_starts_h;
+    x["aux_lockout_f"] = t.aux_lockout_f;
+    x["comp_lockout_f"] = t.comp_lockout_f;
+    x["aux_droop_f"] = t.aux_droop_f;
+    x["aux_delay_s"] = t.aux_delay_s;
+    x["fan_purge_s"] = t.fan_purge_s;
+    x["circulate_min_h"] = t.circulate_min_h;
+    x["tz"] = t.tz;
+    x["service_pin"] = t.service_pin;
+}
+
 static double r1(double v) { return std::round(v * 10) / 10; }
 
 void build_report(JsonDocument& doc, const Report& r, int cfg_ver, double rh, uint32_t uptime_s, double ts, const char* fw) {

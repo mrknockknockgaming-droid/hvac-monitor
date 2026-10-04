@@ -1,7 +1,7 @@
 """MQTT ingest worker: stores node messages and derived snapshots for every known system.
 
 Listens on hvac/<site>/<node>/{telemetry,status,reply}, the topics the firmware already
-uses. <site> must match a system's site_id (create it with manage.py); messages from
+uses, and hvac/<site>/thermostat/request (changes made on the thermostat's screen). <site> must match a system's site_id (create it with manage.py); messages from
 unknown sites are ignored. Every message also updates the system's alerts (alerts.py), and once a
 minute systems whose nodes have gone quiet get a "no data" alert. Once a night the SQLite
 database is backed up and old data thinned (maintenance.py).
@@ -18,8 +18,8 @@ import time
 from sqlalchemy import select
 
 from . import alerts, calc, display, electrical, equipment, maintenance, settings, thermostat
-from .db import (Alert, Command, Device, Equipment, RuntimeDay, Snapshot, System, Telemetry, as_utc, init_db,
-                 make_engine, session_factory, utcnow)
+from .db import (Alert, Command, Device, Equipment, RuntimeDay, Snapshot, System, Telemetry, ThermostatConfig, as_utc,
+                 init_db, make_engine, session_factory, utcnow)
 from .refrigerants import Tables
 
 log = logging.getLogger("ingest")
@@ -90,8 +90,15 @@ class Ingest:
                 return self.on_status(device, data, now)
             elif kind == "reply":
                 return self.on_reply(s, device, data, now)
+            elif kind == "request" and node == thermostat.NODE:
+                config = self.on_thermostat_request(s, system, data)
+                topic = f"hvac/{system.site_id}/{thermostat.NODE}/config"
             else:
                 return None
+        if kind == "request":      # after commit: the stored version must exist before the thermostat sees it
+            if config is not None and self.publish is not None:
+                self.publish(topic, config)
+            return config
         self._email(jobs)          # after commit, so the alerts exist when emailed_at is written
         if show:
             self._publish_display(*show, now)
@@ -280,6 +287,24 @@ class Ingest:
         return data
 
     @staticmethod
+    def on_thermostat_request(s, system, data):
+        """A change made on the thermostat's screen: store it and return the new config to send back
+        (the thermostat accepts it because its version is newer). None if it isn't valid."""
+        row = s.get(ThermostatConfig, system.id)
+        if row is None:
+            row = ThermostatConfig(system_id=system.id, settings={}, tech={}, version=0, sent=False)
+            s.add(row)
+        try:
+            row.settings = thermostat.apply_request(row.settings, data)
+        except ValueError as e:
+            log.warning("thermostat request from %s ignored: %s", system.site_id, e)
+            return None
+        row.version = (row.version or 0) + 1
+        row.updated_at = utcnow()
+        row.sent = True
+        return thermostat.config_payload(row.version, row.settings, row.tech, system)
+
+    @staticmethod
     def on_reply(s, device, data, now):
         """Attach the reply to the newest sent, unanswered command with the same verb.
         Nodes answer within a second, so an older unanswered one was lost, not queued."""
@@ -310,6 +335,7 @@ def run():
             log.info("connected to %s:%s", settings.MQTT_HOST, settings.MQTT_PORT)
             for kind in ("telemetry", "status", "reply"):
                 client.subscribe(f"hvac/+/+/{kind}", qos=1)
+            client.subscribe(f"hvac/+/{thermostat.NODE}/request", qos=1)
         else:
             log.warning("connect refused: %s", reason_code)
 

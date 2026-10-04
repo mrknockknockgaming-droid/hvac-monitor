@@ -8,6 +8,8 @@
 
 #include "tstat_core.h"
 #include "tstat_json.h"
+#include "feed.h"
+#include "feed_sample.h"
 #include "vectors.h"
 
 using namespace tstat;
@@ -112,6 +114,77 @@ static void test_report_json() {
     TEST_ASSERT_FALSE(doc["out"]["Y"].as<bool>());
 }
 
+static void test_config_round_trips_through_flash_format() {
+    for (int i = 0; i < static_cast<int>(sizeof V_CONFIGS / sizeof V_CONFIGS[0]); i++) {
+        Settings s, s2;
+        Tech t, t2;
+        int ver = 0, ver2 = 0;
+        TEST_ASSERT_TRUE(parse_config(V_CONFIGS[i], strlen(V_CONFIGS[i]), ver, s, t));
+        JsonDocument doc;
+        config_to_json(doc, ver, s, t);
+        std::string json;
+        serializeJson(doc, json);
+        TEST_ASSERT_TRUE(parse_config(json.c_str(), json.size(), ver2, s2, t2));
+        TEST_ASSERT_EQUAL(ver, ver2);
+        TEST_ASSERT_EQUAL(static_cast<int>(s.mode), static_cast<int>(s2.mode));
+        TEST_ASSERT_EQUAL(s.schedule.size(), s2.schedule.size());
+        TEST_ASSERT_EQUAL(s.hold.active, s2.hold.active);
+        TEST_ASSERT_EQUAL(0, compare(s.hold.until, s2.hold.until));
+        TEST_ASSERT_EQUAL_DOUBLE(t.min_off_s, t2.min_off_s);
+        TEST_ASSERT_EQUAL(t.ob_cool, t2.ob_cool);
+        LocalTime lt{2026, 10, 6, 9, 30, 0, 1};
+        Setpoints a = schedule_now(s, lt), b = schedule_now(s2, lt);
+        TEST_ASSERT_EQUAL_DOUBLE(a.cool, b.cool);
+        TEST_ASSERT_EQUAL(static_cast<int>(a.source), static_cast<int>(b.source));
+    }
+}
+
+static void test_holds_made_on_the_screen_match_python() {
+    Settings s;
+    Tech t;
+    int ver;
+    TEST_ASSERT_TRUE(parse_config(H_SETTINGS, strlen(H_SETTINGS), ver, s, t));
+    for (const HVec& v : H_VECS) {
+        LocalTime w{v.year, v.mon, v.day, v.hour, v.min, v.sec, v.wday};
+        Hold h = hold_until_next(s, w, NAN, 74);
+        char msg[96];
+        snprintf(msg, sizeof msg, "at %04d-%02d-%02d %02d:%02d", v.year, v.mon, v.day, v.hour, v.min);
+        TEST_ASSERT_EQUAL_MESSAGE(v.has_until, h.has_until, msg);
+        TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(v.cool, h.cool, msg);
+        TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(v.heat, h.heat, msg);
+        if (v.has_until) {
+            LocalTime u{v.uy, v.um, v.ud, v.uh, v.umin, 0, 0};
+            TEST_ASSERT_EQUAL_MESSAGE(0, compare(u, h.until), msg);
+        }
+    }
+    LocalTime ny = add_minutes(LocalTime{2026, 12, 31, 23, 50, 0, 3}, 20);
+    TEST_ASSERT_EQUAL(2027, ny.year);
+    TEST_ASSERT_EQUAL(1, ny.mon);
+    TEST_ASSERT_EQUAL(4, ny.wday);                 // Fri 1 Jan 2027
+}
+
+static void test_display_feed_from_the_cloud_parses() {
+    Feed f;
+    TEST_ASSERT_TRUE(feed_parse(FEED_SAMPLE, strlen(FEED_SAMPLE), f));
+    TEST_ASSERT_TRUE(f.fresh);
+    TEST_ASSERT_EQUAL(L_CAUTION, f.status);
+    TEST_ASSERT_EQUAL(1, f.alerts.size());
+    TEST_ASSERT_EQUAL_STRING("cap_herm", f.alerts[0].code.c_str());
+    TEST_ASSERT_TRUE(f.alerts[0].title.size() > 10 && f.alerts[0].todo.size() > 10);
+    TEST_ASSERT_EQUAL(5, f.health.size());
+    TEST_ASSERT_EQUAL(FEED_SAMPLE_POINTS, f.on.size());
+    TEST_ASSERT_EQUAL(f.on.size(), f.p_low_s.size());
+    TEST_ASSERT_TRUE(std::isnan(f.p_low_s[0]) && !std::isnan(f.p_high_s[f.p_high_s.size() - 2]));
+    TEST_ASSERT_EQUAL(1, f.markers.size());
+    TEST_ASSERT_EQUAL_STRING("Compressor capacitor weak", f.markers[0].label.c_str());
+    TEST_ASSERT_TRUE(std::isnan(f.markers[0].end));
+    TEST_ASSERT_TRUE(f.has_elec);
+    TEST_ASSERT_EQUAL_DOUBLE(240.0, f.line_v);
+    Feed g;
+    TEST_ASSERT_FALSE(feed_parse("{\"ver\":2}", 9, g));
+    TEST_ASSERT_FALSE(g.valid);
+}
+
 int main(int, char**) {
     UNITY_BEGIN();
     RUN_TEST(test_scenario_0);
@@ -122,5 +195,8 @@ int main(int, char**) {
     RUN_TEST(test_garbage_config_changes_nothing);
     RUN_TEST(test_hold_until_expires);
     RUN_TEST(test_report_json);
+    RUN_TEST(test_config_round_trips_through_flash_format);
+    RUN_TEST(test_holds_made_on_the_screen_match_python);
+    RUN_TEST(test_display_feed_from_the_cloud_parses);
     return UNITY_END();
 }

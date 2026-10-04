@@ -30,6 +30,7 @@ struct LocalTime {
     int year = 2000, mon = 1, day = 1, hour = 0, min = 0, sec = 0, wday = 0;
 };
 int compare(const LocalTime& a, const LocalTime& b);          // <0, 0, >0 (date and time, not wday)
+LocalTime add_minutes(const LocalTime& t, int minutes);       // calendar arithmetic, wday kept right
 bool parse_iso(const char* s, LocalTime& out);                // "2026-10-05T17:00:00" (seconds optional)
 
 struct Period {                 // one schedule line; days kept in the order given (matters for ties)
@@ -79,6 +80,12 @@ struct Setpoints {
 // schedule_now(): a hold wins (until it expires), then the schedule line that started most
 // recently (wrapping round the week), else the base setpoints.
 Setpoints schedule_now(const Settings& s, const LocalTime& when);
+
+// A hold of new setpoints until the next scheduled change (until resumed if there's no schedule),
+// as hold_until_next() in Python. Pass NAN for the setpoint not being changed. The other setpoint
+// is pushed along to keep the 3 F gap auto mode needs (as the cloud API does).
+Hold hold_until_next(const Settings& s, const LocalTime& when, double heat, double cool);
+constexpr double AUTO_DEADBAND = 3.0;
 
 struct Outputs {
     bool Y = false, W = false, G = false, OB = false;

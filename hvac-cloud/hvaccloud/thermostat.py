@@ -140,6 +140,38 @@ def config_payload(version, settings, tech, system):
     return {"ver": version, "settings": merged(settings), "tech": t}
 
 
+REQUEST_KEYS = ("mode", "fan", "heat_sp", "cool_sp")
+
+
+def apply_request(settings, req):
+    """A change made on the thermostat's own screen (hvac/<site>/thermostat/request):
+    {"mode"?, "fan"?, "heat_sp"?, "cool_sp"?, "hold"?: {"heat", "cool", "until"}, "resume"?: true}.
+    The thermostat has already applied it; this merges it into the stored settings. Returns the new
+    settings, or raises ValueError (the stored settings are then left as they are)."""
+    if not isinstance(req, dict):
+        raise ValueError("not an object")
+    s = merged(settings)
+    s.update({k: req[k] for k in REQUEST_KEYS if k in req})
+    if req.get("resume"):
+        s["hold"] = None
+    elif isinstance(req.get("hold"), dict):
+        h = req["hold"]
+        hold = {"heat": h.get("heat", s["heat_sp"]), "cool": h.get("cool", s["cool_sp"]), "until": h.get("until")}
+        if hold["until"] is not None:
+            try:
+                dt.datetime.fromisoformat(str(hold["until"]))
+            except ValueError:
+                raise ValueError("hold until must be an ISO local time") from None
+        errs = validate_hold(hold)
+        if errs:
+            raise ValueError("; ".join(errs))
+        s["hold"] = hold
+    errs = validate(s)
+    if errs:
+        raise ValueError("; ".join(errs))
+    return s
+
+
 def schedule_now(settings, when):
     """(heat, cool, source, next_change) at local time `when`: a hold wins, then the schedule
     period that started most recently (wrapping round the week), else the base setpoints."""

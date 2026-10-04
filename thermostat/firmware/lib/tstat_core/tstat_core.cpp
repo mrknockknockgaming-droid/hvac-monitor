@@ -41,6 +41,39 @@ int compare(const LocalTime& a, const LocalTime& b) {
     return 0;
 }
 
+static long days_from_civil(int y, int m, int d) {          // H. Hinnant's algorithm
+    y -= m <= 2;
+    const long era = (y >= 0 ? y : y - 399) / 400;
+    const unsigned yoe = static_cast<unsigned>(y - era * 400);
+    const unsigned doy = (153 * (m + (m > 2 ? -3 : 9)) + 2) / 5 + d - 1;
+    const unsigned doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+    return era * 146097 + static_cast<long>(doe) - 719468;
+}
+
+static void civil_from_days(long z, int& y, int& m, int& d) {
+    z += 719468;
+    const long era = (z >= 0 ? z : z - 146096) / 146097;
+    const unsigned doe = static_cast<unsigned>(z - era * 146097);
+    const unsigned yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
+    const unsigned doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    const unsigned mp = (5 * doy + 2) / 153;
+    d = static_cast<int>(doy - (153 * mp + 2) / 5 + 1);
+    m = static_cast<int>(mp < 10 ? mp + 3 : mp - 9);
+    y = static_cast<int>(yoe + era * 400 + (m <= 2));
+}
+
+LocalTime add_minutes(const LocalTime& t, int minutes) {
+    long total = days_from_civil(t.year, t.mon, t.day) * 1440L + t.hour * 60 + t.min + minutes;
+    long days = total >= 0 ? total / 1440 : -((-total + 1439) / 1440);
+    const int mins = static_cast<int>(total - days * 1440);
+    LocalTime r = t;
+    civil_from_days(days, r.year, r.mon, r.day);
+    r.hour = mins / 60;
+    r.min = mins % 60;
+    r.wday = static_cast<int>(((days + 3) % 7 + 7) % 7);     // 1970-01-01 was a Thursday (Mon = 0)
+    return r;
+}
+
 bool parse_iso(const char* s, LocalTime& out) {
     LocalTime t;
     int n = s ? sscanf(s, "%d-%d-%dT%d:%d:%d", &t.year, &t.mon, &t.day, &t.hour, &t.min, &t.sec) : 0;
@@ -105,6 +138,24 @@ Setpoints schedule_now(const Settings& s, const LocalTime& when) {
     r.has_next = true;
     r.next_in_min = ahead;
     return r;
+}
+
+Hold hold_until_next(const Settings& s, const LocalTime& when, double heat, double cool) {
+    Settings base = s;
+    base.hold = Hold();
+    const Setpoints sp = schedule_now(base, when);
+    Hold h;
+    h.active = true;
+    h.heat = std::isnan(heat) ? sp.heat : heat;
+    h.cool = std::isnan(cool) ? sp.cool : cool;
+    if (!std::isnan(heat) && std::isnan(cool)) h.cool = std::max(h.cool, heat + AUTO_DEADBAND);
+    if (!std::isnan(cool) && std::isnan(heat)) h.heat = std::min(h.heat, cool - AUTO_DEADBAND);
+    if (sp.source == Source::Schedule) {
+        h.has_until = true;
+        h.until = add_minutes(when, sp.next_in_min);
+        h.until.sec = 0;
+    }
+    return h;
 }
 
 // ------------------------------------------------------------------ control loop

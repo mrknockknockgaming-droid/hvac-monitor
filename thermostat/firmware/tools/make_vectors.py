@@ -125,6 +125,23 @@ def main():
                 when.weekday(), base + cfg if cfg >= 0 else -1, *("true" if o[k] else "false" for k in ("Y", "W", "G", "OB")),
                 CALL[rep["call"]], WAIT[rep["wait"]], c_num(rep["sp"]["heat"]), c_num(rep["sp"]["cool"]), SOURCE[rep["source"]],
                 c_num(rep["call_min"])))
+    # holds made on the screen: hold_until_next at assorted times (month / year ends included)
+    sched = th.merged({"mode": "auto", "schedule": SCHEDULE})
+    lines.append("static const char* const H_SETTINGS = " + json.dumps(json.dumps({"ver": 1, "settings": sched, "tech": {}})) + ";")
+    lines.append("struct HVec { int year, mon, day, hour, min, sec, wday; bool has_until; int uy, um, ud, uh, umin; double heat, cool; };")
+    lines.append("static const HVec H_VECS[] = {")
+    rng = random.Random(9)
+    times = [dt.datetime(2026, 12, 31, 23, 10), dt.datetime(2027, 2, 28, 22, 30), dt.datetime(2028, 2, 28, 23, 0), dt.datetime(2026, 10, 9, 22, 1)]
+    times += [dt.datetime(2026, 10, 5) + dt.timedelta(minutes=rng.randrange(0, 60 * 24 * 400), seconds=rng.randrange(60)) for _ in range(60)]
+    for w in times:
+        h = th.hold_until_next(sched, w, cool=74)
+        h_heat = min(h["heat"], 74 - th.AUTO_DEADBAND)
+        u = dt.datetime.fromisoformat(h["until"]) if h["until"] else None
+        lines.append("    {%d,%d,%d,%d,%d,%d,%d,%s,%d,%d,%d,%d,%d,%s,%s}," % (
+            w.year, w.month, w.day, w.hour, w.minute, w.second, w.weekday(), "true" if u else "false",
+            u.year if u else 0, u.month if u else 0, u.day if u else 0, u.hour if u else 0, u.minute if u else 0,
+            repr(float(h_heat)), repr(float(h["cool"]))))
+    lines += ["};", ""]
     lines.append("static const char* const V_CONFIGS[] = {")
     lines += ["    " + json.dumps(c) + "," for c in all_cfg]
     lines += ["};", "", "static const VStep V_STEPS[] = {"]

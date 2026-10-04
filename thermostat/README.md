@@ -4,8 +4,9 @@ An optional add-on that replaces the customer's existing thermostat. Fullscope a
 the equipment; owning the thermostat as well lets it compare what was asked for with what
 happened, adjust the schedule remotely, and give the contractor one place to see both.
 
-**Status:** design + cloud side + reference control logic (this branch). No hardware or
-firmware yet.
+**Status:** design, cloud side, screen preview and firmware (this branch). The firmware builds
+for the Waveshare board, and its control logic is tested on the PC. Nothing has run on hardware
+yet.
 
 ## The rule that shapes everything
 
@@ -158,6 +159,52 @@ between the thermostat and the equipment.
   signals).
 - Installation by the contractor, using the existing thermostat wires. No line-voltage work.
 
+## Firmware (`firmware/`, PlatformIO)
+
+```
+pio test -e native         # the control logic on this PC (needs a host g++, e.g. MSYS2 ucrt64)
+pio run -e waveshare43     # build for the Waveshare ESP32-S3-Touch-LCD-4.3
+```
+
+- **`lib/tstat_core`**: the controller, schedule, holds, config parsing, telemetry and the
+  display-feed parser. It is a line-by-line port of `hvaccloud/thermostat.py`, with no Arduino
+  code. `tools/make_vectors.py` runs the Python Controller through four scenarios, 32,400 steps:
+  - cooling with a schedule and holds
+  - a heat-pump winter with aux heat, emergency heat and lockouts
+  - auto mode with mode changes and sensor glitches
+  - a furnace with AC
+
+  The C++ must give the same outputs at every step. Holds made on the screen are checked against
+  Python too, including month, year and leap-day rollovers. `tools/make_feed_sample.py` produces
+  a real display feed for the parser test.
+- **`src/`**:
+  - `main.cpp`: every 2 s read the room, step the controller, set the outputs; report every 5 s;
+    feed the watchdog every 200 ms
+  - `io.cpp`: SHT45; MCP23017 outputs, state sensing and watchdog
+  - `net.cpp`: WiFi, MQTT, NTP, time zone; settings kept in flash
+  - `display.cpp`: LovyanGFX RGB panel, GT911 touch, CH422G backlight and resets
+  - `ui.cpp`: the three LVGL screens
+- **Safety details:**
+  - The controller runs on the chip's monotonic clock, so the wall clock jumping when NTP first
+    sets it can't cut short a minimum-off time.
+  - Until the clock is set, the schedule and timed holds are suspended, and it runs the base
+    setpoints.
+  - Tech values from the cloud are clamped to the safe limits on the thermostat too.
+  - Three failed room readings in a row turn everything off.
+  - Settings are kept in flash, so it runs the last settings after a power cut with no
+    internet.
+- **Changes made on the screen** (−/+, mode, resume):
+  - They are applied at once and saved under the same version, so a stale retained config can't
+    undo them.
+  - They are sent on `hvac/<site>/thermostat/request`, 1.5 s after the last tap. The cloud merges
+    them into the stored settings (`thermostat.apply_request`), bumps the version and sends the
+    config back.
+  - The thermostat only applies a config newer than the one it has.
+- **Before the first power-up:**
+  - Copy `include/config.example.h` to `include/config.h` and fill it in.
+  - Check the display pin numbers in `include/board.h` against Waveshare's schematic.
+  - Calibrate `ROOM_OFFSET_F` against a reference thermometer once the case is closed.
+
 ## Trying it without hardware
 
 ```
@@ -173,6 +220,6 @@ indoor/outdoor readings follow.
 
 - Version 1 display hardware: a module (faster) or a custom board with the carrier design
   (cheaper at volume)?
-- Should the homeowner be able to edit the schedule on the thermostat itself? (Yes eventually.
-  The thermostat would publish its edits back and the cloud would accept them by version.)
+- Editing the whole schedule on the thermostat itself. Setpoint, mode and resume changes already
+  go back to the cloud as requests; schedule edits would use the same path.
 - Demand response and utility programs: which ones the target market's contractors care about.

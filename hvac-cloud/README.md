@@ -79,6 +79,9 @@ schedule, resume); technicians get thermostat rows on Monitor and its safety set
 Equipment. Try it with `python demo_publisher.py --site demo --thermostat` (add
 `--electrical --fault pitted_contactor` for the electrical module).
 
+Changes made on the thermostat's own screen arrive on `hvac/<site>/thermostat/request`. Ingest
+merges them into the stored settings (`thermostat.apply_request`) and sends back a newer config.
+
 The thermostat's own screen (Home, Alerts for homeowners, Service for technicians, with a trend
 and electrical fault markers) has a browser preview at `/app/thermostat.html#<system id>`, using
 the display feed from `hvaccloud/display.py`. Ingest publishes the feed retained to

@@ -133,6 +133,13 @@ temperatures, superheat, subcooling and delta-T.
     trend at 2 min, electrical markers from raised alerts); ingest publishes it retained to
     hvac/<site>/thermostat/display (<= 1/min, at once on raise/clear); browser preview
     web/thermostat.html#<id> (Home / Alerts / Service behind tech.service_pin, default 0000).
+  - Thermostat firmware: thermostat/firmware (PlatformIO). `pio test -e native` (needs
+    C:\msys64\ucrt64\bin on PATH) replays 32,400 steps of the Python Controller
+    (tools/make_vectors.py) through the C++ port in lib/tstat_core; `pio run -e waveshare43`
+    builds for the Waveshare ESP32-S3-Touch-LCD-4.3 (LovyanGFX + LVGL 8.3). Controller uses the
+    monotonic clock; screen edits go to hvac/<site>/thermostat/request -> ingest
+    on_thermostat_request -> newer config. Display pins in include/board.h are from Waveshare
+    docs, unverified on hardware.
   - Alerts: `alerts.unjudged(snap)` = codes whose checks couldn't run (idle, not steady, node or
     electrical module offline); their raised alerts stay open instead of clearing every cycle.
   - Schema changes: `db.add_missing_columns` adds new NULLABLE columns to existing tables at
@@ -144,7 +151,7 @@ temperatures, superheat, subcooling and delta-T.
     `hvac-cloud/backups/` (keeps 7, git-ignored) and prunes: >30 days thinned to 1-minute
     averages, raw telemetry >30 days dropped, >365 days deleted (`hvaccloud/maintenance.py`;
     `manage.py backup` / `prune` by hand). Restore steps are in hvac-cloud/README.md.
-  - Tests: `.venv\Scripts\python.exe -m pytest -q` in `hvac-cloud/` (121 pass). Not done:
+  - Tests: `.venv\Scripts\python.exe -m pytest -q` in `hvac-cloud/` (122 pass). Not done:
     per-device MQTT accounts and ACLs, TLS.
 
 ## Electrical module (phase 11): `electrical/README.md` + `hvac-cloud/hvaccloud/electrical.py`
