@@ -75,7 +75,7 @@ class Ingest:
             if kind == "telemetry":
                 at = self.reading_time(data, now)
                 snap = self.on_telemetry(s, system, device, data, at)
-                events = alerts.sync(s, system, snap["flags"], at, self.hold)
+                events = alerts.sync(s, system, snap["flags"], at, self.hold, keep=alerts.unjudged(snap))
                 jobs = alerts.emails_for(s, system, events, at, self.cooldown_s)
             elif kind == "status":
                 return self.on_status(device, data, now)
