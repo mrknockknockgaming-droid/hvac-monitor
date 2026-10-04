@@ -60,7 +60,10 @@ temperatures, superheat, subcooling and delta-T.
 - `hvac-cloud/` — cloud stack, rebuilt here 2026-09-29 (the claude.ai original was not used).
   Ingest worker + FastAPI (`X-API-Key` per account) + `manage.py` + `demo_publisher.py`;
   SQLite `dev.db` in development, TimescaleDB via `docker-compose.yml` (Mosquitto on host
-  port 1884, API on :8000) — Docker is NOT installed yet, so Compose is untested.
+  port 1884, API on :8000). Docker Desktop + WSL are installed (2026-10-03) and the Compose stack
+  was tested end to end; the broker's passwords come from .env via `mosquitto/start.sh`.
+  Docker isn't on PATH in shells started before the install: use
+  "C:\Program Files\Docker\Docker\resources\bin\docker.exe".
   - Uses the firmware's existing topics `hvac/<site>/<node>/...`; a system's `site_id` =
     the node's `SITE_ID`. The firmware has no separate "cloud mode" (that was the lost v0.2.0).
   - `hvaccloud/calc.py` ports `Hub.compute`/`Hub.flags` from `hvac-monitor-app/server.py`;
