@@ -213,6 +213,18 @@ class Equipment(Base):
     elevation_ft: Mapped[float | None]
 
 
+class ThermostatConfig(Base):
+    """The display thermostat's settings (homeowner) and safety settings (technician), see thermostat.py.
+    version goes up on every change; the thermostat reports the version it is running."""
+    __tablename__ = "thermostat_configs"
+    system_id: Mapped[int] = mapped_column(ForeignKey("systems.id"), primary_key=True)
+    settings: Mapped[dict] = mapped_column(Json, default=dict)
+    tech: Mapped[dict] = mapped_column(Json, default=dict)
+    version: Mapped[int] = mapped_column(Integer, default=0)
+    sent: Mapped[bool] = mapped_column(Boolean, default=False)
+    updated_at: Mapped[dt.datetime | None]
+
+
 class ServiceVisit(Base):
     """A service visit the technician logged, optionally with the readings at the time."""
     __tablename__ = "service_visits"

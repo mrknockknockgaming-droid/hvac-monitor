@@ -26,7 +26,7 @@ from sqlalchemy import delete, select
 from hvaccloud import auth, settings
 from hvaccloud.db import (Account, Alert, AlertMute, AlertPrefs, ApiKey, Command, Device, Equipment, Invite,
                           MaintenanceItem, PasswordReset, RuntimeDay, ServiceInfo, ServiceVisit, Snapshot, System,
-                          SystemMember, Telemetry, User, UserSession, as_utc, init_db, make_engine, session_factory, utcnow)
+                          SystemMember, Telemetry, ThermostatConfig, User, UserSession, as_utc, init_db, make_engine, session_factory, utcnow)
 from hvaccloud.ingest import Ingest
 from hvaccloud.refrigerants import Tables
 
@@ -255,7 +255,7 @@ def reset(sessions):
         for model, col, ids in [(Telemetry, Telemetry.device_id, dev_ids), (Command, Command.device_id, dev_ids)]:
             s.execute(delete(model).where(col.in_(ids)))
         for model in (Snapshot, Alert, AlertMute, AlertPrefs, Equipment, ServiceInfo, MaintenanceItem, RuntimeDay,
-                      ServiceVisit, SystemMember, Device):
+                      ServiceVisit, SystemMember, ThermostatConfig, Device):
             s.execute(delete(model).where(model.system_id.in_(sys_ids)))
         s.execute(delete(Invite).where((Invite.system_id.in_(sys_ids)) | (Invite.account_id == acct.id)))
         s.execute(delete(UserSession).where(UserSession.user_id.in_(user_ids)))

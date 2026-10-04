@@ -17,7 +17,7 @@ import time
 
 from sqlalchemy import select
 
-from . import alerts, calc, equipment, maintenance, settings
+from . import alerts, calc, equipment, maintenance, settings, thermostat
 from .db import (Alert, Command, Device, Equipment, RuntimeDay, Snapshot, System, Telemetry, as_utc, init_db,
                  make_engine, session_factory, utcnow)
 from .refrigerants import Tables
@@ -54,7 +54,7 @@ class Ingest:
 
     def _handle(self, topic, payload, now):
         parts = topic.split("/")
-        if len(parts) != 4 or parts[0] != "hvac" or parts[2] not in calc.NODES:
+        if len(parts) != 4 or parts[0] != "hvac" or parts[2] not in calc.NODES + (thermostat.NODE,):
             return None
         site, node, kind = parts[1], parts[2], parts[3]
         try:
@@ -72,6 +72,8 @@ class Ingest:
                     log.info("ignoring site %r: no system registered for it", site)
                 return None
             device = self._device(s, system, node)
+            if kind == "telemetry" and node == thermostat.NODE:
+                return self.on_thermostat(device, s, data, self.reading_time(data, now))
             if kind == "telemetry":
                 at = self.reading_time(data, now)
                 snap = self.on_telemetry(s, system, device, data, at)
@@ -161,9 +163,29 @@ class Ingest:
         snap, run_start = calc.compute(system.calc_config(), nodes,
                                        run_start.timestamp() if run_start else None, now, self.tables)
         snap = equipment.apply(snap, s.get(Equipment, system.id))     # nameplate targets (cloud only)
+        snap = thermostat.apply(snap, self._thermostat_state(s, system, now))
         system.run_started_at = ts(run_start) if run_start else None
         s.add(Snapshot(system_id=system.id, time=ts(now), mode=snap["mode"], data=snap))
         return snap
+
+    def on_thermostat(self, device, s, data, now):
+        """Store the thermostat's report. It makes no snapshot of its own: the next indoor or
+        outdoor reading (every 10 s) picks it up, with its flags, through _thermostat_state."""
+        while s.get(Telemetry, (device.id, ts(now))) is not None:
+            now += 0.001
+        if device.last_seen is None or ts(now) > as_utc(device.last_seen):
+            device.last_seen = ts(now)
+        device.connected = True
+        if "fw" in data:
+            device.fw = data["fw"]
+        s.add(Telemetry(device_id=device.id, time=ts(now), data=data))
+        self.latest[(device.system_id, device.node)] = (now, data)
+        return data
+
+    def _thermostat_state(self, s, system, now):
+        """None when the system has no thermostat (most don't)."""
+        state = self._node_state(s, system, thermostat.NODE, now)
+        return None if state["data"] is None else state
 
     @staticmethod
     def _add_runtime(s, system_id, prev_mode, gap, now):

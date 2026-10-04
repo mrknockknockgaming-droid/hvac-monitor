@@ -90,6 +90,14 @@ PLAIN = {
                      "Nothing to do on your own; your contractor can check it."),
     "sensor_issue": ("A monitoring sensor isn't reporting", "Heating and cooling are not affected.",
                      "Nothing to do on your own; your contractor can check it."),
+    "room_hot": ("It's very hot inside", "The room has reached 90 F or more.",
+                 "Check the thermostat is set to Cool, then request a service visit."),
+    "room_cold": ("It's very cold inside", "The room has dropped to 50 F or less; pipes can freeze.",
+                  "Check the thermostat is set to Heat, then request a service visit."),
+    "setpoint_not_reached": ("Your system isn't keeping up", "It has run a long time without reaching your setting.",
+                             "Check your air filter and that windows and doors are shut; if it keeps happening, request a service visit."),
+    "call_mismatch": ("The thermostat and the equipment disagree", "The equipment isn't doing what the thermostat asks.",
+                      "Request a service visit."),
     NO_DATA: ("We lost contact with your monitors", "No checks can run until readings come back.",
               "Check that your WiFi is working."),
 }
@@ -98,7 +106,8 @@ PLAIN = {
 # Homeowner level of each flag code (FLAG_INFO in web/app.js): fault = service needed,
 # caution = check soon, advisory = good to know. Used to sort the contractor's fleet page.
 LEVEL = {"sh_low": "fault", "sh_high": "caution", "sc_low": "caution", "sc_high": "caution", "dt_low": "caution",
-         "ctoa_high": "caution", "node_offline": "advisory", "sensor_issue": "advisory", NO_DATA: "advisory"}
+         "ctoa_high": "caution", "node_offline": "advisory", "sensor_issue": "advisory", NO_DATA: "advisory",
+         "room_hot": "fault", "room_cold": "fault", "setpoint_not_reached": "caution", "call_mismatch": "caution"}
 
 
 def homeowner_emails(s, system_id):
