@@ -138,8 +138,16 @@ temperatures, superheat, subcooling and delta-T.
     `hvac-cloud/backups/` (keeps 7, git-ignored) and prunes: >30 days thinned to 1-minute
     averages, raw telemetry >30 days dropped, >365 days deleted (`hvaccloud/maintenance.py`;
     `manage.py backup` / `prune` by hand). Restore steps are in hvac-cloud/README.md.
-  - Tests: `.venv\Scripts\python.exe -m pytest -q` in `hvac-cloud/` (102 pass). Not done:
+  - Tests: `.venv\Scripts\python.exe -m pytest -q` in `hvac-cloud/` (118 pass). Not done:
     per-device MQTT accounts and ACLs, TLS.
+
+## Electrical module (phase 11): `electrical/README.md` + `hvac-cloud/hvaccloud/electrical.py`
+- Third logical node `electrical` (same topics). Cloud joins its newest reading to the next
+  refrigerant snapshot (`elec`), 10 rules (comp/fan not running, contactor open, amps vs RLA/FLA,
+  run cap ±6 % via amps×2652/V, contactor drop >1 V, voltage range, slow start). Nameplate
+  values on the Equipment page. PC dashboard ignores the node. Simulator:
+  `demo_publisher.py --electrical --fault <name>`. Version 1 = CTs only (no line contact);
+  version 2 = isolated voltage board + UL/IEC 61010 path. No hardware yet.
 
 ## Hardware
 - Boards: 3x ESP-WROOM-32 30-pin dev boards (PCB antenna, no u.FL). Outdoor on COM4, indoor on COM5 (both CP210x; tell them apart by port).

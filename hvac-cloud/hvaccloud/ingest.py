@@ -17,12 +17,13 @@ import time
 
 from sqlalchemy import select
 
-from . import alerts, calc, equipment, maintenance, settings, thermostat
+from . import alerts, calc, electrical, equipment, maintenance, settings, thermostat
 from .db import (Alert, Command, Device, Equipment, RuntimeDay, Snapshot, System, Telemetry, as_utc, init_db,
                  make_engine, session_factory, utcnow)
 from .refrigerants import Tables
 
 log = logging.getLogger("ingest")
+ALL_NODES = calc.NODES + (electrical.NODE, thermostat.NODE)
 RUN_GAP_S = 60          # longer gaps between snapshots don't count as run time (same rule as /summary)
 TS_MAX_AGE_S = 24 * 3600   # a node's own reading time is trusted up to this old (firmware keeps 10 min)
 TS_MAX_AHEAD_S = 60        # ... and this far in the future (clock drift)
@@ -54,7 +55,7 @@ class Ingest:
 
     def _handle(self, topic, payload, now):
         parts = topic.split("/")
-        if len(parts) != 4 or parts[0] != "hvac" or parts[2] not in calc.NODES + (thermostat.NODE,):
+        if len(parts) != 4 or parts[0] != "hvac" or parts[2] not in ALL_NODES:
             return None
         site, node, kind = parts[1], parts[2], parts[3]
         try:
@@ -74,6 +75,8 @@ class Ingest:
             device = self._device(s, system, node)
             if kind == "telemetry" and node == thermostat.NODE:
                 return self.on_thermostat(device, s, data, self.reading_time(data, now))
+            if kind == "telemetry" and node == electrical.NODE:
+                return self.on_electrical(s, system, device, data, self.reading_time(data, now))
             if kind == "telemetry":
                 at = self.reading_time(data, now)
                 snap = self.on_telemetry(s, system, device, data, at)
@@ -162,7 +165,9 @@ class Ingest:
             run_start = None   # after an outage the compressor call can't be assumed to have continued
         snap, run_start = calc.compute(system.calc_config(), nodes,
                                        run_start.timestamp() if run_start else None, now, self.tables)
-        snap = equipment.apply(snap, s.get(Equipment, system.id))     # nameplate targets (cloud only)
+        eq = s.get(Equipment, system.id)
+        snap = equipment.apply(snap, eq)                                # nameplate targets (cloud only)
+        snap = electrical.apply(snap, self._electrical_state(s, system, now), eq)
         snap = thermostat.apply(snap, self._thermostat_state(s, system, now))
         system.run_started_at = ts(run_start) if run_start else None
         s.add(Snapshot(system_id=system.id, time=ts(now), mode=snap["mode"], data=snap))
@@ -200,6 +205,26 @@ class Ingest:
         row.blower_s += gap
         if prev_mode in ("cooling", "heating"):
             row.compressor_s += gap
+
+    def on_electrical(self, s, system, device, data, now):
+        """Store the electrical module's reading; the next refrigerant snapshot uses it."""
+        if s.get(Telemetry, (device.id, ts(now))) is None:
+            s.add(Telemetry(device_id=device.id, time=ts(now), data=data))
+        if device.last_seen is None or ts(now) > as_utc(device.last_seen):
+            device.last_seen = ts(now)
+        device.connected = True
+        for k in ("fw", "rssi"):
+            if k in data:
+                setattr(device, k, data[k])
+        self.latest[(system.id, electrical.NODE)] = (now, data)
+        return data
+
+    def _electrical_state(self, s, system, now):
+        """None when this system has no electrical module, else its {"online", "data"}."""
+        if (system.id, electrical.NODE) not in self.latest and s.scalar(
+                select(Device.id).where(Device.system_id == system.id, Device.node == electrical.NODE)) is None:
+            return None
+        return self._node_state(s, system, electrical.NODE, now)
 
     def _node_state(self, s, system, node, now):
         e = self.latest.get((system.id, node))

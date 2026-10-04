@@ -480,3 +480,4 @@ select.sel{background-color:var(--surface-2);border:1px solid var(--line-strong)
 .h-visits li{padding:4px 0 8px;font-size:13px}
 .h-visits li b{display:block;font-weight:500}
 .h-visits li span{color:var(--ink-muted)}
+.calls-t tr.sec td{text-align:left}

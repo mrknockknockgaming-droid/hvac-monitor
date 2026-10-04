@@ -112,6 +112,32 @@ var FLAG_INFO = {
     sub: "Usually WiFi or power.", why: "Neither monitor was sending readings, so no checks could run.",
     todo: ["Check that your WiFi is working.", "If it keeps happening, your contractor can check the monitors."] }
 };
+// electrical module (phase 11)
+FLAG_INFO.comp_not_running = { level: "fault", area: "outdoor", title: "Your outdoor unit isn't running",
+  sub: "The house isn't being cooled.", why: "The thermostat is calling for cooling but the compressor isn't on.",
+  todo: ["Request a service visit.", "Turning the system off at the thermostat until then protects the equipment."] };
+FLAG_INFO.fan_not_running = { level: "fault", area: "outdoor", title: "The fan on your outdoor unit has stopped",
+  sub: "Turn the system off and call your contractor.", why: "Without the fan the compressor overheats and can be damaged.",
+  todo: ["Turn the system off at the thermostat.", "Request a service visit."] };
+FLAG_INFO.contactor_open = { level: "fault", area: "outdoor", title: "Your outdoor unit isn't switching on",
+  sub: "Call your contractor.", why: "The thermostat is calling for cooling but the outdoor unit doesn't start.", todo: ["Request a service visit."] };
+FLAG_INFO.comp_amps_high = { level: "caution", area: "outdoor", title: "Your outdoor unit is working harder than it should",
+  sub: "A technician should take a look.", why: "High current shortens the compressor's life and uses more electricity.", todo: ["Request a service visit."] };
+FLAG_INFO.fan_amps_high = { level: "caution", area: "outdoor", title: "The outdoor fan motor is working hard",
+  sub: "A technician should take a look.", why: "A struggling fan motor often fails soon.", todo: ["Request a service visit."] };
+FLAG_INFO.cap_herm = { level: "caution", area: "outdoor", title: "A part in your outdoor unit is wearing out",
+  sub: "Usually a quick, inexpensive repair.", why: "A weak run capacitor makes the compressor run hot and can stop it starting.",
+  todo: ["Mention it at your next service visit, or sooner if the unit struggles to start."] };
+FLAG_INFO.cap_fan = { level: "caution", area: "outdoor", title: "A part in your outdoor unit is wearing out",
+  sub: "Usually a quick, inexpensive repair.", why: "A weak fan capacitor slows the outdoor fan and can stop it.", todo: ["Mention it at your next service visit."] };
+FLAG_INFO.contactor_drop = { level: "caution", area: "outdoor", title: "A switch in your outdoor unit is wearing out",
+  sub: "Usually a quick, inexpensive repair.", why: "Worn contacts heat up and can stop the unit from starting.", todo: ["Mention it at your next service visit."] };
+FLAG_INFO.voltage = { level: "caution", area: "outdoor", title: "The power to your outdoor unit is outside its range",
+  sub: "A technician should take a look.", why: "Low or high voltage strains the motors.", todo: ["Request a service visit; your contractor may involve the utility."] };
+FLAG_INFO.slow_start = { level: "caution", area: "outdoor", title: "Your outdoor unit is slow to start",
+  sub: "A technician should take a look.", why: "Hard starts wear the compressor and can trip breakers.", todo: ["Request a service visit."] };
+var ELEC_CODES = ["comp_not_running", "fan_not_running", "contactor_open", "comp_amps_high", "fan_amps_high", "cap_herm", "cap_fan",
+  "contactor_drop", "voltage", "slow_start"];
 var LEVEL = { fault: { word: "Service needed", rank: 3 }, caution: { word: "Check soon", rank: 2 }, advisory: { word: "Good to know", rank: 1 }, ok: { word: "Good", rank: 0 } };
 var TECH_LEVEL = { fault: "Fault", caution: "Warning", advisory: "Advisory" };
 
@@ -719,7 +745,10 @@ function homeHealth(fresh, running) {
       text: "Needs static pressure sensors, planned for a later phase. A dirty filter can still show up as weak cooling above." },
     area("Refrigerant", ["sh_low", "sh_high", "sc_low", "sc_high"], "Pressures and temperatures look normal for today's weather.",
       hasFlag("sh_low") ? "fault" : "caution", hasFlag("sh_low") ? "Service needed" : "Check soon", "Refrigerant readings are outside the normal range. See above."),
-    area("Outdoor unit", ["ctoa_high"], "Releasing heat normally.", "caution", "Check soon", "It isn't releasing heat as well as it should. See above."),
+    area("Outdoor unit", ["ctoa_high"].concat(ELEC_CODES), "Releasing heat normally.",
+      ["comp_not_running", "fan_not_running", "contactor_open"].some(hasFlag) ? "fault" : "caution",
+      ["comp_not_running", "fan_not_running", "contactor_open"].some(hasFlag) ? "Service needed" : "Check soon",
+      hasFlag("ctoa_high") ? "It isn't releasing heat as well as it should. See above." : "Something in it needs attention. See above."),
     { name: "Monitoring", cls: online === 2 && !hasFlag("sensor_issue") ? "ok" : online ? "advisory" : "offline",
       word: online === 2 ? "Connected" : online ? "Partly connected" : "Offline",
       text: online === 2 ? (hasFlag("sensor_issue") ? "Both monitors online. One sensor isn't reporting." : "Both monitors online.") : online ? "One monitor isn't reporting." : "Neither monitor is reporting." }
@@ -908,9 +937,27 @@ function opState(d, sm, obWord) {
     '<tr><th><span class="mono">G</span>&nbsp; Blower</th><td>' + (d.G ? st("ok", "On") : st("offline", "Off")) + "</td></tr>" +
     '<tr><th><span class="mono">' + obWord + "</span>&nbsp; Reversing valve</th><td>" + rv + ' <span class="faint">' + rvMeans + "</span></td></tr>" +
     '<tr><th><span class="mono">W</span>&nbsp; Aux heat</th><td>' + (d.W ? st("caution", "On") : st("offline", "Off")) + "</td></tr>" +
-    tstatOpRows() + '</tbody></table><div class="kv"><div><span>Cycle start</span><b>' + cs + "</b></div>" +
+    elecRows(d) + tstatOpRows() +
+    '</tbody></table><div class="kv"><div><span>Cycle start</span><b>' + cs + "</b></div>" +
     "<div><span>Cycles, 24 h</span><b>" + (isNum(sm.cycles) ? sm.cycles : "—") + "</b></div>" +
     "<div><span>Avg on-time</span><b>" + (isNum(sm.avg_on_minutes) ? Math.round(sm.avg_on_minutes) + "<small>min</small>" : "—") + "</b></div></div></section>";
+}
+
+// Electrical module rows (design rule: new measurements are rows in an existing table).
+function elecRows(d) {
+  var e = d.elec, hasModule = S.latest && S.latest.nodes && S.latest.nodes.electrical;
+  var head = '<tr class="sec"><td colspan="2">Electrical</td></tr>';
+  if (!e) return head + '<tr class="unavail"><th>Amps, voltage, capacitors</th><td>' + st("offline", hasModule ? "Module offline" : "Not installed") + "</td></tr>";
+  function mark(codes) { var c = codes.filter(hasFlag)[0]; return c ? " " + st(flagInfo({ code: c }).level, flagInfo({ code: c }).level === "fault" ? "Fault" : "Check") : ""; }
+  function amps(a, pct, label) { return isNum(a) ? '<span class="n">' + fmt(a) + "<small>A</small></span>" + (isNum(pct) ? ' <span class="faint">' + pct + " % " + label + "</span>" : "") : '<span class="faint">—</span>'; }
+  function cap(uf, pct) { return isNum(uf) ? fmt(uf) + "<small>µF</small>" + (isNum(pct) ? ' <span class="faint">' + fmt(pct, 0) + " %</span>" : "") : "—"; }
+  return head +
+    "<tr><th>Line voltage</th><td>" + (isNum(e.line_v) ? '<span class="n">' + fmt(e.line_v, 0) + "<small>V</small></span>" : "—") + mark(["voltage"]) + "</td></tr>" +
+    "<tr><th>Contactor</th><td>" + (e.contactor ? "Closed" + (isNum(e.contactor_v) ? ' <span class="faint n">' + e.contactor_v.toFixed(2) + " V drop</span>" : "") : "Open") + mark(["contactor_drop", "contactor_open"]) + "</td></tr>" +
+    "<tr><th>Compressor</th><td>" + amps(e.comp_a, e.comp_pct_rla, "RLA") + mark(["comp_not_running", "comp_amps_high"]) + "</td></tr>" +
+    "<tr><th>Condenser fan</th><td>" + amps(e.fan_a, e.fan_pct_fla, "FLA") + mark(["fan_not_running", "fan_amps_high"]) + "</td></tr>" +
+    '<tr><th>Run capacitor</th><td class="n">HERM ' + cap(e.cap_herm_uf, e.cap_herm_pct) + " · fan " + cap(e.cap_fan_uf, e.cap_fan_pct) + mark(["cap_herm", "cap_fan"]) + "</td></tr>" +
+    "<tr><th>Last start</th><td>" + (isNum(e.start_peak_a) ? '<span class="n">' + fmt(e.start_peak_a, 0) + '<small>A</small></span> <span class="faint n">' + fmt(e.start_ms, 0) + " ms</span>" : "—") + mark(["slow_start"]) + "</td></tr>";
 }
 
 // ---------- sensor health (from the nodes' own telemetry and error codes)
@@ -939,6 +986,7 @@ function sensorHealth(n) {
   return '<section class="panel" aria-label="Sensor health"><div class="ph"><h2>Sensor health</h2><span class="right sub">Click a node for detail</span></div>' +
     '<table class="dt health"><tbody><tr class="sec"><td colspan="3">Nodes</td></tr>' +
     nodeRow("in", "Indoor node", n.indoor) + nodeRow("out", "Outdoor node", n.outdoor) +
+    (n.electrical ? nodeRow("el", "Electrical module", n.electrical) : '<tr class="unavail"><th>Electrical module</th><td>' + st("offline", "Not installed") + '</td><td class="num faint">optional</td></tr>') +
     '<tr class="sec"><td colspan="3">Pressure (ADS1115 0x48)</td></tr>' +
     ch("Liquid line", p.liq, "ads1", oerr) + ch("Vapor port", p.vap, "ads1", oerr) + ch("True suction", p.tsuc, null, oerr, true) +
     '<tr class="sec"><td colspan="3">Temperature</td></tr>' +
@@ -1126,6 +1174,11 @@ function renderEquipment() {
       row("Rated cooling capacity", eqNum("f-eq-btuh", e.rated_btuh, "BTU/hr", "Rated cooling capacity"), '<span class="faint">Capacity, phase 6</span>') +
       row("Rated airflow", eqNum("f-eq-cfm", e.rated_cfm, "CFM", "Rated airflow"), '<span class="faint">Capacity, phase 6</span>') +
       row("Max external static", eqNum("f-eq-esp", e.max_esp, "in. w.c.", "Maximum external static pressure"), '<span class="faint">Static sensors, phase 6</span>') +
+      row("Compressor RLA / LRA", '<div class="acts-cell">' + eqNum("f-eq-rla", e.comp_rla, "A", "Compressor RLA") + eqNum("f-eq-lra", e.comp_lra, "A", "Compressor LRA") + "</div>", "Electrical module: amps") +
+      row("Condenser fan FLA", eqNum("f-eq-fla", e.fan_fla, "A", "Condenser fan FLA"), "Electrical module: fan amps") +
+      row("Run capacitor", '<div class="acts-cell">' + eqNum("f-eq-caph", e.cap_herm_uf, "µF HERM", "Run capacitor HERM µF") + eqNum("f-eq-capf", e.cap_fan_uf, "µF fan", "Run capacitor fan µF") + "</div>", "Electrical module: ±6 %") +
+      row("Voltage range", '<div class="acts-cell">' + eqNum("f-eq-vmin", e.volt_min, "V min", "Minimum voltage") + eqNum("f-eq-vmax", e.volt_max, "V max", "Maximum voltage") + "</div>",
+        '<span class="faint">197–253 V if empty (208/230 V units)</span>') +
       "</tbody></table></section>" +
       '<section class="panel" aria-label="Site"><div class="ph"><h2>Site</h2></div>' + head +
       row("Site elevation", eqNum("f-eq-elev", e.elevation_ft, "ft", "Site elevation"), "Atmospheric pressure") +
@@ -1143,7 +1196,9 @@ root.addEventListener("click", function (e) {
   function n(id) { var x = v(id); return x === "" ? null : parseFloat(x.replace(",", ".")); }
   var body = { system_type: v("f-eq-type") || null, metering: v("f-eq-meter") || null, tonnage: n("f-eq-tons"), sc_target: n("f-eq-sc"),
     sc_tolerance: n("f-eq-tol"), rated_btuh: n("f-eq-btuh"), rated_cfm: n("f-eq-cfm"), max_esp: n("f-eq-esp"), elevation_ft: n("f-eq-elev"),
-    refrigerant: v("f-eq-ref"), heat_pump: v("f-eq-hp") === "1", ob_energized: v("f-eq-ob"), atm_psia: n("f-eq-atm") };
+    refrigerant: v("f-eq-ref"), heat_pump: v("f-eq-hp") === "1", ob_energized: v("f-eq-ob"), atm_psia: n("f-eq-atm"),
+    comp_rla: n("f-eq-rla"), comp_lra: n("f-eq-lra"), fan_fla: n("f-eq-fla"), cap_herm_uf: n("f-eq-caph"), cap_fan_uf: n("f-eq-capf"),
+    volt_min: n("f-eq-vmin"), volt_max: n("f-eq-vmax") };
   for (var k in body) if (typeof body[k] === "number" && !isFinite(body[k])) { S.msg = "Check the numbers: one of them isn't a number."; render(); return; }
   b.disabled = true;
   api("/api/systems/" + S.sys.id + "/equipment", { method: "PUT", body: body }).then(function (d) {

@@ -211,6 +211,14 @@ class Equipment(Base):
     rated_cfm: Mapped[float | None]
     max_esp: Mapped[float | None]                                    # in. w.c.
     elevation_ft: Mapped[float | None]
+    # nameplate values the electrical module is judged against (electrical.py)
+    comp_rla: Mapped[float | None]
+    comp_lra: Mapped[float | None]
+    fan_fla: Mapped[float | None]
+    cap_herm_uf: Mapped[float | None]
+    cap_fan_uf: Mapped[float | None]
+    volt_min: Mapped[float | None]
+    volt_max: Mapped[float | None]
 
 
 class ThermostatConfig(Base):

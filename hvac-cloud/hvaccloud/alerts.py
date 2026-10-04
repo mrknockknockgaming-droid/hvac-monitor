@@ -100,6 +100,25 @@ PLAIN = {
                       "Request a service visit."),
     NO_DATA: ("We lost contact with your monitors", "No checks can run until readings come back.",
               "Check that your WiFi is working."),
+    "comp_not_running": ("Your outdoor unit isn't running", "The thermostat is calling for cooling but the compressor isn't on, so the house isn't being cooled.",
+                         "Request a service visit. Turning the system off at the thermostat until then protects the equipment."),
+    "fan_not_running": ("The fan on your outdoor unit has stopped", "Without it the compressor overheats and can be damaged.",
+                        "Turn the system off at the thermostat and request a service visit."),
+    "contactor_open": ("Your outdoor unit isn't switching on", "The thermostat is calling for cooling but the outdoor unit doesn't start.",
+                       "Request a service visit."),
+    "comp_amps_high": ("Your outdoor unit is working harder than it should", "High current shortens the compressor's life and uses more electricity.",
+                       "Request a service visit."),
+    "fan_amps_high": ("The outdoor fan motor is working hard", "A struggling fan motor often fails soon.", "Request a service visit."),
+    "cap_herm": ("A part in your outdoor unit is wearing out", "A weak run capacitor makes the compressor run hot and can stop it starting.",
+                 "Mention it at your next service visit, or sooner if the unit struggles to start."),
+    "cap_fan": ("A part in your outdoor unit is wearing out", "A weak fan capacitor slows the outdoor fan and can stop it.",
+                "Mention it at your next service visit."),
+    "contactor_drop": ("A switch in your outdoor unit is wearing out", "Worn contacts heat up and can stop the unit from starting.",
+                       "Mention it at your next service visit."),
+    "voltage": ("The power to your outdoor unit is outside its range", "Low or high voltage strains the motors.",
+                "Request a service visit; your contractor may involve the utility."),
+    "slow_start": ("Your outdoor unit is slow to start", "Hard starts wear the compressor and can trip breakers.",
+                   "Request a service visit."),
 }
 
 
@@ -107,7 +126,10 @@ PLAIN = {
 # caution = check soon, advisory = good to know. Used to sort the contractor's fleet page.
 LEVEL = {"sh_low": "fault", "sh_high": "caution", "sc_low": "caution", "sc_high": "caution", "dt_low": "caution",
          "ctoa_high": "caution", "node_offline": "advisory", "sensor_issue": "advisory", NO_DATA: "advisory",
-         "room_hot": "fault", "room_cold": "fault", "setpoint_not_reached": "caution", "call_mismatch": "caution"}
+         "room_hot": "fault", "room_cold": "fault", "setpoint_not_reached": "caution", "call_mismatch": "caution",
+         "comp_not_running": "fault", "fan_not_running": "fault", "contactor_open": "fault",
+         "comp_amps_high": "caution", "fan_amps_high": "caution", "cap_herm": "caution", "cap_fan": "caution",
+         "contactor_drop": "caution", "voltage": "caution", "slow_start": "caution"}
 
 
 def homeowner_emails(s, system_id):
