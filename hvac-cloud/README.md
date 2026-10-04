@@ -207,19 +207,23 @@ header `X-API-Key: <key from manage.py create-key>`. Endpoints marked *tech* ans
 Commands are the firmware's (see the top of `hvac-firmware/src/node_outdoor.cpp`), e.g.
 `{"cmd":"fitted","ch":"t_tsuc","on":true}` to enable the J9 thermistor channel.
 
-## Docker (not yet run: Docker Desktop is not installed on the dev PC)
+## Docker (TimescaleDB): the production setup
 
-1. Copy `.env.example` to `.env` and set the passwords.
-2. Create the broker accounts (one for the backend, one the nodes use):
-   ```powershell
-   docker compose run --rm mqtt mosquitto_passwd -c -b /mosquitto/config/passwd backend <MQTT_BACKEND_PASS>
-   docker compose run --rm mqtt mosquitto_passwd -b /mosquitto/config/passwd nodes <node password>
-   ```
-   (`mosquitto/passwd` must exist first: create an empty file.)
-3. `docker compose up -d --build`, then
-   `docker compose run --rm api python manage.py create-account ...` etc. as above.
-4. Point a node at it in `config.h`: `MQTT_HOST` = this machine, `MQTT_PORT 1884`,
-   `MQTT_USER "nodes"`, `MQTT_PASS` = the node password. Reflash.
+Tested 2026-10-03 on Docker Desktop 29.8 / Compose 5.5 (TimescaleDB 2.30, Mosquitto 2.1): all
+tables created, `snapshots` and `telemetry` as hypertables with 365-day retention, nodes
+publishing as `nodes`, ingest and API on the `backend` account, anonymous and wrong-password
+broker logins refused, web app served from the container.
+
+1. Copy `.env.example` to `.env` and set `POSTGRES_PASSWORD`, `MQTT_BACKEND_PASS` and
+   `MQTT_NODES_PASS` (long random strings). The broker builds its password file from these on
+   every start (`mosquitto/start.sh`), so changing one only needs `docker compose up -d`.
+2. `docker compose up -d --build`, then
+   `docker compose exec api python manage.py create-account ...` etc. as above.
+3. Point a node at it in `config.h`: `MQTT_HOST` = this machine, `MQTT_PORT 1884`,
+   `MQTT_USER` = `MQTT_NODES_USER` (default `nodes`), `MQTT_PASS` = `MQTT_NODES_PASS`. Reflash.
+
+The SQLite nightly backup / thinning doesn't run here; TimescaleDB's retention policy expires
+old rows. Back up with `docker compose exec db pg_dump -U hvac hvac > backup.sql`.
 
 ## Not done yet
 

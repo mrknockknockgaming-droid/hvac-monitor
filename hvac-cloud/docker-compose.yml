@@ -1,5 +1,5 @@
 # HVAC Monitor cloud stack: TimescaleDB, Mosquitto (host port 1884), ingest worker, API (port 8000).
-# Not yet run: Docker is not installed on the dev PC. See README.md.
+# Settings and passwords come from .env (copy .env.example). See README.md.
 
 x-app: &app
   build: .
@@ -45,9 +45,15 @@ services:
     restart: unless-stopped
     ports:
       - "1884:1883"
+    environment:                       # start.sh builds the password file from these
+      MQTT_BACKEND_USER: ${MQTT_BACKEND_USER}
+      MQTT_BACKEND_PASS: ${MQTT_BACKEND_PASS}
+      MQTT_NODES_USER: ${MQTT_NODES_USER:-nodes}
+      MQTT_NODES_PASS: ${MQTT_NODES_PASS}
+    entrypoint: ["/bin/sh", "/mosquitto/config/start.sh"]
     volumes:
       - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
-      - ./mosquitto/passwd:/mosquitto/config/passwd:ro
+      - ./mosquitto/start.sh:/mosquitto/config/start.sh:ro
       - mqttdata:/mosquitto/data
 
   ingest:
