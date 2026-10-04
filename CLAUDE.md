@@ -148,6 +148,11 @@ temperatures, superheat, subcooling and delta-T.
 - WiFi must be 2.4 GHz.
 
 ## Current status (Phase 1, bench bring-up)
+- Firmware 0.2.0 (2026-10-03) is in the repo, built for both nodes with TLS off and on, NOT
+  flashed yet (flash when the carrier boards arrive): MQTT over TLS (MQTT_TLS + MQTT_CA_CERT
+  string constant in config.h), "ts" on readings + 10-min outage backlog (cloud and dashboard
+  store them at their own time), status re-published after commands, no NVS NOT_FOUND spam.
+  The boards still run 0.1.0, which the cloud and dashboard keep handling.
 - Firmware builds; outdoor board flashed with fw 0.1.0, which is the current version
   (no v0.2.0 exists on this PC) and
   publishing `hvac/home/outdoor/telemetry` every 5 s with no sensors attached yet.

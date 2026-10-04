@@ -745,7 +745,10 @@ function sensorHealth(n) {
     if (!node) return '<tr><th>' + label + "</th><td>" + st("offline", "Never seen") + '</td><td class="num faint"></td></tr>';
     var dd = node.data || {}, bits = ["fw " + (node.fw || "?"), node.ip, isNum(node.rssi) ? node.rssi + " dBm" : null,
       isNum(dd.uptime) ? "up " + (dd.uptime / 86400 >= 1 ? (dd.uptime / 86400).toFixed(1) + " d" : (dd.uptime / 3600).toFixed(1) + " h") : null,
-      isNum(dd.v5) ? "5 V rail " + dd.v5.toFixed(2) + " V" : null].filter(Boolean);
+      isNum(dd.v5) ? "5 V rail " + dd.v5.toFixed(2) + " V" : null,
+      node.status && node.status.tls ? "TLS" : null,
+      node.status && node.status.backlog ? node.status.backlog + " readings waiting" : null,
+      node.status && node.status.dropped ? node.status.dropped + " dropped in outages" : null].filter(Boolean);
     return '<tr class="x" data-row="' + key + '" aria-expanded="false"><th>' + label + "</th><td>" + (node.online ? st("ok", "Online") : st("offline", "Offline")) +
       '</td><td class="num faint">' + ago(node.age) + '</td></tr><tr class="det" hidden><td colspan="3"><span class="mono">' + esc(bits.join(" · ")) + "</span></td></tr>";
   }
