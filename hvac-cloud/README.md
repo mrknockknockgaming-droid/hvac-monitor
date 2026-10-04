@@ -18,7 +18,7 @@ superheat / subcooling / fault-flag math.
 | `hvaccloud/maintenance.py` | Nightly backup of `dev.db` and thinning of old data |
 | `manage.py` | Create accounts, API keys and systems; send a test alert email; backup / prune by hand |
 | `demo.py`, `start-demo.bat` | Contractor demo: a separate demo account with six homes acting out common faults |
-| `demo_publisher.py` | Simulated outdoor + indoor nodes over MQTT (site `demo`) |
+| `demo_publisher.py` | Simulated outdoor + indoor nodes over MQTT (site `demo`); `--thermostat` adds a display thermostat and a simulated house |
 
 A system's `site_id` is the node's `SITE_ID` in `hvac-firmware/include/config.h`, so the
 firmware needs no changes. Messages from sites with no system are ignored.
@@ -65,6 +65,17 @@ straight through the ingest code (no broker or nodes), into the same database as
 cloud; `run` first fills any gap since it last ran so the homes look continuous. Demo systems
 never send email. `python demo.py reset` removes the demo account and everything in it, nothing
 else.
+
+## Display thermostat (phase 11, optional)
+
+Design: [../thermostat/README.md](../thermostat/README.md). The thermostat runs its own control
+and safety logic (`hvaccloud/thermostat.py`, `Controller`, the reference for the firmware). The
+cloud stores the settings and publishes them, retained and versioned, to
+`hvac/<site>/thermostat/config`. The thermostat reports on `hvac/<site>/thermostat/telemetry`.
+Its state and diagnostics ride along in the system's snapshots, under `tstat`. Systems
+without a thermostat are unchanged. Homeowners get a thermostat card (setpoint, mode, fan,
+schedule, resume); technicians get thermostat rows on Monitor and its safety settings on
+Equipment. Try it with `python demo_publisher.py --site demo --thermostat`.
 
 ## Sign-in and roles
 
@@ -222,6 +233,9 @@ header `X-API-Key: <key from manage.py create-key>`. Endpoints marked *tech* ans
 | PUT | `/api/systems/{id}/service/contractor` | `{"name","phone","email"}` |
 | PATCH | `/api/systems/{id}/service/items/{filter\|tuneup}` | `interval_days`, `interval_run_hours` (null = days only), `last_done` |
 | POST | `/api/systems/{id}/service/items/{kind}/done` | `{"date":"2026-10-03"}` (defaults to today) |
+| GET / PUT | `/api/systems/{id}/thermostat` | Display thermostat: settings, schedule, what it reports, whether it runs the latest version; PUT `mode`, `fan`, `heat_sp`, `cool_sp`, `schedule` (homeowners too) |
+| POST / DELETE | `/api/systems/{id}/thermostat/hold` | `{"heat"?, "cool"?, "permanent"?}` holds until the next scheduled change; DELETE resumes the schedule |
+| PUT | `/api/systems/{id}/thermostat/tech` | *tech* Safety settings (compressor protection, aux heat lockouts, time zone) |
 | POST | `/api/systems/{id}/commands` | `{"node":"outdoor","cmd":{"cmd":"cal_zero","ch":"p_liq"}}` |
 | GET | `/api/systems/{id}/commands` | Recent commands with the node's reply |
 

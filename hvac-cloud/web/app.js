@@ -548,6 +548,7 @@ function pollThermostat() {
   var id = S.sys.id;
   api("/api/systems/" + id + "/thermostat").then(function (d) { if (S.sys && S.sys.id === id) { S.tstat = d; render(); } }).catch(function () {});
 }
+function tstatApplied(t) { var r = S.latest && S.latest.nodes && S.latest.nodes.thermostat; return r && r.data ? r.data.cfg_ver === t.version : t.applied; }
 function tstatReport() { var n = S.latest && S.latest.nodes && S.latest.nodes.thermostat; return n && n.online ? n.data : null; }
 function tstatSend(path, method, body) {
   var id = S.sys.id;
@@ -587,7 +588,7 @@ function homeThermostat() {
     (heatOn ? stepper("heat", "Heat to") : "") + (coolOn ? stepper("cool", "Cool to") : "") + "</div>" +
     '<div class="tst-ctl"><label>Mode ' + eqSelect("t-mode", modes, mode, "Mode") + "</label>" +
     "<label>Fan " + eqSelect("t-fan", TSTAT_FANS, t.settings.fan, "Fan") + "</label>" +
-    (t.applied ? "" : '<span class="faint">Sending to the thermostat…</span>') + "</div>" +
+    (tstatApplied(t) || !t.version ? "" : '<span class="faint">Sending to the thermostat…</span>') + "</div>" +
     scheduleEditor(t) + "</section>";
 }
 function scheduleEditor(t) {
@@ -652,7 +653,7 @@ function tstatOpRows() {
   if (!n) return "";
   var r = n.data || {}, sp = r.sp || {}, o = r.out || {};
   var calls = ["Y", "W", "G", "OB"].filter(function (k) { return o[k]; }).join(" ") || "none";
-  return '<tr class="sec"><td colspan="2">Thermostat</td></tr>' +
+  return '<tr class="sec"><th colspan="2" style="text-align:left">Thermostat</th></tr>' +
     "<tr><th>Status</th><td>" + (n.online ? st("ok", "Online") : st("offline", "Offline")) + ' <span class="faint">' + esc((TSTAT_MODES.filter(function (m) { return m[0] === r.mode; })[0] || ["", r.mode || "—"])[1]) +
     " · fan " + esc(r.fan || "—") + "</span></td></tr>" +
     "<tr><th>Room</th><td><span class=\"n\">" + (isNum(r.room && r.room.t) ? fmt(r.room.t) + " °F" : "—") + "</span>" + (r.room && isNum(r.room.rh) ? ' <span class="faint">RH ' + Math.round(r.room.rh) + " %</span>" : "") + "</td></tr>" +
@@ -660,11 +661,11 @@ function tstatOpRows() {
     "<tr><th>Calling</th><td><span class=\"mono\">" + esc(calls) + "</span>" + (r.call ? ' <span class="faint">' + esc(r.call) + " · " + fmt(r.call_min, 0) + " min</span>" : "") +
     (r.wait ? " " + st("advisory", r.wait.replace("_", " ")) : "") + "</td></tr>";
 }
-var TSTAT_TECH_ROWS = [["differential", "Temperature swing", "°F", "Call starts and ends half this either side of the setpoint"],
-  ["min_on_s", "Minimum run time", "s", "Compressor protection"], ["min_off_s", "Minimum off time", "s", "Compressor protection (at least 120 s)"],
-  ["max_starts_h", "Max starts per hour", "", "Compressor protection"], ["comp_lockout_f", "Compressor lockout below", "°F", "Heat pump: aux heat takes over"],
+var TSTAT_TECH_ROWS = [["differential", "Temperature swing", "°F", "Call hysteresis"],
+  ["min_on_s", "Minimum run time", "s", "Compressor protection"], ["min_off_s", "Minimum off time", "s", "Compressor protection"],
+  ["max_starts_h", "Max starts per hour", "", "Compressor protection"], ["comp_lockout_f", "Compressor lockout below", "°F", "Aux heat takes over"],
   ["aux_lockout_f", "Aux heat lockout above", "°F", "Except emergency heat"], ["aux_droop_f", "Aux joins when room is", "°F", "below the heating setpoint…"],
-  ["aux_delay_s", "…for at least", "s", "Aux heat staging"], ["fan_purge_s", "Blower after a call", "s", "Recovers coil heat or cold"],
+  ["aux_delay_s", "…for at least", "s", "Aux heat staging"], ["fan_purge_s", "Blower after a call", "s", "Fan purge"],
   ["circulate_min_h", "Circulate fan", "min/hr", "Fan setting “Circulate”"]];
 function tstatTechPanel() {
   var t = S.tstat;
@@ -675,7 +676,7 @@ function tstatTechPanel() {
     return row(r[1], eqNum("f-tt-" + r[0], t.tech[r[0]], r[2], r[1]), esc(r[3]) + (lim ? ' <span class="faint">' + lim[0] + "–" + lim[1] + "</span>" : ""));
   }).join("");
   return '<section class="panel" aria-label="Thermostat"><div class="ph"><h2>Thermostat safety settings</h2><span class="sub">' +
-    (t.applied ? "Running on the thermostat (version " + t.version + ")" : t.version ? "Sent, not yet confirmed by the thermostat" : "Defaults") + "</span>" +
+    (tstatApplied(t) ? "Running on the thermostat (version " + t.version + ")" : t.version ? "Sent, not yet confirmed by the thermostat" : "Defaults") + "</span>" +
     '<div class="right"><button class="btn" type="button" data-tt-save>Save thermostat settings</button></div></div>' +
     '<table class="dt"><thead><tr><th>Field</th><th>Value</th><th>Used by</th></tr></thead><tbody>' +
     row("Auxiliary heat", eqSelect("f-tt-has_aux", [["1", "Installed"], ["0", "None"]], t.tech.has_aux ? "1" : "0", "Auxiliary heat"), "Heat pump staging") + rows +
