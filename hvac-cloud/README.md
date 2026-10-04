@@ -17,6 +17,7 @@ superheat / subcooling / fault-flag math.
 | `hvaccloud/service.py` | Maintenance reminders (air filter, tune-up) and the service contractor |
 | `hvaccloud/maintenance.py` | Nightly backup of `dev.db` and thinning of old data |
 | `manage.py` | Create accounts, API keys and systems; send a test alert email; backup / prune by hand |
+| `demo.py`, `start-demo.bat` | Contractor demo: a separate demo account with six homes acting out common faults |
 | `demo_publisher.py` | Simulated outdoor + indoor nodes over MQTT (site `demo`) |
 
 A system's `site_id` is the node's `SITE_ID` in `hvac-firmware/include/config.h`, so the
@@ -44,6 +45,26 @@ With a Mosquitto broker on localhost:1883 (`start-hvac.bat` starts one), in sepa
 
 Data goes to `dev.db` (SQLite). Web app: http://localhost:8000/ (sign in with the API key).
 Interactive API docs: http://localhost:8000/docs (click Authorize and paste the API key).
+
+## Contractor demo
+
+`start-demo.bat` (or `python demo.py setup` then `python demo.py run`) adds a separate demo
+account, "Desert Air Demo Co.", with six homes, a day of history and past alerts:
+
+| Home | Shows |
+|---|---|
+| Garcia residence | healthy, normal cycling (its homeowner sign-in shows the homeowner page) |
+| Thompson residence | low delta-T and an overdue filter |
+| Patel home | high superheat, low subcooling (below the nameplate target): a slow leak |
+| Miller rental | condensing 36+ °F over ambient: dirty coil or blocked airflow |
+| Nguyen casita | indoor monitor offline for 3 hours |
+| Brooks home | superheat near zero: floodback risk, service needed |
+
+The sign-ins are generated at setup and saved in `demo-login.txt` (git-ignored). Readings go
+straight through the ingest code (no broker or nodes), into the same database as the local
+cloud; `run` first fills any gap since it last ran so the homes look continuous. Demo systems
+never send email. `python demo.py reset` removes the demo account and everything in it, nothing
+else.
 
 ## Sign-in and roles
 
