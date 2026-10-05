@@ -38,3 +38,6 @@ hvac-cloud/**/__pycache__/
 hvac-cloud/.pytest_cache/
 hvac-cloud/my-api-key.txt
 hvac-cloud/demo-login.txt
+
+# Thermostat firmware
+thermostat/firmware/include/config.h

@@ -96,10 +96,48 @@ var FLAG_INFO = {
   sensor_issue: { level: "advisory", area: "monitoring", title: "A monitoring sensor isn't reporting",
     sub: "Doesn't affect heating or cooling.", why: "One sensor isn't giving a reading. Your system runs the same; it only gives your technician extra information.",
     todo: ["Nothing to do on your own; your contractor can check it."] },
+  room_hot: { level: "fault", area: "comfort", title: "It's very hot inside",
+    sub: "The room is 90 °F or hotter.", why: "Your system isn't cooling the house. Heat this high is a health risk, especially for children, older people and pets.",
+    todo: ["Check the thermostat is set to Cool.", "Request a service visit.", "Until then, close blinds and run fans."] },
+  room_cold: { level: "fault", area: "comfort", title: "It's very cold inside",
+    sub: "The room is 50 °F or colder.", why: "Your system isn't heating the house. Water pipes can freeze.",
+    todo: ["Check the thermostat is set to Heat.", "Request a service visit.", "If it keeps dropping, let faucets drip to protect the pipes."] },
+  setpoint_not_reached: { level: "caution", area: "comfort", title: "Your system isn't keeping up",
+    sub: "It has run a long time without reaching your setting.", why: "Common causes are a dirty filter, open windows, very hot or cold weather, or a problem a technician should look at.",
+    todo: ["Check your air filter.", "Make sure windows and doors are shut.", "If it keeps happening, request a service visit."] },
+  call_mismatch: { level: "caution", area: "comfort", title: "The thermostat and the equipment disagree",
+    sub: "The equipment isn't doing what the thermostat asks.", why: "Usually a wiring or relay problem between the thermostat and the equipment.",
+    todo: ["Request a service visit."] },
   no_data: { level: "advisory", area: "monitoring", title: "We lost contact with your monitors",
     sub: "Usually WiFi or power.", why: "Neither monitor was sending readings, so no checks could run.",
     todo: ["Check that your WiFi is working.", "If it keeps happening, your contractor can check the monitors."] }
 };
+// electrical module (phase 11)
+FLAG_INFO.comp_not_running = { level: "fault", area: "outdoor", title: "Your outdoor unit isn't running",
+  sub: "The house isn't being cooled.", why: "The thermostat is calling for cooling but the compressor isn't on.",
+  todo: ["Request a service visit.", "Turning the system off at the thermostat until then protects the equipment."] };
+FLAG_INFO.fan_not_running = { level: "fault", area: "outdoor", title: "The fan on your outdoor unit has stopped",
+  sub: "Turn the system off and call your contractor.", why: "Without the fan the compressor overheats and can be damaged.",
+  todo: ["Turn the system off at the thermostat.", "Request a service visit."] };
+FLAG_INFO.contactor_open = { level: "fault", area: "outdoor", title: "Your outdoor unit isn't switching on",
+  sub: "Call your contractor.", why: "The thermostat is calling for cooling but the outdoor unit doesn't start.", todo: ["Request a service visit."] };
+FLAG_INFO.comp_amps_high = { level: "caution", area: "outdoor", title: "Your outdoor unit is working harder than it should",
+  sub: "A technician should take a look.", why: "High current shortens the compressor's life and uses more electricity.", todo: ["Request a service visit."] };
+FLAG_INFO.fan_amps_high = { level: "caution", area: "outdoor", title: "The outdoor fan motor is working hard",
+  sub: "A technician should take a look.", why: "A struggling fan motor often fails soon.", todo: ["Request a service visit."] };
+FLAG_INFO.cap_herm = { level: "caution", area: "outdoor", title: "A part in your outdoor unit is wearing out",
+  sub: "Usually a quick, inexpensive repair.", why: "A weak run capacitor makes the compressor run hot and can stop it starting.",
+  todo: ["Mention it at your next service visit, or sooner if the unit struggles to start."] };
+FLAG_INFO.cap_fan = { level: "caution", area: "outdoor", title: "A part in your outdoor unit is wearing out",
+  sub: "Usually a quick, inexpensive repair.", why: "A weak fan capacitor slows the outdoor fan and can stop it.", todo: ["Mention it at your next service visit."] };
+FLAG_INFO.contactor_drop = { level: "caution", area: "outdoor", title: "A switch in your outdoor unit is wearing out",
+  sub: "Usually a quick, inexpensive repair.", why: "Worn contacts heat up and can stop the unit from starting.", todo: ["Mention it at your next service visit."] };
+FLAG_INFO.voltage = { level: "caution", area: "outdoor", title: "The power to your outdoor unit is outside its range",
+  sub: "A technician should take a look.", why: "Low or high voltage strains the motors.", todo: ["Request a service visit; your contractor may involve the utility."] };
+FLAG_INFO.slow_start = { level: "caution", area: "outdoor", title: "Your outdoor unit is slow to start",
+  sub: "A technician should take a look.", why: "Hard starts wear the compressor and can trip breakers.", todo: ["Request a service visit."] };
+var ELEC_CODES = ["comp_not_running", "fan_not_running", "contactor_open", "comp_amps_high", "fan_amps_high", "cap_herm", "cap_fan",
+  "contactor_drop", "voltage", "slow_start"];
 var LEVEL = { fault: { word: "Service needed", rank: 3 }, caution: { word: "Check soon", rank: 2 }, advisory: { word: "Good to know", rank: 1 }, ok: { word: "Good", rank: 0 } };
 var TECH_LEVEL = { fault: "Fault", caution: "Warning", advisory: "Advisory" };
 
@@ -146,7 +184,7 @@ function route() {
   var changed = !S.sys || S.sys.id !== id;
   S.view = m[1];
   S.sys = sys;
-  if (changed) { S.latest = null; S.summary = null; S.history = {}; S.alerts = null; S.alertSettings = null; S.service = null; S.commands = null; S.equipment = null; S.visits = null; S.recentVisits = null; S.people = null; S.inviteResult = null; S.pending = {}; S.form = {}; stopTimers(); startTimers(); }
+  if (changed) { S.latest = null; S.summary = null; S.history = {}; S.alerts = null; S.alertSettings = null; S.service = null; S.commands = null; S.equipment = null; S.visits = null; S.recentVisits = null; S.people = null; S.inviteResult = null; S.tstat = null; S.schedDraft = null; S.pending = {}; S.form = {}; stopTimers(); startTimers(); }
   if (S.view === "setup") { pollCommands(); pollPeople(); }
   if (S.view === "equipment") { S.msg = null; pollEquipment(); }
   if (S.view === "service") { S.msg = null; pollVisits(); }
@@ -169,7 +207,8 @@ function loadSystems() {
 
 function stopTimers() { S.timers.forEach(clearInterval); S.timers = []; }
 function startTimers() {
-  pollLatest(); pollSummary(); pollHistory(); pollAlerts(); pollService();
+  pollLatest(); pollSummary(); pollHistory(); pollAlerts(); pollService(); pollThermostat();
+  S.timers.push(setInterval(pollThermostat, 30000));
   S.timers.push(setInterval(pollLatest, LIVE_MS));
   S.timers.push(setInterval(pollSummary, 60000));
   S.timers.push(setInterval(pollAlerts, 30000));
@@ -410,7 +449,7 @@ function renderHome() {
     "<div><span>Running, last 24 h</span><b>" + (isNum(sm.runtime_hours) ? fmt(sm.runtime_hours, 1) + "<small>hr</small>" : "—") + "</b><em>" +
     (isNum(sm.cycles) ? sm.cycles + " cycle" + (sm.cycles === 1 ? "" : "s") : "") + "</em></div>" +
     "</div></section>" +
-    '<div class="h-grid"><div class="h-col">' + homeNoticed(fresh) + homeMaint() + homeAlerts() + "</div>" +
+    '<div class="h-grid"><div class="h-col">' + homeThermostat() + homeNoticed(fresh) + homeMaint() + homeAlerts() + "</div>" +
     '<div class="h-col">' + homeHealth(fresh, running) + homeChart() + "</div></div>" +
     '<div class="h-foot"><span class="foot-brand"><b>Fullscope</b><span class="caps">Continuous diagnostics &amp; control</span></span><span>Checks run every 5 seconds while the system is on</span></div>' +
     "</main>";
@@ -525,6 +564,173 @@ function homeAlerts() {
   }).join("") + "</ul></section>";
 }
 
+// ---------- display thermostat (only for systems that have one)
+var TSTAT_MODES = [["off", "Off"], ["heat", "Heat"], ["cool", "Cool"], ["auto", "Auto"], ["emergency_heat", "Emergency heat"]];
+var TSTAT_FANS = [["auto", "Auto"], ["on", "On"], ["circulate", "Circulate"]];
+var TSTAT_WAIT = { min_off: "Waiting a few minutes to protect the compressor", min_on: "Finishing a minimum run to protect the compressor",
+  max_starts: "Resting the compressor (too many starts this hour)", sensor: "Room sensor problem: heating and cooling are off" };
+var DAY_SETS = [["0,1,2,3,4,5,6", "Every day"], ["0,1,2,3,4", "Mon–Fri"], ["5,6", "Sat–Sun"], ["0", "Mon"], ["1", "Tue"], ["2", "Wed"], ["3", "Thu"], ["4", "Fri"], ["5", "Sat"], ["6", "Sun"]];
+function pollThermostat() {
+  var id = S.sys.id;
+  api("/api/systems/" + id + "/thermostat").then(function (d) { if (S.sys && S.sys.id === id) { S.tstat = d; render(); } }).catch(function () {});
+}
+function tstatApplied(t) { var r = S.latest && S.latest.nodes && S.latest.nodes.thermostat; return r && r.data ? r.data.cfg_ver === t.version : t.applied; }
+function tstatReport() { var n = S.latest && S.latest.nodes && S.latest.nodes.thermostat; return n && n.online ? n.data : null; }
+function tstatSend(path, method, body) {
+  var id = S.sys.id;
+  return api("/api/systems/" + id + "/thermostat" + path, { method: method, body: body }).then(function (d) {
+    if (S.sys && S.sys.id === id) { S.tstat = d; render(); }
+    return d;
+  }).catch(function (e) { alert("Couldn't change the thermostat: " + e.message); pollThermostat(); });
+}
+function houseClock(iso) { return iso ? ampm(iso) : ""; }   // the schedule's times are the house's local time
+function tstatSource(t) {
+  var now = t.now;
+  if (now.source === "hold") return (now.next_change ? "Held until " + houseClock(now.next_change) : "Held until you resume the schedule");
+  if (now.source === "schedule") return "Following your schedule" + (now.next_change ? " · next change " + when(now.next_change) : "");
+  return "No schedule set";
+}
+function homeThermostat() {
+  var t = S.tstat;
+  if (!t || !t.present) return "";
+  var rep = tstatReport(), mode = t.settings.mode, now = t.now;
+  var room = rep && rep.room ? rep.room.t : null, out = (rep && rep.out) || {};
+  var doing = !rep ? "The thermostat isn't reporting; it keeps running your settings on its own." :
+    rep.wait ? TSTAT_WAIT[rep.wait] || rep.wait :
+    rep.call === "cool" ? "Cooling to " + Math.round(now.cool) + "°" :
+    rep.call === "heat" ? "Heating to " + Math.round(now.heat) + "°" + (out.W && out.Y ? " with backup heat" : out.W ? " with backup heat only" : "") :
+    mode === "off" ? "Heating and cooling are off" : "Holding at temperature";
+  function stepper(key, label) {
+    return '<div class="tst-sp"><span>' + label + '</span><div class="stepper">' +
+      '<button type="button" class="h-btn" data-tsp="' + key + '" data-d="-1" aria-label="' + label + ' down">−</button>' +
+      "<b>" + Math.round(now[key]) + "°</b>" +
+      '<button type="button" class="h-btn" data-tsp="' + key + '" data-d="1" aria-label="' + label + ' up">+</button></div></div>';
+  }
+  var heatOn = mode === "heat" || mode === "auto" || mode === "emergency_heat", coolOn = mode === "cool" || mode === "auto";
+  var modes = TSTAT_MODES.filter(function (m) { return m[0] !== "emergency_heat" || t.tech.heat_pump; });
+  return '<section class="h-card h-tstat" aria-label="Thermostat"><h2>Thermostat</h2>' +
+    '<div class="h-sub">' + esc(tstatSource(t)) + (now.source === "hold" ? ' · <a href="#" data-tresume>Resume schedule</a>' : "") + "</div>" +
+    '<div class="tst-row"><div class="tst-room"><span>Room</span><b>' + big(room) + "</b><em>" + esc(doing) + "</em></div>" +
+    (heatOn ? stepper("heat", "Heat to") : "") + (coolOn ? stepper("cool", "Cool to") : "") + "</div>" +
+    '<div class="tst-ctl"><label>Mode ' + eqSelect("t-mode", modes, mode, "Mode") + "</label>" +
+    "<label>Fan " + eqSelect("t-fan", TSTAT_FANS, t.settings.fan, "Fan") + "</label>" +
+    (tstatApplied(t) || !t.version ? "" : '<span class="faint">Sending to the thermostat…</span>') +
+    '<a class="muted" href="thermostat.html#' + S.sys.id + '" target="_blank" rel="noopener" style="margin-left:auto">See the thermostat\'s screen</a></div>' +
+    scheduleEditor(t) + "</section>";
+}
+function scheduleEditor(t) {
+  if (!S.schedDraft) S.schedDraft = JSON.parse(JSON.stringify(t.settings.schedule || []));
+  var rows = S.schedDraft.map(function (p, i) {
+    var days = p.days.join(","), opts = DAY_SETS.slice();
+    if (!opts.some(function (o) { return o[0] === days; })) opts.push([days, p.days.map(function (d) { return ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][d]; }).join(" ")]);
+    return "<tr><td>" + eqSelect("f-ts-" + i + "-days", opts, days, "Days") + "</td>" +
+      '<td><input class="inp" type="time" id="f-ts-' + i + '-at" value="' + esc(p.at) + '" aria-label="Starts at"></td>' +
+      '<td><input class="inp num" type="number" id="f-ts-' + i + '-heat" value="' + esc(p.heat) + '" aria-label="Heat to" min="50" max="90"></td>' +
+      '<td><input class="inp num" type="number" id="f-ts-' + i + '-cool" value="' + esc(p.cool) + '" aria-label="Cool to" min="50" max="90"></td>' +
+      '<td><button type="button" class="h-btn" data-tsched-del="' + i + '" aria-label="Remove">×</button></td></tr>';
+  }).join("");
+  return '<details id="h-sched"><summary>Schedule</summary><div class="body">' +
+    '<p class="faint">Each line sets the temperatures from its start time until the next line. Times are the house\'s local time.</p>' +
+    (rows ? '<table class="tst-sched"><thead><tr><th>Days</th><th>From</th><th>Heat to</th><th>Cool to</th><th></th></tr></thead><tbody>' + rows + "</tbody></table>" : '<p>No schedule: the thermostat holds the temperatures you set.</p>') +
+    '<div class="acts"><button type="button" class="h-btn" data-tsched-add>Add a time</button>' +
+    '<button type="button" class="h-btn primary" data-tsched-save>Save schedule</button></div></div></details>';
+}
+function harvestSchedule() {
+  (S.schedDraft || []).forEach(function (p, i) {
+    function v(k) { var el = document.getElementById("f-ts-" + i + "-" + k); return el ? el.value : ""; }
+    if (document.getElementById("f-ts-" + i + "-days")) {
+      p.days = v("days").split(",").map(Number); p.at = v("at"); p.heat = parseFloat(v("heat")); p.cool = parseFloat(v("cool"));
+    }
+  });
+  Object.keys(S.form).forEach(function (k) { if (k.indexOf("f-ts-") === 0) delete S.form[k]; });
+}
+root.addEventListener("click", function (e) {
+  if (S.view !== "home" || !S.tstat) return;
+  var b = e.target.closest && e.target.closest("[data-tsp],[data-tresume],[data-tsched-add],[data-tsched-del],[data-tsched-save]");
+  if (!b) return;
+  e.preventDefault();
+  if (b.dataset.tsp) {
+    var key = b.dataset.tsp, v = Math.round(S.tstat.now[key]) + (+b.dataset.d), body = {};
+    if (v < 50 || v > 90) return;
+    body[key] = v;
+    S.tstat.now[key] = v; render();                       // show it at once; the reply confirms
+    tstatSend("/hold", "POST", body);
+  } else if (b.hasAttribute("data-tresume")) tstatSend("/hold", "DELETE");
+  else if (b.hasAttribute("data-tsched-add")) {
+    harvestSchedule();
+    var last = S.schedDraft[S.schedDraft.length - 1];
+    S.schedDraft.push({ days: [0, 1, 2, 3, 4, 5, 6], at: "06:00", heat: last ? last.heat : S.tstat.settings.heat_sp, cool: last ? last.cool : S.tstat.settings.cool_sp });
+    render();
+  } else if (b.dataset.tschedDel !== undefined) {
+    harvestSchedule(); S.schedDraft.splice(+b.dataset.tschedDel, 1); render();
+  } else if (b.hasAttribute("data-tsched-save")) {
+    harvestSchedule();
+    b.disabled = true;
+    tstatSend("", "PUT", { schedule: S.schedDraft }).then(function (d) { if (d) { S.schedDraft = null; render(); } else b.disabled = false; });
+  }
+});
+root.addEventListener("change", function (e) {
+  if (S.view !== "home" || !S.tstat || (e.target.id !== "t-mode" && e.target.id !== "t-fan")) return;
+  tstatSend("", "PUT", e.target.id === "t-mode" ? { mode: e.target.value } : { fan: e.target.value });
+});
+
+// technician: the thermostat's live state (Monitor) and its safety settings (Equipment)
+function tstatOpRows() {
+  var n = S.latest && S.latest.nodes && S.latest.nodes.thermostat;
+  if (!n) return "";
+  var r = n.data || {}, sp = r.sp || {}, o = r.out || {};
+  var calls = ["Y", "W", "G", "OB"].filter(function (k) { return o[k]; }).join(" ") || "none";
+  return '<tr class="sec"><th colspan="2" style="text-align:left">Thermostat</th></tr>' +
+    "<tr><th>Status</th><td>" + (n.online ? st("ok", "Online") : st("offline", "Offline")) + ' <span class="faint">' + esc((TSTAT_MODES.filter(function (m) { return m[0] === r.mode; })[0] || ["", r.mode || "—"])[1]) +
+    " · fan " + esc(r.fan || "—") + "</span></td></tr>" +
+    "<tr><th>Room</th><td><span class=\"n\">" + (isNum(r.room && r.room.t) ? fmt(r.room.t) + " °F" : "—") + "</span>" + (r.room && isNum(r.room.rh) ? ' <span class="faint">RH ' + Math.round(r.room.rh) + " %</span>" : "") + "</td></tr>" +
+    "<tr><th>Setpoints</th><td><span class=\"n\">" + (isNum(sp.heat) ? fmt(sp.heat, 0) : "—") + " / " + (isNum(sp.cool) ? fmt(sp.cool, 0) : "—") + ' °F</span> <span class="faint">heat / cool · ' + esc(r.source || "") + "</span></td></tr>" +
+    "<tr><th>Calling</th><td><span class=\"mono\">" + esc(calls) + "</span>" + (r.call ? ' <span class="faint">' + esc(r.call) + " · " + fmt(r.call_min, 0) + " min</span>" : "") +
+    (r.wait ? " " + st("advisory", r.wait.replace("_", " ")) : "") + "</td></tr>";
+}
+var TSTAT_TECH_ROWS = [["differential", "Temperature swing", "°F", "Call hysteresis"],
+  ["min_on_s", "Minimum run time", "s", "Compressor protection"], ["min_off_s", "Minimum off time", "s", "Compressor protection"],
+  ["max_starts_h", "Max starts per hour", "", "Compressor protection"], ["comp_lockout_f", "Compressor lockout below", "°F", "Aux heat takes over"],
+  ["aux_lockout_f", "Aux heat lockout above", "°F", "Except emergency heat"], ["aux_droop_f", "Aux joins when room is", "°F", "below the heating setpoint…"],
+  ["aux_delay_s", "…for at least", "s", "Aux heat staging"], ["fan_purge_s", "Blower after a call", "s", "Fan purge"],
+  ["circulate_min_h", "Circulate fan", "min/hr", "Fan setting “Circulate”"]];
+function tstatTechPanel() {
+  var t = S.tstat;
+  if (!t || !(t.present || t.version)) return "";
+  var row = function (label, input, used) { return "<tr><th>" + label + "</th><td>" + input + '</td><td class="used">' + used + "</td></tr>"; };
+  var rows = TSTAT_TECH_ROWS.map(function (r) {
+    var lim = t.limits[r[0]];
+    return row(r[1], eqNum("f-tt-" + r[0], t.tech[r[0]], r[2], r[1]), esc(r[3]) + (lim ? ' <span class="faint">' + lim[0] + "–" + lim[1] + "</span>" : ""));
+  }).join("");
+  return '<section class="panel" aria-label="Thermostat"><div class="ph"><h2>Thermostat safety settings</h2><span class="sub">' +
+    (tstatApplied(t) ? "Running on the thermostat (version " + t.version + ")" : t.version ? "Sent, not yet confirmed by the thermostat" : "Defaults") + "</span>" +
+    '<div class="right"><button class="btn" type="button" data-tt-save>Save thermostat settings</button></div></div>' +
+    '<table class="dt"><thead><tr><th>Field</th><th>Value</th><th>Used by</th></tr></thead><tbody>' +
+    row("Auxiliary heat", eqSelect("f-tt-has_aux", [["1", "Installed"], ["0", "None"]], t.tech.has_aux ? "1" : "0", "Auxiliary heat"), "Heat pump staging") + rows +
+    row("Time zone", '<input class="inp" id="f-tt-tz" value="' + esc(t.tech.tz) + '" aria-label="Time zone">', "Schedule times") +
+    row("Service PIN", '<input class="inp" id="f-tt-service_pin" inputmode="numeric" value="' + esc(t.tech.service_pin) + '" aria-label="Service PIN">',
+      'Opens the Service page on the thermostat · <a href="thermostat.html#' + S.sys.id + '" target="_blank" rel="noopener">Preview its screen</a>') +
+    row("Heat pump · O/B", '<span class="faint">' + (t.tech.heat_pump ? "Heat pump · " + (t.tech.ob_energized === "cool" ? "O" : "B") : "Straight cool") + "</span>", "Set under System above") +
+    "</tbody></table></section>";
+}
+root.addEventListener("click", function (e) {
+  var b = e.target.closest && e.target.closest("[data-tt-save]");
+  if (!b || S.view !== "equipment" || !S.tstat) return;
+  var body = { has_aux: (document.getElementById("f-tt-has_aux") || {}).value === "1", tz: ((document.getElementById("f-tt-tz") || {}).value || "").trim(),
+    service_pin: ((document.getElementById("f-tt-service_pin") || {}).value || "").trim() };
+  for (var i = 0; i < TSTAT_TECH_ROWS.length; i++) {
+    var k = TSTAT_TECH_ROWS[i][0], el = document.getElementById("f-tt-" + k), v = el ? parseFloat(el.value.replace(",", ".")) : NaN;
+    if (!isFinite(v)) { S.msg = "Check the thermostat numbers: one of them isn't a number."; render(); return; }
+    body[k] = v;
+  }
+  b.disabled = true;
+  api("/api/systems/" + S.sys.id + "/thermostat/tech", { method: "PUT", body: body }).then(function (d) {
+    S.tstat = d;
+    Object.keys(S.form).forEach(function (k) { if (k.indexOf("f-tt-") === 0) delete S.form[k]; });
+    S.msg = "Thermostat settings sent."; render();
+  }).catch(function (err) { S.msg = "Couldn't save: " + err.message; b.disabled = false; render(); });
+});
+
 function homeHealth(fresh, running) {
   var d = (S.latest && S.latest.derived) || {}, steady = running && (d.run_min || 0) >= 10;
   var online = nodesOnline();
@@ -543,7 +749,10 @@ function homeHealth(fresh, running) {
       text: "Needs static pressure sensors, planned for a later phase. A dirty filter can still show up as weak cooling above." },
     area("Refrigerant", ["sh_low", "sh_high", "sc_low", "sc_high"], "Pressures and temperatures look normal for today's weather.",
       hasFlag("sh_low") ? "fault" : "caution", hasFlag("sh_low") ? "Service needed" : "Check soon", "Refrigerant readings are outside the normal range. See above."),
-    area("Outdoor unit", ["ctoa_high"], "Releasing heat normally.", "caution", "Check soon", "It isn't releasing heat as well as it should. See above."),
+    area("Outdoor unit", ["ctoa_high"].concat(ELEC_CODES), "Releasing heat normally.",
+      ["comp_not_running", "fan_not_running", "contactor_open"].some(hasFlag) ? "fault" : "caution",
+      ["comp_not_running", "fan_not_running", "contactor_open"].some(hasFlag) ? "Service needed" : "Check soon",
+      hasFlag("ctoa_high") ? "It isn't releasing heat as well as it should. See above." : "Something in it needs attention. See above."),
     { name: "Monitoring", cls: online === 2 && !hasFlag("sensor_issue") ? "ok" : online ? "advisory" : "offline",
       word: online === 2 ? "Connected" : online ? "Partly connected" : "Offline",
       text: online === 2 ? (hasFlag("sensor_issue") ? "Both monitors online. One sensor isn't reporting." : "Both monitors online.") : online ? "One monitor isn't reporting." : "Neither monitor is reporting." }
@@ -732,9 +941,27 @@ function opState(d, sm, obWord) {
     '<tr><th><span class="mono">G</span>&nbsp; Blower</th><td>' + (d.G ? st("ok", "On") : st("offline", "Off")) + "</td></tr>" +
     '<tr><th><span class="mono">' + obWord + "</span>&nbsp; Reversing valve</th><td>" + rv + ' <span class="faint">' + rvMeans + "</span></td></tr>" +
     '<tr><th><span class="mono">W</span>&nbsp; Aux heat</th><td>' + (d.W ? st("caution", "On") : st("offline", "Off")) + "</td></tr>" +
+    elecRows(d) + tstatOpRows() +
     '</tbody></table><div class="kv"><div><span>Cycle start</span><b>' + cs + "</b></div>" +
     "<div><span>Cycles, 24 h</span><b>" + (isNum(sm.cycles) ? sm.cycles : "—") + "</b></div>" +
     "<div><span>Avg on-time</span><b>" + (isNum(sm.avg_on_minutes) ? Math.round(sm.avg_on_minutes) + "<small>min</small>" : "—") + "</b></div></div></section>";
+}
+
+// Electrical module rows (design rule: new measurements are rows in an existing table).
+function elecRows(d) {
+  var e = d.elec, hasModule = S.latest && S.latest.nodes && S.latest.nodes.electrical;
+  var head = '<tr class="sec"><td colspan="2">Electrical</td></tr>';
+  if (!e) return head + '<tr class="unavail"><th>Amps, voltage, capacitors</th><td>' + st("offline", hasModule ? "Module offline" : "Not installed") + "</td></tr>";
+  function mark(codes) { var c = codes.filter(hasFlag)[0]; return c ? " " + st(flagInfo({ code: c }).level, flagInfo({ code: c }).level === "fault" ? "Fault" : "Check") : ""; }
+  function amps(a, pct, label) { return isNum(a) ? '<span class="n">' + fmt(a) + "<small>A</small></span>" + (isNum(pct) ? ' <span class="faint">' + pct + " % " + label + "</span>" : "") : '<span class="faint">—</span>'; }
+  function cap(uf, pct) { return isNum(uf) ? fmt(uf) + "<small>µF</small>" + (isNum(pct) ? ' <span class="faint">' + fmt(pct, 0) + " %</span>" : "") : "—"; }
+  return head +
+    "<tr><th>Line voltage</th><td>" + (isNum(e.line_v) ? '<span class="n">' + fmt(e.line_v, 0) + "<small>V</small></span>" : "—") + mark(["voltage"]) + "</td></tr>" +
+    "<tr><th>Contactor</th><td>" + (e.contactor ? "Closed" + (isNum(e.contactor_v) ? ' <span class="faint n">' + e.contactor_v.toFixed(2) + " V drop</span>" : "") : "Open") + mark(["contactor_drop", "contactor_open"]) + "</td></tr>" +
+    "<tr><th>Compressor</th><td>" + amps(e.comp_a, e.comp_pct_rla, "RLA") + mark(["comp_not_running", "comp_amps_high"]) + "</td></tr>" +
+    "<tr><th>Condenser fan</th><td>" + amps(e.fan_a, e.fan_pct_fla, "FLA") + mark(["fan_not_running", "fan_amps_high"]) + "</td></tr>" +
+    '<tr><th>Run capacitor</th><td class="n">HERM ' + cap(e.cap_herm_uf, e.cap_herm_pct) + " · fan " + cap(e.cap_fan_uf, e.cap_fan_pct) + mark(["cap_herm", "cap_fan"]) + "</td></tr>" +
+    "<tr><th>Last start</th><td>" + (isNum(e.start_peak_a) ? '<span class="n">' + fmt(e.start_peak_a, 0) + '<small>A</small></span> <span class="faint n">' + fmt(e.start_ms, 0) + " ms</span>" : "—") + mark(["slow_start"]) + "</td></tr>";
 }
 
 // ---------- sensor health (from the nodes' own telemetry and error codes)
@@ -763,6 +990,7 @@ function sensorHealth(n) {
   return '<section class="panel" aria-label="Sensor health"><div class="ph"><h2>Sensor health</h2><span class="right sub">Click a node for detail</span></div>' +
     '<table class="dt health"><tbody><tr class="sec"><td colspan="3">Nodes</td></tr>' +
     nodeRow("in", "Indoor node", n.indoor) + nodeRow("out", "Outdoor node", n.outdoor) +
+    (n.electrical ? nodeRow("el", "Electrical module", n.electrical) : '<tr class="unavail"><th>Electrical module</th><td>' + st("offline", "Not installed") + '</td><td class="num faint">optional</td></tr>') +
     '<tr class="sec"><td colspan="3">Pressure (ADS1115 0x48)</td></tr>' +
     ch("Liquid line", p.liq, "ads1", oerr) + ch("Vapor port", p.vap, "ads1", oerr) + ch("True suction", p.tsuc, null, oerr, true) +
     '<tr class="sec"><td colspan="3">Temperature</td></tr>' +
@@ -950,12 +1178,17 @@ function renderEquipment() {
       row("Rated cooling capacity", eqNum("f-eq-btuh", e.rated_btuh, "BTU/hr", "Rated cooling capacity"), '<span class="faint">Capacity, phase 6</span>') +
       row("Rated airflow", eqNum("f-eq-cfm", e.rated_cfm, "CFM", "Rated airflow"), '<span class="faint">Capacity, phase 6</span>') +
       row("Max external static", eqNum("f-eq-esp", e.max_esp, "in. w.c.", "Maximum external static pressure"), '<span class="faint">Static sensors, phase 6</span>') +
+      row("Compressor RLA / LRA", '<div class="acts-cell">' + eqNum("f-eq-rla", e.comp_rla, "A", "Compressor RLA") + eqNum("f-eq-lra", e.comp_lra, "A", "Compressor LRA") + "</div>", "Electrical module: amps") +
+      row("Condenser fan FLA", eqNum("f-eq-fla", e.fan_fla, "A", "Condenser fan FLA"), "Electrical module: fan amps") +
+      row("Run capacitor", '<div class="acts-cell">' + eqNum("f-eq-caph", e.cap_herm_uf, "µF HERM", "Run capacitor HERM µF") + eqNum("f-eq-capf", e.cap_fan_uf, "µF fan", "Run capacitor fan µF") + "</div>", "Electrical module: ±6 %") +
+      row("Voltage range", '<div class="acts-cell">' + eqNum("f-eq-vmin", e.volt_min, "V min", "Minimum voltage") + eqNum("f-eq-vmax", e.volt_max, "V max", "Maximum voltage") + "</div>",
+        '<span class="faint">197–253 V if empty (208/230 V units)</span>') +
       "</tbody></table></section>" +
       '<section class="panel" aria-label="Site"><div class="ph"><h2>Site</h2></div>' + head +
       row("Site elevation", eqNum("f-eq-elev", e.elevation_ft, "ft", "Site elevation"), "Atmospheric pressure") +
       row("Atmospheric pressure", e.elevation_ft !== null ? '<span class="n">' + fmt(e.atm_psia, 2) + ' <small>psia</small></span> <span class="faint">derived</span>'
         : eqNum("f-eq-atm", e.atm_psia, "psia", "Atmospheric pressure"), "psig → psia for PT tables") +
-      "</tbody></table></section></div>";
+      "</tbody></table></section>" + tstatTechPanel() + "</div>";
   }
   root.innerHTML = techHeader("equipment") + (S.msg ? '<div class="stale-banner" role="status">' + esc(S.msg) + "</div>" : "") + '<main class="page">' + body + "</main>";
   bindCommon();
@@ -967,7 +1200,9 @@ root.addEventListener("click", function (e) {
   function n(id) { var x = v(id); return x === "" ? null : parseFloat(x.replace(",", ".")); }
   var body = { system_type: v("f-eq-type") || null, metering: v("f-eq-meter") || null, tonnage: n("f-eq-tons"), sc_target: n("f-eq-sc"),
     sc_tolerance: n("f-eq-tol"), rated_btuh: n("f-eq-btuh"), rated_cfm: n("f-eq-cfm"), max_esp: n("f-eq-esp"), elevation_ft: n("f-eq-elev"),
-    refrigerant: v("f-eq-ref"), heat_pump: v("f-eq-hp") === "1", ob_energized: v("f-eq-ob"), atm_psia: n("f-eq-atm") };
+    refrigerant: v("f-eq-ref"), heat_pump: v("f-eq-hp") === "1", ob_energized: v("f-eq-ob"), atm_psia: n("f-eq-atm"),
+    comp_rla: n("f-eq-rla"), comp_lra: n("f-eq-lra"), fan_fla: n("f-eq-fla"), cap_herm_uf: n("f-eq-caph"), cap_fan_uf: n("f-eq-capf"),
+    volt_min: n("f-eq-vmin"), volt_max: n("f-eq-vmax") };
   for (var k in body) if (typeof body[k] === "number" && !isFinite(body[k])) { S.msg = "Check the numbers: one of them isn't a number."; render(); return; }
   b.disabled = true;
   api("/api/systems/" + S.sys.id + "/equipment", { method: "PUT", body: body }).then(function (d) {

@@ -12,13 +12,14 @@ superheat / subcooling / fault-flag math.
 | `hvaccloud/calc.py` | Port of the dashboard's `Hub.compute` / `Hub.flags`; `tests/test_calc.py` checks they match |
 | `hvaccloud/db.py` | SQLAlchemy models; SQLite in development, TimescaleDB hypertables in production |
 | `web/` | Fullscope web app (homeowner + technician views), served by the API at `/app/` |
+| `hvaccloud/electrical.py` | Optional electrical module (third node `electrical`): amps, voltage, capacitor, contactor rules |
 | `hvaccloud/equipment.py` | Equipment details; nameplate subcooling targets applied after `calc` (cloud only) |
 | `hvaccloud/auth.py` | Passwords (scrypt), sign-in sessions, who is asking (contractor / homeowner / API key) |
 | `hvaccloud/service.py` | Maintenance reminders (air filter, tune-up) and the service contractor |
 | `hvaccloud/maintenance.py` | Nightly backup of `dev.db` and thinning of old data |
 | `manage.py` | Create accounts, API keys and systems; send a test alert email; backup / prune by hand |
 | `demo.py`, `start-demo.bat` | Contractor demo: a separate demo account with six homes acting out common faults |
-| `demo_publisher.py` | Simulated outdoor + indoor nodes over MQTT (site `demo`) |
+| `demo_publisher.py` | Simulated outdoor + indoor nodes over MQTT (site `demo`); `--thermostat` adds a display thermostat and a simulated house |
 
 A system's `site_id` is the node's `SITE_ID` in `hvac-firmware/include/config.h`, so the
 firmware needs no changes. Messages from sites with no system are ignored.
@@ -49,22 +50,43 @@ Interactive API docs: http://localhost:8000/docs (click Authorize and paste the 
 ## Contractor demo
 
 `start-demo.bat` (or `python demo.py setup` then `python demo.py run`) adds a separate demo
-account, "Desert Air Demo Co.", with six homes, a day of history and past alerts:
+account, "Desert Air Demo Co.", with seven homes, a day of history and past alerts:
 
 | Home | Shows |
 |---|---|
-| Garcia residence | healthy, normal cycling (its homeowner sign-in shows the homeowner page) |
+| Garcia residence | healthy, with a Fullscope thermostat and electrical module (its homeowner sign-in shows the homeowner page) |
 | Thompson residence | low delta-T and an overdue filter |
 | Patel home | high superheat, low subcooling (below the nameplate target): a slow leak |
 | Miller rental | condensing 36+ °F over ambient: dirty coil or blocked airflow |
 | Nguyen casita | indoor monitor offline for 3 hours |
 | Brooks home | superheat near zero: floodback risk, service needed |
+| Rivera home | thermostat + electrical module: the compressor's run capacitor reads weak (38 of 45 uF) since 2.5 h before setup; "See the thermostat's screen" shows the alert and, on the Service page (PIN 0000), the marker on the trend |
 
 The sign-ins are generated at setup and saved in `demo-login.txt` (git-ignored). Readings go
 straight through the ingest code (no broker or nodes), into the same database as the local
 cloud; `run` first fills any gap since it last ran so the homes look continuous. Demo systems
 never send email. `python demo.py reset` removes the demo account and everything in it, nothing
 else.
+
+## Display thermostat (phase 11, optional)
+
+Design: [../thermostat/README.md](../thermostat/README.md). The thermostat runs its own control
+and safety logic (`hvaccloud/thermostat.py`, `Controller`, the reference for the firmware). The
+cloud stores the settings and publishes them, retained and versioned, to
+`hvac/<site>/thermostat/config`. The thermostat reports on `hvac/<site>/thermostat/telemetry`.
+Its state and diagnostics ride along in the system's snapshots, under `tstat`. Systems
+without a thermostat are unchanged. Homeowners get a thermostat card (setpoint, mode, fan,
+schedule, resume); technicians get thermostat rows on Monitor and its safety settings on
+Equipment. Try it with `python demo_publisher.py --site demo --thermostat` (add
+`--electrical --fault pitted_contactor` for the electrical module).
+
+Changes made on the thermostat's own screen arrive on `hvac/<site>/thermostat/request`. Ingest
+merges them into the stored settings (`thermostat.apply_request`) and sends back a newer config.
+
+The thermostat's own screen (Home, Alerts for homeowners, Service for technicians, with a trend
+and electrical fault markers) has a browser preview at `/app/thermostat.html#<system id>`, using
+the display feed from `hvaccloud/display.py`. Ingest publishes the feed retained to
+`hvac/<site>/thermostat/display`.
 
 ## Sign-in and roles
 
@@ -126,6 +148,11 @@ Plain HTML/CSS/JS in `web/`, no build step; styles are copied from the Fullscope
   Superheat keeps the generic 3–30 °F (the valve controls it; a piston's target needs indoor
   humidity, phase 6). Ratings and static are stored for phase 6 and marked "not used yet". The
   PC dashboard and `calc.py` are unchanged, so the parity test still holds.
+- **Electrical module** (optional, design in `../electrical/README.md`): readings on
+  `hvac/<site>/electrical/telemetry` are joined to the next snapshot as `elec` and judged against
+  the nameplate RLA / LRA / FLA / capacitor µF / voltage range on the Equipment page. They show as
+  rows in Monitor's Operating state table ("Not installed" without a module) and roll up into the
+  homeowner's "Outdoor unit" area. Try it: `demo_publisher.py --electrical --fault weak_cap`.
 - **Service history** (`#/service/<id>`): log a visit (date, type, technician, work done,
   "replaced the air filter", "attach the current readings" from a snapshot under 15 minutes
   old). A tune-up moves the tune-up reminder and a changed filter the filter reminder forward
@@ -227,6 +254,10 @@ header `X-API-Key: <key from manage.py create-key>`. Endpoints marked *tech* ans
 | PUT | `/api/systems/{id}/service/contractor` | `{"name","phone","email"}` |
 | PATCH | `/api/systems/{id}/service/items/{filter\|tuneup}` | `interval_days`, `interval_run_hours` (null = days only), `last_done` |
 | POST | `/api/systems/{id}/service/items/{kind}/done` | `{"date":"2026-10-03"}` (defaults to today) |
+| GET / PUT | `/api/systems/{id}/thermostat` | Display thermostat: settings, schedule, what it reports, whether it runs the latest version; PUT `mode`, `fan`, `heat_sp`, `cool_sp`, `schedule` (homeowners too) |
+| GET | `/api/systems/{id}/thermostat/display` | What the thermostat's screen shows: plain alerts, health areas, key numbers, 6 h trend, electrical markers |
+| POST / DELETE | `/api/systems/{id}/thermostat/hold` | `{"heat"?, "cool"?, "permanent"?}` holds until the next scheduled change; DELETE resumes the schedule |
+| PUT | `/api/systems/{id}/thermostat/tech` | *tech* Safety settings (compressor protection, aux heat lockouts, time zone) |
 | POST | `/api/systems/{id}/commands` | `{"node":"outdoor","cmd":{"cmd":"cal_zero","ch":"p_liq"}}` |
 | GET | `/api/systems/{id}/commands` | Recent commands with the node's reply |
 

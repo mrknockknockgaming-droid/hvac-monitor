@@ -1,0 +1,97 @@
+/* Browser preview of the display thermostat's touchscreen (800 x 480). The device is always dark. */
+.ts-page{min-height:100vh;padding:16px;display:flex;flex-direction:column;align-items:center;gap:14px}
+.ts-note{max-width:832px;font-size:13px;line-height:19px;color:var(--ink-muted)}
+.ts-fit{width:100%;max-width:832px}
+.ts-device{width:832px;height:512px;padding:16px;background:#050607;border-radius:22px;box-shadow:0 0 0 1px #2c343c, 0 12px 40px rgba(0,0,0,.45);transform-origin:top left}
+.ts-screen{position:relative;width:800px;height:480px;overflow:hidden;background:#0d1013;color:#e4e8eb;border-radius:4px;
+  font:400 16px/22px var(--font-sans);font-feature-settings:"tnum" 1;user-select:none;-webkit-user-select:none}
+.ts-screen button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+
+/* top bar + tab bar */
+.ts-top{position:absolute;left:0;right:0;top:0;height:44px;display:flex;align-items:center;gap:14px;padding:0 18px;border-bottom:1px solid #262d34;font-size:15px;color:#9ea8b1}
+.ts-top .clock{color:#e4e8eb;font-weight:600;font-size:18px}
+.ts-top .sp{flex:1}
+.ts-top .chip{border:0;background:none;padding:4px 0}
+.ts-tabs{position:absolute;left:0;right:0;bottom:0;height:60px;display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #262d34;background:#111417}
+.ts-tabs button{background:none;border:0;font-size:16px;font-weight:500;color:#9ea8b1;display:flex;align-items:center;justify-content:center;gap:8px;border-top:3px solid transparent}
+.ts-tabs button[aria-selected=true]{color:#e4e8eb;border-top-color:#7dff08}
+.ts-tabs .badge{min-width:22px;height:22px;border-radius:11px;padding:0 6px;font-size:13px;line-height:22px;color:#0d1013;font-weight:700}
+.ts-body{position:absolute;left:0;right:0;top:44px;bottom:60px;overflow:hidden}
+
+/* status glyphs at screen size */
+.ts-screen .st{font-size:15px;gap:7px}
+.ts-screen .st::before{width:9px;height:9px}
+.ts-screen .st.caution::before{width:11px;height:10px}
+.lvl-fault{background:#f06a60}.lvl-caution{background:#e2a33b}.lvl-advisory{background:#73aee2}
+
+/* home */
+.ts-home{display:grid;grid-template-columns:1fr 300px;height:100%}
+.ts-room{padding:26px 30px;display:flex;flex-direction:column}
+.ts-room .lbl{font-size:16px;color:#9ea8b1}
+.ts-room .big{font-size:132px;line-height:132px;font-weight:600;letter-spacing:-2px;margin-top:6px}
+.ts-room .big small{font-size:40px;font-weight:500;vertical-align:top;margin-left:4px}
+.ts-room .doing{font-size:20px;line-height:26px;margin-top:12px}
+.ts-room .src{margin-top:auto;font-size:15px;color:#9ea8b1;border:0;padding:0;text-transform:none;letter-spacing:0;font-family:inherit}
+.ts-room .src button{background:none;border:0;color:#7fb2e5;text-decoration:underline;padding:0 0 0 6px}
+.ts-side{border-left:1px solid #262d34;padding:18px 20px;display:flex;flex-direction:column;gap:14px}
+.ts-step{display:grid;grid-template-columns:64px 1fr 64px;align-items:center;gap:6px}
+.ts-step .t{grid-column:1 / -1;font-size:15px;color:#9ea8b1}
+.ts-step b{text-align:center;font-size:52px;line-height:60px;font-weight:600}
+.ts-step button,.ts-modes button,.ts-pin button,.ts-btn{background:#1b2026;border:1px solid #3a434c;border-radius:10px;height:64px;font-size:30px}
+.ts-step button:active,.ts-modes button:active,.ts-pin button:active{background:#29313a}
+.ts-modes{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:auto}
+.ts-modes button{height:46px;font-size:16px;border-radius:8px}
+.ts-modes button[aria-pressed=true]{border-color:#7dff08;color:#fff}
+
+/* alerts (homeowner) */
+.ts-alerts{display:grid;grid-template-columns:1fr 1fr;height:100%}
+.ts-col{padding:14px 20px;overflow-y:auto;scrollbar-width:thin;display:flex;flex-direction:column;gap:10px}
+.ts-col+.ts-col{border-left:1px solid #262d34}
+.ts-head{font-size:22px;line-height:28px;font-weight:600}
+.ts-sub{font-size:14px;color:#9ea8b1;margin-top:-4px}
+.ts-health{list-style:none;margin:0;padding:0}
+.ts-health li{display:grid;grid-template-columns:1fr auto;gap:0 10px;padding:6px 0;border-top:1px solid #262d34}
+.ts-health b{font-weight:600}
+.ts-health p{grid-column:1 / -1;margin:1px 0 0;font-size:13px;line-height:17px;color:#9ea8b1}
+.ts-card{display:block;width:100%;text-align:left;background:#1b2026;border:1px solid #3a434c;border-left-width:6px;border-radius:8px;padding:10px 14px}
+.ts-card.fault{border-left-color:#f06a60}.ts-card.caution{border-left-color:#e2a33b}.ts-card.advisory{border-left-color:#73aee2}
+.ts-card .t{font-weight:600;font-size:17px;line-height:22px;display:block}
+.ts-card .w{font-size:14px;color:#9ea8b1}
+.ts-empty{color:#9ea8b1;font-size:16px;line-height:22px}
+.ts-detail{position:absolute;inset:0;background:#0d1013;padding:18px 24px;display:flex;flex-direction:column;gap:10px;z-index:3}
+.ts-detail h3{margin:0;font-size:24px;line-height:30px}
+.ts-detail h4{margin:6px 0 0;font-size:15px;color:#9ea8b1;font-weight:500}
+.ts-detail p{margin:0;font-size:18px;line-height:25px}
+.ts-detail .tech{margin-top:auto;font-size:14px;color:#848f99}
+.ts-btn{height:48px;font-size:17px;padding:0 22px;border-radius:8px}
+.ts-detail .ts-btn{align-self:flex-start}
+
+/* service (technician) */
+.ts-pinwrap{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px}
+.ts-dots{display:flex;gap:14px;height:20px}
+.ts-dots i{width:16px;height:16px;border-radius:50%;border:2px solid #9ea8b1}
+.ts-dots i.on{background:#e4e8eb;border-color:#e4e8eb}
+.ts-pin{display:grid;grid-template-columns:repeat(3,92px);gap:8px}
+.ts-pin button{height:52px;font-size:24px}
+.ts-svc{display:flex;flex-direction:column;height:100%;padding:8px 14px 8px;gap:6px}
+.ts-chips{display:flex;gap:6px}
+.ts-chips div{flex:1;background:#151a1f;border:1px solid #262d34;border-radius:6px;padding:3px 8px;min-width:0}
+.ts-chips span{display:block;font-size:11px;line-height:14px;color:#848f99;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ts-chips b{font-size:17px;line-height:22px;font-weight:600;white-space:nowrap}
+.ts-chips b small{font-size:11px;color:#9ea8b1;font-weight:400;margin-left:2px}
+.ts-chips .bad{border-color:#e2a33b}.ts-chips .badf{border-color:#f06a60}
+.ts-graph{position:relative;flex:1;min-height:0}
+.ts-graph canvas{display:block;width:100%;height:100%}
+.ts-gbar{display:flex;align-items:center;gap:8px;font-size:12px;color:#9ea8b1}
+.ts-gbar .sp{flex:1}
+.ts-seg button{background:#1b2026;border:1px solid #3a434c;height:28px;padding:0 12px;font-size:13px}
+.ts-seg button:first-child{border-radius:6px 0 0 6px}.ts-seg button:last-child{border-radius:0 6px 6px 0;border-left:0}
+.ts-seg button[aria-pressed=true]{background:#29313a;color:#fff}
+.ts-key{display:inline-flex;align-items:center;gap:4px}
+.ts-key i{width:12px;height:3px;display:inline-block}
+.ts-diag{display:flex;gap:6px;overflow:hidden;height:46px}
+.ts-diag div{flex:1;min-width:0;background:#151a1f;border:1px solid #262d34;border-left-width:4px;border-radius:6px;padding:3px 8px;font-size:12px;line-height:15px}
+.ts-diag div.fault{border-left-color:#f06a60}.ts-diag div.caution{border-left-color:#e2a33b}.ts-diag div.advisory{border-left-color:#73aee2}
+.ts-diag b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ts-diag span{display:block;color:#9ea8b1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ts-msg{position:absolute;left:50%;top:12px;transform:translateX(-50%);background:#29313a;border-radius:8px;padding:8px 14px;font-size:15px;z-index:4}

@@ -335,6 +335,8 @@ def start_mqtt(hub):
         if len(parts) != 4:
             return
         node, kind = parts[2], parts[3]
+        if node not in ("outdoor", "indoor"):      # e.g. the cloud-only electrical module
+            return
         try:
             data = json.loads(msg.payload.decode())
         except Exception:
