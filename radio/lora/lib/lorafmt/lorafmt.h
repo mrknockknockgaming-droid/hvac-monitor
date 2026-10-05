@@ -39,6 +39,10 @@ size_t seal(const uint8_t key[16], uint32_t device_id, uint32_t counter, uint8_t
 bool open_frame(const uint8_t key[16], const uint8_t* frame, size_t n, uint8_t& type, uint32_t& device_id,
                 uint32_t& counter, uint8_t* payload, size_t& payload_len);
 uint32_t peek_device(const uint8_t* frame);     // to look up the key before opening
+bool parse_key(const char* hex, uint8_t key[16]);   // 32 hex digits
+
+// The site's channel (README "Channel plan"): 903.0 + 1.6 n MHz, n from a FNV-1a hash of the site id.
+double channel_mhz(const char* site);
 
 double airtime_ms(size_t payload_len, int sf, double bw_khz, int cr = 1, int preamble = 8);
 

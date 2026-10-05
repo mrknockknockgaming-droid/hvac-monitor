@@ -340,6 +340,12 @@ uint32_t peek_device(const uint8_t* frame) {
     return frame[1] | (frame[2] << 8) | (frame[3] << 16) | (static_cast<uint32_t>(frame[4]) << 24);
 }
 
+double channel_mhz(const char* site) {
+    uint32_t h = 0x811C9DC5u;
+    for (const char* c = site; c && *c; c++) h = (h ^ static_cast<uint8_t>(*c)) * 0x01000193u;
+    return std::round((903.0 + 1.6 * (h % 8)) * 10) / 10;
+}
+
 double airtime_ms(size_t payload_len, int sf, double bw_khz, int cr, int preamble) {
     const double tsym = std::pow(2.0, sf) / (bw_khz * 1000.0);
     const int ldro = tsym > 0.016 ? 1 : 0;

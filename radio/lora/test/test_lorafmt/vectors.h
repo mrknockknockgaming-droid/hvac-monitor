@@ -368,3 +368,14 @@ static const VGateway V_GATEWAY[] = {
     {"140d0c0b0a0f000000c13e9795cb107f9c25fef68086051b", "", ""},
     {"110d0c0b0a10000000730c25b5b2353e3e2a59ac6946788fdb5fa73a84f3346d5abe096d46255d3578f4fc351c", "hvac/home/outdoor/telemetry", "{\"node\": \"outdoor\", \"uptime\": 614343, \"mode\": {\"Y\": true, \"OB\": true}, \"p\": {\"liq\": 143.3, \"vap\": 102.2, \"tsuc\": 162.6}, \"t\": {\"suc\": 41.3, \"liq\": null, \"tsuc\": null, \"dis\": null}, \"air\": {\"t\": 41.4, \"rh\": 70.1}, \"v5\": 5.01, \"err\": [\"ads2\"], \"ts\": 1791000010.25, \"radio\": {\"rssi\": -97, \"snr\": 7.5}}"},
 };
+
+struct VChannel { const char* site; double mhz; };
+static const VChannel V_CHANNELS[] = {
+    {"home", 912.6},
+    {"demo", 912.6},
+    {"demo-rivera", 909.4},
+    {"tstat-test", 903.0},
+    {"smith-1234", 914.2},
+    {"a", 909.4},
+    {"", 911.0},
+};

@@ -3,12 +3,18 @@
 
 #include "common.h"
 #include "config.h"
+#include "lora_link.h"
 #include "net.h"
 #include "settings.h"
 #include <WiFi.h>
 
 static uint32_t lastPublish = 0;
 static uint32_t intervalMs  = 5000;
+static uint32_t lastLoraStatus = 0;
+static const uint32_t LORA_STATUS_MS = 5UL * 60UL * 1000UL;   // over LoRa the status isn't retained: resend
+
+// The link: WiFi + MQTT as before, or LoRa to the site's gateway when config.h says so.
+static void publishStatus();
 
 static void handleCommandInner(JsonDocument& cmd, JsonDocument& reply);
 
@@ -16,7 +22,12 @@ static void handleCommandInner(JsonDocument& cmd, JsonDocument& reply);
 static void handleCommand(JsonDocument& cmd, JsonDocument& reply) {
   handleCommandInner(cmd, reply);
   const char* c = cmd["cmd"] | "";
-  if ((reply["ok"] | false) && strcmp(c, "status") && strcmp(c, "reboot")) netPublishStatus();
+  if ((reply["ok"] | false) && strcmp(c, "status") && strcmp(c, "reboot")) publishStatus();
+}
+
+static void publishStatus() {
+  if (LORA_ENABLED) loraSendStatus(intervalMs);
+  else netPublishStatus();
 }
 
 static void fillStatus(JsonDocument& doc) {
@@ -29,7 +40,7 @@ static void handleCommandInner(JsonDocument& cmd, JsonDocument& reply) {
   const char* c = cmd["cmd"] | "";
   if (!strcmp(c, "reboot")) {
     reply["ok"] = true;
-    netPublishStatus();
+    publishStatus();
     delay(300);
     ESP.restart();
   } else if (!strcmp(c, "interval")) {
@@ -39,7 +50,7 @@ static void handleCommandInner(JsonDocument& cmd, JsonDocument& reply) {
     setPutU("interval", ms);
     reply["ok"] = true; reply["ms"] = ms;
   } else if (!strcmp(c, "status")) {
-    netPublishStatus();
+    publishStatus();
     reply["ok"] = true;
   } else if (!nodeHandleCmd(cmd, reply)) {
     reply["ok"] = false;
@@ -51,6 +62,10 @@ static void handleCommandInner(JsonDocument& cmd, JsonDocument& reply) {
 static void ledUpdate() {
   uint32_t t = millis();
   bool on;
+  if (LORA_ENABLED) {                // LoRa: fast blink = radio problem, short flash = sending
+    digitalWrite(PIN_LED, loraOk() ? (t % 3000) < 40 : (t / 100) % 2);
+    return;
+  }
   switch (netState()) {
     case NET_NO_WIFI: on = (t / 100) % 2; break;
     case NET_NO_MQTT: on = (t / 500) % 2; break;
@@ -67,11 +82,21 @@ void setup() {
   settingsBegin();
   intervalMs = setGetU("interval", 5000);
   nodeSetup();
-  netBegin(handleCommand, fillStatus);
+  if (LORA_ENABLED) {
+    loraBegin(handleCommand);
+    loraSendStatus(intervalMs);
+    lastLoraStatus = millis();
+  } else {
+    netBegin(handleCommand, fillStatus);
+  }
 }
 
 void loop() {
-  netLoop();
+  if (LORA_ENABLED) loraLoop(); else netLoop();
+  if (LORA_ENABLED && millis() - lastLoraStatus >= LORA_STATUS_MS) {
+    lastLoraStatus = millis();
+    loraSendStatus(intervalMs);
+  }
   nodeLoop();
   ledUpdate();
 
@@ -88,6 +113,6 @@ void loop() {
     String out;
     serializeJson(doc, out);
     Serial.println(out);             // bench testing works with just a USB cable
-    netPublishTelemetry(out);
+    if (LORA_ENABLED) loraSendReading(doc); else netPublishTelemetry(out);
   }
 }

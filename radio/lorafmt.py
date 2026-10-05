@@ -51,6 +51,16 @@ REPLY_ERRORS = ["", "unknown command", "unknown channel", "channel has no valid 
                 "apply at least ~50 psi before spanning", "value out of range", "bad frame"]
 
 
+# ---------------------------------------------------------------- channel plan
+def channel_mhz(site):
+    """The site's channel: one of eight 500 kHz channels, 903.0 + 1.6 n MHz (README "Channel plan"),
+    from a FNV-1a hash of the site id, so neighbouring systems usually differ."""
+    h = 0x811C9DC5
+    for b in site.encode():
+        h = ((h ^ b) * 0x01000193) & 0xFFFFFFFF
+    return round(903.0 + 1.6 * (h % 8), 1)
+
+
 # ---------------------------------------------------------------- airtime
 def airtime_ms(payload_len, sf, bw_khz, cr=1, preamble=8, explicit_header=True, crc=True):
     """LoRa time on air (Semtech SX1261/2 datasheet, section 6.1.4). cr=1 means 4/5."""

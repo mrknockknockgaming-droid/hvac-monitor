@@ -51,6 +51,12 @@ clock by NTP after WiFi connects and waits up to 15 s for it before the first TL
   show up at once; status now includes `interval_ms`.
 - No more `nvs_get_blob ... NOT_FOUND` lines at boot for settings that were never saved.
 
+### LoRa instead of WiFi (optional)
+With an SX1262 module wired up (pins in `config.example.h`), set `LORA_ENABLED 1` and the node's
+`LORA_DEVICE_ID` / `LORA_KEY` from `radio/tools/new_device.py`. The node then talks only to the
+site's LoRa gateway (`radio/README.md`), which republishes everything on the usual MQTT topics.
+Readings carry no `ts` (the gateway stamps them), and over-the-air updates need WiFi.
+
 ## 3. Flash
 With **24 VAC disconnected**, plug the ESP32 into USB, then:
 ```

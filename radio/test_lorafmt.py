@@ -114,3 +114,9 @@ if __name__ == "__main__":
         json.dump(make_vectors(), f, indent=2)
         f.write("\n")
     print("wrote", VECTORS)
+
+
+def test_channel_plan():
+    chans = {lf.channel_mhz(s) for s in ("home", "demo", "a", "b", "c", "d", "e", "f", "g", "h", "i")}
+    assert chans <= {round(903.0 + 1.6 * n, 1) for n in range(8)} and len(chans) > 3
+    assert lf.channel_mhz("home") == lf.channel_mhz("home")

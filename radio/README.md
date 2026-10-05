@@ -90,8 +90,8 @@ that on a real house. Airtime is tiny: one 77 ms frame every 5 s is 1.5 % of the
 ## 6. Channel plan
 
 Eight 500 kHz channels, 903.0 + 1.6·n MHz (n = 0–7, the LoRaWAN US915 500 kHz uplink grid). A
-site uses one, chosen from its site id, so neighbouring systems usually don't share. The range
-test uses 915.0 MHz.
+site uses one, chosen from its site id (FNV-1a hash mod 8, `channel_mhz` in both lorafmt.py and
+the C++ library), so neighbouring systems usually don't share. The range test uses 915.0 MHz.
 
 ## 7. Range test (two Heltec V3 boards, `rangetest/`)
 
@@ -141,12 +141,48 @@ operation at the power we'd use, and which antennas it was approved with.
 Decide after the range test and the contractor interviews (who installs, how much setup they'll
 tolerate, what a monthly fee does to the price).
 
+## Firmware (written, tested on the PC, not yet run on radios)
+
+- **`lora/lib/lorafmt`**: the C++ port of `lorafmt.py`. It covers AES-128-CCM (portable code;
+  the S-box is computed rather than typed in; checked against FIPS-197), the frames, the channel
+  plan and the gateway logic. `tools/make_cpp_vectors.py` produces exact cases from the Python
+  reference: 300 random readings, plus statuses, commands, replies, the channel plan, and a
+  gateway session with replays, a wrong key, an unknown device and a tampered frame.
+  `pio test -e native` in `lora/` matches every byte (7 tests).
+- **`lora/lib/lora_radio`**: the SX1262 via RadioLib on the site's channel (500 kHz, SF9,
+  20 dBm). It always listens between transmissions.
+- **Plug-in gateway**: `lora/src/main.cpp`, for a Heltec V3 (`pio run -e gateway_heltec`). It
+  republishes frames on the usual topics and sends commands from `hvac/<site>/<node>/cmd` to the
+  node. An OLED shows frames and RSSI per node, and it reports its own status (retained) on
+  `hvac/<site>/gateway/status`.
+- **Nodes**: `hvac-firmware`, with `LORA_ENABLED 1` in `config.h`. Readings, status (every
+  5 min and after changes) and command replies go over LoRa instead of WiFi, and commands are
+  handled exactly as over MQTT.
+- **Thermostat as the gateway**: `thermostat/firmware`, with `LORA_GATEWAY 1`. It does the same
+  job, and takes the outdoor air temperature straight from the outdoor node's frames, so the
+  heat-pump lockouts work with the internet down. It needs free pins on the display board for
+  the SX1262; check Waveshare's schematic.
+- **Keys**: `tools/new_device.py outdoor` prints a node's device id and key, and the matching
+  line for the gateway. There is one key per node.
+- **Counters**:
+  - Each node saves its counter every 100 frames and starts 100 ahead after a reboot, so a nonce
+    is never reused.
+  - The gateway saves each node's highest counter every 20 frames, so after a reboot at most 20
+    old frames could be replayed once.
+  - The gateway's own command counter jumps 100 ahead on boot.
+- **Over LoRa there is:**
+  - no "ts", because nodes on LoRa have no clock (the gateway stamps arrival time);
+  - no over-the-air updates;
+  - no WiFi status fields.
+
 ## Files
 
 - `lorafmt.py`: reference frame format, encryption, gateway logic, airtime calculator.
 - `test_lorafmt.py`: 8 tests; `python test_lorafmt.py` rewrites `vectors.json`.
 - `vectors.json`: exact frames (key, ids, counters, bytes) the C++ firmware must reproduce.
 - `rangetest/`: sender/receiver firmware for the range test (builds; not yet run on boards).
+- `lora/`: C++ frame library, radio wrapper, plug-in gateway firmware and their tests (see above).
+- `tools/make_cpp_vectors.py`, `tools/new_device.py`.
 
 Run the tests: `python -m venv .venv`, `.venv\Scripts\pip install cryptography pytest`,
 `.venv\Scripts\python -m pytest -q`.

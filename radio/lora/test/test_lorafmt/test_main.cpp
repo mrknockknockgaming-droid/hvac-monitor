@@ -203,6 +203,10 @@ static void test_airtime_matches_python() {
     TEST_ASSERT_TRUE(airtime_ms(45, 9, 500) < 100);
 }
 
+static void test_channel_plan_matches_python() {
+    for (const VChannel& v : V_CHANNELS) TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(v.mhz, channel_mhz(v.site), v.site);
+}
+
 int main(int, char**) {
     UNITY_BEGIN();
     RUN_TEST(test_aes_fips197);
@@ -211,5 +215,6 @@ int main(int, char**) {
     RUN_TEST(test_gateway_session_matches_python);
     RUN_TEST(test_commands_reach_the_node);
     RUN_TEST(test_airtime_matches_python);
+    RUN_TEST(test_channel_plan_matches_python);
     return UNITY_END();
 }

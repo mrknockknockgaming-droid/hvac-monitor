@@ -41,6 +41,5 @@ private:
     std::vector<Device> devices_;
 };
 
-bool parse_key(const char* hex, uint8_t key[16]);     // 32 hex digits
 
 }  // namespace lorafmt

@@ -26,5 +26,19 @@
 // Identifies this installation; lets one server handle many systems later
 #define SITE_ID     "home"
 
+// LoRa instead of WiFi (radio/README.md): 1 sends everything to the site's LoRa gateway. Make the
+// id and key with radio/tools/new_device.py; the same pair goes in the gateway's config.h.
+// With LORA_ENABLED 1 the WiFi settings above aren't used.
+#define LORA_ENABLED   0
+#define LORA_DEVICE_ID 0x00000000
+#define LORA_KEY       "00000000000000000000000000000000"
+// SX1262 module wiring (defaults: VSPI SCK 18 / MISO 19 / MOSI 23, NSS 5, DIO1 26, RST 27, BUSY 25;
+// TCXO 1.8 V as on the Wio-SX1262). Check against the carrier board before the first power-up.
+// #define LORA_PIN_NSS 5
+// #define LORA_PIN_DIO1 26
+// #define LORA_PIN_RST 27
+// #define LORA_PIN_BUSY 25
+// #define LORA_TCXO_V 1.8
+
 // Password for over-the-air firmware updates
 #define OTA_PASS    "change-me"

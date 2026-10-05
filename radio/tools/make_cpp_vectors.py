@@ -138,6 +138,11 @@ def main():
         except ValueError:
             out.append(f"    {{\"{hexs(frame)}\", \"\", \"\"}},")
     out += ["};", ""]
+    out.append("struct VChannel { const char* site; double mhz; };")
+    out.append("static const VChannel V_CHANNELS[] = {")
+    for site in ["home", "demo", "demo-rivera", "tstat-test", "smith-1234", "a", ""]:
+        out.append(f"    {{\"{site}\", {lf.channel_mhz(site)!r}}},")
+    out += ["};", ""]
     path = os.path.join(HERE, "..", "lora", "test", "test_lorafmt", "vectors.h")
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", encoding="utf-8", newline="\n") as f:
