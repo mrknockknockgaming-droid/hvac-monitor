@@ -4,7 +4,8 @@ import demo
 from hvaccloud.db import Account, Alert, Snapshot, System, User
 
 EXPECTED = {"demo-garcia": set(), "demo-thompson": {"dt_low"}, "demo-patel": {"sh_high", "sc_low"},
-            "demo-miller": {"ctoa_high"}, "demo-nguyen": {"node_offline"}, "demo-brooks": {"sh_low"}}
+            "demo-miller": {"ctoa_high"}, "demo-nguyen": {"node_offline"}, "demo-brooks": {"sh_low"},
+            "demo-rivera": {"cap_herm"}}
 
 
 def test_setup_gives_each_home_its_fault_and_reset_removes_only_the_demo(sessions, seeded, tmp_path, monkeypatch):

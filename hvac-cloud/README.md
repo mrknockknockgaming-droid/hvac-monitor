@@ -50,16 +50,17 @@ Interactive API docs: http://localhost:8000/docs (click Authorize and paste the 
 ## Contractor demo
 
 `start-demo.bat` (or `python demo.py setup` then `python demo.py run`) adds a separate demo
-account, "Desert Air Demo Co.", with six homes, a day of history and past alerts:
+account, "Desert Air Demo Co.", with seven homes, a day of history and past alerts:
 
 | Home | Shows |
 |---|---|
-| Garcia residence | healthy, normal cycling (its homeowner sign-in shows the homeowner page) |
+| Garcia residence | healthy, with a Fullscope thermostat and electrical module (its homeowner sign-in shows the homeowner page) |
 | Thompson residence | low delta-T and an overdue filter |
 | Patel home | high superheat, low subcooling (below the nameplate target): a slow leak |
 | Miller rental | condensing 36+ °F over ambient: dirty coil or blocked airflow |
 | Nguyen casita | indoor monitor offline for 3 hours |
 | Brooks home | superheat near zero: floodback risk, service needed |
+| Rivera home | thermostat + electrical module: the compressor's run capacitor reads weak (38 of 45 uF) since 2.5 h before setup; "See the thermostat's screen" shows the alert and, on the Service page (PIN 0000), the marker on the trend |
 
 The sign-ins are generated at setup and saved in `demo-login.txt` (git-ignored). Readings go
 straight through the ingest code (no broker or nodes), into the same database as the local
