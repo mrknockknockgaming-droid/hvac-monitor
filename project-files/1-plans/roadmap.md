@@ -165,8 +165,9 @@ Sheet-metal cabinets and homeowner WiFi are the weak points for nodes at the con
 
 Their answers shape Phases 5, 8 and 10.
 
-- [x] Demo and interview kit ready: start-demo.bat (six scripted homes with common faults) and the [Contractor Interview Kit](https://claude.ai/code/artifact/73343a90-f40b-4778-9df8-f79033e4813c) (21 questions, demo script, notes sheet)
+- [x] Demo and interview kit ready: start-demo.bat (seven scripted homes with common faults) and the [Contractor Interview Kit](https://claude.ai/code/artifact/73343a90-f40b-4778-9df8-f79033e4813c) (21 questions, demo script, notes sheet)
 - [x] Thermostat in the demo: a seventh home, Rivera, with a thermostat and electrical module whose run capacitor is weakening, shown on the thermostat's Alerts and Service screens; Garcia's homeowner view has a thermostat too. The interview kit's demo script has a Rivera step, shown after question 16
+- [x] Project files organized (Oct 4): a project-files folder in the repo with this roadmap and the interview kit, the parts list, 43 screenshots by topic and the logo; a README on the GitHub repo's front page; HVAC Monitor Start and Fullscope Thermostat shortcuts on the Desktop (the thermostat screen now signs in and comes straight back)
 - [ ] List 5–10 HVAC contractors to talk to
 - [ ] Ask which alerts would save them truck rolls
 - [ ] Ask what they would pay per system per month
