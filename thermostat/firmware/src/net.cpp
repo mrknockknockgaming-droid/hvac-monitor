@@ -6,8 +6,12 @@
 #include <WiFiClientSecure.h>
 #include <time.h>
 
+#include <string>
+#include <vector>
+
 #include "board.h"
 #include "config.h"
+#include "lora_gw.h"
 #include "tstat_json.h"
 
 namespace {
@@ -27,7 +31,8 @@ double outdoor_at = -1e9;
 uint32_t last_attempt = 0;
 JsonDocument pending;           // unsent change from the screen
 uint32_t request_id = 0;
-uint32_t changed_at = 0;        // a burst of taps (- - -) is sent as one request, 1.5 s after the last
+uint32_t changed_at = 0;
+std::vector<std::string> extra_topics;   // the LoRa gateway's        // a burst of taps (- - -) is sent as one request, 1.5 s after the last
 
 String topic(const char* node, const char* kind) { return String("hvac/") + SITE_ID + "/" + node + "/" + kind; }
 
@@ -53,6 +58,7 @@ const char* posix_tz(const std::string& iana) {
 }
 
 void on_message(char* t, byte* payload, unsigned int len) {
+    if (lora_gw_on_mqtt(t, payload, len)) return;
     const String tp(t);
     if (tp.endsWith("/thermostat/config")) {
         int ver = 0;
@@ -96,6 +102,7 @@ void connect() {
     mqtt.subscribe(topic("thermostat", "config").c_str(), 1);
     mqtt.subscribe(topic("thermostat", "display").c_str(), 1);
     mqtt.subscribe(topic("outdoor", "telemetry").c_str(), 0);
+    for (const std::string& x : extra_topics) mqtt.subscribe(x.c_str(), 1);
     Serial.println("net: MQTT connected");
 }
 }  // namespace
@@ -182,6 +189,20 @@ void net_publish_report(JsonDocument& doc) {
     String out;
     serializeJson(doc, out);
     mqtt.publish(topic("thermostat", "telemetry").c_str(), out.c_str());
+}
+
+void net_publish(const char* t, const char* payload, bool retain) {
+    if (state.mqtt) mqtt.publish(t, payload, retain);
+}
+
+void net_subscribe(const char* t) {
+    extra_topics.push_back(t);
+    if (state.mqtt) mqtt.subscribe(t, 1);
+}
+
+void net_set_outdoor(double f) {
+    state.outdoor = f;
+    outdoor_at = millis() / 1000.0;
 }
 
 bool net_pending() { return pending.size() > 0; }

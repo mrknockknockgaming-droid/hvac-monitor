@@ -20,3 +20,16 @@
 
 // The system's site id (the same as the monitors')
 #define SITE_ID     "home"
+
+// The thermostat as the site's LoRa gateway (radio/README.md). 1 also needs an SX1262 on free
+// pins of the display board (check Waveshare's schematic: most GPIOs drive the LCD) and the
+// nodes' ids and keys from radio/tools/new_device.py.
+#define LORA_GATEWAY 0
+// #define LORA_PIN_SCK 0
+// #define LORA_PIN_MISO 0
+// #define LORA_PIN_MOSI 0
+// #define LORA_PIN_NSS 0
+// #define LORA_PIN_DIO1 0
+// #define LORA_PIN_RST 0
+// #define LORA_PIN_BUSY 0
+// #define LORA_DEVICES {0x00000000, "00000000000000000000000000000000", "outdoor"}, //                      {0x00000000, "00000000000000000000000000000000", "indoor"},

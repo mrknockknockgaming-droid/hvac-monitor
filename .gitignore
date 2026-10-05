@@ -41,3 +41,6 @@ hvac-cloud/demo-login.txt
 
 # Thermostat firmware
 thermostat/firmware/include/config.h
+
+# LoRa gateway config (WiFi password, radio keys)
+radio/lora/include/config.h

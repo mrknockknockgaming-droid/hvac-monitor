@@ -10,6 +10,7 @@
 #include "board.h"
 #include "display.h"
 #include "io.h"
+#include "lora_gw.h"
 #include "net.h"
 #include "tstat_json.h"
 #include "ui.h"
@@ -136,6 +137,7 @@ void setup() {
     apply_settings();
     net_set_tz(tech.tz);
     net_begin(on_cloud_config);
+    lora_gw_begin();                             // only with LORA_GATEWAY 1 in config.h
     display_begin();
     ui_begin(UiActions{ui_setpoint, ui_mode, ui_resume});
 }
@@ -147,6 +149,7 @@ void loop() {
         io_watchdog();
     }
     net_loop();
+    lora_gw_loop();
     if (now - t_step >= 2000) {
         t_step = now;
         control_step();

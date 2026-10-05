@@ -162,6 +162,21 @@ temperatures, superheat, subcooling and delta-T.
   `demo_publisher.py --electrical --fault <name>`. Version 1 = CTs only (no line contact);
   version 2 = isolated voltage board + UL/IEC 61010 path. No hardware yet.
 
+## 900 MHz radio (decision point before Phase 9): `radio/`
+- `radio/README.md` is the design: FCC 15.247 means a fixed LoRa channel must be 500 kHz wide
+  (DTS) or hop; chosen 500 kHz, SF9 (77 ms per 45-byte frame), AES-128-CCM frames with
+  per-device keys and counters, a gateway that republishes the WiFi firmware's exact JSON on
+  the same MQTT topics (cloud unchanged). `lorafmt.py` is the tested reference (own venv:
+  radio/.venv, `pip install -r requirements.txt`); `vectors.json` is for the C++ port;
+  `rangetest/` builds for Heltec V3 (not run). Production module candidates with FCC modular
+  approval: Heltec HT-CT62, Seeed Wio-SX1262, RAK3172.
+- LoRa firmware (branch radio/lora-design; not run on radios): `radio/lora/lib/lorafmt` (C++ port,
+  own portable AES-128-CCM; `pio test -e native` in radio/lora replays radio/tools/
+  make_cpp_vectors.py from the Python reference), `lora_radio` (RadioLib SX1262), plug-in gateway
+  `pio run -e gateway_heltec`. Nodes: hvac-firmware `LORA_ENABLED 1` (lib_extra_dirs
+  ../radio/lora/lib). Thermostat: `LORA_GATEWAY 1` (lora_gw.cpp; outdoor temp from frames).
+  Keys: radio/tools/new_device.py. Channel = channel_mhz(site) (FNV-1a mod 8).
+
 ## Hardware
 - Boards: 3x ESP-WROOM-32 30-pin dev boards (PCB antenna, no u.FL). Outdoor on COM4, indoor on COM5 (both CP210x; tell them apart by port).
 - Power: 24 VAC from the equipment -> fuse -> SMBJ48CA TVS -> 1N4007 half-wave -> 470 uF

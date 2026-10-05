@@ -38,4 +38,10 @@ void net_publish_report(JsonDocument& doc);
 // A change made on the screen: queued (merged with any earlier unsent one) and sent once MQTT
 // is up and the screen has been left alone for 1.5 s.
 void net_request(const JsonDocument& change);
-bool net_pending();                             // a change from the screen is still unsent
+bool net_pending();
+
+// For the LoRa gateway (lora_gw.cpp): publish on any topic, subscribe to more topics (kept across
+// reconnects; messages on them go to lora_gw_on_mqtt), and the outdoor temperature from a frame.
+void net_publish(const char* topic, const char* payload, bool retain);
+void net_subscribe(const char* topic);
+void net_set_outdoor(double f);                             // a change from the screen is still unsent
