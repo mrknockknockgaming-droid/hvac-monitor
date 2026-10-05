@@ -1,5 +1,5 @@
 @echo off
-rem Contractor demo: creates the demo account the first time, then keeps its six homes live.
+rem Contractor demo: creates the demo account the first time, then keeps its seven homes live.
 rem Uses the same database as the local cloud (dev.db); the demo is its own account and never emails.
 rem Remove it with: .venv\Scripts\python.exe demo.py reset
 cd /d "%~dp0"

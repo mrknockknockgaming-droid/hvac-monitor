@@ -1,6 +1,6 @@
 """Contractor demo: a separate demo account whose homes act out common faults.
 
-  python demo.py setup     create the demo account, six homes and a day of history
+  python demo.py setup     create the demo account, seven homes and a day of history
   python demo.py run       keep the homes live (Ctrl+C to stop)
   python demo.py reset     delete everything the demo created (the rest of the database is untouched)
 
@@ -45,7 +45,7 @@ LOGIN_FILE = os.path.join(settings.HERE, "demo-login.txt")
 STEP_S = 5                     # live reading interval, like the firmware
 BACKFILL_H, BACKFILL_STEP_S = 24, 60
 
-# Six homes. "on"/"off" are cycle minutes (None = running continuously, as on a hot Arizona day).
+# Seven homes. "on"/"off" are cycle minutes (None = running continuously, as on a hot Arizona day).
 HOMES = [
     {"site": "demo-garcia", "name": "Garcia residence", "scenario": "healthy", "tons": 3.0, "on": 38, "off": 12,
      "filter_days": 21, "thermostat": True, "electrical": "none",

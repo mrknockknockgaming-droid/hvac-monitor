@@ -119,7 +119,7 @@ temperatures, superheat, subcooling and delta-T.
   - Service history (`service_visits`, page #/service/<id>): tune-up / filter visits move the
     maintenance last-done dates forward only; readings attached from a snapshot <= 15 min old.
   - Contractor demo: `hvac-cloud/demo.py` (setup / run / reset) + `start-demo.bat`. Separate
-    account "Desert Air Demo Co." (demo@fullscope.example), six scripted homes, sign-ins in
+    account "Desert Air Demo Co." (demo@fullscope.example), seven scripted homes (Rivera + Garcia have a thermostat and electrical module), sign-ins in
     demo-login.txt (git-ignored). For contractor interviews; reset never touches other accounts.
   - Display thermostat (branch cloud/thermostat, design thermostat/README.md): control + safety
     logic runs ON the thermostat (reference `hvaccloud/thermostat.py` Controller, tested by
