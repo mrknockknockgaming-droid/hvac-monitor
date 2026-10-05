@@ -118,6 +118,30 @@ temperatures, superheat, subcooling and delta-T.
     it (needs SMTP); contractors can make one per homeowner in "Homeowner access".
   - Service history (`service_visits`, page #/service/<id>): tune-up / filter visits move the
     maintenance last-done dates forward only; readings attached from a snapshot <= 15 min old.
+  - Contractor demo: `hvac-cloud/demo.py` (setup / run / reset) + `start-demo.bat`. Separate
+    account "Desert Air Demo Co." (demo@fullscope.example), seven scripted homes (Rivera + Garcia have a thermostat and electrical module), sign-ins in
+    demo-login.txt (git-ignored). For contractor interviews; reset never touches other accounts.
+  - Display thermostat (merged into main 2026-10-04 with the electrical module; design thermostat/README.md): control + safety
+    logic runs ON the thermostat (reference `hvaccloud/thermostat.py` Controller, tested by
+    properties over random days). Cloud table `thermostat_configs` (settings, tech, version);
+    every change republishes the whole config retained to hvac/<site>/thermostat/config; the
+    thermostat reports cfg_ver. Ingest stores thermostat telemetry without a snapshot; the next
+    indoor/outdoor snapshot carries `tstat` + flags room_hot, room_cold, setpoint_not_reached,
+    call_mismatch. heat_pump / ob_energized come from the Equipment page, not the tech config.
+    Simulator: demo_publisher.py --thermostat.
+    Thermostat screen: display.py builds the feed (plain alerts, health areas, key numbers, 6 h
+    trend at 2 min, electrical markers from raised alerts); ingest publishes it retained to
+    hvac/<site>/thermostat/display (<= 1/min, at once on raise/clear); browser preview
+    web/thermostat.html#<id> (Home / Alerts / Service behind tech.service_pin, default 0000).
+  - Thermostat firmware: thermostat/firmware (PlatformIO). `pio test -e native` (needs
+    C:\msys64\ucrt64\bin on PATH) replays 32,400 steps of the Python Controller
+    (tools/make_vectors.py) through the C++ port in lib/tstat_core; `pio run -e waveshare43`
+    builds for the Waveshare ESP32-S3-Touch-LCD-4.3 (LovyanGFX + LVGL 8.3). Controller uses the
+    monotonic clock; screen edits go to hvac/<site>/thermostat/request -> ingest
+    on_thermostat_request -> newer config. Display pins in include/board.h are from Waveshare
+    docs, unverified on hardware.
+  - Alerts: `alerts.unjudged(snap)` = codes whose checks couldn't run (idle, not steady, node or
+    electrical module offline); their raised alerts stay open instead of clearing every cycle.
   - Schema changes: `db.add_missing_columns` adds new NULLABLE columns to existing tables at
     startup (create_all only makes new tables). Non-null new columns need a real migration.
   - Maintenance card (home): filter due at 90 days or 500 blower hours, tune-up 182 days,
@@ -127,8 +151,16 @@ temperatures, superheat, subcooling and delta-T.
     `hvac-cloud/backups/` (keeps 7, git-ignored) and prunes: >30 days thinned to 1-minute
     averages, raw telemetry >30 days dropped, >365 days deleted (`hvaccloud/maintenance.py`;
     `manage.py backup` / `prune` by hand). Restore steps are in hvac-cloud/README.md.
-  - Tests: `.venv\Scripts\python.exe -m pytest -q` in `hvac-cloud/` (83 pass). Not done:
+  - Tests: `.venv\Scripts\python.exe -m pytest -q` in `hvac-cloud/` (122 pass). Not done:
     per-device MQTT accounts and ACLs, TLS.
+
+## Electrical module (phase 11): `electrical/README.md` + `hvac-cloud/hvaccloud/electrical.py`
+- Third logical node `electrical` (same topics). Cloud joins its newest reading to the next
+  refrigerant snapshot (`elec`), 10 rules (comp/fan not running, contactor open, amps vs RLA/FLA,
+  run cap ±6 % via amps×2652/V, contactor drop >1 V, voltage range, slow start). Nameplate
+  values on the Equipment page. PC dashboard ignores the node. Simulator:
+  `demo_publisher.py --electrical --fault <name>`. Version 1 = CTs only (no line contact);
+  version 2 = isolated voltage board + UL/IEC 61010 path. No hardware yet.
 
 ## 900 MHz radio (decision point before Phase 9): `radio/`
 - `radio/README.md` is the design: FCC 15.247 means a fixed LoRa channel must be 500 kHz wide

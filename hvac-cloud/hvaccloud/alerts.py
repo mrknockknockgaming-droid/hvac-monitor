@@ -23,13 +23,37 @@ CLEAR_AT_ONCE = {NO_DATA}       # readings are back: no reason to wait
 SLACK_S = 0.001                 # stored times are rounded to microseconds, so "now - started" can be a hair negative
 LEVEL_WORD = {"alert": "Fault", "warn": "Warning"}
 
+# Checks that can only be judged while the equipment runs. Between cycles their alerts stay as
+# they are instead of "clearing" every time the compressor stops: a weak capacitor or low charge
+# is still there while the unit is idle. They clear when a judged reading no longer shows them.
+STEADY_CODES = frozenset({"sh_low", "sh_high", "sc_low", "sc_high", "dt_low", "ctoa_high"})     # calc: 10 min steady
+SETTLED_CODES = frozenset({"contactor_open", "comp_not_running", "fan_not_running", "comp_amps_high", "fan_amps_high"})
+RUNNING_CODES = SETTLED_CODES | {"cap_herm", "cap_fan", "contactor_drop", "voltage"}
+STEADY_MIN, SETTLE_MIN = 10, 1.0          # calc.flags and electrical.SETTLE_MIN
+
+
+def unjudged(snap):
+    """Codes whose checks could not run on this snapshot (see STEADY_CODES)."""
+    run_min = snap.get("run_min") or 0
+    out = set()
+    if snap.get("mode") not in ("cooling", "heating") or run_min < STEADY_MIN:
+        out |= STEADY_CODES
+    if not snap.get("Y") or not snap.get("elec"):             # idle, or the electrical module isn't reporting
+        out |= RUNNING_CODES
+    elif run_min < SETTLE_MIN:
+        out |= SETTLED_CODES
+    if any(f.get("code") == "node_offline" and f.get("node") in ("outdoor", "indoor") for f in snap.get("flags") or []):
+        out |= STEADY_CODES                                       # can't compute superheat etc. without both nodes
+    return out
+
 
 def ts(epoch):
     return dt.datetime.fromtimestamp(epoch, dt.timezone.utc)
 
 
-def sync(s, system, flags, now, hold):
-    """Update the system's open alerts from the current flags. Returns [("raised"|"cleared", Alert)]."""
+def sync(s, system, flags, now, hold, keep=frozenset()):
+    """Update the system's open alerts from the current flags. Returns [("raised"|"cleared", Alert)].
+    Raised alerts whose code is in `keep` (not judged this time, see unjudged) stay open."""
     open_ = {(a.code, a.node): a for a in s.scalars(
         select(Alert).where(Alert.system_id == system.id, Alert.cleared_at.is_(None)))}
     events, seen = [], set()
@@ -46,7 +70,7 @@ def sync(s, system, flags, now, hold):
             a.raised_at = ts(now)
             events.append(("raised", a))
     for key, a in open_.items():
-        if key in seen:
+        if key in seen or (a.code in keep and a.raised_at is not None):
             continue
         gone = now - as_utc(a.last_seen).timestamp()
         if a.code in CLEAR_AT_ONCE or gone >= hold - SLACK_S:
@@ -90,15 +114,46 @@ PLAIN = {
                      "Nothing to do on your own; your contractor can check it."),
     "sensor_issue": ("A monitoring sensor isn't reporting", "Heating and cooling are not affected.",
                      "Nothing to do on your own; your contractor can check it."),
+    "room_hot": ("It's very hot inside", "The room has reached 90 F or more.",
+                 "Check the thermostat is set to Cool, then request a service visit."),
+    "room_cold": ("It's very cold inside", "The room has dropped to 50 F or less; pipes can freeze.",
+                  "Check the thermostat is set to Heat, then request a service visit."),
+    "setpoint_not_reached": ("Your system isn't keeping up", "It has run a long time without reaching your setting.",
+                             "Check your air filter and that windows and doors are shut; if it keeps happening, request a service visit."),
+    "call_mismatch": ("The thermostat and the equipment disagree", "The equipment isn't doing what the thermostat asks.",
+                      "Request a service visit."),
     NO_DATA: ("We lost contact with your monitors", "No checks can run until readings come back.",
               "Check that your WiFi is working."),
+    "comp_not_running": ("Your outdoor unit isn't running", "The thermostat is calling for cooling but the compressor isn't on, so the house isn't being cooled.",
+                         "Request a service visit. Turning the system off at the thermostat until then protects the equipment."),
+    "fan_not_running": ("The fan on your outdoor unit has stopped", "Without it the compressor overheats and can be damaged.",
+                        "Turn the system off at the thermostat and request a service visit."),
+    "contactor_open": ("Your outdoor unit isn't switching on", "The thermostat is calling for cooling but the outdoor unit doesn't start.",
+                       "Request a service visit."),
+    "comp_amps_high": ("Your outdoor unit is working harder than it should", "High current shortens the compressor's life and uses more electricity.",
+                       "Request a service visit."),
+    "fan_amps_high": ("The outdoor fan motor is working hard", "A struggling fan motor often fails soon.", "Request a service visit."),
+    "cap_herm": ("A part in your outdoor unit is wearing out", "A weak run capacitor makes the compressor run hot and can stop it starting.",
+                 "Mention it at your next service visit, or sooner if the unit struggles to start."),
+    "cap_fan": ("A part in your outdoor unit is wearing out", "A weak fan capacitor slows the outdoor fan and can stop it.",
+                "Mention it at your next service visit."),
+    "contactor_drop": ("A switch in your outdoor unit is wearing out", "Worn contacts heat up and can stop the unit from starting.",
+                       "Mention it at your next service visit."),
+    "voltage": ("The power to your outdoor unit is outside its range", "Low or high voltage strains the motors.",
+                "Request a service visit; your contractor may involve the utility."),
+    "slow_start": ("Your outdoor unit is slow to start", "Hard starts wear the compressor and can trip breakers.",
+                   "Request a service visit."),
 }
 
 
 # Homeowner level of each flag code (FLAG_INFO in web/app.js): fault = service needed,
 # caution = check soon, advisory = good to know. Used to sort the contractor's fleet page.
 LEVEL = {"sh_low": "fault", "sh_high": "caution", "sc_low": "caution", "sc_high": "caution", "dt_low": "caution",
-         "ctoa_high": "caution", "node_offline": "advisory", "sensor_issue": "advisory", NO_DATA: "advisory"}
+         "ctoa_high": "caution", "node_offline": "advisory", "sensor_issue": "advisory", NO_DATA: "advisory",
+         "room_hot": "fault", "room_cold": "fault", "setpoint_not_reached": "caution", "call_mismatch": "caution",
+         "comp_not_running": "fault", "fan_not_running": "fault", "contactor_open": "fault",
+         "comp_amps_high": "caution", "fan_amps_high": "caution", "cap_herm": "caution", "cap_fan": "caution",
+         "contactor_drop": "caution", "voltage": "caution", "slow_start": "caution"}
 
 
 def homeowner_emails(s, system_id):

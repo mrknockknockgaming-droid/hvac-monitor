@@ -1,7 +1,7 @@
 """MQTT ingest worker: stores node messages and derived snapshots for every known system.
 
 Listens on hvac/<site>/<node>/{telemetry,status,reply}, the topics the firmware already
-uses. <site> must match a system's site_id (create it with manage.py); messages from
+uses, and hvac/<site>/thermostat/request (changes made on the thermostat's screen). <site> must match a system's site_id (create it with manage.py); messages from
 unknown sites are ignored. Every message also updates the system's alerts (alerts.py), and once a
 minute systems whose nodes have gone quiet get a "no data" alert. Once a night the SQLite
 database is backed up and old data thinned (maintenance.py).
@@ -17,15 +17,17 @@ import time
 
 from sqlalchemy import select
 
-from . import alerts, calc, equipment, maintenance, settings
-from .db import (Alert, Command, Device, Equipment, RuntimeDay, Snapshot, System, Telemetry, as_utc, init_db,
-                 make_engine, session_factory, utcnow)
+from . import alerts, calc, display, electrical, equipment, maintenance, settings, thermostat
+from .db import (Alert, Command, Device, Equipment, RuntimeDay, Snapshot, System, Telemetry, ThermostatConfig, as_utc,
+                 init_db, make_engine, session_factory, utcnow)
 from .refrigerants import Tables
 
 log = logging.getLogger("ingest")
+ALL_NODES = calc.NODES + (electrical.NODE, thermostat.NODE)
 RUN_GAP_S = 60          # longer gaps between snapshots don't count as run time (same rule as /summary)
 TS_MAX_AGE_S = 24 * 3600   # a node's own reading time is trusted up to this old (firmware keeps 10 min)
 TS_MAX_AHEAD_S = 60        # ... and this far in the future (clock drift)
+DISPLAY_EVERY_S = 60       # the thermostat's display feed: at most this often, unless an alert changes
 
 
 def ts(epoch):
@@ -41,6 +43,8 @@ class Ingest:
         self.stale = stale
         self.hold, self.silence, self.cooldown_s = hold, silence, cooldown_s
         self.mailer = mailer          # None = no email (tests); run() passes alerts.Mailer()
+        self.publish = None           # (topic, payload) -> None, retained; run() sets it; None = no display feed
+        self._display_at = {}         # system_id -> when its display feed was last published
         self.latest = {}              # (system_id, node) -> (epoch, data)
         self._unknown_sites = set()
         self._lock = threading.Lock()   # MQTT thread (handle) vs. the once-a-minute sweep
@@ -54,7 +58,7 @@ class Ingest:
 
     def _handle(self, topic, payload, now):
         parts = topic.split("/")
-        if len(parts) != 4 or parts[0] != "hvac" or parts[2] not in calc.NODES:
+        if len(parts) != 4 or parts[0] != "hvac" or parts[2] not in ALL_NODES:
             return None
         site, node, kind = parts[1], parts[2], parts[3]
         try:
@@ -72,19 +76,51 @@ class Ingest:
                     log.info("ignoring site %r: no system registered for it", site)
                 return None
             device = self._device(s, system, node)
+            if kind == "telemetry" and node == thermostat.NODE:
+                return self.on_thermostat(device, s, data, self.reading_time(data, now))
+            if kind == "telemetry" and node == electrical.NODE:
+                return self.on_electrical(s, system, device, data, self.reading_time(data, now))
             if kind == "telemetry":
                 at = self.reading_time(data, now)
                 snap = self.on_telemetry(s, system, device, data, at)
-                events = alerts.sync(s, system, snap["flags"], at, self.hold)
+                events = alerts.sync(s, system, snap["flags"], at, self.hold, keep=alerts.unjudged(snap))
                 jobs = alerts.emails_for(s, system, events, at, self.cooldown_s)
+                show = self._display_due(s, system, events, now)
             elif kind == "status":
                 return self.on_status(device, data, now)
             elif kind == "reply":
                 return self.on_reply(s, device, data, now)
+            elif kind == "request" and node == thermostat.NODE:
+                config = self.on_thermostat_request(s, system, data)
+                topic = f"hvac/{system.site_id}/{thermostat.NODE}/config"
             else:
                 return None
+        if kind == "request":      # after commit: the stored version must exist before the thermostat sees it
+            if config is not None and self.publish is not None:
+                self.publish(topic, config)
+            return config
         self._email(jobs)          # after commit, so the alerts exist when emailed_at is written
+        if show:
+            self._publish_display(*show, now)
         return snap
+
+    # ---------- the display thermostat's feed (display.py) ----------
+    def _display_due(self, s, system, events, now):
+        """(system_id, site) when this system's thermostat should get a fresh feed, else None."""
+        if self.publish is None or self._thermostat_state(s, system, now) is None:
+            return None
+        if events or now - self._display_at.get(system.id, 0) >= DISPLAY_EVERY_S:
+            return system.id, system.site_id
+        return None
+
+    def _publish_display(self, system_id, site, now):
+        self._display_at[system_id] = now
+        try:
+            with self.sessions() as s:
+                feed = display.build(s, s.get(System, system_id), now, self.stale)
+            self.publish(f"hvac/{site}/{thermostat.NODE}/display", feed)
+        except Exception:
+            log.exception("display feed for %s failed", site)
 
     @staticmethod
     def reading_time(data, now):
@@ -109,13 +145,18 @@ class Ingest:
     def sweep(self, now=None):
         """Raise (or keep open) "no data" alerts for systems whose nodes have gone quiet."""
         now = time.time() if now is None else now
-        jobs = []
-        with self._lock, self.sessions() as s, s.begin():
-            for system in s.scalars(select(System).order_by(System.id)):
-                flags = alerts.no_data_flags(s, system, now, self.silence)
-                if flags is not None:
-                    events = alerts.sync(s, system, flags, now, self.hold)
-                    jobs += alerts.emails_for(s, system, events, now, self.cooldown_s)
+        jobs, shows = [], []
+        with self._lock:
+            with self.sessions() as s, s.begin():
+                for system in s.scalars(select(System).order_by(System.id)):
+                    flags = alerts.no_data_flags(s, system, now, self.silence)
+                    if flags is not None:
+                        events = alerts.sync(s, system, flags, now, self.hold)
+                        jobs += alerts.emails_for(s, system, events, now, self.cooldown_s)
+                        if events and self.publish is not None and self._thermostat_state(s, system, now) is not None:
+                            shows.append((system.id, system.site_id))
+            for show in shows:
+                self._publish_display(*show, now)
         self._email(jobs)
 
     def _email(self, jobs):
@@ -160,10 +201,32 @@ class Ingest:
             run_start = None   # after an outage the compressor call can't be assumed to have continued
         snap, run_start = calc.compute(system.calc_config(), nodes,
                                        run_start.timestamp() if run_start else None, now, self.tables)
-        snap = equipment.apply(snap, s.get(Equipment, system.id))     # nameplate targets (cloud only)
+        eq = s.get(Equipment, system.id)
+        snap = equipment.apply(snap, eq)                                # nameplate targets (cloud only)
+        snap = electrical.apply(snap, self._electrical_state(s, system, now), eq)
+        snap = thermostat.apply(snap, self._thermostat_state(s, system, now))
         system.run_started_at = ts(run_start) if run_start else None
         s.add(Snapshot(system_id=system.id, time=ts(now), mode=snap["mode"], data=snap))
         return snap
+
+    def on_thermostat(self, device, s, data, now):
+        """Store the thermostat's report. It makes no snapshot of its own: the next indoor or
+        outdoor reading (every 10 s) picks it up, with its flags, through _thermostat_state."""
+        while s.get(Telemetry, (device.id, ts(now))) is not None:
+            now += 0.001
+        if device.last_seen is None or ts(now) > as_utc(device.last_seen):
+            device.last_seen = ts(now)
+        device.connected = True
+        if "fw" in data:
+            device.fw = data["fw"]
+        s.add(Telemetry(device_id=device.id, time=ts(now), data=data))
+        self.latest[(device.system_id, device.node)] = (now, data)
+        return data
+
+    def _thermostat_state(self, s, system, now):
+        """None when the system has no thermostat (most don't)."""
+        state = self._node_state(s, system, thermostat.NODE, now)
+        return None if state["data"] is None else state
 
     @staticmethod
     def _add_runtime(s, system_id, prev_mode, gap, now):
@@ -178,6 +241,26 @@ class Ingest:
         row.blower_s += gap
         if prev_mode in ("cooling", "heating"):
             row.compressor_s += gap
+
+    def on_electrical(self, s, system, device, data, now):
+        """Store the electrical module's reading; the next refrigerant snapshot uses it."""
+        if s.get(Telemetry, (device.id, ts(now))) is None:
+            s.add(Telemetry(device_id=device.id, time=ts(now), data=data))
+        if device.last_seen is None or ts(now) > as_utc(device.last_seen):
+            device.last_seen = ts(now)
+        device.connected = True
+        for k in ("fw", "rssi"):
+            if k in data:
+                setattr(device, k, data[k])
+        self.latest[(system.id, electrical.NODE)] = (now, data)
+        return data
+
+    def _electrical_state(self, s, system, now):
+        """None when this system has no electrical module, else its {"online", "data"}."""
+        if (system.id, electrical.NODE) not in self.latest and s.scalar(
+                select(Device.id).where(Device.system_id == system.id, Device.node == electrical.NODE)) is None:
+            return None
+        return self._node_state(s, system, electrical.NODE, now)
 
     def _node_state(self, s, system, node, now):
         e = self.latest.get((system.id, node))
@@ -202,6 +285,24 @@ class Ingest:
                 if k in data:
                     setattr(device, k, data[k])
         return data
+
+    @staticmethod
+    def on_thermostat_request(s, system, data):
+        """A change made on the thermostat's screen: store it and return the new config to send back
+        (the thermostat accepts it because its version is newer). None if it isn't valid."""
+        row = s.get(ThermostatConfig, system.id)
+        if row is None:
+            row = ThermostatConfig(system_id=system.id, settings={}, tech={}, version=0, sent=False)
+            s.add(row)
+        try:
+            row.settings = thermostat.apply_request(row.settings, data)
+        except ValueError as e:
+            log.warning("thermostat request from %s ignored: %s", system.site_id, e)
+            return None
+        row.version = (row.version or 0) + 1
+        row.updated_at = utcnow()
+        row.sent = True
+        return thermostat.config_payload(row.version, row.settings, row.tech, system)
 
     @staticmethod
     def on_reply(s, device, data, now):
@@ -234,6 +335,7 @@ def run():
             log.info("connected to %s:%s", settings.MQTT_HOST, settings.MQTT_PORT)
             for kind in ("telemetry", "status", "reply"):
                 client.subscribe(f"hvac/+/+/{kind}", qos=1)
+            client.subscribe(f"hvac/+/{thermostat.NODE}/request", qos=1)
         else:
             log.warning("connect refused: %s", reason_code)
 
@@ -249,6 +351,7 @@ def run():
         client.username_pw_set(settings.MQTT_USER, settings.MQTT_PASS)
     client.on_connect = on_connect
     client.on_message = on_message
+    ingest.publish = lambda topic, payload: client.publish(topic, json.dumps(payload, separators=(",", ":")), qos=1, retain=True)
     client.reconnect_delay_set(1, 30)
     client.connect_async(settings.MQTT_HOST, settings.MQTT_PORT, keepalive=30)
     client.loop_start()

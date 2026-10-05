@@ -25,9 +25,10 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import func, select
 
-from . import alerts, auth, calc, equipment, service, settings
+from . import alerts, auth, calc, display, electrical, equipment, service, settings, thermostat
 from .db import (Account, Alert, AlertMute, AlertPrefs, ApiKey, Command, Device, Invite, PasswordReset, ServiceInfo, ServiceVisit, Snapshot,
-                 System, SystemMember, Telemetry, User, as_utc, hash_key, init_db, make_engine, session_factory, utcnow)
+                 System, SystemMember, Telemetry, ThermostatConfig, User, as_utc, hash_key, init_db, make_engine,
+                 session_factory, utcnow)
 from .refrigerants import FLUIDS
 
 mimetypes.add_type("font/woff", ".woff")   # Windows does not know it; StaticFiles uses mimetypes
@@ -42,7 +43,7 @@ CSV_COLS = ["mode", "p_low", "p_high", "sat_low", "sat_high", "t_suc", "t_liq", 
 
 
 class MqttPublisher:
-    """Publishes commands to hvac/<site>/<node>/cmd; connects on first use."""
+    """Publishes commands to hvac/<site>/<node>/cmd (and the thermostat's retained config); connects on first use."""
 
     def __init__(self, connect_timeout=5.0):
         self._client = None
@@ -50,7 +51,7 @@ class MqttPublisher:
         self._connected = threading.Event()
         self._timeout = connect_timeout
 
-    def __call__(self, topic, payload):
+    def __call__(self, topic, payload, retain=False):
         import paho.mqtt.client as mqtt
         with self._lock:
             if self._client is None:
@@ -66,7 +67,7 @@ class MqttPublisher:
                 self._client = c
         if not self._connected.wait(self._timeout):
             return False
-        info = self._client.publish(topic, json.dumps(payload), qos=1)
+        info = self._client.publish(topic, json.dumps(payload), qos=1, retain=retain)
         return info.rc == 0
 
 
@@ -137,6 +138,13 @@ class EquipmentIn(BaseModel):
     rated_cfm: float | None = Field(default=None, ge=100, le=20000)
     max_esp: float | None = Field(default=None, gt=0, le=2)
     elevation_ft: float | None = Field(default=None, ge=-1500, le=12000)
+    comp_rla: float | None = Field(default=None, gt=0, le=200)
+    comp_lra: float | None = Field(default=None, gt=0, le=600)
+    fan_fla: float | None = Field(default=None, gt=0, le=20)
+    cap_herm_uf: float | None = Field(default=None, gt=0, le=200)
+    cap_fan_uf: float | None = Field(default=None, gt=0, le=30)
+    volt_min: float | None = Field(default=None, ge=100, le=600)
+    volt_max: float | None = Field(default=None, ge=100, le=600)
     refrigerant: str
     heat_pump: bool
     ob_energized: Literal["cool", "heat"]
@@ -172,6 +180,21 @@ class VisitIn(BaseModel):
     filter_changed: bool = False
     attach_readings: bool = False
     _check = field_validator("date")(past_date)
+
+
+class ThermostatIn(BaseModel):
+    """Homeowner settings; fields left out are unchanged."""
+    mode: Literal[thermostat.MODES] | None = None
+    fan: Literal[thermostat.FANS] | None = None
+    heat_sp: float | None = None
+    cool_sp: float | None = None
+    schedule: list[dict] | None = None
+
+
+class HoldIn(BaseModel):
+    heat: float | None = None
+    cool: float | None = None
+    permanent: bool = False
 
 
 class CommandIn(BaseModel):
@@ -372,7 +395,10 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
         if body.refrigerant not in FLUIDS:
             raise HTTPException(422, f"refrigerant must be one of {list(FLUIDS)}")
         eq = equipment.get_or_new(s, system.id)
-        for k in ("system_type", "metering", "tonnage", "sc_target", "rated_btuh", "rated_cfm", "max_esp", "elevation_ft"):
+        if body.volt_min and body.volt_max and body.volt_min >= body.volt_max:
+            raise HTTPException(422, "the minimum voltage must be below the maximum")
+        for k in ("system_type", "metering", "tonnage", "sc_target", "rated_btuh", "rated_cfm", "max_esp", "elevation_ft",
+                  "comp_rla", "comp_lra", "fan_fla", "cap_herm_uf", "cap_fan_uf", "volt_min", "volt_max"):
             setattr(eq, k, getattr(body, k))
         eq.sc_tolerance = body.sc_tolerance if body.sc_tolerance is not None else equipment.DEFAULT_SC_TOL
         system.refrigerant, system.heat_pump, system.ob_energized = body.refrigerant, body.heat_pump, body.ob_energized
@@ -384,6 +410,95 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
             system.heat_pump = False
         s.commit()
         return equipment.view(eq, system)
+
+    # ---------- display thermostat ----------
+    def tstat_row(s, system):
+        row = s.get(ThermostatConfig, system.id)
+        if row is None:
+            row = ThermostatConfig(system_id=system.id, settings={}, tech={}, version=0, sent=False)
+            s.add(row)
+        return row
+
+    def tstat_view(s, system, row):
+        d = s.scalar(select(Device).where(Device.system_id == system.id, Device.node == thermostat.NODE))
+        raw = s.scalar(select(Telemetry.data).where(Telemetry.device_id == d.id)
+                       .order_by(Telemetry.time.desc()).limit(1)) if d else None
+        st = thermostat.merged(row.settings if row else {})
+        tech = thermostat.config_payload(0, {}, row.tech if row else {}, system)["tech"]
+        heat, cool, source, nxt = thermostat.schedule_now(st, thermostat.local_now(tech))
+        return {"present": d is not None, "device": device_view(d, utcnow()) if d else None, "report": raw,
+                "settings": st, "tech": tech, "limits": thermostat.TECH_LIMITS,
+                "version": row.version if row else 0, "sent": bool(row and row.sent),
+                "applied": bool(raw and row and raw.get("cfg_ver") == row.version),
+                "updated_at": _iso(row.updated_at) if row else None,
+                "now": {"heat": heat, "cool": cool, "source": source, "next_change": nxt}}
+
+    def tstat_save(s, system, row, settings_=None, tech=None):
+        """Store a change, bump the version and send the whole config (retained, so a thermostat
+        that was offline gets it when it reconnects)."""
+        if settings_ is not None:
+            errs = thermostat.validate(settings_)
+            if errs:
+                raise HTTPException(422, "; ".join(errs))
+            row.settings = settings_
+        if tech is not None:
+            errs = thermostat.validate_tech(tech)
+            if errs:
+                raise HTTPException(422, "; ".join(errs))
+            row.tech = tech
+        row.version = (row.version or 0) + 1
+        row.updated_at = utcnow()
+        row.sent = bool(publish(f"hvac/{system.site_id}/{thermostat.NODE}/config",
+                                thermostat.config_payload(row.version, row.settings, row.tech, system), True))
+        s.commit()
+        return tstat_view(s, system, row)
+
+    @app.get("/api/systems/{system_id}/thermostat")
+    def get_thermostat(system=Depends(own_system), s=Depends(db)):
+        return tstat_view(s, system, s.get(ThermostatConfig, system.id))
+
+    @app.get("/api/systems/{system_id}/thermostat/display")
+    def thermostat_display(system=Depends(own_system), s=Depends(db)):
+        """The feed the thermostat's screen shows (display.py): alerts, health, technician trend."""
+        return display.build(s, system, utcnow().timestamp(), stale)
+
+    @app.put("/api/systems/{system_id}/thermostat")
+    def set_thermostat(body: ThermostatIn, system=Depends(own_system), s=Depends(db)):
+        """Mode, fan, setpoints and schedule: the homeowner may change these."""
+        row = tstat_row(s, system)
+        return tstat_save(s, system, row, settings_={**thermostat.merged(row.settings), **body.model_dump(exclude_none=True)})
+
+    @app.post("/api/systems/{system_id}/thermostat/hold")
+    def hold_thermostat(body: HoldIn, system=Depends(own_system), s=Depends(db)):
+        """New setpoints until the next scheduled change (or until resumed, if permanent)."""
+        row = tstat_row(s, system)
+        st = thermostat.merged(row.settings)
+        hold = thermostat.hold_until_next(st, thermostat.local_now(row.tech), body.heat, body.cool)
+        if body.permanent:
+            hold["until"] = None
+        if body.heat is not None and body.cool is None:      # pushing one setpoint moves the other along
+            hold["cool"] = max(hold["cool"], body.heat + thermostat.AUTO_DEADBAND)
+        if body.cool is not None and body.heat is None:
+            hold["heat"] = min(hold["heat"], body.cool - thermostat.AUTO_DEADBAND)
+        errs = thermostat.validate_hold(hold)
+        if errs:
+            raise HTTPException(422, "; ".join(errs))
+        return tstat_save(s, system, row, settings_={**st, "hold": hold})
+
+    @app.delete("/api/systems/{system_id}/thermostat/hold")
+    def resume_schedule(system=Depends(own_system), s=Depends(db)):
+        row = tstat_row(s, system)
+        return tstat_save(s, system, row, settings_={**thermostat.merged(row.settings), "hold": None})
+
+    @app.put("/api/systems/{system_id}/thermostat/tech")
+    def set_thermostat_tech(body: dict, system=Depends(tech_system), s=Depends(db)):
+        """Safety settings (compressor protection, aux heat lockouts, time zone): technician only."""
+        row = tstat_row(s, system)
+        unknown = set(body) - set(thermostat.DEFAULT_TECH)
+        if unknown:
+            raise HTTPException(422, f"unknown settings: {', '.join(sorted(unknown))}")
+        keep = {k: v for k, v in body.items() if k not in ("heat_pump", "ob_energized")}   # Equipment page owns these
+        return tstat_save(s, system, row, tech={**(row.tech or {}), **keep})
 
     # ---------- invites ----------
     def clean_email(raw):
@@ -625,7 +740,7 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
         row = s.execute(select(Snapshot.time, Snapshot.data).where(Snapshot.system_id == system.id)
                         .order_by(Snapshot.time.desc()).limit(1)).first()
         nodes = {}
-        for n in calc.NODES:
+        for n in calc.NODES + (electrical.NODE, thermostat.NODE):
             d = devices.get(n)
             if d is None:
                 nodes[n] = None
