@@ -18,7 +18,7 @@ superheat / subcooling / fault-flag math.
 | `hvaccloud/service.py` | Maintenance reminders (air filter, tune-up) and the service contractor |
 | `hvaccloud/maintenance.py` | Nightly backup of `dev.db` and thinning of old data |
 | `manage.py` | Create accounts, API keys and systems; send a test alert email; backup / prune by hand |
-| `demo.py`, `start-demo.bat` | Contractor demo: a separate demo account with six homes acting out common faults |
+| `demo.py`, `start-demo.bat` | Contractor demo: a separate demo account with seven homes acting out common faults |
 | `demo_publisher.py` | Simulated outdoor + indoor nodes over MQTT (site `demo`); `--thermostat` adds a display thermostat and a simulated house |
 
 A system's `site_id` is the node's `SITE_ID` in `hvac-firmware/include/config.h`, so the
