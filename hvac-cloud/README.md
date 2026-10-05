@@ -88,9 +88,6 @@ and electrical fault markers) has a browser preview at `/app/thermostat.html#<sy
 the display feed from `hvaccloud/display.py`. Ingest publishes the feed retained to
 `hvac/<site>/thermostat/display`.
 
-Alerts for checks that only run while the unit runs (refrigerant, delta-T, electrical) stay open
-between cycles. They clear only when a later run shows the problem gone (`alerts.unjudged`).
-
 ## Sign-in and roles
 
 - **Contractor** users belong to an account and see all of its systems, including the
@@ -175,6 +172,11 @@ Both views list the last 7 days of alerts (homeowner: "Recent alerts"; technicia
 
 - A fault flag opens an alert once it has lasted `ALERT_HOLD_SECONDS` (5 min), and the alert
   clears once the flag has been gone that long, so a value hovering at a limit gives one alert.
+- Checks that only run while the equipment runs (superheat, subcooling, delta-T, condensing over
+  ambient: after 10 minutes of steady running) can't be judged while it's idle or a node is
+  offline, so their alerts stay open between cycles (`alerts.unjudged`). They clear when a
+  later run no longer shows the problem: one low-charge alert, not one per cycle (and no
+  "back to normal" email every time the compressor stops).
 - If a system that has reported goes silent for `ALERT_NO_DATA_SECONDS` (10 min), the ingest
   worker's once-a-minute sweep opens a "no data" alert; it clears on the next reading.
 - Raised alerts are emailed at most once per fault type per `ALERT_EMAIL_COOLDOWN_HOURS` (6 h);

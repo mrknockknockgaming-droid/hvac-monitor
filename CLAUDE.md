@@ -121,14 +121,14 @@ temperatures, superheat, subcooling and delta-T.
   - Contractor demo: `hvac-cloud/demo.py` (setup / run / reset) + `start-demo.bat`. Separate
     account "Desert Air Demo Co." (demo@fullscope.example), seven scripted homes (Rivera + Garcia have a thermostat and electrical module), sign-ins in
     demo-login.txt (git-ignored). For contractor interviews; reset never touches other accounts.
-  - Display thermostat (branch cloud/thermostat, design thermostat/README.md): control + safety
+  - Display thermostat (merged into main 2026-10-04 with the electrical module; design thermostat/README.md): control + safety
     logic runs ON the thermostat (reference `hvaccloud/thermostat.py` Controller, tested by
     properties over random days). Cloud table `thermostat_configs` (settings, tech, version);
     every change republishes the whole config retained to hvac/<site>/thermostat/config; the
     thermostat reports cfg_ver. Ingest stores thermostat telemetry without a snapshot; the next
     indoor/outdoor snapshot carries `tstat` + flags room_hot, room_cold, setpoint_not_reached,
     call_mismatch. heat_pump / ob_energized come from the Equipment page, not the tech config.
-    Simulator: demo_publisher.py --thermostat. Branch also contains cloud/electrical (merged in).
+    Simulator: demo_publisher.py --thermostat.
     Thermostat screen: display.py builds the feed (plain alerts, health areas, key numbers, 6 h
     trend at 2 min, electrical markers from raised alerts); ingest publishes it retained to
     hvac/<site>/thermostat/display (<= 1/min, at once on raise/clear); browser preview

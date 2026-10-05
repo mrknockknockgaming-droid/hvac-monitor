@@ -4,7 +4,7 @@ An optional add-on that replaces the customer's existing thermostat. Fullscope a
 the equipment; owning the thermostat as well lets it compare what was asked for with what
 happened, adjust the schedule remotely, and give the contractor one place to see both.
 
-**Status:** design, cloud side, screen preview and firmware (this branch). The firmware builds
+**Status:** design, cloud side, screen preview and firmware (on main). The firmware builds
 for the Waveshare board, and its control logic is tested on the PC. Nothing has run on hardware
 yet.
 
