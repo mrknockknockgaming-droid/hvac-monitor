@@ -194,9 +194,23 @@ function route() {
 window.addEventListener("hashchange", route);
 
 // Who is signed in (cookie or saved API key); a 401 shows the sign-in form.
+// A page that sent the visitor here to sign in (the thermostat screen) gets them back afterwards.
+// Only pages of this web app: the address must stay on this site under /app/.
+function returnAfterSignIn() {
+  var r = null;
+  try { r = sessionStorage.getItem("fs_return"); sessionStorage.removeItem("fs_return"); } catch (e) {}
+  if (!r) return false;
+  try {
+    var u = new URL(r, location.href);
+    if (u.origin !== location.origin || u.pathname.indexOf("/app/") !== 0 || u.pathname === location.pathname) return false;
+    location.href = u.href;
+    return true;
+  } catch (e) { return false; }
+}
+
 function start() {
   root.innerHTML = '<div class="login"><div class="empty">Loading…</div></div>';
-  api("/api/auth/me").then(function (me) { S.me = me; S.systems = null; route(); })
+  api("/api/auth/me").then(function (me) { S.me = me; S.systems = null; if (!returnAfterSignIn()) route(); })
     .catch(function (e) { if (e.message !== "401") { S.error = e.message; renderLogin(); } });
 }
 function loadSystems() {
@@ -296,7 +310,8 @@ function renderLogin() {
     if (!em || !pw) return;
     btn.disabled = true;
     api("/api/auth/login", { method: "POST", body: { email: em, password: pw }, keep401: true }).then(function (me) {
-      S.me = me; S.error = null; S.systems = null; route();
+      S.me = me; S.error = null; S.systems = null;
+      if (!returnAfterSignIn()) route();
     }).catch(function (err) { S.error = err.message; renderLogin(); $("#em").value = em; $("#pw").focus(); });
   });
   var first = $("#k") || $("#em");
