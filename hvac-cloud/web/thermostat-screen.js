@@ -22,6 +22,9 @@ function hhmm(epoch) { return new Date(epoch * 1000).toLocaleTimeString([], { ho
 function api(path, opts) {
   opts = opts || {};
   var h = { "X-Requested-With": "fullscope" };
+  var key = null;
+  try { key = localStorage.getItem("fs_key"); } catch (e) {}
+  if (key) h["X-API-Key"] = key;                          // signed in to the web app with an API key
   if (opts.body) h["Content-Type"] = "application/json";
   return fetch(path, { method: opts.method || "GET", headers: h, credentials: "same-origin", body: opts.body ? JSON.stringify(opts.body) : undefined })
     .then(function (r) {
@@ -41,7 +44,14 @@ function start() {
       setInterval(poll, 5000); setInterval(pollFeed, 15000); setInterval(draw, 30000);
     }).catch(fail);
 }
-function fail(e) { T.err = e.message === "401" ? "signin" : e.message; draw(); }
+function fail(e) {
+  if (e.message === "401") {                               // sign in on the web app, which sends us back here
+    try { sessionStorage.setItem("fs_return", location.href); } catch (x) {}
+    location.replace("./");
+    return;
+  }
+  T.err = e.message; draw();
+}
 function poll() { api("/api/systems/" + T.sys + "/thermostat").then(function (d) { T.tstat = d; T.err = null; draw(); }).catch(fail); }
 function pollFeed() { api("/api/systems/" + T.sys + "/thermostat/display").then(function (d) { T.feed = d; draw(); }).catch(fail); }
 function send(path, method, body) {
@@ -53,7 +63,6 @@ function toast(m) { T.msg = m; draw(); setTimeout(function () { T.msg = null; dr
 
 // ---------------------------------------------------------------- frame
 function draw() {
-  if (T.err === "signin") { screenEl.innerHTML = '<div class="ts-pinwrap"><div class="ts-head">Sign in first</div><div class="ts-empty">Open <a href="./" style="color:#7fb2e5">the Fullscope web app</a>, sign in, then come back.</div></div>'; return; }
   if (T.err && !T.tstat) { screenEl.innerHTML = '<div class="ts-pinwrap"><div class="ts-empty">' + esc(T.err) + "</div></div>"; return; }
   if (!T.tstat) { screenEl.innerHTML = '<div class="ts-pinwrap"><div class="ts-empty">Starting…</div></div>'; return; }
   if (T.unlocked && Date.now() - T.unlocked > LOCK_MS) { T.unlocked = 0; if (T.tab === "service") T.tab = "home"; }
