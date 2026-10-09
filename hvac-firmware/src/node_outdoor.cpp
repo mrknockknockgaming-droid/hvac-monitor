@@ -3,6 +3,7 @@
 #ifdef NODE_OUTDOOR
 
 #include "common.h"
+#include "config.h"
 #include "settings.h"
 #include "mode_inputs.h"
 #include <Wire.h>
@@ -11,8 +12,31 @@
 
 // ---------- Hardware constants ----------
 static const float PSI_PER_BAR    = 14.5038f;
-static const float P_DIV_GAIN     = (10.0f + 20.0f) / 20.0f;   // R1/R2 divider: ADC volts x1.5 = sensor volts
-static const float RAIL_DIV_GAIN  = (10.0f + 15.0f) / 15.0f;   // R7/R8 divider on V5_MON
+// Voltage dividers in kilohms (top resistor to the signal, bottom to ground). Defaults are the rev A
+// board as designed; set them in config.h if the board was built with other values (e.g. all 10k).
+#ifndef P_DIV_TOP_K
+#define P_DIV_TOP_K 10.0         // R1, R3, R5
+#endif
+#ifndef P_DIV_BOTTOM_K
+#define P_DIV_BOTTOM_K 20.0      // R2, R4, R6
+#endif
+#ifndef RAIL_DIV_TOP_K
+#define RAIL_DIV_TOP_K 10.0      // R7
+#endif
+#ifndef RAIL_DIV_BOTTOM_K
+#define RAIL_DIV_BOTTOM_K 15.0   // R8
+#endif
+// The ADS1115 runs from 3.3 V: readings must stay below that, and nothing may pass its 3.6 V absolute
+// maximum. Sensors top out at 4.5 V (5 V if a wire faults high); the 5 V rail can reach 5.5 V.
+// Refuse to build dividers that would overdrive it.
+static_assert(4.5 * P_DIV_BOTTOM_K / (P_DIV_TOP_K + P_DIV_BOTTOM_K) <= 3.3,
+              "pressure divider: a 4.5 V reading would exceed the ADS1115's 3.3 V supply (bottom resistor too large)");
+static_assert(5.0 * P_DIV_BOTTOM_K / (P_DIV_TOP_K + P_DIV_BOTTOM_K) <= 3.6,
+              "pressure divider: a faulted 5 V signal would exceed the ADS1115's 3.6 V absolute maximum");
+static_assert(5.5 * RAIL_DIV_BOTTOM_K / (RAIL_DIV_TOP_K + RAIL_DIV_BOTTOM_K) <= 3.3,
+              "rail divider: a 5.5 V rail would exceed the ADS1115's 3.3 V supply (bottom resistor too large)");
+static const float P_DIV_GAIN     = (P_DIV_TOP_K + P_DIV_BOTTOM_K) / P_DIV_BOTTOM_K;           // ADC volts -> sensor volts
+static const float RAIL_DIV_GAIN  = (RAIL_DIV_TOP_K + RAIL_DIV_BOTTOM_K) / RAIL_DIV_BOTTOM_K;  // V5_MON -> 5 V rail
 static const float NTC_RREF       = 10000.0f;                  // R9 / R10
 static const float NTC_R0         = 10000.0f;                  // 10k at 25 C
 static const int   ADC_AVG        = 4;                         // samples averaged per reading
@@ -211,6 +235,8 @@ void nodeFillStatus(JsonDocument& doc) {
   }
   doc["ntc_b"] = ntcBeta;
   doc["v33"] = v33;
+  doc["p_div"] = P_DIV_GAIN;        // so the build's divider settings show in the status
+  doc["rail_div"] = RAIL_DIV_GAIN;
 }
 
 // Commands (send JSON to hvac/<site>/outdoor/cmd):

@@ -183,7 +183,8 @@ temperatures, superheat, subcooling and delta-T.
   -> LM2596HV buck set to 5.00 V -> ESP32 VIN. C (24 VAC common) = system GND.
 - Outdoor node: 2x ADS1115 (0x48 pressures + 5 V rail monitor, 0x49 thermistors),
   XDB307-3 transducers 0.5-4.5 V (p_liq, p_vap at 0-50 bar; p_tsuc 0-35 bar not fitted yet)
-  through 10k/20k dividers, DROK 10k NTC B3950 thermistors (t_suc, t_liq) with 10k refs,
+  through 10k/20k dividers (config.h P_DIV_BOTTOM_K / RAIL_DIV_BOTTOM_K override; Tyler's build uses
+  10k for R2/R4/R6/R8), DROK 10k NTC B3950 thermistors (t_suc, t_liq) with 10k refs,
   FS400-SHT30 outdoor air (0x44), H11AA1 optos on Y (GPIO34) and O/B (GPIO35).
 - Indoor node: 2x DS18B20 on GPIO4 (supply/return, 4.7k pull-up), H11AA1 optos on
   Y (34), W (35), G (36/VP), O/B (39/VN).

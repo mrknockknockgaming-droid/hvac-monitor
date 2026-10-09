@@ -40,5 +40,12 @@
 // #define LORA_PIN_BUSY 25
 // #define LORA_TCXO_V 1.8
 
+// Outdoor board voltage dividers (kilohms), only if it was built with values other than the
+// schematic's: pressure dividers 10k top / 20k bottom, rail monitor 10k top / 15k bottom.
+// For a board built with 10k everywhere:
+// #define P_DIV_BOTTOM_K 10.0
+// #define RAIL_DIV_BOTTOM_K 10.0
+// (P_DIV_TOP_K and RAIL_DIV_TOP_K exist too.) The build refuses values that would overdrive the ADC.
+
 // Password for over-the-air firmware updates
 #define OTA_PASS    "change-me"
