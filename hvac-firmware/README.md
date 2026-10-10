@@ -25,6 +25,15 @@ Copy `include/config.example.h` to `include/config.h` and fill in WiFi, the PC's
 
 **Bench / PC broker:** `MQTT_TLS 0`, port 1883 (as before; a 0.1.0 `config.h` still builds).
 
+**Outdoor divider resistors:** the firmware assumes the schematic's values:
+- the pressure dividers are 10k top and 20k bottom (R1/R2, R3/R4, R5/R6);
+- the rail monitor is 10k top and 15k bottom (R7/R8).
+
+If the board is built with 10k in place of the 20k and 15k, add `#define P_DIV_BOTTOM_K 10.0` and
+`#define RAIL_DIV_BOTTOM_K 10.0` to `config.h` (see `config.example.h`). The build refuses
+values that would push the ADS1115 past its 3.3 V supply (for example 22k for R8). The node's
+status reports the divider gains it was built with (`p_div`, `rail_div`).
+
 **Cloud server** (see `hvac-cloud/DEPLOY.md`): `MQTT_HOST` = the server's domain (the name in
 its certificate), `MQTT_PORT 8883`, `MQTT_TLS 1`, `MQTT_USER` / `MQTT_PASS` = the server's
 `MQTT_NODES_USER` / `MQTT_NODES_PASS`, and the server's `tls/ca.crt` pasted into `config.h` as
