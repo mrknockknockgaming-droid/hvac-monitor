@@ -4,7 +4,7 @@ Sep 24, 2026 · @Tyler
 
 ## Overview
 
-Phase 0 is done and Phase 1 is under way. The design, firmware (0.1.0 on the dev boards, 0.2.0 ready to flash), PC dashboard, rev A carrier boards and the cloud stack with its web app are all built. Both nodes are flashed and online, and the rev A carrier boards have arrived from JLCPCB and are being assembled.
+Phase 0 is done and Phase 1 is under way. The design, firmware (0.1.0 on the dev boards, 0.2.0 ready to flash), PC dashboard, rev A carrier boards and the cloud stack with its web app are all built. Both nodes are flashed and online, and the rev A carrier boards have arrived from JLCPCB and are assembled. Waiting on the pressure sensors.
 
 Phases run in order. Customer discovery and IP protection run alongside the build from now on. Tick items as you finish them.
 

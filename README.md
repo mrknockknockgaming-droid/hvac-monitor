@@ -20,7 +20,7 @@ superheat, subcooling, delta-T and other checks, and shows them in a web app wit
 | Part | State |
 |---|---|
 | Node firmware (outdoor + indoor) | v0.2.0 built; both dev boards online running 0.1.0, 0.2.0 goes on at board bring-up |
-| Carrier boards (rev A, KiCad) | Arrived from JLCPCB; being assembled for bring-up |
+| Carrier boards (rev A, KiCad) | Arrived and assembled; waiting on the pressure sensors for bring-up |
 | Cloud + web app | Working locally (SQLite) and in Docker (TimescaleDB); production setup ready to deploy |
 | Contractor demo | Seven scripted homes for customer interviews |
 | Display thermostat (add-on) | Cloud side, screen and firmware written and tested on the PC; no hardware yet |
