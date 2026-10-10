@@ -28,6 +28,8 @@ Phases run in order. Customer discovery and IP protection run alongside the buil
 ## Phase 2: Outdoor node on the bench
 
 - [ ] Wire the ADS1115s, dividers, XDB307 transducers, thermistors and SHT30
+- [x] Firmware takes the divider resistor values from config.h, so the outdoor board can be built with 10k in place of the 20k and 15k (set for your build); it refuses values that would overdrive the ADC
+- [ ] Build notes: 5% resistors are fine for the opto inputs and pull-ups; use 1% for the dividers and 1% (or 0.1%) 10k for the thermistor references, then set v33, check the thermistors' B value and ice-bath each probe; unmarked H11AA1s: find pin 1 with a meter's diode test (the LED pair reads ~1.1 V both ways)
 - [ ] Wire the Y and O/B opto inputs
 - [ ] Zero the transducers open to atmosphere (use the Sensors & calibration page for this and the steps below)
 - [ ] Span against the Fieldpiece on nitrogen at about 300 psi, then check 100, 200 and 400 psi
