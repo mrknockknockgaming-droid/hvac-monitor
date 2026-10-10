@@ -22,6 +22,7 @@ hardware/**/fp-info-cache
 hardware/**/*-backups/
 hardware/**/drc-placement.rpt
 hardware/**/drc-pre.rpt
+hardware/**/~*.lck
 hardware/scripts/__pycache__/
 
 # Cloud stack: local-only files
@@ -44,3 +45,6 @@ thermostat/firmware/include/config.h
 
 # LoRa gateway config (WiFi password, radio keys)
 radio/lora/include/config.h
+
+# Chat transcript exports: large, and may hold test sign-ins and private notes; kept on this PC only
+project-files/5-chat-history/

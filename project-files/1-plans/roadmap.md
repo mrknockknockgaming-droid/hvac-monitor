@@ -4,7 +4,7 @@ Sep 24, 2026 · @Tyler
 
 ## Overview
 
-Phase 0 is done and Phase 1 starts when the remaining parts arrive. The design, firmware 0.1.0, PC dashboard, rev A carrier boards and the cloud stack with its web app are all built. Both nodes are flashed and online, and the carrier boards are on order from JLCPCB.
+Phase 0 is done and Phase 1 is under way. The design, firmware (0.1.0 on the dev boards, 0.2.0 ready to flash), PC dashboard, rev A carrier boards and the cloud stack with its web app are all built. Both nodes are flashed and online, and the rev A carrier boards have arrived from JLCPCB and are assembled. Waiting on the pressure sensors.
 
 Phases run in order. Customer discovery and IP protection run alongside the build from now on. Tick items as you finish them.
 
@@ -83,7 +83,7 @@ Phases run in order. Customer discovery and IP protection run alongside the buil
 - [ ] Rent a server and register a domain
 - [ ] Deploy with DEPLOY.md (about an hour once the server and domain exist; HTTPS and the secure cookie come with it)
 - [x] Firmware 0.2.0 written and built for both nodes: MQTT over TLS, timestamped readings with a 10-minute outage buffer, settings sent back after changes (cloud and dashboard store caught-up readings at their own time)
-- [ ] Flash firmware 0.2.0 when the boards arrive, then test TLS, the clock sync and the outage buffer on real hardware
+- [ ] Flash firmware 0.2.0 at carrier-board bring-up, then test TLS, the clock sync and the outage buffer on real hardware
 - [x] Per-user sign-in with contractor and homeowner roles (email and password, secure session cookie; homeowners see only their own system)
 - [x] Invite links for homeowners and contractor colleagues, and a contractor Fleet page listing every system, most in need of attention first
 - [x] Review of the cloud code for bugs and security: 8 fixes (alert emails now reach homeowners, password change signs out other sessions, remove colleagues, invite tokens kept out of logs, and smaller hardening)
