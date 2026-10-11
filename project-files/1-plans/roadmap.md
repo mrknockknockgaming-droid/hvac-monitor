@@ -4,7 +4,7 @@ Sep 24, 2026 · @Tyler
 
 ## Overview
 
-Phase 0 is done and Phase 1 is under way. The design, firmware (0.1.0 on the dev boards, 0.2.0 ready to flash), PC dashboard, rev A carrier boards and the cloud stack with its web app are all built. Both nodes are flashed and online, and the rev A carrier boards have arrived from JLCPCB and are assembled. Waiting on the pressure sensors.
+Phase 0 is done and Phase 1 is under way. The design, firmware (0.1.0 on the dev boards, 0.2.0 ready to flash), PC dashboard, rev A carrier boards and the cloud stack with its web app are all built. Both nodes are flashed and online. The rev A carrier boards have arrived from JLCPCB and are assembled, all the sensors have arrived, and enclosures for the boards are next.
 
 Phases run in order. Customer discovery and IP protection run alongside the build from now on. Tick items as you finish them.
 
@@ -23,7 +23,8 @@ Phases run in order. Customer discovery and IP protection run alongside the buil
 - [ ] Build the three 24 VAC to 5 V power supplies
 - [ ] Set each LM2596HV to 5.00 V before connecting loads
 - [x] Flash both boards and confirm WiFi (2.4 GHz) and MQTT with the PC app
-- [ ] Assemble and bench-test one outdoor and one indoor carrier board before building the spares
+- [x] Rev A carrier boards arrived from JLCPCB and assembled (Oct 10)
+- [ ] Bench-test one outdoor and one indoor carrier board before building the spares
 
 ## Phase 2: Outdoor node on the bench
 
