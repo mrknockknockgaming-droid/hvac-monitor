@@ -204,7 +204,7 @@ temperatures, superheat, subcooling and delta-T.
   The boards still run 0.1.0, which the cloud and dashboard keep handling.
 - Outdoor dev board flashed with fw 0.1.0, publishing `hvac/home/outdoor/telemetry` every 5 s
   with no sensors attached yet.
-- Rev A carrier boards are assembled (2026-10-10; waiting on the XDB307 pressure transducers): optos socketed,
+- Rev A carrier boards are assembled (2026-10-10; all sensors arrived 2026-10-11, enclosures next): optos socketed,
   R2/R4/R6/R8 fitted as 10k (config.h P_DIV_BOTTOM_K / RAIL_DIV_BOTTOM_K = 10.0).
 - Indoor board flashed with fw 0.1.0 (2026-09-24), publishing `hvac/home/indoor/telemetry` every 5 s;
   `ds18b20_missing` and all mode inputs `true` until probes, pull-ups and optos are wired.
@@ -247,8 +247,8 @@ temperatures, superheat, subcooling and delta-T.
 Parallel: contractor interviews; patent attorney before public demos.
 
 ## Immediate next steps
-- Rev A carrier boards (JLCPCB, ordered 2026-09-28, 5 of each) are assembled; the XDB307 pressure
-  transducers haven't arrived yet. Next: power up on 24 VAC
+- Rev A carrier boards (JLCPCB, ordered 2026-09-28, 5 of each) are assembled and all the sensors have
+  arrived (2026-10-11); enclosures are next. Next: power up on 24 VAC
   with no modules (VRAW ~34 V), plug in only the buck and set 5.00 V, then add ESP32 + ADS1115s.
   Build one of each and bench-test before building spares.
 - Firmware already matches the boards (ADS channel order, divider ratios, 10k NTC refs,
