@@ -42,6 +42,11 @@ temperatures, superheat, subcooling and delta-T.
   SQLite (`hvac_data.db`), http://localhost:8080. `start.bat` (normal), `start-demo.bat`
   (simulated data). `.venv` was moved here from the Desktop and its paths rewritten; if it
   ever breaks, delete `.venv` and run `start.bat` to rebuild it.
+- `hardware/board-terminals.md` — what plugs into each carrier-board connector (checked
+  against the routed boards and firmware 2026-10-11).
+- `hardware/enclosures/` — OpenSCAD boxes for both boards (lid outside the gasket, ear
+  bars), cabinet mounting plates, SHT30 louvre shield; STLs in `stl/`, previews in `png/`,
+  Hammond 1554R2GY as the buy option. See its README.
 - `hardware/` — KiCad 10 projects for the two carrier boards (rev A, ordered 2026-09-28; boards assembled 2026-10):
   `outdoor-carrier/` (100 x 100 mm) and `indoor-carrier/` (100 x 80 mm), 2-layer 1.6 mm.
   - Sources of truth: `docs/hvac-schematics.html` (rev A wiring) and `docs/carrier-boards.html`
@@ -193,22 +198,26 @@ temperatures, superheat, subcooling and delta-T.
 - Schematics rev A: https://claude.ai/artifact/VUq261XjNKgZRz52N9HCxV (not reproduced here)
 
 ## Network
-- User's PC: 192.168.1.191 (runs Mosquitto on 1883 + the dashboard). Outdoor ESP32: 192.168.1.247. Indoor ESP32: 192.168.1.121.
+- User's PC: now 192.168.1.204 (was .191; DHCP changed it, so give it a DHCP reservation in the
+  router or the nodes' MQTT_HOST breaks again). Runs Mosquitto on 1883 + the dashboard; the
+  broker is planned to move to a Proxmox VM. Outdoor ESP32: 192.168.1.247. Indoor ESP32: 192.168.1.121.
 - WiFi must be 2.4 GHz.
 
-## Current status (Phase 1, bench bring-up)
-- Firmware 0.2.0 (2026-10-03) is in the repo, built for both nodes with TLS off and on, NOT
-  flashed yet (flash at carrier-board bring-up): MQTT over TLS (MQTT_TLS + MQTT_CA_CERT
-  string constant in config.h), "ts" on readings + 10-min outage backlog (cloud and dashboard
-  store them at their own time), status re-published after commands, no NVS NOT_FOUND spam.
-  The boards still run 0.1.0, which the cloud and dashboard keep handling.
-- Outdoor dev board flashed with fw 0.1.0, publishing `hvac/home/outdoor/telemetry` every 5 s
-  with no sensors attached yet.
-- Rev A carrier boards are assembled (2026-10-10; all sensors arrived 2026-10-11, enclosures next): optos socketed,
-  R2/R4/R6/R8 fitted as 10k (config.h P_DIV_BOTTOM_K / RAIL_DIV_BOTTOM_K = 10.0).
-- Indoor board flashed with fw 0.1.0 (2026-09-24), publishing `hvac/home/indoor/telemetry` every 5 s;
-  `ds18b20_missing` and all mode inputs `true` until probes, pull-ups and optos are wired.
-- Dashboard shows both nodes online.
+## Current status (Phase 4, installed on Tyler's own system, 2026-10-11)
+- Rev A carrier boards built (R2/R4/R6/R8 fitted as 10k: config.h P_DIV_BOTTOM_K /
+  RAIL_DIV_BOTTOM_K = 10.0) and installed on Tyler's AC, powered from the equipment's 24 VAC.
+- Both nodes run firmware 0.2.0 (MQTT over TLS optional, "ts" on readings + 10-min outage
+  backlog, status re-published after commands). TLS, clock sync and the outage buffer still
+  to be checked on this hardware.
+- Sensors wired and calibrated (transducer zero/span, thermistors, DS18B20s); live data shows
+  in the Fullscope web app and the PC dashboard.
+- Enclosures and cabinet mounting plates designed (`hardware/enclosures/`), not printed yet.
+- Known follow-ups:
+  - PC IP changed to 192.168.1.204: add a DHCP reservation (or move the broker, below).
+  - Broker moving to a Proxmox VM; update MQTT_HOST on both nodes when it does.
+  - OTA password is weak: change it in config.h and reflash over USB once.
+  - Y and O/B call wires: superheat/subcooling/delta-T checks only run during a call, so land
+    them (outdoor J2, indoor mode inputs) if they are not already.
 
 ## Problems already solved (don't re-debug)
 - `connect failed, state -4` = broker frozen by Windows console QuickEdit. Fixed by
@@ -247,12 +256,9 @@ temperatures, superheat, subcooling and delta-T.
 Parallel: contractor interviews; patent attorney before public demos.
 
 ## Immediate next steps
-- Rev A carrier boards (JLCPCB, ordered 2026-09-28, 5 of each) are assembled and all the sensors have
-  arrived (2026-10-11); enclosures are next. Next: power up on 24 VAC
-  with no modules (VRAW ~34 V), plug in only the buck and set 5.00 V, then add ESP32 + ADS1115s.
-  Build one of each and bench-test before building spares.
-- Firmware already matches the boards (ADS channel order, divider ratios, 10k NTC refs,
-  GPIO4 1-Wire). J9/TH3 is channel `t_tsuc`, off by default: enable with
+- Do the known follow-ups above (DHCP reservation, Proxmox broker, OTA password, Y and O/B).
+- Print or buy the enclosures and mount the boards on the plates.
+- Run several weeks of cooling cycles, then compare superheat, subcooling and delta-T with
+  gauges (Phase 5).
+- J9/TH3 is channel `t_tsuc`, off by default: enable with
   `{"cmd":"fitted","ch":"t_tsuc","on":true}` once a thermistor is installed.
-- Build and verify the power supplies (5.00 V under load) before connecting boards. Then flash
-  firmware 0.2.0 and test TLS, the clock sync and the outage buffer on real hardware.

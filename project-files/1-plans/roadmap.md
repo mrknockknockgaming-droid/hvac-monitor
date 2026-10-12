@@ -1,10 +1,10 @@
 # HVAC Monitor Roadmap
 
-Sep 24, 2026 · @Tyler
+Oct 11, 2026 · @Tyler
 
 ## Overview
 
-Phase 0 is done and Phase 1 is under way. The design, firmware (0.1.0 on the dev boards, 0.2.0 ready to flash), PC dashboard, rev A carrier boards and the cloud stack with its web app are all built. Both nodes are flashed and online. The rev A carrier boards have arrived from JLCPCB and are assembled, all the sensors have arrived, and enclosures for the boards are next.
+Phases 1 to 3 are done and Phase 4 is under way. The rev A carrier boards are built and installed on your own AC, both nodes run firmware 0.2.0, the sensors are calibrated, and live data shows in the Fullscope web app. Enclosures and cabinet mounting plates are designed. Open follow-ups: give the PC (now 192.168.1.204) a DHCP reservation, move the broker to Proxmox, change the weak OTA password, and land the Y and O/B call wires if they aren't yet.
 
 Phases run in order. Customer discovery and IP protection run alongside the build from now on. Tick items as you finish them.
 
@@ -20,32 +20,38 @@ Phases run in order. Customer discovery and IP protection run alongside the buil
 
 ## Phase 1: Bench bring-up
 
-- [ ] Build the three 24 VAC to 5 V power supplies
-- [ ] Set each LM2596HV to 5.00 V before connecting loads
+- [x] Build the three 24 VAC to 5 V power supplies
+- [x] Set each LM2596HV to 5.00 V before connecting loads
 - [x] Flash both boards and confirm WiFi (2.4 GHz) and MQTT with the PC app
 - [x] Rev A carrier boards arrived from JLCPCB and assembled (Oct 10)
-- [ ] Bench-test one outdoor and one indoor carrier board before building the spares
+- [x] Bench-test one outdoor and one indoor carrier board before building the spares
 
 ## Phase 2: Outdoor node on the bench
 
-- [ ] Wire the ADS1115s, dividers, XDB307 transducers, thermistors and SHT30
+- [x] Wire the ADS1115s, dividers, XDB307 transducers, thermistors and SHT30
 - [x] Firmware takes the divider resistor values from config.h, so the outdoor board can be built with 10k in place of the 20k and 15k (set for your build); it refuses values that would overdrive the ADC
-- [ ] Build notes: 5% resistors are fine for the opto inputs and pull-ups; use 1% for the dividers and 1% (or 0.1%) 10k for the thermistor references, then set v33, check the thermistors' B value and ice-bath each probe; unmarked H11AA1s: find pin 1 with a meter's diode test (the LED pair reads ~1.1 V both ways)
+- [x] Build notes: 5% resistors are fine for the opto inputs and pull-ups; use 1% for the dividers and 1% (or 0.1%) 10k for the thermistor references, then set v33, check the thermistors' B value and ice-bath each probe; unmarked H11AA1s: find pin 1 with a meter's diode test (the LED pair reads ~1.1 V both ways)
 - [ ] Wire the Y and O/B opto inputs
-- [ ] Zero the transducers open to atmosphere (use the Sensors & calibration page for this and the steps below)
-- [ ] Span against the Fieldpiece on nitrogen at about 300 psi, then check 100, 200 and 400 psi
-- [ ] Measure the 3V3 pin and set v33; calibrate thermistors in an ice bath
+- [x] Zero the transducers open to atmosphere (use the Sensors & calibration page for this and the steps below)
+- [x] Span against the Fieldpiece on nitrogen at about 300 psi, then check 100, 200 and 400 psi
+- [x] Measure the 3V3 pin and set v33; calibrate thermistors in an ice bath
 - [ ] Test Y and O/B with 24 VAC
 
 ## Phase 3: Indoor node on the bench
 
-- [ ] Wire the DS18B20 probes and the Y, W, G and O/B inputs
-- [ ] Calibrate both probes in an ice bath; swap supply/return if reversed
-- [ ] Confirm the delta-T reading in the dashboard
+- [x] Wire the DS18B20 probes
+- [x] Calibrate both probes in an ice bath; swap supply/return if reversed
+- [x] Confirm the delta-T reading in the dashboard
+- [ ] Wire the Y, W, G and O/B inputs (needed for the diagnostics, which only run during a call)
 
 ## Phase 4: Install on your own system
 
-- [ ] Mount nodes in shaded, vented, light-colored enclosures outside the cabinets
+- [x] Boards installed on your AC on 24 VAC, live data in the web app (Oct 11)
+- [x] Enclosures, mounting ear bars, cabinet mounting plates and an SHT30 louvre shield designed (hardware/enclosures, Hammond 1554R2GY as the buy option); board connector map in hardware/board-terminals.md
+- [ ] Print or buy the enclosures and mount the nodes in them, shaded and outside the cabinets
+- [ ] Give the PC (now 192.168.1.204, was .191) a DHCP reservation, or move the broker first
+- [ ] Move the MQTT broker to a Proxmox VM and point both nodes at it
+- [ ] Change the weak OTA password and reflash
 - [ ] Braze in the true-suction access fitting (or defer to Phase 6)
 - [ ] Set atmospheric pressure to about 14.0 psia in the PC app
 - [ ] Run through several weeks of real cooling cycles and log the data
@@ -75,7 +81,7 @@ Phases run in order. Customer discovery and IP protection run alongside the buil
 - [x] Service history: log visits with the readings at the time; tune-ups and filter changes reset the reminders, and homeowners see recent visits
 - [x] Install WSL and Docker Desktop (a restart, and accepting Docker's license), then start the TimescaleDB stack (tested: hypertables with 365-day retention, broker logins, data through to the API; broker passwords now come from .env)
 - [x] Create your account and system with manage.py
-- [ ] Register both nodes: they appear on their first message once powered and online (no firmware change needed, same MQTT topics)
+- [x] Register both nodes: they appear on their first message once powered and online (no firmware change needed, same MQTT topics)
 - [ ] Confirm history, alerts, email and remote calibration all work (all built; needs the nodes online and alert email set up)
 
 ## Phase 8: Go live in the cloud
@@ -84,7 +90,8 @@ Phases run in order. Customer discovery and IP protection run alongside the buil
 - [ ] Rent a server and register a domain
 - [ ] Deploy with DEPLOY.md (about an hour once the server and domain exist; HTTPS and the secure cookie come with it)
 - [x] Firmware 0.2.0 written and built for both nodes: MQTT over TLS, timestamped readings with a 10-minute outage buffer, settings sent back after changes (cloud and dashboard store caught-up readings at their own time)
-- [ ] Flash firmware 0.2.0 at carrier-board bring-up, then test TLS, the clock sync and the outage buffer on real hardware
+- [x] Flash firmware 0.2.0 (done at install, Oct 11)
+- [ ] Test TLS, the clock sync and the outage buffer on real hardware
 - [x] Per-user sign-in with contractor and homeowner roles (email and password, secure session cookie; homeowners see only their own system)
 - [x] Invite links for homeowners and contractor colleagues, and a contractor Fleet page listing every system, most in need of attention first
 - [x] Review of the cloud code for bugs and security: 8 fixes (alert emails now reach homeowners, password change signs out other sessions, remove colleagues, invite tokens kept out of logs, and smaller hardening)
