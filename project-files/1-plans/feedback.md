@@ -9,6 +9,7 @@ Areas: hardware, enclosure, firmware, web app, dashboard, cloud, install, docs, 
 
 ## Open
 
+- 2026-10-11 · hardware · Sensor leads need to be longer, especially for package units · open
 - 2026-10-11 · install · PC IP changed to 192.168.1.204 (was .191): add a DHCP reservation · open
 - 2026-10-11 · cloud · Move the MQTT broker to a Proxmox VM and point both nodes at it · open
 - 2026-10-11 · firmware · OTA password is weak: change it in config.h and reflash · open
