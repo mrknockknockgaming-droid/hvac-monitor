@@ -3,3 +3,6 @@
 # Config read inside Linux containers: LF too
 *.conf text eol=lf
 Caddyfile text eol=lf
+# systemd units installed into the LXC
+*.service text eol=lf
+deploy/lxc/fullscope-manage text eol=lf

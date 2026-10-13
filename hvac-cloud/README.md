@@ -24,6 +24,12 @@ superheat / subcooling / fault-flag math.
 A system's `site_id` is the node's `SITE_ID` in `hvac-firmware/include/config.h`, so the
 firmware needs no changes. Messages from sites with no system are ignored.
 
+## Running it for real: Proxmox LXC
+
+The always-on install is a Proxmox container set up by [../deploy/lxc/](../deploy/lxc/README.md)
+(broker, ingest worker and web app as services, SQLite). The steps below are for development on
+the PC.
+
 ## Development (no Docker)
 
 ```powershell
