@@ -29,6 +29,13 @@ temperatures, superheat, subcooling and delta-T.
   Desktop shortcut: "HVAC Monitor" in `Desktop\ai stuff on my desktop\`.
   - Web app sign-in key: `hvac-cloud\my-api-key.txt` (git-ignored); account and system "home"
     are in `hvac-cloud\dev.db`.
+- `deploy/lxc/` — PRIMARY deployment (2026-10-13): the cloud stack (Mosquitto :1883, ingest,
+  web app :8000, SQLite in /var/lib/fullscope) as systemd services in a Debian 12 Proxmox LXC
+  (CT 120 by default, onboot). `deploy.ps1` on the PC (git archive HEAD -> scp -> ssh) runs
+  `pve-deploy.sh` on the Proxmox host (creates the CT once, then updates) which runs
+  `install.sh` inside (idempotent; settings in /etc/fullscope/fullscope.env, read via
+  FULLSCOPE_ENV_FILE). `fullscope-manage` = manage.py in the CT. Develop on the PC, commit, then
+  re-run deploy.ps1 to ship. See deploy/lxc/README.md. Keep new cloud settings/deps working there.
 - `hvac-firmware/` — PlatformIO project, one codebase, builds `-e outdoor`, `-e indoor`
   (plus `outdoor_ota`, `indoor_ota`).
   - `include/config.h` holds WiFi/MQTT settings (not in git; copy of `config.example.h`)
@@ -199,8 +206,8 @@ temperatures, superheat, subcooling and delta-T.
 
 ## Network
 - User's PC: now 192.168.1.204 (was .191; DHCP changed it, so give it a DHCP reservation in the
-  router or the nodes' MQTT_HOST breaks again). Runs Mosquitto on 1883 + the dashboard; the
-  broker is planned to move to a Proxmox VM. Outdoor ESP32: 192.168.1.247. Indoor ESP32: 192.168.1.121.
+  router or the nodes' MQTT_HOST breaks again). Runs Mosquitto on 1883 + the dashboard until the
+  Proxmox LXC (deploy/lxc/) takes over; then the nodes' MQTT_HOST is the container's fixed IP. Outdoor ESP32: 192.168.1.247. Indoor ESP32: 192.168.1.121.
 - WiFi must be 2.4 GHz.
 
 ## Current status (Phase 4, installed on Tyler's own system, 2026-10-11)
@@ -214,7 +221,8 @@ temperatures, superheat, subcooling and delta-T.
 - Enclosures and cabinet mounting plates designed (`hardware/enclosures/`), not printed yet.
 - Known follow-ups:
   - PC IP changed to 192.168.1.204: add a DHCP reservation (or move the broker, below).
-  - Broker moving to a Proxmox VM; update MQTT_HOST on both nodes when it does.
+  - Broker + cloud moving to a Proxmox LXC (deploy/lxc/); set MQTT_HOST on both nodes to the
+    container's IP and reflash when it does.
   - OTA password is weak: change it in config.h and reflash over USB once.
   - Y and O/B call wires: superheat/subcooling/delta-T checks only run during a call, so land
     them (outdoor J2, indoor mode inputs) if they are not already.

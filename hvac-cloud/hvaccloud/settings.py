@@ -1,4 +1,5 @@
-"""Configuration from environment variables, or KEY=value lines in hvac-cloud/.env (see .env.example)."""
+"""Configuration from environment variables, or KEY=value lines in hvac-cloud/.env (see .env.example).
+FULLSCOPE_ENV_FILE names a different file (the LXC uses /etc/fullscope/fullscope.env)."""
 import os
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -17,7 +18,7 @@ def _load_env_file(path):
         pass
 
 
-_load_env_file(os.path.join(HERE, ".env"))
+_load_env_file(os.environ.get("FULLSCOPE_ENV_FILE") or os.path.join(HERE, ".env"))
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///" + os.path.join(HERE, "dev.db").replace("\\", "/"))
 

@@ -1,0 +1,17 @@
+[Unit]
+Description=Fullscope web app and API (port 8000)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=fullscope
+Group=fullscope
+Environment=FULLSCOPE_ENV_FILE=/etc/fullscope/fullscope.env
+WorkingDirectory=/opt/fullscope
+ExecStart=/opt/fullscope/.venv/bin/python -m uvicorn hvaccloud.api:app --host 0.0.0.0 --port 8000
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
