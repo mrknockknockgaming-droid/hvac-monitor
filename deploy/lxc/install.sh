@@ -113,7 +113,9 @@ chown -R fullscope:fullscope "$DATA"
 
 echo "== Starting services"
 install -m 644 "$SRC/deploy/lxc/fullscope-ingest.service" "$SRC/deploy/lxc/fullscope-api.service" /etc/systemd/system/
-install -m 755 "$SRC/deploy/lxc/fullscope-manage" /usr/local/bin/fullscope-manage
+# /usr/bin, not /usr/local/bin: `pct enter` shells have PATH=/sbin:/bin:/usr/sbin:/usr/bin
+install -m 755 "$SRC/deploy/lxc/fullscope-manage" /usr/bin/fullscope-manage
+rm -f /usr/local/bin/fullscope-manage
 systemctl daemon-reload
 systemctl enable -q mosquitto fullscope-ingest fullscope-api
 systemctl restart mosquitto
