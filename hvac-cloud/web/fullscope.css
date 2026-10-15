@@ -481,3 +481,27 @@ select.sel{background-color:var(--surface-2);border:1px solid var(--line-strong)
 .h-visits li b{display:block;font-weight:500}
 .h-visits li span{color:var(--ink-muted)}
 .calls-t tr.sec td{text-align:left}
+/* technician pages on narrow screens. The summary strip has six cells, set here and not inline so
+   the breakpoints below (and the design system's at 1280/760 px) can reflow it. */
+.strip.six{grid-template-columns:repeat(6,minmax(0,1fr))}
+.login .h-card.team{overflow-x:auto}
+@media (max-width:1280px){
+  .strip.six{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .strip.six .cell{border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .strip.six .cell:nth-child(3n){border-right:0}
+  .strip.six .cell:nth-child(n+4){border-bottom:0}
+}
+@media (max-width:760px){
+  .strip.six{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .strip.six .cell,.strip.six .cell:nth-child(3n){border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .strip.six .cell:nth-child(2n){border-right:0}
+  .strip.six .cell:nth-child(n+5){border-bottom:0}
+  .cell .lbl{align-items:flex-start}
+  .cell .meta{white-space:normal;flex-wrap:wrap;justify-content:flex-start;gap:2px 8px}
+  .top-fields{flex-wrap:wrap;overflow-x:visible}
+  .tf{border-bottom:1px solid var(--line)}
+  .tf.alerts{margin-left:0;border-left:0}
+  .nav .tools{flex-wrap:wrap;margin-left:0;padding:6px 4px;width:100%}
+  .dt th,.dt td{padding-left:8px;padding-right:8px}
+  .dt tbody th{white-space:normal}
+}

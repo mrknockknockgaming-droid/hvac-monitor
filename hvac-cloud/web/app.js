@@ -933,7 +933,7 @@ function scTargetText(d) {
 function strip(d) {
   var sh = judged(d.sh, ["sh_low", "sh_high"], d), sc = judged(d.sc, ["sc_low", "sc_high"], d), dt = judged(d.dt, ["dt_low"], d), ct = judged(d.ctoa, ["ctoa_high"], d);
   var cr = isNum(d.p_high) && isNum(d.p_low) ? (d.p_high + S.sys.atm_psia) / (d.p_low + S.sys.atm_psia) : null;
-  return '<section class="strip" aria-label="System summary" style="grid-template-columns:repeat(6,minmax(0,1fr))">' +
+  return '<section class="strip six" aria-label="System summary">' +
     cell("Superheat", "calc", d.sh, "°F", sh[0], sh[1], "Flag &lt; 3 or &gt; 30") +
     cell("Subcooling", "calc", d.sc, "°F", sc[0], sc[1], scTargetText(d)) +
     cell("Delta-T", "calc", d.dt, "°F", dt[0], dt[1], "Flag &lt; 12 (cooling)") +
