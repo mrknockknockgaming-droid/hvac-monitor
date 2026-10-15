@@ -80,19 +80,166 @@ public static class Py
     public static double Round(double x, int digits)
     {
         if (!double.IsFinite(x) || x == 0) return x;
+        var q = Scaled(x, digits);
+        double result = double.Parse(q.ToString(CultureInfo.InvariantCulture) + "e" + (-digits).ToString(CultureInfo.InvariantCulture),
+                                     CultureInfo.InvariantCulture);
+        return double.IsNegative(x) ? -result : result;
+    }
+
+    /// <summary>Python round(x) with no digits: the nearest integer, halves to even.</summary>
+    public static long RoundInt(double x) => (long)Math.Round(x, MidpointRounding.ToEven);
+
+    /// <summary>|x| exactly as digits * 10^exp10.</summary>
+    static (BigInteger Digits, int Exp10) Exact(double x)
+    {
         long bits = BitConverter.DoubleToInt64Bits(x);
-        bool neg = bits < 0;
         int exp = (int)((bits >> 52) & 0x7FF);
         long frac = bits & 0xFFFFFFFFFFFFFL;
         BigInteger m = exp == 0 ? frac : frac | (1L << 52);
         int e = (exp == 0 ? 1 : exp) - 1075;           // |x| = m * 2^e
-        if (e >= 0) return x;                           // an integer already
-        BigInteger num = m * BigInteger.Pow(10, digits), den = BigInteger.One << -e;
-        var q = BigInteger.DivRem(num, den, out var r);
+        return e >= 0 ? (m << e, 0) : (m * BigInteger.Pow(5, -e), e);
+    }
+
+    /// <summary>round(|x| * 10^digits) half to even, on the exact binary value.</summary>
+    static BigInteger Scaled(double x, int digits)
+    {
+        var (d, e) = Exact(x);
+        int shift = e + digits;                         // |x| * 10^digits = d * 10^shift
+        if (shift >= 0) return d * BigInteger.Pow(10, shift);
+        return DivRoundEven(d, BigInteger.Pow(10, -shift));
+    }
+
+    static BigInteger DivRoundEven(BigInteger n, BigInteger den)
+    {
+        var q = BigInteger.DivRem(n, den, out var r);
         int c = (r * 2).CompareTo(den);
         if (c > 0 || (c == 0 && !q.IsEven)) q += 1;
-        double result = double.Parse(q.ToString(CultureInfo.InvariantCulture) + "e-" + digits, CultureInfo.InvariantCulture);
-        return neg ? -result : result;
+        return q;
+    }
+
+    static int DigitCount(BigInteger n) => n.IsZero ? 1 : n.ToString(CultureInfo.InvariantCulture).Length;
+
+    /// <summary>Python f"{x:.{digits}f}".</summary>
+    public static string FormatFixed(double x, int digits)
+    {
+        if (double.IsNaN(x)) return "nan";
+        if (double.IsInfinity(x)) return x > 0 ? "inf" : "-inf";
+        string sign = double.IsNegative(x) ? "-" : "";
+        string q = (x == 0 ? BigInteger.Zero : Scaled(x, digits)).ToString(CultureInfo.InvariantCulture);
+        if (digits == 0) return sign + q;
+        q = q.PadLeft(digits + 1, '0');
+        return sign + q[..^digits] + "." + q[^digits..];
+    }
+
+    /// <summary>Python f"{x:g}" (6 significant digits, trailing zeros removed).</summary>
+    public static string FormatG(double x, int precision = 6)
+    {
+        if (double.IsNaN(x)) return "nan";
+        if (double.IsInfinity(x)) return x > 0 ? "inf" : "-inf";
+        string sign = double.IsNegative(x) ? "-" : "";
+        if (x == 0) return sign + "0";
+        var (d, e) = Exact(x);
+        int shift = DigitCount(d) - precision;
+        var q = shift > 0 ? DivRoundEven(d, BigInteger.Pow(10, shift)) : d;
+        int exp = shift > 0 ? e + shift : e;
+        int x10 = DigitCount(q) - 1 + exp;              // decimal exponent after rounding
+        if (x10 >= -4 && x10 < precision)
+        {
+            string f = FormatFixed(Math.Abs(x), precision - 1 - x10);
+            if (f.Contains('.')) f = f.TrimEnd('0').TrimEnd('.');
+            return sign + f;
+        }
+        string s = q.ToString(CultureInfo.InvariantCulture).TrimEnd('0');
+        string mant = s.Length > 1 ? s[0] + "." + s[1..] : s;
+        return sign + mant + "e" + (x10 < 0 ? "-" : "+") + Math.Abs(x10).ToString("00", CultureInfo.InvariantCulture);
+    }
+
+    /// <summary>Python str(x) of a JSON value (str of a str is itself; containers are repr).</summary>
+    public static string Str(JsonNode? n) =>
+        n is JsonValue v && Classify(v) == Kind.String ? v.GetValue<string>() : ReprNode(n);
+
+    /// <summary>Python repr(x) of a JSON value as Python would hold it (dicts, lists, True, None...).</summary>
+    public static string ReprNode(JsonNode? n)
+    {
+        switch (n)
+        {
+            case null:
+                return "None";
+            case JsonObject o:
+                return "{" + string.Join(", ", o.Select(kv => ReprString(kv.Key) + ": " + ReprNode(kv.Value))) + "}";
+            case JsonArray a:
+                return "[" + string.Join(", ", a.Select(ReprNode)) + "]";
+            case JsonValue v:
+                return Classify(v) switch
+                {
+                    Kind.Bool => v.GetValue<bool>() ? "True" : "False",
+                    Kind.String => ReprString(v.GetValue<string>()),
+                    Kind.Int or Kind.Float => NumberOf(v)!.Value.ToString(),
+                    _ => "None",
+                };
+            default:
+                return "None";
+        }
+    }
+
+    /// <summary>Python repr(str).</summary>
+    public static string ReprString(string s)
+    {
+        char q = s.Contains('\'') && !s.Contains('"') ? '"' : '\'';
+        var sb = new StringBuilder().Append(q);
+        for (int i = 0; i < s.Length; i++)
+        {
+            char c = s[i];
+            if (c == q || c == '\\') sb.Append('\\').Append(c);
+            else if (c == '\n') sb.Append("\\n");
+            else if (c == '\r') sb.Append("\\r");
+            else if (c == '\t') sb.Append("\\t");
+            else if (c < ' ' || c == 0x7f || (c >= 0x80 && c < 0xa0)) sb.Append("\\x").Append(((int)c).ToString("x2", CultureInfo.InvariantCulture));
+            else sb.Append(c);
+        }
+        return sb.Append(q).ToString();
+    }
+
+    /// <summary>Python int(s) for a string: surrounding whitespace, a sign, digits (underscores between them).</summary>
+    public static bool TryParseInt(string s, out long value)
+    {
+        value = 0;
+        s = s.Trim();
+        if (s.Length == 0) return false;
+        int i = 0;
+        bool neg = false;
+        if (s[0] is '+' or '-') { neg = s[0] == '-'; i = 1; }
+        if (i >= s.Length) return false;
+        bool lastDigit = false;
+        long v = 0;
+        for (; i < s.Length; i++)
+        {
+            char c = s[i];
+            if (c >= '0' && c <= '9') { v = checked(v * 10 + (c - '0')); lastDigit = true; }
+            else if (c == '_' && lastDigit && i + 1 < s.Length && char.IsAsciiDigit(s[i + 1])) lastDigit = false;
+            else return false;
+        }
+        value = neg ? -v : v;
+        return true;
+    }
+
+    /// <summary>Python int(x) for a JSON value; false where Python would raise.</summary>
+    public static bool TryInt(JsonNode? n, out long value)
+    {
+        value = 0;
+        if (n is not JsonValue v) return false;
+        switch (Classify(v))
+        {
+            case Kind.Bool: value = v.GetValue<bool>() ? 1 : 0; return true;
+            case Kind.Int: value = (long)NumberOf(v)!.Value.V; return true;
+            case Kind.Float:
+                double d = NumberOf(v)!.Value.V;
+                if (!double.IsFinite(d)) return false;
+                value = (long)Math.Truncate(d);
+                return true;
+            case Kind.String: return TryParseInt(v.GetValue<string>(), out value);
+            default: return false;
+        }
     }
 
     /// <summary>Python repr(float).</summary>
@@ -125,16 +272,35 @@ public static class Py
         return sign + d[..decpt] + "." + d[decpt..];
     }
 
-    /// <summary>Python json.dumps(obj) with its default separators and ensure_ascii.</summary>
-    public static string Dumps(JsonNode? n, bool sortKeys = false)
+    /// <summary>Python json.dumps(obj, sort_keys, separators=(",", ":") if compact, ensure_ascii).</summary>
+    public static string Dumps(JsonNode? n, bool sortKeys = false, bool compact = false, bool ensureAscii = true)
     {
         var sb = new StringBuilder();
-        Write(sb, n, sortKeys);
+        Write(sb, n, sortKeys, compact, ensureAscii);
         return sb.ToString();
     }
 
-    static void Write(StringBuilder sb, JsonNode? n, bool sortKeys)
+    /// <summary>Python a // b for floats.</summary>
+    public static double FloorDiv(double a, double b)
     {
+        double mod = a % b;                                        // C fmod
+        double div = (a - mod) / b;
+        if (mod != 0)
+        {
+            if ((b < 0) != (mod < 0)) div -= 1.0;
+        }
+        if (div != 0)
+        {
+            double fl = Math.Floor(div);
+            if (div - fl > 0.5) fl += 1.0;
+            return fl;
+        }
+        return Math.CopySign(0.0, a / b);
+    }
+
+    static void Write(StringBuilder sb, JsonNode? n, bool sortKeys, bool compact, bool ensureAscii)
+    {
+        string itemSep = compact ? "," : ", ", keySep = compact ? ":" : ": ";
         switch (n)
         {
             case null:
@@ -148,11 +314,11 @@ public static class Py
                 bool first = true;
                 foreach (var k in keys)
                 {
-                    if (!first) sb.Append(", ");
+                    if (!first) sb.Append(itemSep);
                     first = false;
-                    WriteString(sb, k);
-                    sb.Append(": ");
-                    Write(sb, o[k], sortKeys);
+                    WriteString(sb, k, ensureAscii);
+                    sb.Append(keySep);
+                    Write(sb, o[k], sortKeys, compact, ensureAscii);
                 }
                 sb.Append('}');
                 break;
@@ -161,8 +327,8 @@ public static class Py
                 sb.Append('[');
                 for (int i = 0; i < a.Count; i++)
                 {
-                    if (i > 0) sb.Append(", ");
-                    Write(sb, a[i], sortKeys);
+                    if (i > 0) sb.Append(itemSep);
+                    Write(sb, a[i], sortKeys, compact, ensureAscii);
                 }
                 sb.Append(']');
                 break;
@@ -170,7 +336,7 @@ public static class Py
                 switch (Classify(v))
                 {
                     case Kind.Bool: sb.Append(v.GetValue<bool>() ? "true" : "false"); break;
-                    case Kind.String: WriteString(sb, v.GetValue<string>()); break;
+                    case Kind.String: WriteString(sb, v.GetValue<string>(), ensureAscii); break;
                     case Kind.Int or Kind.Float:
                         var num = NumberOf(v)!.Value;
                         sb.Append(num.IsInt ? num.ToString() : JsonFloat(num.V));
@@ -184,7 +350,7 @@ public static class Py
     static string JsonFloat(double x) =>
         double.IsNaN(x) ? "NaN" : double.IsInfinity(x) ? (x > 0 ? "Infinity" : "-Infinity") : Repr(x);
 
-    static void WriteString(StringBuilder sb, string s)
+    static void WriteString(StringBuilder sb, string s, bool ensureAscii = true)
     {
         sb.Append('"');
         foreach (char c in s)
@@ -199,7 +365,7 @@ public static class Py
                 case '\b': sb.Append("\\b"); break;
                 case '\f': sb.Append("\\f"); break;
                 default:
-                    if (c < ' ' || c > '~') sb.Append("\\u").Append(((int)c).ToString("x4", CultureInfo.InvariantCulture));
+                    if (c < ' ' || (ensureAscii && c > '~')) sb.Append("\\u").Append(((int)c).ToString("x4", CultureInfo.InvariantCulture));
                     else sb.Append(c);
                     break;
             }

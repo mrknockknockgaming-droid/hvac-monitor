@@ -119,22 +119,11 @@ public static class Calc
         return (snap, runStart);
     }
 
-    static JsonObject Flag(string level, string code, string text, string? node = null)
-    {
-        var f = new JsonObject { ["level"] = level, ["code"] = code };
-        if (node is not null) f["node"] = node;
-        f["text"] = text;
-        return f;
-    }
+    static JsonObject Flag(string level, string code, string text, string? node = null) => J.Flag(level, code, text, node);
 
     static string Title(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..].ToLowerInvariant();
 
-    static string JoinErrors(JsonNode? err) => err switch
-    {
-        JsonArray a => string.Join(", ", a.Select(e => e is JsonValue v && Py.Classify(v) == Py.Kind.String ? v.GetValue<string>() : e?.ToJsonString())),
-        JsonValue v when Py.Classify(v) == Py.Kind.String => string.Join(", ", v.GetValue<string>().ToCharArray()),
-        _ => err?.ToJsonString() ?? "",
-    };
+    static string JoinErrors(JsonNode? err) => J.JoinErrors(err);
 
     /// <summary>Conservative first-pass checks. Only judged after 10 minutes of steady running.</summary>
     static JsonArray Flags(string mode, Num runMin, bool g, Num? sh, Num? sc, Num? dt, Num? ctoa, JsonObject nodes)
