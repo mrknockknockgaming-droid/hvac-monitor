@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Fullscope.Core</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- One copy of the saturation tables, shared with the Python cloud until the port is done. -->
+    <EmbeddedResource Include="..\..\..\hvac-cloud\hvaccloud\refrigerant_tables.json" LogicalName="refrigerant_tables.json" />
+  </ItemGroup>
+
+</Project>
