@@ -8,9 +8,9 @@ namespace Fullscope.Core;
 public sealed class ThermostatSettingsException(string message) : Exception(message);
 
 /// <summary>
-/// Display thermostat (roadmap phase 11): settings, schedule and cloud diagnostics. Port of the
-/// cloud parts of hvaccloud/thermostat.py. The control loop (Controller) stays in Python as the
-/// reference the thermostat firmware is tested against; the cloud never runs it.
+/// Display thermostat (roadmap phase 11): settings, schedule and cloud diagnostics. Port of
+/// hvaccloud/thermostat.py. The control loop is in ThermostatController.cs (used by the demo tools);
+/// the Python Controller stays the reference the thermostat firmware is tested against.
 /// </summary>
 public static partial class Thermostat
 {

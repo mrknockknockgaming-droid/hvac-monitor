@@ -1,15 +1,30 @@
 # Fullscope in C#
 
 The .NET 10 port of the cloud server (`hvac-cloud/`) and the bench dashboard (`hvac-monitor-app/`).
-The Python versions stay the ones that run and deploy until the port is finished.
+It is the version the Proxmox LXC runs (`deploy/lxc/deploy.ps1`; `-Python` goes back to the Python
+one, same data) and the one `hvac-monitor-app/start.bat` starts when the .NET SDK is installed.
+
+One program, `fullscope`:
+
+| Command | What it does | Python original |
+|---|---|---|
+| `fullscope ingest` | MQTT ingest worker: snapshots, alerts and email, thermostat display, nightly backup and prune | `python -m hvaccloud.ingest` |
+| `fullscope api [--host H] [--port 8000] [--proxy-headers]` | Web API and the web app (`hvac-cloud/web/`, unchanged) | `uvicorn hvaccloud.api:app` |
+| `fullscope manage <command>` | `init-db`, `create-account`, `create-key`, `create-system`, `list`, `set-email`, `backup`, `prune`, `create-user`, `set-password`, `test-email` | `manage.py` |
+| `fullscope bench [--demo] [--no-browser] [--dir hvac-monitor-app]` | PC bench dashboard on :8080, same `config.json` and `hvac_data.db` | `hvac-monitor-app/server.py` |
+| `fullscope demo setup\|run\|reset` | Contractor demo account with seven homes | `demo.py` |
+| `fullscope simulate [--site demo] [--thermostat] [--electrical --fault weak_cap]` | Simulated nodes over MQTT | `demo_publisher.py` |
+
+Settings come from the same environment variables and `.env` as the Python cloud.
+From this folder: `dotnet run --project src/Fullscope.Cloud -- manage list`.
 
 | Project | What it is | Ported from |
 |---|---|---|
 | `src/Fullscope.Core` | Calculation shared by the server and the dashboard: operating mode, saturation temperatures, superheat, subcooling, delta-T, fault flags, refrigerant tables | `hvaccloud/calc.py`, `hvaccloud/refrigerants.py` (and `Hub.compute` in `hvac-monitor-app/server.py`) |
-| `src/Fullscope.Core` (also) | Equipment notes, electrical module, thermostat settings/schedule/diagnostics, Python-compatible JSON | `equipment.py`, `electrical.py`, `thermostat.py` (not the controller) |
-| `src/Fullscope.Cloud` | The `fullscope` program. So far: `fullscope ingest` (MQTT ingest, alerts and emails, thermostat display, nightly backup and prune), `fullscope api` (the web API and the web app on :8000, sign-in, invites, password reset) and the database layer, which reads and writes the same SQLite/TimescaleDB tables as Python | `ingest.py`, `alerts.py`, `display.py`, `maintenance.py`, `models.py`, `db.py`, `settings.py`, `api.py`, `auth.py`, `service.py` |
-| `tests/Fullscope.Core.Tests` | xUnit tests | `tests/test_calc.py`, plus snapshot and thermostat vectors |
-| `tests/Fullscope.Cloud.Tests` | xUnit tests, including a replay of 4 simulated hours of MQTT traffic and of 230 web API requests | `test_ingest.py`, `test_maintenance.py`, `test_reading_time.py`, `test_api.py`, `test_auth.py` |
+| `src/Fullscope.Core` (also) | Equipment notes, electrical module, thermostat settings/schedule/diagnostics and its control loop, Python-compatible JSON | `equipment.py`, `electrical.py`, `thermostat.py` |
+| `src/Fullscope.Cloud` | The `fullscope` program (above) and the database layer, which reads and writes the same SQLite/TimescaleDB tables as Python | `hvaccloud/*.py`, `manage.py`, `demo.py`, `demo_publisher.py`, `hvac-monitor-app/server.py` |
+| `tests/Fullscope.Core.Tests` | xUnit tests | `tests/test_calc.py`, plus snapshot, thermostat and controller vectors |
+| `tests/Fullscope.Cloud.Tests` | xUnit tests, including replays of 4 simulated hours of MQTT traffic, 230 web API requests and 80 minutes of bench dashboard traffic | `test_ingest.py`, `test_maintenance.py`, `test_reading_time.py`, `test_api.py`, `test_auth.py` |
 
 ## Build and test
 
@@ -18,6 +33,13 @@ Install the .NET 10 SDK once (`winget install Microsoft.DotNet.SDK.10`), then fr
 ```powershell
 dotnet test
 ```
+
+## Other differences from Python, on purpose
+
+- The bench dashboard reads `NaN` in a node's message as null (Python passed it on to the browser, whose
+  JSON parser rejects it), says so when a command can't reach the broker, and ignores a setting of the
+  wrong type instead of storing it.
+- `fullscope demo reset` also removes the demo homes' `snapshot_minutes` rows.
 
 ## Matching the Python results
 
@@ -38,14 +60,18 @@ The other generators work the same way:
   including errors) to the Python API on the database that replay left, with the clock frozen per request, and
   records status, body, cookie, emails and MQTT publishes (`api_replay.json`, seed in `api_seed.db.gz`). Needs
   `fastapi`, `httpx` and `freezegun` in the venv.
+- `tools/make_bench_replay.py` does the same for the bench dashboard's `Hub` (MQTT messages, state, history,
+  CSV, settings, commands, the updates pushed to browsers and the final `hvac_data.db`).
+- `tools/make_controller_vectors.py` turns the thermostat firmware's 32,400 reference steps
+  (`thermostat/firmware/tools/make_vectors.py`) into JSON for the C# control loop.
 
-Run the API on its own with `fullscope api [--host 0.0.0.0] [--port 8000] [--proxy-headers]`; it serves the
-unchanged web app from `hvac-cloud/web/` (`WEB_DIR`) and answers with the same JSON as `uvicorn hvaccloud.api:app`.
+The API serves the unchanged web app from `hvac-cloud/web/` (`FULLSCOPE_WEB_DIR` to change it) and answers with
+the same JSON as `uvicorn hvaccloud.api:app`.
 
 ## Faster history (`snapshot_minutes`)
 
 The C# ingest also keeps one row per system and minute (snapshot count, run seconds, cycles, outside high, and a
-sum and count per chart series). `fullscope ingest` fills it in for older data when it starts, and the nightly
+sum and count per chart series). `fullscope ingest` fills it in for older data in the background when it starts, and the nightly
 prune drops rows with the raw data. Differences from Python, on purpose:
 - `/history` for ranges of 10 hours or more averages whole minutes, so its bucket is rounded up to a multiple
   of 60 s (a day is 180 s buckets instead of 144 s, 480 points instead of 600). Shorter ranges are read exactly

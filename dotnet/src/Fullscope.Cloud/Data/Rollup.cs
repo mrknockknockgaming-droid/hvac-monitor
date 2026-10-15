@@ -197,10 +197,12 @@ public static class Rollup
     }
 
     /// <summary>Fill in minutes that have snapshots but no row: everything on a database the Python
-    /// ingest wrote, otherwise only from the newest row on. Returns the minutes written.</summary>
-    public static int Backfill(DbFactory sessions, int systemId, TimeSpan? chunk = null)
+    /// ingest wrote, otherwise only from the newest row on. Returns the minutes written. `run` runs
+    /// each day's piece (the ingest worker passes one that holds its lock, so it can run alongside).</summary>
+    public static int Backfill(DbFactory sessions, int systemId, TimeSpan? chunk = null, Func<Func<int>, int>? run = null)
     {
         var step = chunk ?? TimeSpan.FromDays(1);
+        run ??= f => f();
         DateTime? from, newest;
         using (var s = sessions.Open())
         {
@@ -214,16 +216,21 @@ public static class Rollup
         for (var start = MinuteOf(from.Value); start <= newest; start += step)
         {
             var end = start + step;
-            using var s = sessions.Open();
-            using var tx = s.Database.BeginTransaction();
-            s.SnapshotMinutes.Where(x => x.SystemId == systemId && x.Minute >= start && x.Minute < end).ExecuteDelete();
-            foreach (var g in Points(s, systemId, start, end).GroupBy(p => Py.FloorDiv(p.T, 60)))
+            written += run(() =>
             {
-                s.SnapshotMinutes.Add(Build(systemId, Db.Ts(g.Key * 60), g.ToList())!);
-                written++;
-            }
-            s.SaveChanges();
-            tx.Commit();
+                int n = 0;
+                using var s = sessions.Open();
+                using var tx = s.Database.BeginTransaction();
+                s.SnapshotMinutes.Where(x => x.SystemId == systemId && x.Minute >= start && x.Minute < end).ExecuteDelete();
+                foreach (var g in Points(s, systemId, start, end).GroupBy(p => Py.FloorDiv(p.T, 60)))
+                {
+                    s.SnapshotMinutes.Add(Build(systemId, Db.Ts(g.Key * 60), g.ToList())!);
+                    n++;
+                }
+                s.SaveChanges();
+                tx.Commit();
+                return n;
+            });
         }
         return written;
     }

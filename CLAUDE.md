@@ -34,16 +34,17 @@ temperatures, superheat, subcooling and delta-T.
   (CT 120 by default, onboot). `deploy.ps1` on the PC (git archive HEAD -> scp -> ssh) runs
   `pve-deploy.sh` on the Proxmox host (creates the CT once, then updates) which runs
   `install.sh` inside (idempotent; settings in /etc/fullscope/fullscope.env, read via
-  FULLSCOPE_ENV_FILE). `fullscope-manage` = manage.py in the CT. Develop on the PC, commit, then
+  FULLSCOPE_ENV_FILE). Runs the C# build in /opt/fullscope/bin (`-Python` for the Python one;
+  /etc/fullscope/runtime says which). `fullscope-manage` = `fullscope manage` in the CT. Develop on the PC, commit, then
   re-run deploy.ps1 to ship. See deploy/lxc/README.md. Keep new cloud settings/deps working there.
-- `dotnet/` — C# (.NET 10) port of the cloud server and bench dashboard, in progress (started
-  2026-10-15, plan: core library, ingest + alerts, API + auth, dashboard + tools + LXC deploy).
-  The Python code stays the deployed version until the port is finished. `Fullscope.Core`
-  (calc, refrigerant tables, flags) must match Python exactly: `dotnet test` replays
-  `tools/make_calc_vectors.py`; re-run that script after changing calc.py. Ported so far: Core,
-  `fullscope ingest`, `fullscope api` (tests replay traffic recorded from the Python ingest and API
-  via `tools/make_ingest_replay.py` / `make_api_replay.py`; the C# side adds a `snapshot_minutes`
-  rollup for long history ranges). See dotnet/README.md.
+- `dotnet/` — C# (.NET 10) port of the cloud server and bench dashboard (2026-10-15, PRs #42, #44,
+  #45 and part 4). One program `fullscope`: ingest | api | manage | bench | demo | simulate. It is
+  what the LXC runs (deploy.ps1 builds it on the PC, needs the .NET 10 SDK; `-Python` rolls back to
+  the Python version, same database) and what hvac-monitor-app/start.bat runs when dotnet is
+  installed. The Python code stays as the reference: tests replay recorded Python output
+  (`dotnet/tools/make_*.py`: calc, snapshots, ingest, API, bench, thermostat controller); re-run the
+  matching script after changing the Python side. C# adds a `snapshot_minutes` rollup for long
+  history ranges. See dotnet/README.md.
 - `hvac-firmware/` — PlatformIO project, one codebase, builds `-e outdoor`, `-e indoor`
   (plus `outdoor_ota`, `indoor_ota`).
   - `include/config.h` holds WiFi/MQTT settings (not in git; copy of `config.example.h`)

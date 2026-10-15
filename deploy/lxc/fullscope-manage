@@ -1,7 +1,12 @@
 #!/bin/sh
-# manage.py inside the LXC, as the service user and with the service settings, e.g.
+# Admin commands inside the LXC, as the service user and with the service settings, e.g.
 #   fullscope-manage list
 #   fullscope-manage create-user ...
+# Runs the C# build (fullscope manage), or manage.py when the container was deployed with -Python.
 cd /opt/fullscope || exit 1
-exec runuser -u fullscope -- env FULLSCOPE_ENV_FILE=/etc/fullscope/fullscope.env \
-  /opt/fullscope/.venv/bin/python manage.py "$@"
+if [ "$(cat /etc/fullscope/runtime 2>/dev/null)" = python ]; then
+  exec runuser -u fullscope -- env FULLSCOPE_ENV_FILE=/etc/fullscope/fullscope.env \
+    /opt/fullscope/.venv/bin/python manage.py "$@"
+fi
+exec runuser -u fullscope -- env FULLSCOPE_ENV_FILE=/etc/fullscope/fullscope.env FULLSCOPE_HOME=/opt/fullscope \
+  /opt/fullscope/bin/fullscope manage "$@"

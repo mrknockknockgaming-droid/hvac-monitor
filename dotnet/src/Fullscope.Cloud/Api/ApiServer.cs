@@ -45,7 +45,7 @@ public sealed class ApiServer
     public const int ResetHours = 1;               // a forgotten-password link works this long, once
     static readonly System.Text.RegularExpressions.Regex EmailRe = new(@"^[^@\s]+@[^@\s]+\.[^@\s]+$");
     static readonly Dictionary<string, int> LevelRank = new() { ["fault"] = 4, ["offline"] = 3, ["caution"] = 2, ["advisory"] = 1, ["ok"] = 0 };
-    static readonly string[] CsvCols = ["mode", "p_low", "p_high", "sat_low", "sat_high", "t_suc", "t_liq", "sh", "sc",
+    internal static readonly string[] CsvCols = ["mode", "p_low", "p_high", "sat_low", "sat_high", "t_suc", "t_liq", "sh", "sc",
                                         "oat", "orh", "t_ret", "t_sup", "dt", "ctoa", "approach", "Y", "W", "G", "OB"];
     static readonly string[] SystemTypes = ["split_hp", "split_ac", "packaged_hp", "packaged_ac"];
     static readonly string[] EquipmentFields = ["system_type", "metering", "tonnage", "sc_target", "sc_tolerance", "rated_btuh", "rated_cfm",
@@ -1066,7 +1066,7 @@ public sealed class ApiServer
     }
 
     /// <summary>str() of a JSON value as Python's csv module writes it (None is empty).</summary>
-    static string CsvCell(JsonNode? v) => v switch
+    internal static string CsvCell(JsonNode? v) => v switch
     {
         null => "",
         JsonValue jv when Py.Classify(jv) == Py.Kind.Bool => jv.GetValue<bool>() ? "True" : "False",
@@ -1076,7 +1076,7 @@ public sealed class ApiServer
     };
 
     /// <summary>csv.writer, QUOTE_MINIMAL, \r\n line ends.</summary>
-    static void CsvRow(StringBuilder sb, IEnumerable<string> cells)
+    internal static void CsvRow(StringBuilder sb, IEnumerable<string> cells)
     {
         bool first = true;
         foreach (var c in cells)

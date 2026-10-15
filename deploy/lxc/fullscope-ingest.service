@@ -7,8 +7,9 @@ Wants=network-online.target mosquitto.service
 User=fullscope
 Group=fullscope
 Environment=FULLSCOPE_ENV_FILE=/etc/fullscope/fullscope.env
+Environment=FULLSCOPE_HOME=/opt/fullscope
 WorkingDirectory=/opt/fullscope
-ExecStart=/opt/fullscope/.venv/bin/python -m hvaccloud.ingest
+ExecStart=/opt/fullscope/bin/fullscope ingest
 Restart=always
 RestartSec=5
 NoNewPrivileges=true

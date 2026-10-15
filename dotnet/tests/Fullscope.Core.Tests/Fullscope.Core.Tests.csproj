@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="vectors\*.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="vectors\*.json;vectors\*.gz" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

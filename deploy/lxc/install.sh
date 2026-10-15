@@ -2,8 +2,11 @@
 # Installs or updates the Fullscope cloud inside a Debian 12 LXC: Mosquitto on 1883, the ingest
 # worker and the web app on 8000 as systemd services, SQLite data in /var/lib/fullscope.
 # Run as root from an unpacked bundle (pve-deploy.sh does this for you):
-#   bash deploy/lxc/install.sh [--import-db /path/to/dev.db]
-# Safe to re-run: code and Python packages are updated, data and /etc/fullscope/fullscope.env are kept.
+#   bash deploy/lxc/install.sh --bin fullscope-bin.tar.gz [--import-db /path/to/dev.db]   (the C# build)
+#   bash deploy/lxc/install.sh --python [--import-db /path/to/dev.db]                     (the Python version)
+# Without --bin or --python the version installed now is kept. Both versions use the same
+# database and settings, so switching either way keeps the data.
+# Safe to re-run: code is updated, data and /etc/fullscope/fullscope.env are kept.
 set -euo pipefail
 
 SRC=$(cd "$(dirname "$0")/../.." && pwd)
@@ -11,32 +14,52 @@ APP=/opt/fullscope
 DATA=/var/lib/fullscope
 ETC=/etc/fullscope
 ENV_FILE=$ETC/fullscope.env
-IMPORT_DB=""
+IMPORT_DB="" BIN="" RUNTIME=""
 
 while [ $# -gt 0 ]; do
   case "$1" in
     --import-db) IMPORT_DB=$2; shift 2 ;;
+    --bin) BIN=$2; RUNTIME=dotnet; shift 2 ;;
+    --python) RUNTIME=python; shift ;;
     *) echo "unknown option: $1" >&2; exit 2 ;;
   esac
 done
 
 [ "$(id -u)" = 0 ] || { echo "run as root" >&2; exit 1; }
 [ -d "$SRC/hvac-cloud/hvaccloud" ] || { echo "hvac-cloud not found under $SRC" >&2; exit 1; }
+[ -z "$BIN" ] || [ -f "$BIN" ] || { echo "C# build not found: $BIN" >&2; exit 1; }
+[ -n "$RUNTIME" ] || RUNTIME=$(cat "$ETC/runtime" 2>/dev/null || echo dotnet)   # re-run: keep the current version
+[ "$RUNTIME" = python ] || [ -n "$BIN" ] || [ -x "$APP/bin/fullscope" ] || {
+  echo "no C# build: give --bin fullscope-bin.tar.gz (deploy.ps1 makes it) or --python" >&2; exit 2; }
 
 echo "== Installing packages"
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
-apt-get install -y -qq python3 python3-venv mosquitto mosquitto-clients sqlite3 rsync ca-certificates >/dev/null
+apt-get install -y -qq python3 python3-venv mosquitto mosquitto-clients sqlite3 rsync ca-certificates libicu72 >/dev/null
 
 id fullscope >/dev/null 2>&1 || useradd --system --home-dir "$DATA" --shell /usr/sbin/nologin fullscope
 mkdir -p "$APP" "$DATA/backups" "$ETC"
 
 echo "== Copying the app to $APP"
-rsync -a --delete --exclude .venv --exclude __pycache__ --exclude tests \
+# hvac-cloud/ carries the web app (web/) for both versions and the Python code for --python
+rsync -a --delete --exclude .venv --exclude bin --exclude __pycache__ --exclude tests \
   --exclude .env --exclude 'dev.db*' --exclude backups "$SRC/hvac-cloud/" "$APP/"
-[ -x "$APP/.venv/bin/python" ] || python3 -m venv "$APP/.venv"
-"$APP/.venv/bin/pip" install -q --upgrade pip
-"$APP/.venv/bin/pip" install -q -r "$APP/requirements.txt"
+if [ -n "$BIN" ]; then
+  echo "== Installing the C# build in $APP/bin"
+  rm -rf "$APP/bin.new"
+  mkdir -p "$APP/bin.new"
+  tar -xzf "$BIN" -C "$APP/bin.new"
+  chmod 755 "$APP/bin.new/fullscope"
+  rm -rf "$APP/bin.old"
+  [ ! -d "$APP/bin" ] || mv "$APP/bin" "$APP/bin.old"
+  mv "$APP/bin.new" "$APP/bin"
+  rm -rf "$APP/bin.old"
+fi
+if [ "$RUNTIME" = python ]; then
+  [ -x "$APP/.venv/bin/python" ] || python3 -m venv "$APP/.venv"
+  "$APP/.venv/bin/pip" install -q --upgrade pip
+  "$APP/.venv/bin/pip" install -q -r "$APP/requirements.txt"
+fi
 
 if [ ! -f "$ENV_FILE" ]; then
   echo "== Writing $ENV_FILE (edit it for email, then: systemctl restart fullscope-ingest fullscope-api)"
@@ -111,8 +134,11 @@ if [ -n "$IMPORT_DB" ]; then
 fi
 chown -R fullscope:fullscope "$DATA"
 
-echo "== Starting services"
-install -m 644 "$SRC/deploy/lxc/fullscope-ingest.service" "$SRC/deploy/lxc/fullscope-api.service" /etc/systemd/system/
+echo "== Starting services ($RUNTIME)"
+units="$SRC/deploy/lxc"
+[ "$RUNTIME" = dotnet ] || units="$SRC/deploy/lxc/python"
+install -m 644 "$units/fullscope-ingest.service" "$units/fullscope-api.service" /etc/systemd/system/
+echo "$RUNTIME" > "$ETC/runtime"
 # /usr/bin, not /usr/local/bin: `pct enter` shells have PATH=/sbin:/bin:/usr/sbin:/usr/bin
 install -m 755 "$SRC/deploy/lxc/fullscope-manage" /usr/bin/fullscope-manage
 rm -f /usr/local/bin/fullscope-manage

@@ -316,6 +316,13 @@ public static class Py
         return sb.ToString();
     }
 
+    /// <summary>Python a % b for floats (the result has the sign of b).</summary>
+    public static double Mod(double a, double b)
+    {
+        double m = a % b;
+        return m != 0 && (m < 0) != (b < 0) ? m + b : m;
+    }
+
     /// <summary>Python a // b for floats.</summary>
     public static double FloorDiv(double a, double b)
     {
