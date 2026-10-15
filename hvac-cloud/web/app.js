@@ -224,7 +224,7 @@ function startTimers() {
   pollLatest(); pollSummary(); pollHistory(); pollAlerts(); pollService(); pollThermostat();
   S.timers.push(setInterval(pollThermostat, 30000));
   S.timers.push(setInterval(pollLatest, LIVE_MS));
-  S.timers.push(setInterval(pollSummary, 60000));
+  S.timers.push(setInterval(pollSummary, 300000));   // 24 h runtime and cycles; re-reads a whole day on the server
   S.timers.push(setInterval(pollAlerts, 30000));
   S.timers.push(setInterval(pollService, 60000));
   S.timers.push(setInterval(function () { if (S.view === "setup") pollCommands(); }, 2500));
@@ -259,12 +259,20 @@ function dateWord(iso, withYear) {   // "2026-09-01" -> "Sep 1" (as a local cale
   return d.toLocaleDateString([], withYear ? { month: "short", year: "numeric" } : { month: "short", day: "numeric" });
 }
 var RANGES = { "15m": { min: 15, label: "15 min" }, "1h": { min: 60, label: "1 hr" }, "6h": { min: 360, label: "6 hr" }, "24h": { min: 1440, label: "24 hr" }, "7d": { min: 10080, label: "7 days" } };
+// The server averages a range into ~600 points, so a 24 h chart only gains a point every 144 s and a
+// 7 day chart every ~17 min. Re-fetching those every 30 s re-read the whole range each time (seconds
+// of server CPU on the LXC), so each range is refreshed once per point, and never twice at once.
+var histAt = {}, histBusy = {};
 function pollHistory() {
-  var id = S.sys.id, want = S.view === "home" ? ["24h"] : [S.range, "24h"];
+  var id = S.sys.id, want = S.view === "home" ? ["24h"] : [S.range, "24h"], now = Date.now();
   want.forEach(function (r) {
+    var key = id + ":" + r, every = Math.max(30, RANGES[r].min / 10) * 1000;
+    if (histBusy[key] || (S.history[r] && now - (histAt[key] || 0) < every - 2000)) return;
+    histBusy[key] = true;
     api("/api/systems/" + id + "/history?minutes=" + RANGES[r].min).then(function (rows) {
+      histAt[key] = Date.now();
       if (S.sys && S.sys.id === id) { S.history[r] = rows; render(); }
-    }).catch(function () {});
+    }).catch(function () {}).then(function () { histBusy[key] = false; });
   });
 }
 
