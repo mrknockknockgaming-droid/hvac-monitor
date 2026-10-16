@@ -221,7 +221,7 @@ function loadSystems() {
 
 function stopTimers() { S.timers.forEach(clearInterval); S.timers = []; }
 function startTimers() {
-  pollLatest(); pollSummary(); pollHistory(); pollAlerts(); pollService(); pollThermostat();
+  pollLatest(); pollHistory(); pollAlerts(); pollService(); pollThermostat(); pollSummary();   // chart data first
   S.timers.push(setInterval(pollThermostat, 30000));
   S.timers.push(setInterval(pollLatest, LIVE_MS));
   S.timers.push(setInterval(pollSummary, 300000));   // 24 h runtime and cycles; re-reads a whole day on the server
@@ -264,7 +264,7 @@ var RANGES = { "15m": { min: 15, label: "15 min" }, "1h": { min: 60, label: "1 h
 // of server CPU on the LXC), so each range is refreshed once per point, and never twice at once.
 var histAt = {}, histBusy = {};
 function pollHistory() {
-  var id = S.sys.id, want = S.view === "home" ? ["24h"] : [S.range, "24h"], now = Date.now();
+  var id = S.sys.id, want = [S.view === "home" ? "24h" : S.range], now = Date.now();   // only the home chart shows 24 h
   want.forEach(function (r) {
     var key = id + ":" + r, every = Math.max(30, RANGES[r].min / 10) * 1000;
     if (histBusy[key] || (S.history[r] && now - (histAt[key] || 0) < every - 2000)) return;
