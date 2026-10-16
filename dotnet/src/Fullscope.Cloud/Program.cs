@@ -5,7 +5,7 @@ namespace Fullscope.Cloud;
 
 /// <summary>
 /// fullscope ingest    MQTT ingest worker (python -m hvaccloud.ingest)
-/// fullscope api       web app and REST API (uvicorn hvaccloud.api:app)
+/// fullscope api       web app and REST API (uvicorn hvaccloud.api:app), --host, --port, --proxy-headers
 /// fullscope manage    accounts, systems, users and upkeep (manage.py)
 /// </summary>
 public static class Program
@@ -25,6 +25,8 @@ public static class Program
         {
             case "ingest":
                 return IngestWorker.Run(settings, logs, stop.Token);
+            case "api":
+                return Api.ApiHost.Run(settings, args[1..], logs, stop.Token);
             default:
                 Console.Error.WriteLine("usage: fullscope ingest | api | manage <command>");
                 return 2;

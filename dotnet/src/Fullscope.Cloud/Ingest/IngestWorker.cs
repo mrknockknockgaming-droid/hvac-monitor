@@ -16,6 +16,15 @@ public static class IngestWorker
         var ingest = new Ingest(sessions, RefrigerantTables.Load(), settings, log) { Mailer = mailer };
         log.LogInformation("alert email {State}", mailer.Enabled ? $"on via {mailer.Host}" : "off (set SMTP_HOST in .env)");
 
+        using (var s = sessions.Open())                      // per-minute history rows missing (a Python-written database)
+        {
+            foreach (var id in s.Systems.Select(x => x.Id).ToList())
+            {
+                int n = Rollup.Backfill(sessions, id);
+                if (n > 0) log.LogInformation("history rollup: {Minutes} minutes added for system {Id}", n, id);
+            }
+        }
+
         var mqtt = new MqttConnection(settings, "hvac-cloud-ingest", logs.CreateLogger("mqtt"),
                                       "hvac/+/+/telemetry", "hvac/+/+/status", "hvac/+/+/reply", $"hvac/+/{Thermostat.Node}/request");
         mqtt.OnMessage = (topic, payload) => ingest.Handle(topic, payload);

@@ -96,6 +96,11 @@ public static class Maintenance
         step ??= f => f();
         var detailCut = Db.Ts(Py.FloorDiv(t - fullDays * 86400.0, 60) * 60);    // on a minute boundary
         var keepCut = Db.Ts(t - keepDays * 86400.0);
+        step(() =>
+        {
+            using var s = sessions.Open();                    // the per-minute history rows (C# only)
+            return s.SnapshotMinutes.Where(x => x.Minute < keepCut).ExecuteDelete();
+        });
         if (!sessions.IsSqlite)
         {
             log?.LogInformation("prune skipped: TimescaleDB retention handles PostgreSQL");

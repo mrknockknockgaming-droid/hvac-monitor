@@ -30,6 +30,7 @@ public sealed class Ingest
     readonly string _appUrl;
     readonly Dictionary<int, double> _displayAt = [];
     readonly HashSet<string> _unknownSites = [];
+    DateTime _snapshotAt;
 
     /// <summary>(system_id, node) -> (epoch, data): each node's newest reading.</summary>
     public Dictionary<(int, string), (double At, JsonNode? Data)> Latest { get; } = [];
@@ -132,6 +133,11 @@ public sealed class Ingest
                 done = false;
             }
             s.SaveChanges();
+            if (snap is not null)
+            {
+                Rollup.Refresh(s, system.Id, _snapshotAt);        // the minute's history/summary row
+                s.SaveChanges();
+            }
             tx.Commit();
             if (done) return result;
         }
@@ -271,6 +277,7 @@ public sealed class Ingest
         snap = Thermostat.Apply(snap, ThermostatState(s, system, now));
         system.RunStartedAt = newStart is double ns && ns != 0 ? Db.Ts(ns) : null;
         s.Snapshots.Add(new Snapshot { SystemId = system.Id, Time = Db.Ts(now), Mode = J.Str(snap, "mode") ?? "", Data = Db.Json(snap) });
+        _snapshotAt = Db.Ts(now);
         return snap;
     }
 

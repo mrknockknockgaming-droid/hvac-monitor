@@ -13,6 +13,7 @@ namespace Fullscope.Cloud.Tests;
 /// Four simulated hours of MQTT traffic for three systems, recorded from the Python ingest worker by
 /// dotnet/tools/make_ingest_replay.py, replayed through the C# one on a copy of the same database.
 /// </summary>
+[Collection("clock")]
 public class ReplayTests
 {
     sealed class Mailer(List<JsonObject> log) : IMailer
@@ -76,6 +77,13 @@ public class ReplayTests
                 Assert.True(Py.Dumps(final[table], sortKeys: true) == Py.Dumps(got[table], sortKeys: true),
                             $"{table} differs:\nexpected {Py.Dumps(final[table], sortKeys: true)[..Math.Min(3000, Py.Dumps(final[table]).Length)]}\n" +
                             $"got      {Py.Dumps(got[table], sortKeys: true)[..Math.Min(3000, Py.Dumps(got[table]).Length)]}");
+
+            // The per-minute rollup ingest kept up to date must equal one rebuilt from scratch.
+            var live = RollupRows(sessions);
+            Assert.NotEmpty(live);
+            using (var s = sessions.Open()) s.SnapshotMinutes.ExecuteDelete();
+            foreach (var id in SystemIds(sessions)) Rollup.Backfill(sessions, id);
+            Assert.Equal(live, RollupRows(sessions));
         }
         finally
         {
@@ -83,6 +91,19 @@ public class ReplayTests
             Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
             foreach (var ext in new[] { "", "-wal", "-shm" }) File.Delete(dbPath + ext);
         }
+    }
+
+    static List<int> SystemIds(DbFactory sessions)
+    {
+        using var s = sessions.Open();
+        return s.Systems.Select(x => x.Id).ToList();
+    }
+
+    static List<string> RollupRows(DbFactory sessions)
+    {
+        using var s = sessions.Open();
+        return s.SnapshotMinutes.AsNoTracking().OrderBy(x => x.SystemId).ThenBy(x => x.Minute).AsEnumerable()
+            .Select(m => System.Text.Json.JsonSerializer.Serialize(m)).ToList();
     }
 
     static JsonObject Dump(DbFactory sessions)

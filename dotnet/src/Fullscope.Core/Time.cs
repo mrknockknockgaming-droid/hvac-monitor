@@ -21,7 +21,18 @@ public static class Time
         return us / 1e6;
     }
 
-    public static double Now() => ToEpoch(DateTime.UtcNow);
+    /// <summary>The current UTC time. Tests set a fixed or stepped clock.</summary>
+    public static Func<DateTime> Clock { get; set; } = () => DateTime.UtcNow;
+
+    public static DateTime UtcNow() => Clock();
+
+    public static double Now() => ToEpoch(Clock());
+
+    /// <summary>This computer's time zone (tests set UTC).</summary>
+    public static TimeZoneInfo LocalZone { get; set; } = TimeZoneInfo.Local;
+
+    /// <summary>date.today(): the local date on this computer.</summary>
+    public static DateOnly Today() => DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(Clock(), LocalZone));
 
     /// <summary>A UTC DateTime truncated to whole microseconds (what the database keeps).</summary>
     public static DateTime Micro(DateTime d) => new(d.Ticks - d.Ticks % 10, DateTimeKind.Utc);

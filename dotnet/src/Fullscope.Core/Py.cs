@@ -18,6 +18,42 @@ public readonly record struct Num(double V, bool IsInt)
     public JsonNode ToNode() => IsInt ? JsonValue.Create((long)V) : JsonValue.Create(V);
 }
 
+/// <summary>
+/// Python 3.12+ sum() of ints and floats: a run of whole numbers adds exactly, then floats are added
+/// with Neumaier compensation (ints after that are added plainly), as CPython does it.
+/// </summary>
+public struct PySum
+{
+    long _int;
+    bool _float;
+    double _f, _c;
+
+    public void Add(Num x)
+    {
+        if (!_float)
+        {
+            if (x.IsInt)
+            {
+                _int += (long)x.V;
+                return;
+            }
+            _float = true;
+            _f = _int;
+        }
+        if (x.IsInt)
+        {
+            _f += x.V;
+            return;
+        }
+        double t = _f + x.V;
+        if (Math.Abs(_f) >= Math.Abs(x.V)) _c += (_f - t) + x.V;
+        else _c += (x.V - t) + _f;
+        _f = t;
+    }
+
+    public readonly double Value => !_float ? _int : _c != 0 && double.IsFinite(_c) ? _f + _c : _f;
+}
+
 /// <summary>Python behaviours the ported code depends on: truthiness, round(), repr() and json.dumps().</summary>
 public static class Py
 {

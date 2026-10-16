@@ -40,7 +40,10 @@ temperatures, superheat, subcooling and delta-T.
   2026-10-15, plan: core library, ingest + alerts, API + auth, dashboard + tools + LXC deploy).
   The Python code stays the deployed version until the port is finished. `Fullscope.Core`
   (calc, refrigerant tables, flags) must match Python exactly: `dotnet test` replays
-  `tools/make_calc_vectors.py`; re-run that script after changing calc.py. See dotnet/README.md.
+  `tools/make_calc_vectors.py`; re-run that script after changing calc.py. Ported so far: Core,
+  `fullscope ingest`, `fullscope api` (tests replay traffic recorded from the Python ingest and API
+  via `tools/make_ingest_replay.py` / `make_api_replay.py`; the C# side adds a `snapshot_minutes`
+  rollup for long history ranges). See dotnet/README.md.
 - `hvac-firmware/` — PlatformIO project, one codebase, builds `-e outdoor`, `-e indoor`
   (plus `outdoor_ota`, `indoor_ota`).
   - `include/config.h` holds WiFi/MQTT settings (not in git; copy of `config.example.h`)

@@ -41,13 +41,14 @@ public sealed class Db(DbContextOptions<Db> options) : DbContext(options)
     public DbSet<RuntimeDay> RuntimeDays => Set<RuntimeDay>();
     public DbSet<ServiceInfo> ServiceInfo => Set<ServiceInfo>();
     public DbSet<MaintenanceItem> MaintenanceItems => Set<MaintenanceItem>();
+    public DbSet<SnapshotMinute> SnapshotMinutes => Set<SnapshotMinute>();
 
     public bool IsSqlite => Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite";
 
     // ---------- helpers shared with the Python code's conventions ----------
 
     /// <summary>Now, in UTC, to the microsecond (db.utcnow).</summary>
-    public static DateTime UtcNow() => Time.Micro(DateTime.UtcNow);
+    public static DateTime UtcNow() => Time.Micro(Time.UtcNow());
 
     public static DateTime Ts(double epoch) => Time.FromEpoch(epoch);
 
@@ -88,7 +89,7 @@ public sealed class Db(DbContextOptions<Db> options) : DbContext(options)
         new(v => v.Kind == DateTimeKind.Utc ? v : DateTime.SpecifyKind(v, DateTimeKind.Utc),
             v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
 
-    static string Snake(string name) => Regex.Replace(name, "(?<=[a-z0-9])([A-Z])", "_$1").ToLowerInvariant();
+    static string Snake(string name) => Regex.Replace(name, "(?<=[a-z0-9])([A-Z])|(?<=[A-Z])([A-Z])(?=[a-z])", "_$1$2").ToLowerInvariant();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -265,6 +266,12 @@ public sealed class Db(DbContextOptions<Db> options) : DbContext(options)
             e.ToTable("maintenance_items");
             e.HasIndex(x => new { x.SystemId, x.Kind }).IsUnique();
             Len(e.Property(x => x.Kind), 16);
+            e.HasOne<HvacSystem>().WithMany().HasForeignKey(x => x.SystemId).OnDelete(DeleteBehavior.NoAction);
+        });
+        b.Entity<SnapshotMinute>(e =>
+        {
+            e.ToTable("snapshot_minutes");
+            e.HasKey(x => new { x.SystemId, x.Minute });
             e.HasOne<HvacSystem>().WithMany().HasForeignKey(x => x.SystemId).OnDelete(DeleteBehavior.NoAction);
         });
 

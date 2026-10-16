@@ -166,7 +166,7 @@ public static partial class Thermostat
     public static DateTime LocalNow(JsonNode? tech, double? now = null)
     {
         var tz = FindZone(J.Str(MergedTech(tech), "tz") ?? "") ?? FindZone("America/Phoenix")!;
-        var utc = now is double t ? Time.FromEpoch(t) : DateTime.UtcNow;
+        var utc = now is double t ? Time.FromEpoch(t) : Time.UtcNow();
         return DateTime.SpecifyKind(TimeZoneInfo.ConvertTimeFromUtc(utc, tz), DateTimeKind.Unspecified);
     }
 
