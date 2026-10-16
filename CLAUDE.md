@@ -36,7 +36,7 @@ temperatures, superheat, subcooling and delta-T.
   `install.sh` inside (idempotent; settings in /etc/fullscope/fullscope.env, read via
   FULLSCOPE_ENV_FILE). `fullscope-manage` = manage.py in the CT. Develop on the PC, commit, then
   re-run deploy.ps1 to ship. See deploy/lxc/README.md. Keep new cloud settings/deps working there.
-- `dotnet/` — C# (.NET 8) port of the cloud server and bench dashboard, in progress (started
+- `dotnet/` — C# (.NET 10) port of the cloud server and bench dashboard, in progress (started
   2026-10-15, plan: core library, ingest + alerts, API + auth, dashboard + tools + LXC deploy).
   The Python code stays the deployed version until the port is finished. `Fullscope.Core`
   (calc, refrigerant tables, flags) must match Python exactly: `dotnet test` replays
