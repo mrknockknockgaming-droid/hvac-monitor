@@ -7,8 +7,9 @@ Wants=network-online.target
 User=fullscope
 Group=fullscope
 Environment=FULLSCOPE_ENV_FILE=/etc/fullscope/fullscope.env
+Environment=FULLSCOPE_HOME=/opt/fullscope
 WorkingDirectory=/opt/fullscope
-ExecStart=/opt/fullscope/.venv/bin/python -m uvicorn hvaccloud.api:app --host 0.0.0.0 --port 8000
+ExecStart=/opt/fullscope/bin/fullscope api --host 0.0.0.0 --port 8000
 Restart=always
 RestartSec=5
 NoNewPrivileges=true

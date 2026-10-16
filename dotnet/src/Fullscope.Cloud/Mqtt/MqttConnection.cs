@@ -25,6 +25,9 @@ public sealed class MqttConnection : IAsyncDisposable
 
     public bool IsConnected => _client.IsConnected;
 
+    /// <summary>Last-will message (published retained by the broker if this client drops).</summary>
+    public (string Topic, string Payload)? Will { get; init; }
+
     public MqttConnection(Settings settings, string clientIdPrefix, ILogger log, params string[] subscribe)
     {
         _settings = settings;
@@ -62,6 +65,9 @@ public sealed class MqttConnection : IAsyncDisposable
                     var b = new MqttClientOptionsBuilder().WithTcpServer(_settings.MqttHost, _settings.MqttPort)
                         .WithClientId(ClientId).WithKeepAlivePeriod(TimeSpan.FromSeconds(30)).WithCleanSession();
                     if (_settings.MqttUser.Length > 0) b = b.WithCredentials(_settings.MqttUser, _settings.MqttPass);
+                    if (Will is var (willTopic, willPayload))
+                        b = b.WithWillTopic(willTopic).WithWillPayload(Encoding.UTF8.GetBytes(willPayload)).WithWillRetain()
+                             .WithWillQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce);
                     var result = await _client.ConnectAsync(b.Build(), stop);
                     if (result.ResultCode != MqttClientConnectResultCode.Success)
                         throw new InvalidOperationException($"connect refused: {result.ResultCode}");

@@ -12,6 +12,10 @@ temperatures, superheat, subcooling and air delta-T, and shows it all live in yo
 
 Want to look around before the hardware is wired? Double-click **`start-demo.bat`** for simulated data.
 
+If the .NET 10 SDK is installed (`winget install Microsoft.DotNet.SDK.10`), `start.bat` runs the C#
+version instead (`fullscope bench` from `..\dotnet`; same page, `config.json` and `hvac_data.db`, no
+Python needed). The first start builds it, which takes a minute.
+
 You can open the dashboard from your phone on the same WiFi at `http://<your-PC-IP>:8080`
 (allow Python through Windows Firewall on private networks when asked).
 

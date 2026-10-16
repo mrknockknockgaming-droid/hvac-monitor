@@ -1,0 +1,18 @@
+# The Python version (deploy.ps1 -Python); the default runs the C# build in /opt/fullscope/bin.
+[Unit]
+Description=Fullscope ingest worker (MQTT to database, alerts, nightly backup)
+After=network-online.target mosquitto.service
+Wants=network-online.target mosquitto.service
+
+[Service]
+User=fullscope
+Group=fullscope
+Environment=FULLSCOPE_ENV_FILE=/etc/fullscope/fullscope.env
+WorkingDirectory=/opt/fullscope
+ExecStart=/opt/fullscope/.venv/bin/python -m hvaccloud.ingest
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

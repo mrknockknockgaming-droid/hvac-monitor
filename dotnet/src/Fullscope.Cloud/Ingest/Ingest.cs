@@ -26,7 +26,15 @@ public sealed class Ingest
     readonly DbFactory _sessions;
     readonly RefrigerantTables _tables;
     readonly ILogger _log;
-    readonly double _stale, _hold, _silence, _cooldownS;
+    readonly double _hold, _silence, _cooldownS;
+    double _stale;
+
+    /// <summary>Seconds without a message before a node counts as offline (the demo backfill raises it).</summary>
+    public double Stale
+    {
+        get => _stale;
+        set => _stale = value;
+    }
     readonly string _appUrl;
     readonly Dictionary<int, double> _displayAt = [];
     readonly HashSet<string> _unknownSites = [];

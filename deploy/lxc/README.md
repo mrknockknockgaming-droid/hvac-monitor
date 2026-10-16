@@ -7,11 +7,11 @@ PC sleeps:
 | Part | In the container |
 |---|---|
 | MQTT broker | Mosquitto (Debian package), port **1883**, the port the nodes already use |
-| Ingest worker | `fullscope-ingest.service` (`python -m hvaccloud.ingest`) |
-| Web app + API | `fullscope-api.service` (uvicorn on port **8000**) |
+| Ingest worker | `fullscope-ingest.service` (`fullscope ingest`, the C# build) |
+| Web app + API | `fullscope-api.service` (`fullscope api` on port **8000**) |
 | Database | SQLite at `/var/lib/fullscope/dev.db`; nightly backups in `/var/lib/fullscope/backups/` (keeps 7) |
 | Settings | `/etc/fullscope/fullscope.env` (same names as `hvac-cloud/.env.example`) |
-| Code | `/opt/fullscope` (a copy of `hvac-cloud/`, its own `.venv`) |
+| Code | `/opt/fullscope/bin/fullscope` (the C# server from `dotnet/`, self-contained) and `/opt/fullscope` (a copy of `hvac-cloud/`: the web app, plus the Python version for `-Python`) |
 
 All three services start at boot and restart if they stop, and the container itself is set to
 start when Proxmox boots. Docker (`hvac-cloud/docker-compose*.yml`) is still there for the
@@ -21,11 +21,28 @@ public server later (roadmap step 8), but it isn't needed here.
 
 | File | Runs on | What it does |
 |---|---|---|
-| `deploy.ps1` | your PC | Packs the committed `hvac-cloud/` + `deploy/lxc/` with `git archive`, copies it (and, with `-WithData`, a copy of your `dev.db`) to the Proxmox host, runs `pve-deploy.sh` there |
+| `deploy.ps1` | your PC | Packs the committed `hvac-cloud/` + `deploy/lxc/` with `git archive`, builds the committed `dotnet/` server for Linux, copies both (and, with `-WithData`, a copy of your `dev.db`) to the Proxmox host, runs `pve-deploy.sh` there |
 | `pve-deploy.sh` | Proxmox host | Creates the container the first time (Debian 12 template, unprivileged, nesting, start at boot, host time zone), copies the bundle in, runs `install.sh` |
-| `install.sh` | in the container | Installs packages, the app and its Python packages, writes the settings file once, sets up Mosquitto and the services. Safe to re-run; data and settings are kept |
-| `fullscope-*.service` | in the container | The two systemd services |
-| `fullscope-manage` | in the container | `manage.py` with the container's settings, e.g. `fullscope-manage list` |
+| `install.sh` | in the container | Installs packages and the app, writes the settings file once, sets up Mosquitto and the services. Safe to re-run; data and settings are kept |
+| `fullscope-*.service` | in the container | The two systemd services (`python/` has the Python versions, used with `-Python`) |
+| `fullscope-manage` | in the container | `fullscope manage` with the container's settings, e.g. `fullscope-manage list` |
+
+## The C# build
+
+`deploy.ps1` builds the server from `dotnet/` on the PC, so the PC needs the .NET 10 SDK once:
+`winget install Microsoft.DotNet.SDK.10`, then open a new PowerShell. The container needs no
+.NET install (the build is self-contained). The C# and Python versions read and write the same
+database and settings, so you can switch either way at any time and keep all data:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\deploy\lxc\deploy.ps1 -Proxmox 192.168.1.170 -Python   # back to Python
+powershell -ExecutionPolicy Bypass -File .\deploy\lxc\deploy.ps1 -Proxmox 192.168.1.170           # C# again
+```
+
+The first start of the C# ingest worker fills a per-minute summary table from the existing
+history, alongside live data (about 25 seconds per month of readings on a desktop PC, longer on
+the container's one core). Chart ranges of 10 hours or more read that table, so their older part
+is blank until it finishes.
 
 ## First install
 
