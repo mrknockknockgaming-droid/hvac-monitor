@@ -168,6 +168,11 @@ temperatures, superheat, subcooling and delta-T.
     monotonic clock; screen edits go to hvac/<site>/thermostat/request -> ingest
     on_thermostat_request -> newer config. Display pins in include/board.h are from Waveshare
     docs, unverified on hardware.
+  - Indoor humidity (phase 6, `hvaccloud/psychro.py` + C# `Psychro.cs`): the indoor node finds a TCA9548A
+    on J5 by itself (no setting) and reports air.rh_ret/rh_sup + t_rh_ret/t_rh_sup (SHT45 temps). Ingest adds
+    snap["air_rh"] (RH, wet bulb, dew point, enthalpy at the site's atm_psia, dh) only when those keys are
+    present, then equipment.apply judges piston systems in cooling against the charging-chart target
+    superheat (3 x WB - 80 - ODB) / 2 ± 5 F; calc's floodback alert (< 3 F) always stays. Not carried over LoRa yet.
   - Alerts: `alerts.unjudged(snap)` = codes whose checks couldn't run (idle, not steady, node or
     electrical module offline); their raised alerts stay open instead of clearing every cycle.
   - Schema changes: `db.add_missing_columns` adds new NULLABLE columns to existing tables at

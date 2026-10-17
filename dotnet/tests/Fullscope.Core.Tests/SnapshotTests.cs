@@ -24,10 +24,21 @@ public class SnapshotTests
         var c = Vectors.Load(File)[index]!;
         var snap = c["snap"]!.DeepClone().AsObject();
         var eq = Equip(c["equipment"]);
+        snap = Psychro.Apply(snap, c["indoor"]?.DeepClone(), (double)c["atm"]!);
         snap = Equipment.Apply(snap, eq);
         snap = Electrical.Apply(snap, c["electrical"]?.DeepClone() as JsonObject, eq);
         snap = Thermostat.Apply(snap, c["thermostat"]?.DeepClone() as JsonObject);
         Assert.Equal((string)c["expected"]!, Py.Dumps(snap, sortKeys: true));
+    }
+
+    [Theory]
+    [InlineData(75.0, 50.0, 14.696, 62.6, 55.1, 28.1)]
+    [InlineData(55.0, 90.0, 14.696, 53.3, 52.1, 22.2)]
+    public void PsychroMatchesTheChart(double t, double rh, double atm, double wb, double dp, double h)
+    {
+        var p = Psychro.Point(Num.Float(t), Num.Float(rh), atm)!;
+        Assert.Equal([wb, dp, h], new[] { (double)p["wb"]!, (double)p["dp"]!, (double)p["h"]! });
+        Assert.Null(Psychro.Point(Num.Float(t), Num.Float(0), atm));
     }
 
     [Theory]

@@ -1,6 +1,6 @@
 /* Fullscope web app: homeowner (#/home/<id>) and technician (#/monitor/<id>) views over the cloud API.
    Layout and styles follow design/fullscope-home-mockup.html and fullscope-monitor-mockup.html; values
-   the hardware does not measure yet (static pressure, humidity, capacity) are shown as not installed. */
+   the hardware does not measure yet (static pressure, capacity; humidity without the SHT45s) are shown as not installed. */
 (function () {
 "use strict";
 
@@ -468,7 +468,7 @@ function renderHome() {
     "<h1>" + esc(h1) + "</h1><p>" + esc(p) + "</p>" +
     (top ? '<div class="acts"><a class="h-btn primary" href="#" data-open="h-issue-0">What should I do?</a>' + requestBtn() + "</div>" : "") +
     '</div><div class="h-now">' +
-    "<div><span>Inside</span><b>" + big(d.t_ret) + "</b><em>Air returning to the system</em></div>" +
+    "<div><span>Inside</span><b>" + big(d.t_ret) + "</b><em>" + (d.air_rh && d.air_rh.ret && isNum(d.air_rh.ret.rh) ? "Humidity " + Math.round(d.air_rh.ret.rh) + " %" : "Air returning to the system") + "</em></div>" +
     "<div><span>Outside</span><b>" + big(d.oat) + "</b><em>" + (isNum(d.orh) ? "Humidity " + Math.round(d.orh) + " %" : "At the outdoor unit") + "</em></div>" +
     "<div><span>Air from vents</span><b>" + big(d.t_sup) + "</b><em>" + esc(dtTxt) + "</em></div>" +
     "<div><span>Running, last 24 h</span><b>" + (isNum(sm.runtime_hours) ? fmt(sm.runtime_hours, 1) + "<small>hr</small>" : "—") + "</b><em>" +
@@ -942,11 +942,15 @@ function scTargetText(d) {
   var t = d.targets && d.targets.sc;
   return t && t.source === "nameplate" ? "Target " + fmt(t.target) + " ± " + fmt((t.hi - t.lo) / 2) + " (nameplate)" : "Flag &lt; 3 or &gt; 20";
 }
+function shTargetText(d) {
+  var t = d.targets && d.targets.sh;
+  return t && t.source === "chart" ? "Target " + fmt(t.target) + " ± " + fmt((t.hi - t.lo) / 2) + " (chart)" : "Flag &lt; 3 or &gt; 30";
+}
 function strip(d) {
   var sh = judged(d.sh, ["sh_low", "sh_high"], d), sc = judged(d.sc, ["sc_low", "sc_high"], d), dt = judged(d.dt, ["dt_low"], d), ct = judged(d.ctoa, ["ctoa_high"], d);
   var cr = isNum(d.p_high) && isNum(d.p_low) ? (d.p_high + S.sys.atm_psia) / (d.p_low + S.sys.atm_psia) : null;
   return '<section class="strip six" aria-label="System summary">' +
-    cell("Superheat", "calc", d.sh, "°F", sh[0], sh[1], "Flag &lt; 3 or &gt; 30") +
+    cell("Superheat", "calc", d.sh, "°F", sh[0], sh[1], shTargetText(d)) +
     cell("Subcooling", "calc", d.sc, "°F", sc[0], sc[1], scTargetText(d)) +
     cell("Delta-T", "calc", d.dt, "°F", dt[0], dt[1], "Flag &lt; 12 (cooling)") +
     cell("Cond. over ambient", "calc", d.ctoa, "°F", ct[0], ct[1], "Flag &gt; 35") +
@@ -1013,7 +1017,8 @@ function sensorHealth(n) {
     return "<tr><th>" + label + "</th><td>" + s + '</td><td class="num faint">' + (optional ? "optional" : "") + "</td></tr>";
   }
   var p = od.p || {}, t = od.t || {}, a = od.air || {}, ia = id.air || {};
-  var other = oerr.concat(ierr).filter(function (e) { return ["ads1", "ads2", "sht30", "ds18b20_missing"].indexOf(e) < 0; });
+  var hum = ["tca9548a", "sht45_ret", "sht45_sup"], hasRh = "rh_ret" in ia || "rh_sup" in ia;
+  var other = oerr.concat(ierr).filter(function (e) { return ["ads1", "ads2", "sht30", "ds18b20_missing"].concat(hum).indexOf(e) < 0; });
   return '<section class="panel" aria-label="Sensor health"><div class="ph"><h2>Sensor health</h2><span class="right sub">Click a node for detail</span></div>' +
     '<table class="dt health"><tbody><tr class="sec"><td colspan="3">Nodes</td></tr>' +
     nodeRow("in", "Indoor node", n.indoor) + nodeRow("out", "Outdoor node", n.outdoor) +
@@ -1025,7 +1030,10 @@ function sensorHealth(n) {
     ch("Discharge", t.dis, null, oerr, true) + ch("Supply / return air", isNum(ia.supply) && isNum(ia.return) ? 1 : null, "ds18b20_missing", ierr) +
     ch("Outdoor air (SHT30)", a.t, "sht30", oerr) +
     '<tr class="sec"><td colspan="3">Humidity &amp; static</td></tr>' +
-    '<tr class="unavail"><th>Indoor humidity, static pressure</th><td>' + st("offline", "Not installed") + '</td><td class="num faint">phase 6</td></tr>' +
+    (hasRh ? ch("Return humidity (SHT45)", ia.rh_ret, ierr.indexOf("tca9548a") >= 0 ? "tca9548a" : "sht45_ret", ierr) +
+             ch("Supply humidity (SHT45)", ia.rh_sup, ierr.indexOf("tca9548a") >= 0 ? "tca9548a" : "sht45_sup", ierr)
+           : '<tr class="unavail"><th>Indoor humidity (SHT45)</th><td>' + st("offline", "Not installed") + '</td><td class="num faint">optional</td></tr>') +
+    '<tr class="unavail"><th>Static pressure</th><td>' + st("offline", "Not installed") + '</td><td class="num faint">phase 6</td></tr>' +
     (other.length ? '<tr class="sec"><td colspan="3">Other errors</td></tr><tr><th colspan="3"><span class="mono">' + esc(other.join(", ")) + "</span></th></tr>" : "") +
     "</tbody></table></section>";
 }
@@ -1054,16 +1062,28 @@ function refrigTable(d) {
     "</div>" + (d.notes && d.notes.length ? '<div class="na-note">' + esc(d.notes.join(" ")) + "</div>" : "") + "</section>";
 }
 
+function rhRows(a) {
+  if (!a) return '<tr class="unavail"><th>Relative humidity, wet bulb, enthalpy</th><td class="tagc"></td><td class="num" colspan="3">Not installed</td></tr>';
+  var r = a.ret || {}, s = a.sup || {};
+  function row(label, src, k, unit, diff) {
+    return "<tr><th>" + label + '</th><td class="tagc"><span class="src' + (src === "calc" ? " calc" : "") + '">' + src + '</span></td><td class="num">' + num(r[k], unit) +
+      '</td><td class="num">' + num(s[k], unit) + '</td><td class="num">' + (diff === undefined ? "" : num(diff, unit)) + "</td></tr>";
+  }
+  return row("Relative humidity", "meas", "rh", "%") + row("Wet bulb", "calc", "wb", "°F") + row("Dew point", "calc", "dp", "°F") +
+    row("Enthalpy", "calc", "h", "Btu/lb", isNum(a.dh) ? a.dh : null);
+}
+
 function airTable(d) {
-  var dt = judged(d.dt, ["dt_low"], d);
-  return '<section class="panel" aria-label="Air-side performance"><div class="ph"><h2>Air-side performance</h2><span class="sub">Supply and return air (DS18B20)</span></div>' +
+  var dt = judged(d.dt, ["dt_low"], d), a = d.air_rh;
+  return '<section class="panel" aria-label="Air-side performance"><div class="ph"><h2>Air-side performance</h2><span class="sub">Supply and return air (DS18B20' + (a ? ", SHT45" : "") + ")</span></div>" +
     '<table class="dt"><thead><tr><th>Measurement</th><th class="tagc"></th><th class="num">Return</th><th class="num">Supply</th><th class="num">Difference</th></tr></thead><tbody>' +
     '<tr class="key"><th>Dry bulb</th><td class="tagc"><span class="src">meas</span></td><td class="num">' + num(d.t_ret, "°F") + '</td><td class="num">' + num(d.t_sup, "°F") +
     '</td><td class="num"><span class="muted" style="font-size:12px">ΔT</span> ' + num(d.dt, "°F") + '<span class="tgt">' + (dt[1] ? st(dt[0] || "offline", dt[1]) : "") + "</span></td></tr>" +
-    '<tr class="unavail"><th>Relative humidity, wet bulb, enthalpy</th><td class="tagc"></td><td class="num" colspan="3">Not installed</td></tr>' +
+    rhRows(a) +
     '<tr class="unavail"><th>Static pressure (return, supply, TESP)</th><td class="tagc"></td><td class="num" colspan="3">Not installed</td></tr>' +
-    '<tr class="unavail"><th>Capacity (needs airflow + humidity)</th><td class="tagc"></td><td class="num" colspan="3">Not available</td></tr>' +
-    '</tbody></table><div class="na-note">Indoor humidity and static pressure sensors are planned for roadmap phase 6.</div></section>';
+    '<tr class="unavail"><th>Capacity (needs airflow' + (a ? "" : " + humidity") + ')</th><td class="tagc"></td><td class="num" colspan="3">Not available</td></tr>' +
+    '</tbody></table><div class="na-note">' + (a ? "Static pressure sensors are planned for roadmap phase 6. Wet bulb and enthalpy use the site's atmospheric pressure."
+      : "Indoor humidity and static pressure sensors are planned for roadmap phase 6.") + "</div></section>";
 }
 
 function diagPanel(fl, d) {
@@ -1366,7 +1386,7 @@ root.addEventListener("click", function (e) {
 var PCH = [["p_liq", "liq", "Liquid line", "J3"], ["p_vap", "vap", "Vapor port", "J4"], ["p_tsuc", "tsuc", "True suction", "J5"]];
 var TCH = [["t_suc", "suc", "Suction line", "J6 · TH1"], ["t_liq", "liq", "Liquid line", "J7 · TH2"], ["t_tsuc", "tsuc", "True suction line", "J9 · TH3"]];
 var QUIET = { status: 1 };                                  // sent automatically; kept out of the log
-var REFRESH_AFTER = { fitted: 1, cal_zero: 1, cal_span: 1, cal_ref: 1, cal_reset: 1, range: 1, ntc_b: 1, v33: 1, ds_swap: 1, rescan: 1 };
+var REFRESH_AFTER = { fitted: 1, cal_zero: 1, cal_span: 1, cal_ref: 1, cal_reset: 1, range: 1, ntc_b: 1, v33: 1, ds_swap: 1, rh_swap: 1, rescan: 1 };
 var REPLY_WAIT_S = 20;
 
 function pollCommands() {
@@ -1453,6 +1473,22 @@ function renderSetup() {
       '<td><div class="acts-cell">' + actBtn("ice", "Ice bath 32 °F", "indoor", k) + field("f-ref-" + k, "°F", "known", c[2] + " reference temperature") + actBtn("ref", "Set", "indoor", k) + actBtn("reset", "Reset", "indoor", k) + "</div></td></tr>";
   }).join("");
 
+  var rh = is.rh || {}, rhCal = function (k) { return (ic[k] || {}).o; };
+  var hRows = [["rh_ret", "ret", "Return air"], ["rh_sup", "sup", "Supply air"]].map(function (c) {
+    var k = c[0];
+    return "<tr><th>" + c[2] + '</th><td class="num">' + reading(air[k], "%", true, "sht45_" + c[1], ierr) + '</td><td class="num faint n">' +
+      (isNum(air["t_rh_" + c[1]]) ? fmt(air["t_rh_" + c[1]]) + " °F" : "—") + "</td>" +
+      '<td class="num n">' + offsetTxt(rhCal(k)) + ' <span class="faint">%</span></td>' +
+      '<td><div class="acts-cell">' + field("f-ref-" + k, "%", "known", c[2] + " reference humidity") + actBtn("ref", "Set", "indoor", k) + actBtn("reset", "Reset", "indoor", k) + "</div></td></tr>";
+  }).join("");
+  var humPanel = '<section class="panel" aria-label="Humidity probes"><div class="ph"><h2>Humidity probes</h2><span class="sub">Indoor node · SHT45 on a TCA9548A</span><span class="right">' + nodeSub("indoor", "The indoor node") + "</span></div>" +
+    (rh.mux ? '<table class="dt"><thead><tr><th>Probe</th><th class="num">Humidity</th><th class="num">Probe temp</th><th class="num">Offset</th><th>Calibrate</th></tr></thead><tbody>' + hRows + "</tbody></table>" +
+      '<div class="kv setup-kv"><div><span>Supply / return</span><div class="acts-cell">' + actBtn("rhswap", "Swap them", "indoor") + "</div></div></div>" +
+      '<ol class="howto"><li><b>Swap them</b> if supply reads drier than return while cooling (cold supply air is usually 85 to 95 %).</li>' +
+      "<li>SHT45s are accurate to ±1 % RH; calibrate only against a trusted reference, such as a 75 % salt test.</li></ol>"
+      : '<div class="na-note">No TCA9548A found on the indoor node\'s I2C terminal (J5). Fit the mux with the return probe on channel 0 and the supply probe on channel 1, then press Rescan probes.</div>') +
+    "</section>";
+
   var html = techHeader("setup") +
     (S.msg ? '<div class="stale-banner" role="status">' + esc(S.msg) + "</div>" : "") +
     '<main class="page">' +
@@ -1471,6 +1507,7 @@ function renderSetup() {
     "<li><b>Set:</b> or compare against a trusted thermometer at any temperature, enter its reading and press Set.</li>" +
     "<li><b>3.3 V rail:</b> measure between 3V3 and GND on the ESP32 with a meter; entering it makes every thermistor more accurate.</li></ol></section>" +
 
+    humPanel +
     '<div class="cfg">' +
     '<section class="panel" aria-label="Air probes"><div class="ph"><h2>Air probes</h2><span class="sub">Indoor node · DS18B20</span><span class="right">' + nodeSub("indoor", "The indoor node") + "</span></div>" +
     '<table class="dt"><thead><tr><th>Probe</th><th class="num">Reading</th><th class="num">Offset</th><th>Calibrate</th></tr></thead><tbody>' + aRows + "</tbody></table>" +
@@ -1691,6 +1728,9 @@ root.addEventListener("click", function (e) {
   } else if (act === "ice") {
     if (!confirm("Calibrate " + name + " to 32.0 °F?\n\nThe probe should have been in stirred ice water for 3 minutes.")) return;
     cmd = { cmd: "cal_ref", ch: ch, ref: 32 };
+  } else if (act === "ref" && ch.indexOf("rh_") === 0) {
+    if (!need("f-ref-" + ch, 5, 100, "the reference humidity (%)")) return;
+    cmd = { cmd: "cal_ref", ch: ch, ref: v };
   } else if (act === "ref") {
     if (!need("f-ref-" + ch, -20, 250, "the reference temperature (°F)")) return;
     cmd = { cmd: "cal_ref", ch: ch, ref: v };
@@ -1709,6 +1749,9 @@ root.addEventListener("click", function (e) {
   } else if (act === "swap") {
     if (!confirm("Swap which probe is supply and which is return?")) return;
     cmd = { cmd: "ds_swap" };
+  } else if (act === "rhswap") {
+    if (!confirm("Swap which humidity probe is supply and which is return?")) return;
+    cmd = { cmd: "rh_swap" };
   } else if (act === "rescan") {
     cmd = { cmd: "rescan" };
   } else if (act === "interval") {

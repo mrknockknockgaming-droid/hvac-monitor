@@ -17,7 +17,7 @@ import time
 
 from sqlalchemy import select
 
-from . import alerts, calc, display, electrical, equipment, maintenance, settings, thermostat
+from . import alerts, calc, display, electrical, equipment, maintenance, psychro, settings, thermostat
 from .db import (Alert, Command, Device, Equipment, RuntimeDay, Snapshot, System, Telemetry, ThermostatConfig, as_utc,
                  init_db, make_engine, session_factory, utcnow)
 from .refrigerants import Tables
@@ -201,6 +201,7 @@ class Ingest:
             run_start = None   # after an outage the compressor call can't be assumed to have continued
         snap, run_start = calc.compute(system.calc_config(), nodes,
                                        run_start.timestamp() if run_start else None, now, self.tables)
+        snap = psychro.apply(snap, nodes.get("indoor"), system.atm_psia)  # indoor humidity (cloud only)
         eq = s.get(Equipment, system.id)
         snap = equipment.apply(snap, eq)                                # nameplate targets (cloud only)
         snap = electrical.apply(snap, self._electrical_state(s, system, now), eq)
