@@ -1,6 +1,6 @@
 # HVAC Monitor Roadmap
 
-Oct 16, 2026 · @Tyler
+Oct 17, 2026 · @Tyler
 
 ## Overview
 
@@ -63,14 +63,15 @@ Phases run in order. Customer discovery and IP protection run alongside the buil
 - [ ] Tune the alert thresholds from real data
 - [x] Threshold report on the Equipment page: for steady cooling over the last 7, 14 or 31 days, the spread of superheat, subcooling, delta-T and condensing over ambient next to the alert limits, how much of that time each limit would flag, and the alerts raised
 - [x] Equipment page in the web app, and nameplate subcooling targets for TXV/EEV systems (cloud; the PC dashboard keeps the generic limits)
-- [ ] Add charging-chart target superheat for piston systems (needs indoor humidity from Phase 6)
+- [x] Charging-chart target superheat for piston systems: (3 × return wet bulb − 80 − outdoor temp) / 2, ± 5 °F, judged in steady cooling once the indoor humidity probes report (Oct 17)
 
 ## Phase 6: Complete the V1 sensors
 
 - [ ] Buy and fit the third XDB307 (0–35 bar) and a thermistor at true suction
 - [ ] Enable them with the fitted command; confirm heating-mode superheat
 - [ ] Add 3× SDP810-500Pa static pressure sensors with a TCA9548A mux
-- [ ] Add SHT45 supply and return humidity (enables piston target superheat and capacity estimates)
+- [x] SHT45 supply and return humidity, software side (Oct 17): indoor firmware 0.2.1 finds a TCA9548A on J5 by itself (return probe on channel 0, supply on 1); the web app shows RH, wet bulb, dew point and enthalpy, with a Humidity probes panel (swap, calibration) on Sensors & calibration
+- [ ] Buy 2 SHT45 probes and a TCA9548A, solder a terminal into the indoor board's J5, fit the probes in the return and supply, and flash the indoor node
 - [ ] Update firmware and schematics to rev B
 
 ## Phase 7: Cloud stack, running locally
