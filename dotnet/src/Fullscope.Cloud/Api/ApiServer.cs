@@ -55,6 +55,8 @@ public sealed class ApiServer
     readonly Settings _settings;
     readonly Func<string, JsonNode, bool, bool> _publish;
     readonly IMailer _mailer;
+    RefrigerantTables? _tables;                    // saturation tables, loaded on first gauge check
+    RefrigerantTables Tables => _tables ??= RefrigerantTables.Load();
     readonly double _stale;
     readonly bool _sendAsync;
     readonly ILogger _log;
@@ -64,8 +66,10 @@ public sealed class ApiServer
 
     /// <param name="publish">(topic, payload, retain) -> sent; MQTT commands and the thermostat's config.</param>
     public ApiServer(DbFactory sessions, Settings settings, Func<string, JsonNode, bool, bool> publish, IMailer mailer,
-                     double? stale = null, bool sendAsync = true, ILogger? log = null, bool cache = true)
+                     double? stale = null, bool sendAsync = true, ILogger? log = null, bool cache = true,
+                     RefrigerantTables? tables = null)
     {
+        _tables = tables;
         _sessions = sessions;
         _settings = settings;
         _publish = publish;
@@ -386,6 +390,9 @@ public sealed class ApiServer
         Route(app, "GET", "/api/systems/{system_id}/visits", ListVisits);
         Route(app, "POST", "/api/systems/{system_id}/visits", AddVisit, body: true);
         Route(app, "DELETE", "/api/systems/{system_id}/visits/{visit_id}", DeleteVisit);
+        Route(app, "GET", "/api/systems/{system_id}/gauge-checks", ListGaugeChecks);
+        Route(app, "POST", "/api/systems/{system_id}/gauge-checks", AddGaugeCheck, body: true);
+        Route(app, "DELETE", "/api/systems/{system_id}/gauge-checks/{check_id}", DeleteGaugeCheck);
 
         // node commands
         Route(app, "POST", "/api/systems/{system_id}/commands", SendCommand, body: true);
@@ -835,6 +842,7 @@ public sealed class ApiServer
         foreach (var inv in r.S.Invites.Where(i => i.InvitedBy == user.Id).ToList()) inv.InvitedBy = null;
         foreach (var p in r.S.PasswordResets.Where(p => p.UserId == user.Id).ToList()) r.S.PasswordResets.Remove(p);
         foreach (var v in r.S.ServiceVisits.Where(v => v.CreatedBy == user.Id).ToList()) v.CreatedBy = null;
+        foreach (var c in r.S.GaugeChecks.Where(c => c.CreatedBy == user.Id).ToList()) c.CreatedBy = null;
         r.S.SaveChanges();                         // the references go first, then the user (no cascades)
         r.S.Users.Remove(user);
         r.S.SaveChanges();
@@ -1289,6 +1297,65 @@ public sealed class ApiServer
         var v = r.S.ServiceVisits.Find(visitId);
         if (v is null || v.SystemId != system.Id) throw new ApiError(404, "no such visit");
         r.S.ServiceVisits.Remove(v);
+        r.S.SaveChanges();
+        return new JsonObject { ["ok"] = true };
+    }
+
+    // ---------- gauge checks (phase 5: diagnostics vs the technician's gauges) ----------
+
+    /// <summary>Gauge checks, newest first, with the average and largest system-minus-gauge difference per value.</summary>
+    object? ListGaugeChecks(Req r)
+    {
+        var system = TechSystem(r);
+        int limit = (int)Py.NumberOf(Validate.Query(r.Query("limit"), Field.Int("limit", gt: 0, le: 500), JsonValue.Create(50L)))!.Value.V;
+        var rows = r.S.GaugeChecks.Where(c => c.SystemId == system.Id).OrderByDescending(c => c.Time).ThenByDescending(c => c.Id).Take(limit).ToList();
+        var views = rows.Select(Gauge.CheckView).ToList();
+        return new JsonObject { ["checks"] = new JsonArray(views.Select(v => (JsonNode?)v).ToArray()), ["summary"] = Gauge.Summary(views) };
+    }
+
+    /// <summary>Store the gauge readings with the snapshot nearest the time they were read
+    /// (minutes_ago before now, within 3 minutes).</summary>
+    object? AddGaugeCheck(Req r)
+    {
+        var system = TechSystem(r);
+        var who = r.Who;
+        var b = Body(r, Field.Float("p_low", ge: -15, le: 800), Field.Float("p_high", ge: -15, le: 800),
+                     Field.Float("t_suc", ge: -60, le: 250), Field.Float("t_liq", ge: -60, le: 250),
+                     Field.Float("t_ret", ge: -60, le: 250), Field.Float("t_sup", ge: -60, le: 250),
+                     Field.Float("minutes_ago", ge: 0, le: 60) with { Default = JsonValue.Create(0.0), Nullable = false },
+                     Field.Str("technician", 200), Field.Str("note", 500));
+        var entered = Gauge.Entered.ToDictionary(k => k, k => b.Float(k));
+        if (entered.Values.All(v => v is null)) throw new ApiError(422, "Enter at least one gauge reading.");
+        var at = Db.UtcNow() - TimeSpan.FromTicks((long)Math.Round(b.Float("minutes_ago")!.Value * 60e6, MidpointRounding.ToEven) * 10);   // timedelta: whole µs
+        var before = r.S.Snapshots.Where(x => x.SystemId == system.Id && x.Time <= at).OrderByDescending(x => x.Time)
+                      .Select(x => new { x.Time, x.Data }).FirstOrDefault();
+        var after = r.S.Snapshots.Where(x => x.SystemId == system.Id && x.Time > at).OrderBy(x => x.Time)
+                     .Select(x => new { x.Time, x.Data }).FirstOrDefault();
+        var near = new[] { before, after }.Where(x => x is not null && Math.Abs(Seconds(x.Time - at)) <= Gauge.NearestS).ToList();
+        if (near.Count == 0) throw new ApiError(409, "No system readings within 3 minutes of that time to compare with.");
+        var row = near.MinBy(x => Math.Abs(Seconds(x!.Time - at)))!;
+        var sysSide = Gauge.SystemSide(Load(row.Data));
+        sysSide["time"] = Iso(row.Time);
+        string? Clean(string? v) => (v ?? "").Trim() is { Length: > 0 } t ? t : null;
+        var c = new GaugeCheck
+        {
+            SystemId = system.Id, Time = at, Technician = Clean(b.Str("technician")), Note = Clean(b.Str("note")),
+            Refrigerant = system.Refrigerant, AtmPsia = system.AtmPsia,
+            GaugeData = Db.Json(Gauge.Derive(entered, system.Refrigerant, system.AtmPsia, Tables)),
+            SystemData = Db.Json(sysSide), CreatedBy = who.UserId,
+        };
+        r.S.GaugeChecks.Add(c);
+        r.S.SaveChanges();
+        return Gauge.CheckView(c);
+    }
+
+    object? DeleteGaugeCheck(Req r)
+    {
+        var system = TechSystem(r);
+        int checkId = Validate.PathInt("check_id", r.Route("check_id"));
+        var c = r.S.GaugeChecks.Find(checkId);
+        if (c is null || c.SystemId != system.Id) throw new ApiError(404, "no such gauge check");
+        r.S.GaugeChecks.Remove(c);
         r.S.SaveChanges();
         return new JsonObject { ["ok"] = true };
     }

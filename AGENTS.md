@@ -124,6 +124,9 @@ temperatures, superheat, subcooling and delta-T.
     it (needs SMTP); contractors can make one per homeowner in "Homeowner access".
   - Service history (`service_visits`, page #/service/<id>): tune-up / filter visits move the
     maintenance last-done dates forward only; readings attached from a snapshot <= 15 min old.
+  - Gauge checks (`gauge_checks`, `hvaccloud/gauge.py`, panel on Sensors & calibration, phase 5):
+    the tech enters gauge/probe readings; stored with the snapshot nearest the read time (<= 3 min,
+    `minutes_ago`), gauge-side sat/SH/SC/dT derived like calc, list shows system minus gauge + averages.
   - Contractor demo: `hvac-cloud/demo.py` (setup / run / reset) + `start-demo.bat`. Separate
     account "Desert Air Demo Co." (demo@fullscope.example), seven scripted homes (Rivera + Garcia have a thermostat and electrical module), sign-ins in
     demo-login.txt (git-ignored). For contractor interviews; reset never touches other accounts.
@@ -157,7 +160,7 @@ temperatures, superheat, subcooling and delta-T.
     `hvac-cloud/backups/` (keeps 7, git-ignored) and prunes: >30 days thinned to 1-minute
     averages, raw telemetry >30 days dropped, >365 days deleted (`hvaccloud/maintenance.py`;
     `manage.py backup` / `prune` by hand). Restore steps are in hvac-cloud/README.md.
-  - Tests: `.venv\Scripts\python.exe -m pytest -q` in `hvac-cloud/` (122 pass). Not done:
+  - Tests: `.venv\Scripts\python.exe -m pytest -q` in `hvac-cloud/` (127 pass). Not done:
     per-device MQTT accounts and ACLs, TLS.
 
 ## Electrical module (phase 11): `electrical/README.md` + `hvac-cloud/hvaccloud/electrical.py`

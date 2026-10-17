@@ -303,6 +303,22 @@ def main():
     call("tech", "POST", "/api/systems/2/visits", {"date": "1999-12-31", "kind": "repair", "work": "x"})
     call("tech", "GET", "/api/systems/1/visits")
     call("tech", "GET", "/api/systems/2/visits?limit=1")
+    gauges = {"p_low": 118, "p_high": 361.5, "t_suc": 52.4, "t_liq": 99.0, "t_ret": 76.2, "t_sup": 57.0}
+    call("tech", "POST", "/api/systems/1/gauge-checks", gauges)                                  # newest snapshot is minutes old
+    call("tech", "POST", "/api/systems/1/gauge-checks", {**gauges, "minutes_ago": 9.5, "technician": " Sam ", "note": "SMAN 460"})
+    call("tech", "POST", "/api/systems/1/gauge-checks", {"t_ret": 75, "t_sup": 58.5, "minutes_ago": 10.25})
+    call("tech", "POST", "/api/systems/2/gauge-checks", {"p_low": 130.25, "t_suc": 60, "minutes_ago": 10})
+    call("tech", "POST", "/api/systems/1/gauge-checks", {"note": "no numbers", "minutes_ago": 9.5})
+    call("tech", "POST", "/api/systems/1/gauge-checks", {"p_low": 900, "minutes_ago": 9.5})
+    call("tech", "POST", "/api/systems/1/gauge-checks", {"p_low": 120, "minutes_ago": 61})
+    call("tech", "POST", "/api/systems/1/gauge-checks", {"p_low": 120, "minutes_ago": None})
+    call("tech", "POST", "/api/systems/1/gauge-checks", {"p_low": 120, "minutes_ago": 300})
+    call("tech", "GET", "/api/systems/1/gauge-checks")
+    call("tech", "GET", "/api/systems/1/gauge-checks?limit=1")
+    call("tech", "GET", "/api/systems/2/gauge-checks")
+    call("tech", "DELETE", "/api/systems/1/gauge-checks/3")                                  # system 2's check
+    call("tech", "DELETE", "/api/systems/2/gauge-checks/3")
+    call("tech", "GET", "/api/systems/2/gauge-checks")
     call("tech", "GET", "/api/fleet")
 
     # ---- homeowner invites, reset links, accepting ----
@@ -342,6 +358,8 @@ def main():
     call("owner", "GET", "/api/systems/1/equipment")
     call("owner", "GET", "/api/systems/1/service")
     call("owner", "GET", "/api/systems/1/visits")
+    call("owner", "GET", "/api/systems/1/gauge-checks")
+    call("owner", "POST", "/api/systems/1/gauge-checks", {"p_low": 120})
     call("owner", "POST", "/api/systems/1/service/items/filter/done", {"date": "2026-10-05"})
     call("owner", "POST", "/api/systems/1/service/items/tuneup/done")
     call("owner", "POST", "/api/systems/1/service/items/filter/done", {"date": "2030-01-01"})

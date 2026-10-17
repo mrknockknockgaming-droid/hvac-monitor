@@ -25,11 +25,11 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import func, select
 
-from . import alerts, auth, calc, display, electrical, equipment, service, settings, thermostat
-from .db import (Account, Alert, AlertMute, AlertPrefs, ApiKey, Command, Device, Invite, PasswordReset, ServiceInfo, ServiceVisit, Snapshot,
+from . import alerts, auth, calc, display, electrical, equipment, gauge, service, settings, thermostat
+from .db import (Account, Alert, AlertMute, AlertPrefs, ApiKey, Command, Device, GaugeCheck, Invite, PasswordReset, ServiceInfo, ServiceVisit, Snapshot,
                  System, SystemMember, Telemetry, ThermostatConfig, User, as_utc, hash_key, init_db, make_engine,
                  session_factory, utcnow)
-from .refrigerants import FLUIDS
+from .refrigerants import FLUIDS, Tables
 
 mimetypes.add_type("font/woff", ".woff")   # Windows does not know it; StaticFiles uses mimetypes
 WEB_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "web")
@@ -182,6 +182,19 @@ class VisitIn(BaseModel):
     _check = field_validator("date")(past_date)
 
 
+class GaugeCheckIn(BaseModel):
+    """What the technician's gauges and probes read (psig, deg F); fields left out weren't measured."""
+    p_low: float | None = Field(default=None, ge=-15, le=800)
+    p_high: float | None = Field(default=None, ge=-15, le=800)
+    t_suc: float | None = Field(default=None, ge=-60, le=250)
+    t_liq: float | None = Field(default=None, ge=-60, le=250)
+    t_ret: float | None = Field(default=None, ge=-60, le=250)
+    t_sup: float | None = Field(default=None, ge=-60, le=250)
+    minutes_ago: float = Field(default=0, ge=0, le=60)
+    technician: str | None = Field(default=None, max_length=200)
+    note: str | None = Field(default=None, max_length=500)
+
+
 class ThermostatIn(BaseModel):
     """Homeowner settings; fields left out are unchanged."""
     mode: Literal[thermostat.MODES] | None = None
@@ -202,7 +215,7 @@ class CommandIn(BaseModel):
     cmd: dict
 
 
-def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mailer=None, send_async=True):
+def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mailer=None, send_async=True, tables=None):
     if sessions is None:
         engine = make_engine()
         init_db(engine)
@@ -211,6 +224,13 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
     throttle = auth.Throttle()
     reset_throttle = auth.Throttle(limit=3, window=60 * 60)      # reset emails per address per hour
     mailer = mailer or alerts.Mailer()
+    pt = {"tables": tables}                                      # saturation tables, loaded on first gauge check
+
+    def pt_tables():
+        if pt["tables"] is None:
+            pt["tables"] = Tables(lambda *a: None)
+        return pt["tables"]
+
     app = FastAPI(title="HVAC Monitor cloud API", version="0.1.0")
 
     def db():
@@ -611,6 +631,8 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
             s.delete(r)
         for v in s.scalars(select(ServiceVisit).where(ServiceVisit.created_by == user.id)):
             v.created_by = None
+        for c in s.scalars(select(GaugeCheck).where(GaugeCheck.created_by == user.id)):
+            c.created_by = None
         s.delete(user)
         s.commit()
         return {"ok": True}
@@ -944,6 +966,50 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
         if v is None or v.system_id != system.id:
             raise HTTPException(404, "no such visit")
         s.delete(v)
+        s.commit()
+        return {"ok": True}
+
+    # ---------- gauge checks (phase 5: diagnostics vs the technician's gauges) ----------
+    @app.get("/api/systems/{system_id}/gauge-checks")
+    def list_gauge_checks(limit: int = Query(50, gt=0, le=500), system=Depends(tech_system), s=Depends(db)):
+        """Gauge checks, newest first, with the average and largest system-minus-gauge difference per value."""
+        rows = s.scalars(select(GaugeCheck).where(GaugeCheck.system_id == system.id)
+                         .order_by(GaugeCheck.time.desc(), GaugeCheck.id.desc()).limit(limit))
+        views = [gauge.check_view(c) for c in rows]
+        return {"checks": views, "summary": gauge.summary(views)}
+
+    @app.post("/api/systems/{system_id}/gauge-checks")
+    def add_gauge_check(body: GaugeCheckIn, system=Depends(tech_system), who=Depends(principal), s=Depends(db)):
+        """Store the gauge readings with the snapshot nearest the time they were read
+        (minutes_ago before now, within 3 minutes)."""
+        entered = {k: getattr(body, k) for k in gauge.ENTERED}
+        if all(v is None for v in entered.values()):
+            raise HTTPException(422, "Enter at least one gauge reading.")
+        at = utcnow() - dt.timedelta(minutes=body.minutes_ago)
+        before = s.execute(select(Snapshot.time, Snapshot.data).where(Snapshot.system_id == system.id, Snapshot.time <= at)
+                           .order_by(Snapshot.time.desc()).limit(1)).first()
+        after = s.execute(select(Snapshot.time, Snapshot.data).where(Snapshot.system_id == system.id, Snapshot.time > at)
+                          .order_by(Snapshot.time).limit(1)).first()
+        near = [r for r in (before, after) if r is not None and abs((as_utc(r.time) - at).total_seconds()) <= gauge.NEAREST_S]
+        if not near:
+            raise HTTPException(409, "No system readings within 3 minutes of that time to compare with.")
+        row = min(near, key=lambda r: abs((as_utc(r.time) - at).total_seconds()))
+        sys_side = gauge.system_side(row.data or {})
+        sys_side["time"] = _iso(row.time)
+        c = GaugeCheck(system_id=system.id, time=at, technician=(body.technician or "").strip() or None,
+                       note=(body.note or "").strip() or None, refrigerant=system.refrigerant, atm_psia=system.atm_psia,
+                       gauge=gauge.derive(entered, system.refrigerant, system.atm_psia, pt_tables()),
+                       system=sys_side, created_by=who.user_id)
+        s.add(c)
+        s.commit()
+        return gauge.check_view(c)
+
+    @app.delete("/api/systems/{system_id}/gauge-checks/{check_id}")
+    def delete_gauge_check(check_id: int, system=Depends(tech_system), s=Depends(db)):
+        c = s.get(GaugeCheck, check_id)
+        if c is None or c.system_id != system.id:
+            raise HTTPException(404, "no such gauge check")
+        s.delete(c)
         s.commit()
         return {"ok": True}
 

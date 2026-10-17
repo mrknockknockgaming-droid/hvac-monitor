@@ -184,8 +184,8 @@ function route() {
   var changed = !S.sys || S.sys.id !== id;
   S.view = m[1];
   S.sys = sys;
-  if (changed) { S.latest = null; S.summary = null; S.history = {}; S.alerts = null; S.alertSettings = null; S.service = null; S.commands = null; S.equipment = null; S.visits = null; S.recentVisits = null; S.people = null; S.inviteResult = null; S.tstat = null; S.schedDraft = null; S.picked = []; S.pending = {}; S.form = {}; stopTimers(); startTimers(); }
-  if (S.view === "setup") { pollCommands(); pollPeople(); }
+  if (changed) { S.latest = null; S.summary = null; S.history = {}; S.alerts = null; S.alertSettings = null; S.service = null; S.commands = null; S.equipment = null; S.visits = null; S.gaugeChecks = null; S.recentVisits = null; S.people = null; S.inviteResult = null; S.tstat = null; S.schedDraft = null; S.picked = []; S.pending = {}; S.form = {}; stopTimers(); startTimers(); }
+  if (S.view === "setup") { pollCommands(); pollPeople(); pollGaugeChecks(); }
   if (S.view === "equipment") { S.msg = null; pollEquipment(); }
   if (S.view === "service") { S.msg = null; pollVisits(); }
   if (!changed && S.view !== "home" && !S.alertSettings) pollAlerts();   // the home page doesn't load them
@@ -1446,7 +1446,7 @@ function renderSetup() {
         actBtn("status", "Reload settings", nm) + actBtn("reboot", "Reboot", nm) + (nd && nd.ip ? '<span class="faint mono">' + esc(nd.ip) + "</span>" : "") + "</div></td></tr>";
     }).join("") + "</tbody></table></section></div>" +
     '<div class="cfg">' + contractorPanel() + maintPanel() + alertEmailPanel() + peoplePanel() + "</div>" +
-    commandLog() + "</main>";
+    gaugePanel() + commandLog() + "</main>";
   root.innerHTML = html;
   bindCommon();
 }
@@ -1518,6 +1518,86 @@ function cmdText(c) {
   for (var k in c) if (k !== "cmd") parts.push(k + " " + (typeof c[k] === "object" ? JSON.stringify(c[k]) : c[k]));
   return c.cmd + (parts.length ? " · " + parts.join(", ") : "");
 }
+// ---------------------------------------------------------------- gauge check (roadmap phase 5)
+// The technician types what their own gauges and probes read; the cloud stores it with the system's
+// reading from the same moment and shows system minus gauge. Read only: nothing is sent to the nodes.
+var GAUGE_ROWS = [["p_low", "Suction pressure", "psig", true], ["p_high", "Liquid pressure", "psig", true],
+  ["sat_low", "Suction saturation", "°F"], ["sat_high", "Liquid saturation", "°F"],
+  ["t_suc", "Suction line", "°F", true], ["t_liq", "Liquid line", "°F", true], ["sh", "Superheat", "°F"], ["sc", "Subcooling", "°F"],
+  ["t_ret", "Return air", "°F", true], ["t_sup", "Supply air", "°F", true], ["dt", "Delta-T", "°F"]];
+function pollGaugeChecks() {
+  var id = S.sys.id;
+  api("/api/systems/" + id + "/gauge-checks?limit=100").then(function (d) { if (S.sys && S.sys.id === id) { S.gaugeChecks = d; render(); } }).catch(function () {});
+}
+function signed(v) { return isNum(v) ? (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(1) : "—"; }
+function steadyRun(c) { var m = c.system || {}; return (m.mode === "cooling" || m.mode === "heating") && isNum(m.run_min) && m.run_min >= 10; }
+function gaugePanel() {
+  var d = S.gaugeChecks, checks = (d && d.checks) || [], last = checks[0], sum = (d && d.summary) || {};
+  var now = (S.latest && S.latest.derived) || {};
+  var rows = GAUGE_ROWS.map(function (r) {
+    var k = r[0], u = r[2], sm = sum[k] || {};
+    var input = r[3] ? field("f-g-" + k, u, "", r[1] + " on your gauge") : '<span class="faint">calculated</span>';
+    return "<tr><th>" + r[1] + "</th><td>" + input + '</td><td class="num n">' + fmt(now[k]) + ' <span class="faint">' + u + "</span></td>" +
+      '<td class="num n">' + (last ? fmt(last.gauge[k]) : "—") + '</td><td class="num n">' + (last ? fmt(last.system[k]) : "—") + "</td>" +
+      '<td class="num n"><b>' + (last ? signed(last.diff[k]) : "—") + "</b></td>" +
+      '<td class="num n">' + signed(sm.mean) + (sm.n ? ' <span class="faint">(' + sm.n + ")</span>" : "") + '</td><td class="num n">' + signed(sm.max) + "</td></tr>";
+  }).join("");
+  var lastNote = last ? '<p class="faint">Latest check ' + esc(when(last.time)) + (last.technician ? " by " + esc(last.technician) : "") +
+    (last.note ? " · " + esc(last.note) : "") + " · system " + esc(MODE_WORD[last.system.mode] || last.system.mode || "—") +
+    (steadyRun(last) ? "" : " · <b>not a steady run</b> (superheat and subcooling settle after about 10 minutes of running)") + "</p>" : "";
+  var hist = checks.length ? '<details id="gauge-hist"><summary>All checks (' + checks.length + ")</summary>" +
+    '<table class="dt diag"><thead><tr><th>When</th><th>Technician</th><th>System</th>' +
+    '<th class="num">Suction</th><th class="num">Liquid</th><th class="num">SH</th><th class="num">SC</th><th class="num">ΔT</th><th></th></tr></thead><tbody>' +
+    checks.map(function (c) {
+      return "<tr><td>" + esc(when(c.time)) + "</td><td>" + esc(c.technician || "—") + "</td><td>" + esc(MODE_WORD[c.system.mode] || c.system.mode || "—") +
+        (steadyRun(c) ? "" : ' <span class="faint">not steady</span>') + "</td>" +
+        ["p_low", "p_high", "sh", "sc", "dt"].map(function (k) { return '<td class="num n">' + signed(c.diff[k]) + "</td>"; }).join("") +
+        '<td><button class="btn" type="button" data-del-gauge="' + c.id + '">Delete</button></td></tr>';
+    }).join("") + "</tbody></table></details>" : "";
+  return '<section class="panel" aria-label="Gauge check"><div class="ph"><h2>Gauge check</h2><span class="sub">Your own gauges against the system\'s sensors, to validate the diagnostics</span></div>' +
+    '<table class="dt"><thead><tr><th>Value</th><th>Your gauge</th><th class="num">System now</th><th class="num">Last check: gauge</th><th class="num">Last check: system</th>' +
+    '<th class="num">Difference</th><th class="num">Average</th><th class="num">Largest</th></tr></thead><tbody>' + rows + "</tbody></table>" +
+    '<div class="acts-cell" style="margin:12px 0">' + field("f-g-ago", "min ago", "0", "Minutes since the gauges were read") +
+    '<label class="field wide"><input id="f-g-tech" type="text" placeholder="Technician" aria-label="Technician" value="' + esc(((S.me && S.me.user) || {}).name || "") + '"></label>' +
+    '<label class="field wide"><input id="f-g-note" type="text" maxlength="500" placeholder="Note (gauge model, conditions)" aria-label="Note"></label>' +
+    '<button class="btn" type="button" data-save-gauge style="border-color:var(--ink-muted)">Save check</button></div>' + lastNote +
+    '<ol class="howto"><li>Let the system run at least 10 minutes in cooling, then read your gauges and probes at the same spots as the sensors (vapor port, liquid line, return and supply air).</li>' +
+    "<li>Enter what you measured, leaving out anything you didn't measure, and save. If you save a few minutes after reading, enter how many minutes ago you read them.</li>" +
+    "<li>Difference is system minus gauge. A value that is off by about the same amount every time points to a calibration offset to correct above.</li></ol>" +
+    hist + "</section>";
+}
+root.addEventListener("click", function (e) {
+  if (S.view !== "setup") return;
+  var del = e.target.closest && e.target.closest("[data-del-gauge]");
+  if (del) {
+    if (!confirm("Delete this gauge check?")) return;
+    api("/api/systems/" + S.sys.id + "/gauge-checks/" + del.dataset.delGauge, { method: "DELETE" }).then(pollGaugeChecks).catch(function (err) { alert(err.message); });
+    return;
+  }
+  var b = e.target.closest && e.target.closest("[data-save-gauge]");
+  if (!b) return;
+  var body = {}, bad = null;
+  GAUGE_ROWS.forEach(function (r) {
+    if (!r[3]) return;
+    var v = $("#f-g-" + r[0]).value.trim();
+    if (v === "") return;
+    if (!isFinite(+v)) bad = r[1]; else body[r[0]] = +v;
+  });
+  var ago = $("#f-g-ago").value.trim();
+  if (ago !== "" && !isFinite(+ago)) bad = "Minutes ago";
+  if (bad) { S.msg = bad + " isn't a number."; render(); return; }
+  if (!Object.keys(body).length) { S.msg = "Enter at least one gauge reading."; render(); return; }
+  body.minutes_ago = ago === "" ? 0 : +ago;
+  body.technician = $("#f-g-tech").value;
+  body.note = $("#f-g-note").value;
+  b.disabled = true;
+  api("/api/systems/" + S.sys.id + "/gauge-checks", { method: "POST", body: body }).then(function () {
+    Object.keys(S.form).forEach(function (k) { if (k.indexOf("f-g-") === 0 && k !== "f-g-tech") delete S.form[k]; });
+    GAUGE_ROWS.concat([["ago"], ["note"]]).forEach(function (r) { var el = $("#f-g-" + r[0]); if (el) el.value = ""; });
+    S.msg = "Gauge check saved."; pollGaugeChecks();
+  }).catch(function (err) { b.disabled = false; S.msg = "Couldn't save the check: " + err.message; render(); });
+});
+
 function commandLog() {
   var list = (S.commands || []).filter(function (c) { return c.cmd && !QUIET[c.cmd.cmd]; }).slice(0, 15), body;
   if (!S.commands) body = '<tr><td colspan="4" class="faint">Loading…</td></tr>';
