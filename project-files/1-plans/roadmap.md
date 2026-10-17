@@ -1,10 +1,10 @@
 # HVAC Monitor Roadmap
 
-Oct 11, 2026 · @Tyler
+Oct 16, 2026 · @Tyler
 
 ## Overview
 
-Phases 1 to 3 are done and Phase 4 is under way. The rev A carrier boards are built and installed on your own AC, both nodes run firmware 0.2.0, the sensors are calibrated, and live data shows in the Fullscope web app. Enclosures and cabinet mounting plates are designed. Open follow-ups: give the PC (now 192.168.1.204) a DHCP reservation, move the broker to Proxmox, change the weak OTA password, and land the Y and O/B call wires if they aren't yet.
+Phases 1 to 3 are done and Phase 4 is under way. The rev A carrier boards are built and installed on your own AC, both nodes run firmware 0.2.0, the sensors are calibrated, and live data shows in the Fullscope web app. Enclosures and cabinet mounting plates are designed. The broker and cloud now run in a Proxmox container (192.168.1.50), on the new C# build of the server. Open follow-ups: reserve 192.168.1.50 in the router's DHCP, change the weak OTA password, and land the Y and O/B call wires if they aren't yet.
 
 Phases run in order. Customer discovery and IP protection run alongside the build from now on. Tick items as you finish them.
 
@@ -50,7 +50,7 @@ Phases run in order. Customer discovery and IP protection run alongside the buil
 - [x] Enclosures, mounting ear bars, cabinet mounting plates and an SHT30 louvre shield designed (hardware/enclosures, Hammond 1554R2GY as the buy option); board connector map in hardware/board-terminals.md
 - [ ] Print or buy the enclosures and mount the nodes in them, shaded and outside the cabinets
 - [ ] Give the PC (now 192.168.1.204, was .191) a DHCP reservation, or move the broker first
-- [ ] Move the MQTT broker to a Proxmox VM and point both nodes at it
+- [x] Move the MQTT broker to a Proxmox VM and point both nodes at it (Proxmox container, Oct 14)
 - [ ] Change the weak OTA password and reflash
 - [ ] Braze in the true-suction access fitting (or defer to Phase 6)
 - [ ] Set atmospheric pressure to about 14.0 psia in the PC app
@@ -82,6 +82,7 @@ Phases run in order. Customer discovery and IP protection run alongside the buil
 - [x] Install WSL and Docker Desktop (a restart, and accepting Docker's license), then start the TimescaleDB stack (tested: hypertables with 365-day retention, broker logins, data through to the API; broker passwords now come from .env)
 - [x] Create your account and system with manage.py
 - [x] Register both nodes: they appear on their first message once powered and online (no firmware change needed, same MQTT topics)
+- [x] Port the cloud server and bench dashboard to C# (.NET 10): one `fullscope` program, tested against recorded Python output, with faster long history ranges; the Proxmox container runs it (deploy with `-Python` to go back)
 - [ ] Confirm history, alerts, email and remote calibration all work (all built; needs the nodes online and alert email set up)
 
 ## Phase 8: Go live in the cloud
