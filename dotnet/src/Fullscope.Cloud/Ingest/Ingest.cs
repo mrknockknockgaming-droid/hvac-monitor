@@ -282,6 +282,7 @@ public sealed class Ingest
         snap = Psychro.Apply(snap, nodes["indoor"], system.AtmPsia);         // indoor humidity (cloud only)
         var eq = s.Equipment.Find(system.Id)?.Info();
         snap = Equipment.Apply(snap, eq);                                     // nameplate targets (cloud only)
+        snap = Airflow.Apply(snap, nodes["indoor"], eq);                      // static pressure (cloud only)
         snap = Electrical.Apply(snap, ElectricalState(s, system, now), eq);
         snap = Thermostat.Apply(snap, ThermostatState(s, system, now));
         system.RunStartedAt = newStart is double ns && ns != 0 ? Db.Ts(ns) : null;

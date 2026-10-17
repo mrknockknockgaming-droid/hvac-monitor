@@ -1,8 +1,8 @@
 """Generate tests/Fullscope.Core.Tests/vectors/snapshot_vectors.json and thermostat_vectors.json:
 the Python reference run over random inputs, for the C# port to reproduce byte for byte.
 
-- snapshot: calc.compute, then psychro.apply, equipment.apply, electrical.apply and
-  thermostat.apply, in the order the ingest worker applies them. Humidity inputs come from a
+- snapshot: calc.compute, then psychro.apply, equipment.apply, airflow.apply, electrical.apply and
+  thermostat.apply, in the order the ingest worker applies them. Humidity and static inputs come from a
   second random stream (so the older cases stay as they were) and skip readings whose rounded
   results would change with a last-digit difference in exp/log, which can differ between Linux
   and Windows.
@@ -23,7 +23,7 @@ from types import SimpleNamespace
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, "..", "..", "hvac-cloud"))
-from hvaccloud import calc, electrical, equipment, psychro, refrigerants, thermostat as th  # noqa: E402
+from hvaccloud import airflow, calc, electrical, equipment, psychro, refrigerants, thermostat as th  # noqa: E402
 from make_calc_vectors import NOW, node  # noqa: E402
 
 OUT = os.path.join(HERE, "..", "tests", "Fullscope.Core.Tests", "vectors")
@@ -103,6 +103,10 @@ def humid(rng, snap, indoor):
                 air[f"rh_{k}"] = rng.choice([None, True, 0, 101.5, num(rng, rlo, rhi, 0)]) if rng.random() < 0.1 else num(rng, rlo, rhi, 0)
             if rng.random() < 0.8:
                 air[f"t_rh_{k}"] = num(rng, tlo, thi, 0.1)
+        if rng.random() < 0.5:                     # static pressure, in. w.c.
+            for k, lo, hi in (("sp_ret", -0.6, -0.05), ("sp_sup", 0.05, 0.8), ("sp_filt", 0.02, 0.5)):
+                if rng.random() < 0.9:
+                    air[k] = rng.choice([None, True, 0]) if rng.random() < 0.1 else num(rng, lo, hi, 0)
         state = {**indoor, "data": {**indoor["data"], "air": air}}
         a = psychro.apply(copy.deepcopy(snap), state, atm).get("air_rh")
         b = psychro.apply(copy.deepcopy(snap), state, atm * (1 + 1e-12)).get("air_rh")
@@ -125,9 +129,12 @@ def snapshots(rng, tables):
         snap, _ = calc.compute(cfg, copy.deepcopy(nodes), run_start, NOW, tables)
         eq, es, ts = equip(rng), elec_state(rng), tstat_state(rng)
         indoor, atm = humid(rng2, snap, nodes.get("indoor"))
+        if eq and rng2.random() < 0.7:
+            eq["max_esp"] = rng2.choice([0.5, 0.8, 1.0, round(rng2.uniform(0.3, 0.9), 2)])
         eqo = SimpleNamespace(**eq) if eq else None
         out = psychro.apply(copy.deepcopy(snap), copy.deepcopy(indoor), atm)
         out = equipment.apply(out, eqo)
+        out = airflow.apply(out, copy.deepcopy(indoor), eqo)
         out = electrical.apply(out, copy.deepcopy(es), eqo)
         out = th.apply(out, copy.deepcopy(ts))
         cases.append({"snap": snap, "indoor": indoor, "atm": atm, "equipment": eq, "electrical": es, "thermostat": ts,
@@ -157,9 +164,11 @@ def chart_cases(rng, tables):
         indoor, atm = humid(rng, snap, nodes["indoor"])
         eq = {k: None for k in EQ_FIELDS}
         eq["metering"] = "piston" if rng.random() < 0.9 else "txv"
+        eq["max_esp"] = rng.choice([None, 0.5, 0.8])
         eqo = SimpleNamespace(**eq)
         out = psychro.apply(copy.deepcopy(snap), copy.deepcopy(indoor), atm)
         out = equipment.apply(out, eqo)
+        out = airflow.apply(out, copy.deepcopy(indoor), eqo)
         out = electrical.apply(out, None, eqo)
         out = th.apply(out, None)
         cases.append({"snap": snap, "indoor": indoor, "atm": atm, "equipment": eq, "electrical": None, "thermostat": None,

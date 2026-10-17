@@ -173,6 +173,10 @@ temperatures, superheat, subcooling and delta-T.
     snap["air_rh"] (RH, wet bulb, dew point, enthalpy at the site's atm_psia, dh) only when those keys are
     present, then equipment.apply judges piston systems in cooling against the charging-chart target
     superheat (3 x WB - 80 - ODB) / 2 ± 5 F; calc's floodback alert (< 3 F) always stays. Not carried over LoRa yet.
+  - Static pressure (phase 6, `hvaccloud/airflow.py` + C# `Airflow.cs`): SDP810s on mux channels 2-4 report
+    air.sp_ret/sp_sup/sp_filt (in. w.c., zero with cal_zero, blower off). Ingest adds snap["static"] (ret, sup,
+    filter, tesp = sup - ret, max = Equipment max_esp) after equipment.apply; while the blower runs, TESP > max_esp
+    raises tesp_high and a filter drop > 0.30 raises filter_dirty (alerts.AIRFLOW_CODES stay open while it's off).
   - Alerts: `alerts.unjudged(snap)` = codes whose checks couldn't run (idle, not steady, node or
     electrical module offline); their raised alerts stay open instead of clearing every cycle.
   - Schema changes: `db.add_missing_columns` adds new NULLABLE columns to existing tables at

@@ -29,6 +29,7 @@ LEVEL_WORD = {"alert": "Fault", "warn": "Warning"}
 STEADY_CODES = frozenset({"sh_low", "sh_high", "sc_low", "sc_high", "dt_low", "ctoa_high"})     # calc: 10 min steady
 SETTLED_CODES = frozenset({"contactor_open", "comp_not_running", "fan_not_running", "comp_amps_high", "fan_amps_high"})
 RUNNING_CODES = SETTLED_CODES | {"cap_herm", "cap_fan", "contactor_drop", "voltage"}
+AIRFLOW_CODES = frozenset({"tesp_high", "filter_dirty"})                                       # airflow: blower on
 STEADY_MIN, SETTLE_MIN = 10, 1.0          # calc.flags and electrical.SETTLE_MIN
 
 
@@ -42,6 +43,8 @@ def unjudged(snap):
         out |= RUNNING_CODES
     elif run_min < SETTLE_MIN:
         out |= SETTLED_CODES
+    if snap.get("mode") not in ("cooling", "heating", "heat_aux", "fan") or not snap.get("static"):
+        out |= AIRFLOW_CODES                                      # blower off, or no static sensors reporting
     if any(f.get("code") == "node_offline" and f.get("node") in ("outdoor", "indoor") for f in snap.get("flags") or []):
         out |= STEADY_CODES                                       # can't compute superheat etc. without both nodes
     return out
@@ -108,6 +111,10 @@ PLAIN = {
                 "Request a service visit."),
     "dt_low": ("Air from your vents isn't as cool as it should be", "Your system runs longer and uses more electricity.",
                "Check your air filter and replace it if it looks grey or dusty, and make sure vents aren't blocked."),
+    "filter_dirty": ("Your air filter is getting clogged", "A clogged filter cuts airflow, so the system cools less and uses more electricity.",
+                     "Replace the air filter."),
+    "tesp_high": ("Air isn't moving freely through your system", "Restricted airflow lowers comfort and strains the blower motor.",
+                  "Replace the air filter if it looks dirty; if this keeps showing, request a service visit."),
     "ctoa_high": ("Outdoor unit isn't releasing heat well", "The compressor runs hotter and uses more electricity.",
                   "Clear debris from around the outdoor unit (about 2 ft), then request a coil cleaning."),
     "node_offline": ("A monitor isn't reporting", "Heating and cooling are not affected; some checks are paused.",
@@ -153,7 +160,8 @@ LEVEL = {"sh_low": "fault", "sh_high": "caution", "sc_low": "caution", "sc_high"
          "room_hot": "fault", "room_cold": "fault", "setpoint_not_reached": "caution", "call_mismatch": "caution",
          "comp_not_running": "fault", "fan_not_running": "fault", "contactor_open": "fault",
          "comp_amps_high": "caution", "fan_amps_high": "caution", "cap_herm": "caution", "cap_fan": "caution",
-         "contactor_drop": "caution", "voltage": "caution", "slow_start": "caution"}
+         "contactor_drop": "caution", "voltage": "caution", "slow_start": "caution",
+         "filter_dirty": "caution", "tesp_high": "caution"}
 
 
 def homeowner_emails(s, system_id):
