@@ -25,7 +25,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import func, select
 
-from . import alerts, auth, calc, display, electrical, equipment, gauge, service, settings, thermostat
+from . import alerts, auth, calc, display, electrical, equipment, gauge, report, service, settings, thermostat
 from .db import (Account, Alert, AlertMute, AlertPrefs, ApiKey, Command, Device, GaugeCheck, Invite, PasswordReset, ServiceInfo, ServiceVisit, Snapshot,
                  System, SystemMember, Telemetry, ThermostatConfig, User, as_utc, hash_key, init_db, make_engine,
                  session_factory, utcnow)
@@ -968,6 +968,18 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
         s.delete(v)
         s.commit()
         return {"ok": True}
+
+    @app.get("/api/systems/{system_id}/threshold-report")
+    def threshold_report(days: float = Query(14, gt=0, le=31), system=Depends(tech_system), s=Depends(db)):
+        """Steady-cooling spread of superheat, subcooling, delta-T, condensing over ambient and approach
+        over the last `days`, next to the alert limits (report.py), and alerts raised by code."""
+        since = utcnow() - dt.timedelta(days=days)
+        rows = s.execute(select(Snapshot.time, Snapshot.data)
+                         .where(Snapshot.system_id == system.id, Snapshot.time >= since, Snapshot.mode == "cooling")
+                         .order_by(Snapshot.time)).all()
+        counts = dict(s.execute(select(Alert.code, func.count()).where(Alert.system_id == system.id, Alert.raised_at >= since)
+                                .group_by(Alert.code)).all())
+        return report.build([(as_utc(t).timestamp(), d or {}) for t, d in rows], s.get(equipment.Equipment, system.id), counts, days)
 
     # ---------- gauge checks (phase 5: diagnostics vs the technician's gauges) ----------
     @app.get("/api/systems/{system_id}/gauge-checks")

@@ -184,9 +184,9 @@ function route() {
   var changed = !S.sys || S.sys.id !== id;
   S.view = m[1];
   S.sys = sys;
-  if (changed) { S.latest = null; S.summary = null; S.history = {}; S.alerts = null; S.alertSettings = null; S.service = null; S.commands = null; S.equipment = null; S.visits = null; S.gaugeChecks = null; S.recentVisits = null; S.people = null; S.inviteResult = null; S.tstat = null; S.schedDraft = null; S.picked = []; S.pending = {}; S.form = {}; stopTimers(); startTimers(); }
+  if (changed) { S.latest = null; S.summary = null; S.history = {}; S.alerts = null; S.alertSettings = null; S.service = null; S.commands = null; S.equipment = null; S.visits = null; S.gaugeChecks = null; S.report = null; S.recentVisits = null; S.people = null; S.inviteResult = null; S.tstat = null; S.schedDraft = null; S.picked = []; S.pending = {}; S.form = {}; stopTimers(); startTimers(); }
   if (S.view === "setup") { pollCommands(); pollPeople(); pollGaugeChecks(); }
-  if (S.view === "equipment") { S.msg = null; pollEquipment(); }
+  if (S.view === "equipment") { S.msg = null; pollEquipment(); pollReport(); }
   if (S.view === "service") { S.msg = null; pollVisits(); }
   if (!changed && S.view !== "home" && !S.alertSettings) pollAlerts();   // the home page doesn't load them
   render();
@@ -1239,7 +1239,7 @@ function renderEquipment() {
       row("Site elevation", eqNum("f-eq-elev", e.elevation_ft, "ft", "Site elevation"), "Atmospheric pressure") +
       row("Atmospheric pressure", e.elevation_ft !== null ? '<span class="n">' + fmt(e.atm_psia, 2) + ' <small>psia</small></span> <span class="faint">derived</span>'
         : eqNum("f-eq-atm", e.atm_psia, "psia", "Atmospheric pressure"), "psig → psia for PT tables") +
-      "</tbody></table></section>" + tstatTechPanel() + "</div>";
+      "</tbody></table></section>" + tstatTechPanel() + "</div>" + reportPanel();
   }
   root.innerHTML = techHeader("equipment") + (S.msg ? '<div class="stale-banner" role="status">' + esc(S.msg) + "</div>" : "") + '<main class="page">' + body + "</main>";
   bindCommon();
@@ -1262,6 +1262,47 @@ root.addEventListener("click", function (e) {
     S.sys.refrigerant = d.refrigerant; S.sys.heat_pump = d.heat_pump; S.sys.ob_energized = d.ob_energized; S.sys.atm_psia = d.atm_psia;
     S.msg = "Saved. New readings use these settings."; render();
   }).catch(function (err) { S.msg = "Couldn't save: " + err.message; b.disabled = false; render(); });
+});
+
+// ---------------------------------------------------------------- threshold report (roadmap phase 5)
+// How superheat, subcooling, delta-T and condensing over ambient really sit in steady cooling, next
+// to the limits the alerts use. Read only: deciding to move a limit stays with the technician.
+var REPORT_ROWS = [["sh", "Superheat"], ["sc", "Subcooling"], ["dt", "Delta-T (blower on)"], ["ctoa", "Condensing over ambient"], ["approach", "Liquid approach"]];
+function pollReport() {
+  var id = S.sys.id, days = S.reportDays || 14;
+  api("/api/systems/" + id + "/threshold-report?days=" + days).then(function (d) { if (S.sys && S.sys.id === id) { S.report = d; render(); } }).catch(function () {});
+}
+function share(v) { return isNum(v) ? (v === 0 ? "0 %" : v < 0.001 ? "<0.1 %" : (v * 100).toFixed(1) + " %") : "—"; }
+function reportPanel() {
+  var r = S.report, days = S.reportDays || 14;
+  var pick = seg("rdays", [[7, "7 days"], [14, "14 days"], [31, "31 days"]], days);
+  var rows = !r ? '<tr><td colspan="7" class="faint">Loading…</td></tr>' : REPORT_ROWS.map(function (x) {
+    var m = r.metrics[x[0]], p = m.pct || {};
+    var lim = m.limit_low === null && m.limit_high === null ? '<span class="faint">Not checked</span>'
+      : (m.limit_low !== null ? "below " + fmt(m.limit_low) : "") + (m.limit_low !== null && m.limit_high !== null ? " · " : "") + (m.limit_high !== null ? "above " + fmt(m.limit_high) : "") +
+        (m.limit_source === "nameplate" ? ' <span class="faint">nameplate</span>' : "");
+    var out = [m.below, m.above].filter(isNum);
+    var flagged = out.length ? share(out.reduce(function (a, b) { return a + b; }, 0)) : "—";
+    return "<tr><th>" + x[1] + "</th><td>" + lim + '</td><td class="num n">' + (m.n ? fmt(p["5"]) + " – " + fmt(p["95"]) : "—") +
+      '</td><td class="num n">' + (m.n ? fmt(p["25"]) + " – " + fmt(p["75"]) : "—") + '</td><td class="num n">' + fmt(p["50"]) +
+      '</td><td class="num n">' + (m.n ? fmt(m.min) + " – " + fmt(m.max) : "—") + '</td><td class="num n"><b>' + flagged + "</b></td></tr>";
+  }).join("");
+  var alerts = r ? Object.keys(r.alerts).map(function (c) { return esc((FLAG_INFO[c] && FLAG_INFO[c].title) || c) + " ×" + r.alerts[c]; }).join(" · ") : "";
+  return '<section class="panel" aria-label="Alert limits against your data"><div class="ph"><h2>Alert limits against your data</h2>' +
+    '<span class="sub">Steady cooling only (10+ minutes into a run), °F</span><div class="right">' + pick + "</div></div>" +
+    '<table class="dt"><thead><tr><th>Value</th><th>Flags when</th><th class="num">Middle 90 %</th><th class="num">Middle 50 %</th><th class="num">Median</th>' +
+    '<th class="num">Lowest – highest</th><th class="num">Time it would flag</th></tr></thead><tbody>' + rows + "</tbody></table>" +
+    (r ? '<p class="faint">' + (r.steady_hours ? fmt(r.steady_hours) + " h of steady cooling" : "No steady cooling") + " in the last " + days + " days" +
+      (r.metrics.sh.n ? " (" + r.metrics.sh.n.toLocaleString() + " readings)" : "") + ". Alerts raised: " + (alerts || "none") + ".</p>" : "") +
+    '<ol class="howto"><li>On a healthy system, a limit that would flag more than a few percent of steady time is too tight for it; a limit far outside the middle 90 % may be too loose to catch a fault early.</li>' +
+    "<li>An alert needs the flag to hold 5 minutes, so short dips counted here don't all become alerts.</li>" +
+    "<li>Check sensor accuracy with gauge checks (Sensors &amp; calibration) before moving a limit.</li></ol></section>";
+}
+root.addEventListener("click", function (e) {
+  if (S.view !== "equipment") return;
+  var b = e.target.closest && e.target.closest("[data-rdays]");
+  if (!b) return;
+  S.reportDays = +b.dataset.rdays; S.report = null; render(); pollReport();
 });
 
 // ================================================================ SERVICE HISTORY VIEW (#/service/<id>)
