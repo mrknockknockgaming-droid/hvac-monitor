@@ -53,7 +53,7 @@ Phases run in order. Customer discovery and IP protection run alongside the buil
 - [x] Move the MQTT broker to a Proxmox VM and point both nodes at it (Proxmox container, Oct 14)
 - [ ] Change the weak OTA password and reflash
 - [ ] Braze in the true-suction access fitting (or defer to Phase 6)
-- [ ] Set atmospheric pressure to about 14.0 psia in the PC app
+- [x] Set atmospheric pressure to about 14.0 psia in the PC app (config.json has 14.0; the cloud system "Home" has 14.0 too)
 - [ ] Run through several weeks of real cooling cycles and log the data
 
 ## Phase 5: Validate the diagnostics
