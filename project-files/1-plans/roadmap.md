@@ -69,7 +69,8 @@ Phases run in order. Customer discovery and IP protection run alongside the buil
 
 - [ ] Buy and fit the third XDB307 (0–35 bar) and a thermistor at true suction
 - [ ] Enable them with the fitted command; confirm heating-mode superheat
-- [ ] Add 3× SDP810-500Pa static pressure sensors with a TCA9548A mux
+- [x] SDP810 static pressure, software side (Oct 17, PR #54): indoor firmware 0.2.2 reads 3× SDP810-500Pa on mux channels 2 (return), 3 (supply), 4 (across the filter); the web app shows return, supply, total external static and filter drop, alerts on TESP above the Equipment max ESP and a filter drop over 0.30 in. w.c., and has a Static pressure zero panel on Sensors & calibration
+- [ ] Buy 3 SDP810-500Pa sensors, tubing and static taps; fit taps in both plenums and on both sides of the filter, wire to mux channels 2-4, flash the indoor node and zero with the blower off
 - [x] SHT45 supply and return humidity, software side (Oct 17): indoor firmware 0.2.1 finds a TCA9548A on J5 by itself (return probe on channel 0, supply on 1); the web app shows RH, wet bulb, dew point and enthalpy, with a Humidity probes panel (swap, calibration) on Sensors & calibration
 - [ ] Buy 2 SHT45 probes and a TCA9548A, solder a terminal into the indoor board's J5, fit the probes in the return and supply, and flash the indoor node
 - [ ] Update firmware and schematics to rev B
