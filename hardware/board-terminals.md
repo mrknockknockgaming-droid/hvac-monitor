@@ -30,7 +30,7 @@ Phoenix = MC 1,5 5.08 mm pluggable screw terminal. JST = JST-XH 2.50 mm.
 | J2 | Phoenix 4 | Y, W, G, O/B | Thermostat calls Y, W, G, O/B (24 VAC, referenced to C on J1) | GPIO34, 35, 36 (VP), 39 (VN) |
 | J3 | JST 3 | 3V3, DQ, GND | DS18B20 supply air probe | 1-Wire GPIO4 |
 | J4 | JST 3 | 3V3, DQ, GND | DS18B20 return air probe | 1-Wire GPIO4 |
-| J5 | Phoenix 4 | 3V3, GND, SDA, SCL | I2C expansion (DNP on rev A) | I2C 21/22 |
+| J5 | Phoenix 4 | 3V3, GND, SDA, SCL | I2C expansion (DNP on rev A): solder a terminal here for the TCA9548A mux; SHT45 return probe on mux channel 0, supply on channel 1 | I2C 21/22, mux 0x70, SHT45 0x44 (found on its own) |
 
 ## Things to know
 

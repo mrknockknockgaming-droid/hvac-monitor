@@ -279,6 +279,7 @@ public sealed class Ingest
         if (prev is not null) AddRuntime(s, system.Id, prev.Mode, now - last!.Value, now);
         if (last is null || now - last.Value > _stale) runStart = null;   // after an outage the call can't be assumed to have continued
         var (snap, newStart) = Calc.Compute(system.CalcConfig(), nodes, runStart is DateTime rs ? Db.Epoch(rs) : null, now, _tables);
+        snap = Psychro.Apply(snap, nodes["indoor"], system.AtmPsia);         // indoor humidity (cloud only)
         var eq = s.Equipment.Find(system.Id)?.Info();
         snap = Equipment.Apply(snap, eq);                                     // nameplate targets (cloud only)
         snap = Electrical.Apply(snap, ElectricalState(s, system, now), eq);
