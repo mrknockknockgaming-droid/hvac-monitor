@@ -529,7 +529,7 @@
 "raw": null,
 "status": 200,
 "type": "application/json",
-"answer": "[{\"acked_at\": null, \"cleared_at\": null, \"code\": \"cap_fan\", \"emailed_at\": \"2026-10-17T18:27:39.108711+00:00\", \"id\": 12, \"level\": \"warn\", \"node\": null, \"open\": true, \"raised_at\": \"2026-10-06T02:25:00.110527+00:00\", \"started_at\": \"2026-10-06T02:20:00.106641+00:00\", \"text\": \"Run capacitor fan section measures 4.5 uF, rated 5 uF (\\u00b16 %)\"}, {\"acked_at\": null, \"cleared_at\": null, \"code\": \"room_cold\", \"emailed_at\": \"2026-10-17T18:27:36.108476+00:00\", \"id\": 11, \"level\": \"alert\", \"node\": null, \"open\": true, \"raised_at\": \"2026-10-06T02:13:30.178200+00:00\", \"started_at\": \"2026-10-06T02:08:30.109221+00:00\", \"text\": \"Room temperature 44.7 F\"}, {\"acked_at\": null, \"cleared_at\": \"2026-10-06T02:21:00.033885+00:00\", \"code\": \"comp_not_running\", \"emailed_at\": \"2026-10-17T18:27:34.141870+00:00\", \"id\": 10, \"level\": \"alert\", \"node\": null, \"open\": false, \"raised_at\": \"2026-10-06T02:05:00.175921+00:00\", \"started_at\": \"2026-10-06T02:00:00.060630+00:00\", \"text\": \"Contactor closed but the compressor draws 0.0 A: overload tripped, failed capacitor or compressor\"}, {\"acked_at\": null, \"cleared_at\": \"2026-10-06T01:30:00.200988+00:00\", \"code\": \"cap_herm\", \"emailed_at\": \"2026-10-17T18:27:20.861579+00:00\", \"id\": 9, \"level\": \"warn\", \"node\": null, \"open\": false, \"raised_at\": \"2026-10-06T01:15:10.033976+00:00\", \"started_at\": \"2026-10-06T01:10:00.169863+00:00\", \"text\": \"Run capacitor compressor (HERM) section measures 38.0 uF, rated 45 uF (\\u00b16 %)\"}, {\"acked_at\": null, \"cleared_at\": \"2026-10-06T00:25:00.101281+00:00\", \"code\": \"sh_low\", \"emailed_at\": \"2026-10-17T18:27:06.257041+00:00\", \"id\": 5, \"level\": \"alert\", \"node\": null, \"open\": false, \"raised_at\": \"2026-10-06T00:05:00.090506+00:00\", \"started_at\": \"2026-10-06T00:00:00.072016+00:00\", \"text\": \"Superheat -0.1\\u00b0F: risk of liquid floodback\"}, {\"acked_at\": null, \"cleared_at\": \"2026-10-06T01:15:00.112010+00:00\", \"code\": \"sc_low\", \"emailed_at\": \"2026-10-17T18:26:55.031361+00:00\", \"id\": 3, \"level\": \"warn\", \"node\": null, \"open\": false, \"raised_at\": \"2026-10-05T23:15:00.094995+00:00\", \"started_at\": \"2026-10-05T23:10:00.038004+00:00\", \"text\": \"Subcooling 6.8\\u00b0F is below the nameplate target 10 \\u00b1 3\\u00b0F: possible undercharge\"}, {\"acked_at\": null, \"cleared_at\": \"2026-10-06T02:05:00.175921+00:00\", \"code\": \"cap_fan\", \"emailed_at\": null, \"id\": 2, \"level\": \"warn\", \"node\": null, \"open\": false, \"raised_at\": \"2026-10-05T23:05:10.123467+00:00\", \"started_at\": \"2026-10-05T23:00:00.202868+00:00\", \"text\": \"Run capacitor fan section measures 4.5 uF, rated 5 uF (\\u00b16 %)\"}]",
+"answer": "[{\"acked_at\": null, \"cleared_at\": null, \"code\": \"cap_fan\", \"emailed_at\": \"2026-10-17T18:54:17.166799+00:00\", \"id\": 12, \"level\": \"warn\", \"node\": null, \"open\": true, \"raised_at\": \"2026-10-06T02:25:00.110527+00:00\", \"started_at\": \"2026-10-06T02:20:00.106641+00:00\", \"text\": \"Run capacitor fan section measures 4.5 uF, rated 5 uF (\\u00b16 %)\"}, {\"acked_at\": null, \"cleared_at\": null, \"code\": \"room_cold\", \"emailed_at\": \"2026-10-17T18:54:14.017225+00:00\", \"id\": 11, \"level\": \"alert\", \"node\": null, \"open\": true, \"raised_at\": \"2026-10-06T02:13:30.178200+00:00\", \"started_at\": \"2026-10-06T02:08:30.109221+00:00\", \"text\": \"Room temperature 44.7 F\"}, {\"acked_at\": null, \"cleared_at\": \"2026-10-06T02:21:00.033885+00:00\", \"code\": \"comp_not_running\", \"emailed_at\": \"2026-10-17T18:54:11.246099+00:00\", \"id\": 10, \"level\": \"alert\", \"node\": null, \"open\": false, \"raised_at\": \"2026-10-06T02:05:00.175921+00:00\", \"started_at\": \"2026-10-06T02:00:00.060630+00:00\", \"text\": \"Contactor closed but the compressor draws 0.0 A: overload tripped, failed capacitor or compressor\"}, {\"acked_at\": null, \"cleared_at\": \"2026-10-06T01:30:00.200988+00:00\", \"code\": \"cap_herm\", \"emailed_at\": \"2026-10-17T18:53:54.686495+00:00\", \"id\": 9, \"level\": \"warn\", \"node\": null, \"open\": false, \"raised_at\": \"2026-10-06T01:15:10.033976+00:00\", \"started_at\": \"2026-10-06T01:10:00.169863+00:00\", \"text\": \"Run capacitor compressor (HERM) section measures 38.0 uF, rated 45 uF (\\u00b16 %)\"}, {\"acked_at\": null, \"cleared_at\": \"2026-10-06T00:25:00.101281+00:00\", \"code\": \"sh_low\", \"emailed_at\": \"2026-10-17T18:53:37.659632+00:00\", \"id\": 5, \"level\": \"alert\", \"node\": null, \"open\": false, \"raised_at\": \"2026-10-06T00:05:00.090506+00:00\", \"started_at\": \"2026-10-06T00:00:00.072016+00:00\", \"text\": \"Superheat -0.1\\u00b0F: risk of liquid floodback\"}, {\"acked_at\": null, \"cleared_at\": \"2026-10-06T01:15:00.112010+00:00\", \"code\": \"sc_low\", \"emailed_at\": \"2026-10-17T18:53:25.130895+00:00\", \"id\": 3, \"level\": \"warn\", \"node\": null, \"open\": false, \"raised_at\": \"2026-10-05T23:15:00.094995+00:00\", \"started_at\": \"2026-10-05T23:10:00.038004+00:00\", \"text\": \"Subcooling 6.8\\u00b0F is below the nameplate target 10 \\u00b1 3\\u00b0F: possible undercharge\"}, {\"acked_at\": null, \"cleared_at\": \"2026-10-06T02:05:00.175921+00:00\", \"code\": \"cap_fan\", \"emailed_at\": null, \"id\": 2, \"level\": \"warn\", \"node\": null, \"open\": false, \"raised_at\": \"2026-10-05T23:05:10.123467+00:00\", \"started_at\": \"2026-10-05T23:00:00.202868+00:00\", \"text\": \"Run capacitor fan section measures 4.5 uF, rated 5 uF (\\u00b16 %)\"}]",
 "compare": "exact",
 "cookie": null,
 "emails": [],
@@ -545,7 +545,7 @@
 "raw": null,
 "status": 200,
 "type": "application/json",
-"answer": "[{\"acked_at\": null, \"cleared_at\": null, \"code\": \"cap_fan\", \"emailed_at\": \"2026-10-17T18:27:39.108711+00:00\", \"id\": 12, \"level\": \"warn\", \"node\": null, \"open\": true, \"raised_at\": \"2026-10-06T02:25:00.110527+00:00\", \"started_at\": \"2026-10-06T02:20:00.106641+00:00\", \"text\": \"Run capacitor fan section measures 4.5 uF, rated 5 uF (\\u00b16 %)\"}, {\"acked_at\": null, \"cleared_at\": null, \"code\": \"room_cold\", \"emailed_at\": \"2026-10-17T18:27:36.108476+00:00\", \"id\": 11, \"level\": \"alert\", \"node\": null, \"open\": true, \"raised_at\": \"2026-10-06T02:13:30.178200+00:00\", \"started_at\": \"2026-10-06T02:08:30.109221+00:00\", \"text\": \"Room temperature 44.7 F\"}, {\"acked_at\": null, \"cleared_at\": \"2026-10-06T02:21:00.033885+00:00\", \"code\": \"comp_not_running\", \"emailed_at\": \"2026-10-17T18:27:34.141870+00:00\", \"id\": 10, \"level\": \"alert\", \"node\": null, \"open\": false, \"raised_at\": \"2026-10-06T02:05:00.175921+00:00\", \"started_at\": \"2026-10-06T02:00:00.060630+00:00\", \"text\": \"Contactor closed but the compressor draws 0.0 A: overload tripped, failed capacitor or compressor\"}, {\"acked_at\": null, \"cleared_at\": \"2026-10-06T02:05:00.175921+00:00\", \"code\": \"cap_fan\", \"emailed_at\": null, \"id\": 2, \"level\": \"warn\", \"node\": null, \"open\": false, \"raised_at\": \"2026-10-05T23:05:10.123467+00:00\", \"started_at\": \"2026-10-05T23:00:00.202868+00:00\", \"text\": \"Run capacitor fan section measures 4.5 uF, rated 5 uF (\\u00b16 %)\"}]",
+"answer": "[{\"acked_at\": null, \"cleared_at\": null, \"code\": \"cap_fan\", \"emailed_at\": \"2026-10-17T18:54:17.166799+00:00\", \"id\": 12, \"level\": \"warn\", \"node\": null, \"open\": true, \"raised_at\": \"2026-10-06T02:25:00.110527+00:00\", \"started_at\": \"2026-10-06T02:20:00.106641+00:00\", \"text\": \"Run capacitor fan section measures 4.5 uF, rated 5 uF (\\u00b16 %)\"}, {\"acked_at\": null, \"cleared_at\": null, \"code\": \"room_cold\", \"emailed_at\": \"2026-10-17T18:54:14.017225+00:00\", \"id\": 11, \"level\": \"alert\", \"node\": null, \"open\": true, \"raised_at\": \"2026-10-06T02:13:30.178200+00:00\", \"started_at\": \"2026-10-06T02:08:30.109221+00:00\", \"text\": \"Room temperature 44.7 F\"}, {\"acked_at\": null, \"cleared_at\": \"2026-10-06T02:21:00.033885+00:00\", \"code\": \"comp_not_running\", \"emailed_at\": \"2026-10-17T18:54:11.246099+00:00\", \"id\": 10, \"level\": \"alert\", \"node\": null, \"open\": false, \"raised_at\": \"2026-10-06T02:05:00.175921+00:00\", \"started_at\": \"2026-10-06T02:00:00.060630+00:00\", \"text\": \"Contactor closed but the compressor draws 0.0 A: overload tripped, failed capacitor or compressor\"}, {\"acked_at\": null, \"cleared_at\": \"2026-10-06T02:05:00.175921+00:00\", \"code\": \"cap_fan\", \"emailed_at\": null, \"id\": 2, \"level\": \"warn\", \"node\": null, \"open\": false, \"raised_at\": \"2026-10-05T23:05:10.123467+00:00\", \"started_at\": \"2026-10-05T23:00:00.202868+00:00\", \"text\": \"Run capacitor fan section measures 4.5 uF, rated 5 uF (\\u00b16 %)\"}]",
 "compare": "exact",
 "cookie": null,
 "emails": [],
@@ -561,7 +561,7 @@
 "raw": null,
 "status": 200,
 "type": "application/json",
-"answer": "{\"applied\": false, \"device\": {\"age\": 157.6, \"fw\": \"0.1.0\", \"id\": 1, \"ip\": null, \"node\": \"thermostat\", \"online\": false, \"rssi\": null, \"status\": null}, \"limits\": {\"aux_delay_s\": [0, 3600], \"aux_droop_f\": [1.0, 10.0], \"aux_lockout_f\": [-20.0, 60.0], \"circulate_min_h\": [0, 60], \"comp_lockout_f\": [-30.0, 50.0], \"differential\": [0.5, 4.0], \"fan_purge_s\": [0, 300], \"max_starts_h\": [2, 8], \"min_off_s\": [120, 1800], \"min_on_s\": [60, 1800]}, \"now\": {\"cool\": 75, \"heat\": 68, \"next_change\": \"2026-10-06T06:00:00\", \"source\": \"schedule\"}, \"present\": true, \"report\": {\"call\": \"cool\", \"call_min\": null, \"cfg_ver\": 4, \"err\": [], \"fan\": \"auto\", \"fw\": \"0.1.0\", \"mode\": \"cool\", \"node\": \"thermostat\", \"out\": {\"G\": true, \"OB\": true, \"W\": false, \"Y\": true}, \"room\": {\"rh\": 41.0, \"t\": 44.7}, \"source\": \"schedule\", \"sp\": {\"cool\": 75.0, \"heat\": 68.0}, \"wait\": null}, \"sent\": true, \"settings\": {\"cool_sp\": 74.0, \"fan\": \"auto\", \"heat_sp\": 68.0, \"hold\": null, \"mode\": \"auto\", \"schedule\": [{\"at\": \"06:00\", \"cool\": 75, \"days\": [0, 1, 2, 3, 4], \"heat\": 68}]}, \"tech\": {\"aux_delay_s\": 600, \"aux_droop_f\": 2.0, \"aux_lockout_f\": 35.0, \"circulate_min_h\": 15, \"comp_lockout_f\": 5.0, \"differential\": 1.0, \"fan_purge_s\": 90, \"has_aux\": true, \"heat_pump\": true, \"max_starts_h\": 4, \"min_off_s\": 300, \"min_on_s\": 300, \"ob_energized\": \"cool\", \"service_pin\": \"0000\", \"tz\": \"America/Phoenix\"}, \"updated_at\": \"2026-10-17T18:26:55.301239+00:00\", \"version\": 6}",
+"answer": "{\"applied\": false, \"device\": {\"age\": 157.6, \"fw\": \"0.1.0\", \"id\": 1, \"ip\": null, \"node\": \"thermostat\", \"online\": false, \"rssi\": null, \"status\": null}, \"limits\": {\"aux_delay_s\": [0, 3600], \"aux_droop_f\": [1.0, 10.0], \"aux_lockout_f\": [-20.0, 60.0], \"circulate_min_h\": [0, 60], \"comp_lockout_f\": [-30.0, 50.0], \"differential\": [0.5, 4.0], \"fan_purge_s\": [0, 300], \"max_starts_h\": [2, 8], \"min_off_s\": [120, 1800], \"min_on_s\": [60, 1800]}, \"now\": {\"cool\": 75, \"heat\": 68, \"next_change\": \"2026-10-06T06:00:00\", \"source\": \"schedule\"}, \"present\": true, \"report\": {\"call\": \"cool\", \"call_min\": null, \"cfg_ver\": 4, \"err\": [], \"fan\": \"auto\", \"fw\": \"0.1.0\", \"mode\": \"cool\", \"node\": \"thermostat\", \"out\": {\"G\": true, \"OB\": true, \"W\": false, \"Y\": true}, \"room\": {\"rh\": 41.0, \"t\": 44.7}, \"source\": \"schedule\", \"sp\": {\"cool\": 75.0, \"heat\": 68.0}, \"wait\": null}, \"sent\": true, \"settings\": {\"cool_sp\": 74.0, \"fan\": \"auto\", \"heat_sp\": 68.0, \"hold\": null, \"mode\": \"auto\", \"schedule\": [{\"at\": \"06:00\", \"cool\": 75, \"days\": [0, 1, 2, 3, 4], \"heat\": 68}]}, \"tech\": {\"aux_delay_s\": 600, \"aux_droop_f\": 2.0, \"aux_lockout_f\": 35.0, \"circulate_min_h\": 15, \"comp_lockout_f\": 5.0, \"differential\": 1.0, \"fan_purge_s\": 90, \"has_aux\": true, \"heat_pump\": true, \"max_starts_h\": 4, \"min_off_s\": 300, \"min_on_s\": 300, \"ob_energized\": \"cool\", \"service_pin\": \"0000\", \"tz\": \"America/Phoenix\"}, \"updated_at\": \"2026-10-17T18:53:25.450307+00:00\", \"version\": 6}",
 "compare": "exact",
 "cookie": null,
 "emails": [],
@@ -657,7 +657,7 @@
 "raw": null,
 "status": 200,
 "type": "application/json",
-"answer": "[{\"cmd\": null, \"created_at\": \"2026-10-17T18:26:53.572498+00:00\", \"id\": 3, \"node\": \"outdoor\", \"replied_at\": \"2026-10-05T23:08:24.500000+00:00\", \"reply\": {\"cmd\": \"restart\", \"ok\": true}, \"sent\": false}, {\"cmd\": null, \"created_at\": \"2026-10-17T18:26:53.569136+00:00\", \"id\": 2, \"node\": \"outdoor\", \"replied_at\": \"2026-10-05T23:08:24+00:00\", \"reply\": {\"ch\": \"p_liq\", \"cmd\": \"cal_zero\", \"ok\": true}, \"sent\": false}]",
+"answer": "[{\"cmd\": null, \"created_at\": \"2026-10-17T18:53:23.742918+00:00\", \"id\": 3, \"node\": \"outdoor\", \"replied_at\": \"2026-10-05T23:08:24.500000+00:00\", \"reply\": {\"cmd\": \"restart\", \"ok\": true}, \"sent\": false}, {\"cmd\": null, \"created_at\": \"2026-10-17T18:53:23.742918+00:00\", \"id\": 2, \"node\": \"outdoor\", \"replied_at\": \"2026-10-05T23:08:24+00:00\", \"reply\": {\"ch\": \"p_liq\", \"cmd\": \"cal_zero\", \"ok\": true}, \"sent\": false}]",
 "compare": "exact",
 "cookie": null,
 "emails": [],
@@ -1073,7 +1073,7 @@
 "raw": null,
 "status": 200,
 "type": "application/json",
-"answer": "[{\"acked_at\": null, \"cleared_at\": \"2026-10-06T02:39:50.177484+00:00\", \"code\": \"sensor_issue\", \"emailed_at\": \"2026-10-17T18:27:39.158623+00:00\", \"id\": 13, \"level\": \"warn\", \"node\": \"outdoor\", \"open\": false, \"raised_at\": \"2026-10-06T02:25:00.110527+00:00\", \"started_at\": \"2026-10-06T02:20:00.106641+00:00\", \"text\": \"Outdoor sensor issue: sht30\"}]",
+"answer": "[{\"acked_at\": null, \"cleared_at\": \"2026-10-06T02:39:50.177484+00:00\", \"code\": \"sensor_issue\", \"emailed_at\": \"2026-10-17T18:54:17.213911+00:00\", \"id\": 13, \"level\": \"warn\", \"node\": \"outdoor\", \"open\": false, \"raised_at\": \"2026-10-06T02:25:00.110527+00:00\", \"started_at\": \"2026-10-06T02:20:00.106641+00:00\", \"text\": \"Outdoor sensor issue: sht30\"}]",
 "compare": "exact",
 "cookie": null,
 "emails": [],
@@ -1089,7 +1089,7 @@
 "raw": null,
 "status": 200,
 "type": "application/json",
-"answer": "[{\"acked_at\": null, \"cleared_at\": \"2026-10-06T02:39:50.177484+00:00\", \"code\": \"sensor_issue\", \"emailed_at\": \"2026-10-17T18:27:39.158623+00:00\", \"id\": 13, \"level\": \"warn\", \"node\": \"outdoor\", \"open\": false, \"raised_at\": \"2026-10-06T02:25:00.110527+00:00\", \"started_at\": \"2026-10-06T02:20:00.106641+00:00\", \"text\": \"Outdoor sensor issue: sht30\"}]",
+"answer": "[{\"acked_at\": null, \"cleared_at\": \"2026-10-06T02:39:50.177484+00:00\", \"code\": \"sensor_issue\", \"emailed_at\": \"2026-10-17T18:54:17.213911+00:00\", \"id\": 13, \"level\": \"warn\", \"node\": \"outdoor\", \"open\": false, \"raised_at\": \"2026-10-06T02:25:00.110527+00:00\", \"started_at\": \"2026-10-06T02:20:00.106641+00:00\", \"text\": \"Outdoor sensor issue: sht30\"}]",
 "compare": "exact",
 "cookie": null,
 "emails": [],
@@ -1377,7 +1377,7 @@
 "raw": null,
 "status": 200,
 "type": "application/json",
-"answer": "{\"acked_at\": \"2026-10-06T03:05:06.250000+00:00\", \"cleared_at\": null, \"code\": \"cap_fan\", \"emailed_at\": \"2026-10-17T18:27:39.108711+00:00\", \"id\": 12, \"level\": \"warn\", \"node\": null, \"open\": true, \"raised_at\": \"2026-10-06T02:25:00.110527+00:00\", \"started_at\": \"2026-10-06T02:20:00.106641+00:00\", \"text\": \"Run capacitor fan section measures 4.5 uF, rated 5 uF (\\u00b16 %)\"}",
+"answer": "{\"acked_at\": \"2026-10-06T03:05:06.250000+00:00\", \"cleared_at\": null, \"code\": \"cap_fan\", \"emailed_at\": \"2026-10-17T18:54:17.166799+00:00\", \"id\": 12, \"level\": \"warn\", \"node\": null, \"open\": true, \"raised_at\": \"2026-10-06T02:25:00.110527+00:00\", \"started_at\": \"2026-10-06T02:20:00.106641+00:00\", \"text\": \"Run capacitor fan section measures 4.5 uF, rated 5 uF (\\u00b16 %)\"}",
 "compare": "exact",
 "cookie": null,
 "emails": [],
@@ -1393,7 +1393,7 @@
 "raw": null,
 "status": 200,
 "type": "application/json",
-"answer": "{\"acked_at\": null, \"cleared_at\": null, \"code\": \"cap_fan\", \"emailed_at\": \"2026-10-17T18:27:39.108711+00:00\", \"id\": 12, \"level\": \"warn\", \"node\": null, \"open\": true, \"raised_at\": \"2026-10-06T02:25:00.110527+00:00\", \"started_at\": \"2026-10-06T02:20:00.106641+00:00\", \"text\": \"Run capacitor fan section measures 4.5 uF, rated 5 uF (\\u00b16 %)\"}",
+"answer": "{\"acked_at\": null, \"cleared_at\": null, \"code\": \"cap_fan\", \"emailed_at\": \"2026-10-17T18:54:17.166799+00:00\", \"id\": 12, \"level\": \"warn\", \"node\": null, \"open\": true, \"raised_at\": \"2026-10-06T02:25:00.110527+00:00\", \"started_at\": \"2026-10-06T02:20:00.106641+00:00\", \"text\": \"Run capacitor fan section measures 4.5 uF, rated 5 uF (\\u00b16 %)\"}",
 "compare": "exact",
 "cookie": null,
 "emails": [],
@@ -1409,7 +1409,7 @@
 "raw": null,
 "status": 200,
 "type": "application/json",
-"answer": "{\"acked_at\": \"2026-10-06T03:05:13.250000+00:00\", \"cleared_at\": null, \"code\": \"cap_fan\", \"emailed_at\": \"2026-10-17T18:27:39.108711+00:00\", \"id\": 12, \"level\": \"warn\", \"node\": null, \"open\": true, \"raised_at\": \"2026-10-06T02:25:00.110527+00:00\", \"started_at\": \"2026-10-06T02:20:00.106641+00:00\", \"text\": \"Run capacitor fan section measures 4.5 uF, rated 5 uF (\\u00b16 %)\"}",
+"answer": "{\"acked_at\": \"2026-10-06T03:05:13.250000+00:00\", \"cleared_at\": null, \"code\": \"cap_fan\", \"emailed_at\": \"2026-10-17T18:54:17.166799+00:00\", \"id\": 12, \"level\": \"warn\", \"node\": null, \"open\": true, \"raised_at\": \"2026-10-06T02:25:00.110527+00:00\", \"started_at\": \"2026-10-06T02:20:00.106641+00:00\", \"text\": \"Run capacitor fan section measures 4.5 uF, rated 5 uF (\\u00b16 %)\"}",
 "compare": "exact",
 "cookie": null,
 "emails": [],
@@ -1617,7 +1617,7 @@
 "raw": null,
 "status": 200,
 "type": "application/json",
-"answer": "[{\"acked_at\": \"2026-10-06T03:05:13.250000+00:00\", \"cleared_at\": null, \"code\": \"cap_fan\", \"emailed_at\": \"2026-10-17T18:27:39.108711+00:00\", \"id\": 12, \"level\": \"warn\", \"node\": null, \"open\": true, \"raised_at\": \"2026-10-06T02:25:00.110527+00:00\", \"started_at\": \"2026-10-06T02:20:00.106641+00:00\", \"text\": \"Run capacitor fan section measures 4.5 uF, rated 5 uF (\\u00b16 %)\"}, {\"acked_at\": null, \"cleared_at\": null, \"code\": \"room_cold\", \"emailed_at\": \"2026-10-17T18:27:36.108476+00:00\", \"id\": 11, \"level\": \"alert\", \"node\": null, \"open\": true, \"raised_at\": \"2026-10-06T02:13:30.178200+00:00\", \"started_at\": \"2026-10-06T02:08:30.109221+00:00\", \"text\": \"Room temperature 44.7 F\"}, {\"acked_at\": null, \"cleared_at\": \"2026-10-06T02:21:00.033885+00:00\", \"code\": \"comp_not_running\", \"emailed_at\": \"2026-10-17T18:27:34.141870+00:00\", \"id\": 10, \"level\": \"alert\", \"node\": null, \"open\": false, \"raised_at\": \"2026-10-06T02:05:00.175921+00:00\", \"started_at\": \"2026-10-06T02:00:00.060630+00:00\", \"text\": \"Contactor closed but the compressor draws 0.0 A: overload tripped, failed capacitor or compressor\"}, {\"acked_at\": null, \"cleared_at\": \"2026-10-06T01:30:00.200988+00:00\", \"code\": \"cap_herm\", \"emailed_at\": \"2026-10-17T18:27:20.861579+00:00\", \"id\": 9, \"level\": \"warn\", \"node\": null, \"open\": false, \"raised_at\": \"2026-10-06T01:15:10.033976+00:00\", \"started_at\": \"2026-10-06T01:10:00.169863+00:00\", \"text\": \"Run capacitor compressor (HERM) section measures 38.0 uF, rated 45 uF (\\u00b16 %)\"}, {\"acked_at\": null, \"cleared_at\": \"2026-10-06T00:25:00.101281+00:00\", \"code\": \"sh_low\", \"emailed_at\": \"2026-10-17T18:27:06.257041+00:00\", \"id\": 5, \"level\": \"alert\", \"node\": null, \"open\": false, \"raised_at\": \"2026-10-06T00:05:00.090506+00:00\", \"started_at\": \"2026-10-06T00:00:00.072016+00:00\", \"text\": \"Superheat -0.1\\u00b0F: risk of liquid floodback\"}, {\"acked_at\": null, \"cleared_at\": \"2026-10-06T01:15:00.112010+00:00\", \"code\": \"sc_low\", \"emailed_at\": \"2026-10-17T18:26:55.031361+00:00\", \"id\": 3, \"level\": \"warn\", \"node\": null, \"open\": false, \"raised_at\": \"2026-10-05T23:15:00.094995+00:00\", \"started_at\": \"2026-10-05T23:10:00.038004+00:00\", \"text\": \"Subcooling 6.8\\u00b0F is below the nameplate target 10 \\u00b1 3\\u00b0F: possible undercharge\"}, {\"acked_at\": null, \"cleared_at\": \"2026-10-06T02:05:00.175921+00:00\", \"code\": \"cap_fan\", \"emailed_at\": null, \"id\": 2, \"level\": \"warn\", \"node\": null, \"open\": false, \"raised_at\": \"2026-10-05T23:05:10.123467+00:00\", \"started_at\": \"2026-10-05T23:00:00.202868+00:00\", \"text\": \"Run capacitor fan section measures 4.5 uF, rated 5 uF (\\u00b16 %)\"}]",
+"answer": "[{\"acked_at\": \"2026-10-06T03:05:13.250000+00:00\", \"cleared_at\": null, \"code\": \"cap_fan\", \"emailed_at\": \"2026-10-17T18:54:17.166799+00:00\", \"id\": 12, \"level\": \"warn\", \"node\": null, \"open\": true, \"raised_at\": \"2026-10-06T02:25:00.110527+00:00\", \"started_at\": \"2026-10-06T02:20:00.106641+00:00\", \"text\": \"Run capacitor fan section measures 4.5 uF, rated 5 uF (\\u00b16 %)\"}, {\"acked_at\": null, \"cleared_at\": null, \"code\": \"room_cold\", \"emailed_at\": \"2026-10-17T18:54:14.017225+00:00\", \"id\": 11, \"level\": \"alert\", \"node\": null, \"open\": true, \"raised_at\": \"2026-10-06T02:13:30.178200+00:00\", \"started_at\": \"2026-10-06T02:08:30.109221+00:00\", \"text\": \"Room temperature 44.7 F\"}, {\"acked_at\": null, \"cleared_at\": \"2026-10-06T02:21:00.033885+00:00\", \"code\": \"comp_not_running\", \"emailed_at\": \"2026-10-17T18:54:11.246099+00:00\", \"id\": 10, \"level\": \"alert\", \"node\": null, \"open\": false, \"raised_at\": \"2026-10-06T02:05:00.175921+00:00\", \"started_at\": \"2026-10-06T02:00:00.060630+00:00\", \"text\": \"Contactor closed but the compressor draws 0.0 A: overload tripped, failed capacitor or compressor\"}, {\"acked_at\": null, \"cleared_at\": \"2026-10-06T01:30:00.200988+00:00\", \"code\": \"cap_herm\", \"emailed_at\": \"2026-10-17T18:53:54.686495+00:00\", \"id\": 9, \"level\": \"warn\", \"node\": null, \"open\": false, \"raised_at\": \"2026-10-06T01:15:10.033976+00:00\", \"started_at\": \"2026-10-06T01:10:00.169863+00:00\", \"text\": \"Run capacitor compressor (HERM) section measures 38.0 uF, rated 45 uF (\\u00b16 %)\"}, {\"acked_at\": null, \"cleared_at\": \"2026-10-06T00:25:00.101281+00:00\", \"code\": \"sh_low\", \"emailed_at\": \"2026-10-17T18:53:37.659632+00:00\", \"id\": 5, \"level\": \"alert\", \"node\": null, \"open\": false, \"raised_at\": \"2026-10-06T00:05:00.090506+00:00\", \"started_at\": \"2026-10-06T00:00:00.072016+00:00\", \"text\": \"Superheat -0.1\\u00b0F: risk of liquid floodback\"}, {\"acked_at\": null, \"cleared_at\": \"2026-10-06T01:15:00.112010+00:00\", \"code\": \"sc_low\", \"emailed_at\": \"2026-10-17T18:53:25.130895+00:00\", \"id\": 3, \"level\": \"warn\", \"node\": null, \"open\": false, \"raised_at\": \"2026-10-05T23:15:00.094995+00:00\", \"started_at\": \"2026-10-05T23:10:00.038004+00:00\", \"text\": \"Subcooling 6.8\\u00b0F is below the nameplate target 10 \\u00b1 3\\u00b0F: possible undercharge\"}, {\"acked_at\": null, \"cleared_at\": \"2026-10-06T02:05:00.175921+00:00\", \"code\": \"cap_fan\", \"emailed_at\": null, \"id\": 2, \"level\": \"warn\", \"node\": null, \"open\": false, \"raised_at\": \"2026-10-05T23:05:10.123467+00:00\", \"started_at\": \"2026-10-05T23:00:00.202868+00:00\", \"text\": \"Run capacitor fan section measures 4.5 uF, rated 5 uF (\\u00b16 %)\"}]",
 "compare": "exact",
 "cookie": null,
 "emails": [],
@@ -2151,7 +2151,7 @@
 "raw": null,
 "status": 200,
 "type": "application/json",
-"answer": "[{\"cmd\": {\"ch\": \"t_ret\", \"cmd\": \"cal_ice\"}, \"created_at\": \"2026-10-06T03:07:29.750000+00:00\", \"id\": 5, \"node\": \"indoor\", \"replied_at\": null, \"reply\": null, \"sent\": true}, {\"cmd\": {\"cmd\": \"status\"}, \"created_at\": \"2026-10-06T03:07:26.250000+00:00\", \"id\": 4, \"node\": \"outdoor\", \"replied_at\": null, \"reply\": null, \"sent\": true}, {\"cmd\": null, \"created_at\": \"2026-10-17T18:26:53.572498+00:00\", \"id\": 3, \"node\": \"outdoor\", \"replied_at\": \"2026-10-05T23:08:24.500000+00:00\", \"reply\": {\"cmd\": \"restart\", \"ok\": true}, \"sent\": false}, {\"cmd\": null, \"created_at\": \"2026-10-17T18:26:53.569136+00:00\", \"id\": 2, \"node\": \"outdoor\", \"replied_at\": \"2026-10-05T23:08:24+00:00\", \"reply\": {\"ch\": \"p_liq\", \"cmd\": \"cal_zero\", \"ok\": true}, \"sent\": false}, {\"cmd\": null, \"created_at\": \"2026-10-17T18:26:53.565603+00:00\", \"id\": 1, \"node\": \"outdoor\", \"replied_at\": \"2026-10-05T23:08:23+00:00\", \"reply\": {\"cmd\": \"status\", \"ok\": true}, \"sent\": false}]",
+"answer": "[{\"cmd\": {\"ch\": \"t_ret\", \"cmd\": \"cal_ice\"}, \"created_at\": \"2026-10-06T03:07:29.750000+00:00\", \"id\": 5, \"node\": \"indoor\", \"replied_at\": null, \"reply\": null, \"sent\": true}, {\"cmd\": {\"cmd\": \"status\"}, \"created_at\": \"2026-10-06T03:07:26.250000+00:00\", \"id\": 4, \"node\": \"outdoor\", \"replied_at\": null, \"reply\": null, \"sent\": true}, {\"cmd\": null, \"created_at\": \"2026-10-17T18:53:23.742918+00:00\", \"id\": 3, \"node\": \"outdoor\", \"replied_at\": \"2026-10-05T23:08:24.500000+00:00\", \"reply\": {\"cmd\": \"restart\", \"ok\": true}, \"sent\": false}, {\"cmd\": null, \"created_at\": \"2026-10-17T18:53:23.742918+00:00\", \"id\": 2, \"node\": \"outdoor\", \"replied_at\": \"2026-10-05T23:08:24+00:00\", \"reply\": {\"ch\": \"p_liq\", \"cmd\": \"cal_zero\", \"ok\": true}, \"sent\": false}, {\"cmd\": null, \"created_at\": \"2026-10-17T18:53:23.741414+00:00\", \"id\": 1, \"node\": \"outdoor\", \"replied_at\": \"2026-10-05T23:08:23+00:00\", \"reply\": {\"cmd\": \"status\", \"ok\": true}, \"sent\": false}]",
 "compare": "exact",
 "cookie": null,
 "emails": [],
@@ -2432,6 +2432,86 @@
 {
 "t": 1791256126.75,
 "actor": "tech",
+"method": "GET",
+"path": "/api/systems/1/threshold-report?days=1",
+"headers": null,
+"body": null,
+"raw": null,
+"status": 200,
+"type": "application/json",
+"answer": "{\"alerts\": {\"cap_fan\": 2, \"cap_herm\": 1, \"comp_not_running\": 1, \"room_cold\": 1, \"sc_low\": 1, \"sh_low\": 1}, \"days\": 1.0, \"metrics\": {\"approach\": {\"above\": null, \"below\": null, \"limit_high\": null, \"limit_low\": null, \"limit_source\": null, \"max\": 6.5, \"min\": 5.5, \"n\": 1140, \"pct\": {\"25\": 5.7, \"5\": 5.6, \"50\": 6.0, \"75\": 6.2, \"95\": 6.4}}, \"ctoa\": {\"above\": 0.0, \"below\": null, \"limit_high\": 35.0, \"limit_low\": null, \"limit_source\": \"generic\", \"max\": 18.0, \"min\": 9.2, \"n\": 1140, \"pct\": {\"25\": 10.5, \"5\": 9.6, \"50\": 12.8, \"75\": 16.6, \"95\": 17.6}}, \"dt\": {\"above\": null, \"below\": 0.0, \"limit_high\": null, \"limit_low\": 12.0, \"limit_source\": \"generic\", \"max\": 19.6, \"min\": 18.4, \"n\": 1140, \"pct\": {\"25\": 18.8, \"5\": 18.6, \"50\": 19.0, \"75\": 19.2, \"95\": 19.4}}, \"sc\": {\"above\": 0.0, \"below\": 0.526, \"limit_high\": 14.0, \"limit_low\": 8.0, \"limit_source\": \"nameplate\", \"max\": 12.4, \"min\": 2.9, \"n\": 1140, \"pct\": {\"25\": 4.6, \"5\": 3.5, \"50\": 6.9, \"75\": 10.6, \"95\": 11.7}}, \"sh\": {\"above\": 0.0, \"below\": 0.158, \"limit_high\": 30.0, \"limit_low\": 3.0, \"limit_source\": \"generic\", \"max\": 12.5, \"min\": -1.4, \"n\": 1140, \"pct\": {\"25\": 11.1, \"5\": -0.8, \"50\": 11.5, \"75\": 11.8, \"95\": 12.2}}}, \"steady_hours\": 1.56}",
+"compare": "exact",
+"cookie": null,
+"emails": [],
+"published": []
+},
+{
+"t": 1791256130.25,
+"actor": "tech",
+"method": "GET",
+"path": "/api/systems/2/threshold-report",
+"headers": null,
+"body": null,
+"raw": null,
+"status": 200,
+"type": "application/json",
+"answer": "{\"alerts\": {\"dt_low\": 1, \"no_data\": 1, \"sc_low\": 1}, \"days\": 14.0, \"metrics\": {\"approach\": {\"above\": null, \"below\": null, \"limit_high\": null, \"limit_low\": null, \"limit_source\": null, \"max\": 6.5, \"min\": 5.5, \"n\": 576, \"pct\": {\"25\": 5.7, \"5\": 5.5, \"50\": 6.0, \"75\": 6.2, \"95\": 6.5}}, \"ctoa\": {\"above\": 0.0, \"below\": null, \"limit_high\": 35.0, \"limit_low\": null, \"limit_source\": \"generic\", \"max\": 16.5, \"min\": 7.7, \"n\": 576, \"pct\": {\"25\": 8.9, \"5\": 8.1, \"50\": 14.4, \"75\": 15.3, \"95\": 16.2}}, \"dt\": {\"above\": null, \"below\": 0.167, \"limit_high\": null, \"limit_low\": 12.0, \"limit_source\": \"generic\", \"max\": 19.5, \"min\": 8.4, \"n\": 576, \"pct\": {\"25\": 18.6, \"5\": 8.8, \"50\": 18.9, \"75\": 19.1, \"95\": 19.4}}, \"sc\": {\"above\": 0.0, \"below\": 0.267, \"limit_high\": 20.0, \"limit_low\": 3.0, \"limit_source\": \"generic\", \"max\": 10.9, \"min\": 1.4, \"n\": 576, \"pct\": {\"25\": 2.9, \"5\": 2.1, \"50\": 8.2, \"75\": 9.4, \"95\": 10.2}}, \"sh\": {\"above\": 0.0, \"below\": 0.0, \"limit_high\": 30.0, \"limit_low\": 3.0, \"limit_source\": \"generic\", \"max\": 13.2, \"min\": 11.5, \"n\": 576, \"pct\": {\"25\": 12.2, \"5\": 11.7, \"50\": 12.4, \"75\": 12.7, \"95\": 13.1}}}, \"steady_hours\": 0.78}",
+"compare": "exact",
+"cookie": null,
+"emails": [],
+"published": []
+},
+{
+"t": 1791256133.75,
+"actor": "tech",
+"method": "GET",
+"path": "/api/systems/3/threshold-report?days=0.1",
+"headers": null,
+"body": null,
+"raw": null,
+"status": 200,
+"type": "application/json",
+"answer": "{\"alerts\": {\"sensor_issue\": 1}, \"days\": 0.1, \"metrics\": {\"approach\": {\"above\": null, \"below\": null, \"limit_high\": null, \"limit_low\": null, \"limit_source\": null, \"max\": null, \"min\": null, \"n\": 0, \"pct\": null}, \"ctoa\": {\"above\": null, \"below\": null, \"limit_high\": 35.0, \"limit_low\": null, \"limit_source\": \"generic\", \"max\": null, \"min\": null, \"n\": 0, \"pct\": null}, \"dt\": {\"above\": null, \"below\": null, \"limit_high\": null, \"limit_low\": 12.0, \"limit_source\": \"generic\", \"max\": null, \"min\": null, \"n\": 0, \"pct\": null}, \"sc\": {\"above\": null, \"below\": null, \"limit_high\": 20.0, \"limit_low\": 3.0, \"limit_source\": \"generic\", \"max\": null, \"min\": null, \"n\": 0, \"pct\": null}, \"sh\": {\"above\": null, \"below\": null, \"limit_high\": 30.0, \"limit_low\": 3.0, \"limit_source\": \"generic\", \"max\": null, \"min\": null, \"n\": 0, \"pct\": null}}, \"steady_hours\": 0.0}",
+"compare": "exact",
+"cookie": null,
+"emails": [],
+"published": []
+},
+{
+"t": 1791256137.25,
+"actor": "tech",
+"method": "GET",
+"path": "/api/systems/1/threshold-report?days=0",
+"headers": null,
+"body": null,
+"raw": null,
+"status": 422,
+"type": "application/json",
+"answer": "{\"detail\": [{\"ctx\": {\"gt\": 0.0}, \"input\": \"0\", \"loc\": [\"query\", \"days\"], \"msg\": \"Input should be greater than 0\", \"type\": \"greater_than\"}]}",
+"compare": "exact",
+"cookie": null,
+"emails": [],
+"published": []
+},
+{
+"t": 1791256140.75,
+"actor": "tech",
+"method": "GET",
+"path": "/api/systems/1/threshold-report?days=40",
+"headers": null,
+"body": null,
+"raw": null,
+"status": 422,
+"type": "application/json",
+"answer": "{\"detail\": [{\"ctx\": {\"le\": 31.0}, \"input\": \"40\", \"loc\": [\"query\", \"days\"], \"msg\": \"Input should be less than or equal to 31\", \"type\": \"less_than_equal\"}]}",
+"compare": "exact",
+"cookie": null,
+"emails": [],
+"published": []
+},
+{
+"t": 1791256144.25,
+"actor": "tech",
 "method": "POST",
 "path": "/api/systems/1/gauge-checks",
 "headers": null,
@@ -2446,7 +2526,7 @@
 "published": []
 },
 {
-"t": 1791256130.25,
+"t": 1791256147.75,
 "actor": "tech",
 "method": "POST",
 "path": "/api/systems/1/gauge-checks",
@@ -2455,14 +2535,14 @@
 "raw": null,
 "status": 200,
 "type": "application/json",
-"answer": "{\"atm_psia\": 14.05, \"diff\": {\"dt\": -0.2, \"p_high\": -2.9, \"p_low\": 1.0, \"sat_high\": -0.6, \"sat_low\": 0.4, \"sc\": -1.8, \"sh\": -1.2, \"t_liq\": 1.2, \"t_ret\": 0.0, \"t_suc\": -0.8, \"t_sup\": 0.2}, \"gauge\": {\"dt\": 19.2, \"p_high\": 361.5, \"p_low\": 118.0, \"sat_high\": 108.9, \"sat_low\": 39.6, \"sc\": 9.9, \"sh\": 12.8, \"t_liq\": 99.0, \"t_ret\": 76.2, \"t_suc\": 52.4, \"t_sup\": 57.0}, \"id\": 1, \"note\": \"SMAN 460\", \"refrigerant\": \"R-410A\", \"system\": {\"dt\": 19.0, \"mode\": \"cooling\", \"p_high\": 358.6, \"p_low\": 119.0, \"run_min\": 14.3, \"sat_high\": 108.3, \"sat_low\": 40.0, \"sc\": 8.1, \"sh\": 11.6, \"t_liq\": 100.2, \"t_ret\": 76.2, \"t_suc\": 51.6, \"t_sup\": 57.2, \"time\": \"2026-10-06T02:59:20.055999+00:00\"}, \"technician\": \"Sam\", \"time\": \"2026-10-06T02:59:20.250000+00:00\"}",
+"answer": "{\"atm_psia\": 14.05, \"diff\": {\"dt\": -0.4, \"p_high\": -0.8, \"p_low\": 2.1, \"sat_high\": -0.2, \"sat_low\": 0.9, \"sc\": -0.7, \"sh\": -1.1, \"t_liq\": 0.5, \"t_ret\": -0.3, \"t_suc\": -0.2, \"t_sup\": 0.1}, \"gauge\": {\"dt\": 19.2, \"p_high\": 361.5, \"p_low\": 118.0, \"sat_high\": 108.9, \"sat_low\": 39.6, \"sc\": 9.9, \"sh\": 12.8, \"t_liq\": 99.0, \"t_ret\": 76.2, \"t_suc\": 52.4, \"t_sup\": 57.0}, \"id\": 1, \"note\": \"SMAN 460\", \"refrigerant\": \"R-410A\", \"system\": {\"dt\": 18.8, \"mode\": \"cooling\", \"p_high\": 360.7, \"p_low\": 120.1, \"run_min\": 14.7, \"sat_high\": 108.7, \"sat_low\": 40.5, \"sc\": 9.2, \"sh\": 11.7, \"t_liq\": 99.5, \"t_ret\": 75.9, \"t_suc\": 52.2, \"t_sup\": 57.1, \"time\": \"2026-10-06T02:59:40.134701+00:00\"}, \"technician\": \"Sam\", \"time\": \"2026-10-06T02:59:37.750000+00:00\"}",
 "compare": "exact",
 "cookie": null,
 "emails": [],
 "published": []
 },
 {
-"t": 1791256133.75,
+"t": 1791256151.25,
 "actor": "tech",
 "method": "POST",
 "path": "/api/systems/1/gauge-checks",
@@ -2471,14 +2551,14 @@
 "raw": null,
 "status": 200,
 "type": "application/json",
-"answer": "{\"atm_psia\": 14.05, \"diff\": {\"dt\": 2.5, \"p_high\": null, \"p_low\": null, \"sat_high\": null, \"sat_low\": null, \"sc\": null, \"sh\": null, \"t_liq\": null, \"t_ret\": 0.8, \"t_suc\": null, \"t_sup\": -1.7}, \"gauge\": {\"dt\": 16.5, \"p_high\": null, \"p_low\": null, \"sat_high\": null, \"sat_low\": null, \"sc\": null, \"sh\": null, \"t_liq\": null, \"t_ret\": 75.0, \"t_suc\": null, \"t_sup\": 58.5}, \"id\": 2, \"note\": null, \"refrigerant\": \"R-410A\", \"system\": {\"dt\": 19.0, \"mode\": \"cooling\", \"p_high\": 360.6, \"p_low\": 120.9, \"run_min\": 13.7, \"sat_high\": 108.7, \"sat_low\": 40.8, \"sc\": 9.2, \"sh\": 11.4, \"t_liq\": 99.5, \"t_ret\": 75.8, \"t_suc\": 52.2, \"t_sup\": 56.8, \"time\": \"2026-10-06T02:58:40.067716+00:00\"}, \"technician\": null, \"time\": \"2026-10-06T02:58:38.750000+00:00\"}",
+"answer": "{\"atm_psia\": 14.05, \"diff\": {\"dt\": 2.4, \"p_high\": null, \"p_low\": null, \"sat_high\": null, \"sat_low\": null, \"sc\": null, \"sh\": null, \"t_liq\": null, \"t_ret\": 0.7, \"t_suc\": null, \"t_sup\": -1.7}, \"gauge\": {\"dt\": 16.5, \"p_high\": null, \"p_low\": null, \"sat_high\": null, \"sat_low\": null, \"sc\": null, \"sh\": null, \"t_liq\": null, \"t_ret\": 75.0, \"t_suc\": null, \"t_sup\": 58.5}, \"id\": 2, \"note\": null, \"refrigerant\": \"R-410A\", \"system\": {\"dt\": 18.9, \"mode\": \"cooling\", \"p_high\": 361.6, \"p_low\": 120.2, \"run_min\": 14.0, \"sat_high\": 108.9, \"sat_low\": 40.5, \"sc\": 8.7, \"sh\": 11.1, \"t_liq\": 100.2, \"t_ret\": 75.7, \"t_suc\": 51.6, \"t_sup\": 56.8, \"time\": \"2026-10-06T02:59:00.067825+00:00\"}, \"technician\": null, \"time\": \"2026-10-06T02:58:56.250000+00:00\"}",
 "compare": "exact",
 "cookie": null,
 "emails": [],
 "published": []
 },
 {
-"t": 1791256137.25,
+"t": 1791256154.75,
 "actor": "tech",
 "method": "POST",
 "path": "/api/systems/2/gauge-checks",
@@ -2487,14 +2567,14 @@
 "raw": null,
 "status": 200,
 "type": "application/json",
-"answer": "{\"atm_psia\": 14.2, \"diff\": {\"dt\": null, \"p_high\": null, \"p_low\": -9.5, \"sat_high\": null, \"sat_low\": -4.9, \"sc\": null, \"sh\": -2.6, \"t_liq\": null, \"t_ret\": null, \"t_suc\": -7.5, \"t_sup\": null}, \"gauge\": {\"dt\": null, \"p_high\": null, \"p_low\": 130.25, \"sat_high\": null, \"sat_low\": 44.8, \"sc\": null, \"sh\": 15.2, \"t_liq\": null, \"t_ret\": null, \"t_suc\": 60.0, \"t_sup\": null}, \"id\": 3, \"note\": null, \"refrigerant\": \"R-410A\", \"system\": {\"dt\": 18.8, \"mode\": \"cooling\", \"p_high\": 359.9, \"p_low\": 120.7, \"run_min\": 6.0, \"sat_high\": 107.1, \"sat_low\": 39.9, \"sc\": 7.3, \"sh\": 12.6, \"t_liq\": 99.8, \"t_ret\": 75.7, \"t_suc\": 52.5, \"t_sup\": 56.9, \"time\": \"2026-10-06T02:59:00.067825+00:00\"}, \"technician\": null, \"time\": \"2026-10-06T02:58:57.250000+00:00\"}",
+"answer": "{\"atm_psia\": 14.2, \"diff\": {\"dt\": null, \"p_high\": null, \"p_low\": -10.7, \"sat_high\": null, \"sat_low\": -5.4, \"sc\": null, \"sh\": -3.0, \"t_liq\": null, \"t_ret\": null, \"t_suc\": -8.4, \"t_sup\": null}, \"gauge\": {\"dt\": null, \"p_high\": null, \"p_low\": 130.25, \"sat_high\": null, \"sat_low\": 44.8, \"sc\": null, \"sh\": 15.2, \"t_liq\": null, \"t_ret\": null, \"t_suc\": 60.0, \"t_sup\": null}, \"id\": 3, \"note\": null, \"refrigerant\": \"R-410A\", \"system\": {\"dt\": 18.9, \"mode\": \"cooling\", \"p_high\": 358.7, \"p_low\": 119.6, \"run_min\": 6.2, \"sat_high\": 106.8, \"sat_low\": 39.4, \"sc\": 6.9, \"sh\": 12.2, \"t_liq\": 99.9, \"t_ret\": 76.1, \"t_suc\": 51.6, \"t_sup\": 57.2, \"time\": \"2026-10-06T02:59:10.140768+00:00\"}, \"technician\": null, \"time\": \"2026-10-06T02:59:14.750000+00:00\"}",
 "compare": "exact",
 "cookie": null,
 "emails": [],
 "published": []
 },
 {
-"t": 1791256140.75,
+"t": 1791256158.25,
 "actor": "tech",
 "method": "POST",
 "path": "/api/systems/1/gauge-checks",
@@ -2510,7 +2590,7 @@
 "published": []
 },
 {
-"t": 1791256144.25,
+"t": 1791256161.75,
 "actor": "tech",
 "method": "POST",
 "path": "/api/systems/1/gauge-checks",
@@ -2526,7 +2606,7 @@
 "published": []
 },
 {
-"t": 1791256147.75,
+"t": 1791256165.25,
 "actor": "tech",
 "method": "POST",
 "path": "/api/systems/1/gauge-checks",
@@ -2542,7 +2622,7 @@
 "published": []
 },
 {
-"t": 1791256151.25,
+"t": 1791256168.75,
 "actor": "tech",
 "method": "POST",
 "path": "/api/systems/1/gauge-checks",
@@ -2558,7 +2638,7 @@
 "published": []
 },
 {
-"t": 1791256154.75,
+"t": 1791256172.25,
 "actor": "tech",
 "method": "POST",
 "path": "/api/systems/1/gauge-checks",
@@ -2574,7 +2654,7 @@
 "published": []
 },
 {
-"t": 1791256158.25,
+"t": 1791256175.75,
 "actor": "tech",
 "method": "GET",
 "path": "/api/systems/1/gauge-checks",
@@ -2583,14 +2663,14 @@
 "raw": null,
 "status": 200,
 "type": "application/json",
-"answer": "{\"checks\": [{\"atm_psia\": 14.05, \"diff\": {\"dt\": -0.2, \"p_high\": -2.9, \"p_low\": 1.0, \"sat_high\": -0.6, \"sat_low\": 0.4, \"sc\": -1.8, \"sh\": -1.2, \"t_liq\": 1.2, \"t_ret\": 0.0, \"t_suc\": -0.8, \"t_sup\": 0.2}, \"gauge\": {\"dt\": 19.2, \"p_high\": 361.5, \"p_low\": 118.0, \"sat_high\": 108.9, \"sat_low\": 39.6, \"sc\": 9.9, \"sh\": 12.8, \"t_liq\": 99.0, \"t_ret\": 76.2, \"t_suc\": 52.4, \"t_sup\": 57.0}, \"id\": 1, \"note\": \"SMAN 460\", \"refrigerant\": \"R-410A\", \"system\": {\"dt\": 19.0, \"mode\": \"cooling\", \"p_high\": 358.6, \"p_low\": 119.0, \"run_min\": 14.3, \"sat_high\": 108.3, \"sat_low\": 40.0, \"sc\": 8.1, \"sh\": 11.6, \"t_liq\": 100.2, \"t_ret\": 76.2, \"t_suc\": 51.6, \"t_sup\": 57.2, \"time\": \"2026-10-06T02:59:20.055999+00:00\"}, \"technician\": \"Sam\", \"time\": \"2026-10-06T02:59:20.250000+00:00\"}, {\"atm_psia\": 14.05, \"diff\": {\"dt\": 2.5, \"p_high\": null, \"p_low\": null, \"sat_high\": null, \"sat_low\": null, \"sc\": null, \"sh\": null, \"t_liq\": null, \"t_ret\": 0.8, \"t_suc\": null, \"t_sup\": -1.7}, \"gauge\": {\"dt\": 16.5, \"p_high\": null, \"p_low\": null, \"sat_high\": null, \"sat_low\": null, \"sc\": null, \"sh\": null, \"t_liq\": null, \"t_ret\": 75.0, \"t_suc\": null, \"t_sup\": 58.5}, \"id\": 2, \"note\": null, \"refrigerant\": \"R-410A\", \"system\": {\"dt\": 19.0, \"mode\": \"cooling\", \"p_high\": 360.6, \"p_low\": 120.9, \"run_min\": 13.7, \"sat_high\": 108.7, \"sat_low\": 40.8, \"sc\": 9.2, \"sh\": 11.4, \"t_liq\": 99.5, \"t_ret\": 75.8, \"t_suc\": 52.2, \"t_sup\": 56.8, \"time\": \"2026-10-06T02:58:40.067716+00:00\"}, \"technician\": null, \"time\": \"2026-10-06T02:58:38.750000+00:00\"}], \"summary\": {\"dt\": {\"max\": 2.5, \"mean\": 1.1, \"n\": 2}, \"p_high\": {\"max\": -2.9, \"mean\": -2.9, \"n\": 1}, \"p_low\": {\"max\": 1.0, \"mean\": 1.0, \"n\": 1}, \"sat_high\": {\"max\": -0.6, \"mean\": -0.6, \"n\": 1}, \"sat_low\": {\"max\": 0.4, \"mean\": 0.4, \"n\": 1}, \"sc\": {\"max\": -1.8, \"mean\": -1.8, \"n\": 1}, \"sh\": {\"max\": -1.2, \"mean\": -1.2, \"n\": 1}, \"t_liq\": {\"max\": 1.2, \"mean\": 1.2, \"n\": 1}, \"t_ret\": {\"max\": 0.8, \"mean\": 0.4, \"n\": 2}, \"t_suc\": {\"max\": -0.8, \"mean\": -0.8, \"n\": 1}, \"t_sup\": {\"max\": -1.7, \"mean\": -0.8, \"n\": 2}}}",
+"answer": "{\"checks\": [{\"atm_psia\": 14.05, \"diff\": {\"dt\": -0.4, \"p_high\": -0.8, \"p_low\": 2.1, \"sat_high\": -0.2, \"sat_low\": 0.9, \"sc\": -0.7, \"sh\": -1.1, \"t_liq\": 0.5, \"t_ret\": -0.3, \"t_suc\": -0.2, \"t_sup\": 0.1}, \"gauge\": {\"dt\": 19.2, \"p_high\": 361.5, \"p_low\": 118.0, \"sat_high\": 108.9, \"sat_low\": 39.6, \"sc\": 9.9, \"sh\": 12.8, \"t_liq\": 99.0, \"t_ret\": 76.2, \"t_suc\": 52.4, \"t_sup\": 57.0}, \"id\": 1, \"note\": \"SMAN 460\", \"refrigerant\": \"R-410A\", \"system\": {\"dt\": 18.8, \"mode\": \"cooling\", \"p_high\": 360.7, \"p_low\": 120.1, \"run_min\": 14.7, \"sat_high\": 108.7, \"sat_low\": 40.5, \"sc\": 9.2, \"sh\": 11.7, \"t_liq\": 99.5, \"t_ret\": 75.9, \"t_suc\": 52.2, \"t_sup\": 57.1, \"time\": \"2026-10-06T02:59:40.134701+00:00\"}, \"technician\": \"Sam\", \"time\": \"2026-10-06T02:59:37.750000+00:00\"}, {\"atm_psia\": 14.05, \"diff\": {\"dt\": 2.4, \"p_high\": null, \"p_low\": null, \"sat_high\": null, \"sat_low\": null, \"sc\": null, \"sh\": null, \"t_liq\": null, \"t_ret\": 0.7, \"t_suc\": null, \"t_sup\": -1.7}, \"gauge\": {\"dt\": 16.5, \"p_high\": null, \"p_low\": null, \"sat_high\": null, \"sat_low\": null, \"sc\": null, \"sh\": null, \"t_liq\": null, \"t_ret\": 75.0, \"t_suc\": null, \"t_sup\": 58.5}, \"id\": 2, \"note\": null, \"refrigerant\": \"R-410A\", \"system\": {\"dt\": 18.9, \"mode\": \"cooling\", \"p_high\": 361.6, \"p_low\": 120.2, \"run_min\": 14.0, \"sat_high\": 108.9, \"sat_low\": 40.5, \"sc\": 8.7, \"sh\": 11.1, \"t_liq\": 100.2, \"t_ret\": 75.7, \"t_suc\": 51.6, \"t_sup\": 56.8, \"time\": \"2026-10-06T02:59:00.067825+00:00\"}, \"technician\": null, \"time\": \"2026-10-06T02:58:56.250000+00:00\"}], \"summary\": {\"dt\": {\"max\": 2.4, \"mean\": 1.0, \"n\": 2}, \"p_high\": {\"max\": -0.8, \"mean\": -0.8, \"n\": 1}, \"p_low\": {\"max\": 2.1, \"mean\": 2.1, \"n\": 1}, \"sat_high\": {\"max\": -0.2, \"mean\": -0.2, \"n\": 1}, \"sat_low\": {\"max\": 0.9, \"mean\": 0.9, \"n\": 1}, \"sc\": {\"max\": -0.7, \"mean\": -0.7, \"n\": 1}, \"sh\": {\"max\": -1.1, \"mean\": -1.1, \"n\": 1}, \"t_liq\": {\"max\": 0.5, \"mean\": 0.5, \"n\": 1}, \"t_ret\": {\"max\": 0.7, \"mean\": 0.2, \"n\": 2}, \"t_suc\": {\"max\": -0.2, \"mean\": -0.2, \"n\": 1}, \"t_sup\": {\"max\": -1.7, \"mean\": -0.8, \"n\": 2}}}",
 "compare": "exact",
 "cookie": null,
 "emails": [],
 "published": []
 },
 {
-"t": 1791256161.75,
+"t": 1791256179.25,
 "actor": "tech",
 "method": "GET",
 "path": "/api/systems/1/gauge-checks?limit=1",
@@ -2599,14 +2679,14 @@
 "raw": null,
 "status": 200,
 "type": "application/json",
-"answer": "{\"checks\": [{\"atm_psia\": 14.05, \"diff\": {\"dt\": -0.2, \"p_high\": -2.9, \"p_low\": 1.0, \"sat_high\": -0.6, \"sat_low\": 0.4, \"sc\": -1.8, \"sh\": -1.2, \"t_liq\": 1.2, \"t_ret\": 0.0, \"t_suc\": -0.8, \"t_sup\": 0.2}, \"gauge\": {\"dt\": 19.2, \"p_high\": 361.5, \"p_low\": 118.0, \"sat_high\": 108.9, \"sat_low\": 39.6, \"sc\": 9.9, \"sh\": 12.8, \"t_liq\": 99.0, \"t_ret\": 76.2, \"t_suc\": 52.4, \"t_sup\": 57.0}, \"id\": 1, \"note\": \"SMAN 460\", \"refrigerant\": \"R-410A\", \"system\": {\"dt\": 19.0, \"mode\": \"cooling\", \"p_high\": 358.6, \"p_low\": 119.0, \"run_min\": 14.3, \"sat_high\": 108.3, \"sat_low\": 40.0, \"sc\": 8.1, \"sh\": 11.6, \"t_liq\": 100.2, \"t_ret\": 76.2, \"t_suc\": 51.6, \"t_sup\": 57.2, \"time\": \"2026-10-06T02:59:20.055999+00:00\"}, \"technician\": \"Sam\", \"time\": \"2026-10-06T02:59:20.250000+00:00\"}], \"summary\": {\"dt\": {\"max\": -0.2, \"mean\": -0.2, \"n\": 1}, \"p_high\": {\"max\": -2.9, \"mean\": -2.9, \"n\": 1}, \"p_low\": {\"max\": 1.0, \"mean\": 1.0, \"n\": 1}, \"sat_high\": {\"max\": -0.6, \"mean\": -0.6, \"n\": 1}, \"sat_low\": {\"max\": 0.4, \"mean\": 0.4, \"n\": 1}, \"sc\": {\"max\": -1.8, \"mean\": -1.8, \"n\": 1}, \"sh\": {\"max\": -1.2, \"mean\": -1.2, \"n\": 1}, \"t_liq\": {\"max\": 1.2, \"mean\": 1.2, \"n\": 1}, \"t_ret\": {\"max\": 0.0, \"mean\": 0.0, \"n\": 1}, \"t_suc\": {\"max\": -0.8, \"mean\": -0.8, \"n\": 1}, \"t_sup\": {\"max\": 0.2, \"mean\": 0.2, \"n\": 1}}}",
+"answer": "{\"checks\": [{\"atm_psia\": 14.05, \"diff\": {\"dt\": -0.4, \"p_high\": -0.8, \"p_low\": 2.1, \"sat_high\": -0.2, \"sat_low\": 0.9, \"sc\": -0.7, \"sh\": -1.1, \"t_liq\": 0.5, \"t_ret\": -0.3, \"t_suc\": -0.2, \"t_sup\": 0.1}, \"gauge\": {\"dt\": 19.2, \"p_high\": 361.5, \"p_low\": 118.0, \"sat_high\": 108.9, \"sat_low\": 39.6, \"sc\": 9.9, \"sh\": 12.8, \"t_liq\": 99.0, \"t_ret\": 76.2, \"t_suc\": 52.4, \"t_sup\": 57.0}, \"id\": 1, \"note\": \"SMAN 460\", \"refrigerant\": \"R-410A\", \"system\": {\"dt\": 18.8, \"mode\": \"cooling\", \"p_high\": 360.7, \"p_low\": 120.1, \"run_min\": 14.7, \"sat_high\": 108.7, \"sat_low\": 40.5, \"sc\": 9.2, \"sh\": 11.7, \"t_liq\": 99.5, \"t_ret\": 75.9, \"t_suc\": 52.2, \"t_sup\": 57.1, \"time\": \"2026-10-06T02:59:40.134701+00:00\"}, \"technician\": \"Sam\", \"time\": \"2026-10-06T02:59:37.750000+00:00\"}], \"summary\": {\"dt\": {\"max\": -0.4, \"mean\": -0.4, \"n\": 1}, \"p_high\": {\"max\": -0.8, \"mean\": -0.8, \"n\": 1}, \"p_low\": {\"max\": 2.1, \"mean\": 2.1, \"n\": 1}, \"sat_high\": {\"max\": -0.2, \"mean\": -0.2, \"n\": 1}, \"sat_low\": {\"max\": 0.9, \"mean\": 0.9, \"n\": 1}, \"sc\": {\"max\": -0.7, \"mean\": -0.7, \"n\": 1}, \"sh\": {\"max\": -1.1, \"mean\": -1.1, \"n\": 1}, \"t_liq\": {\"max\": 0.5, \"mean\": 0.5, \"n\": 1}, \"t_ret\": {\"max\": -0.3, \"mean\": -0.3, \"n\": 1}, \"t_suc\": {\"max\": -0.2, \"mean\": -0.2, \"n\": 1}, \"t_sup\": {\"max\": 0.1, \"mean\": 0.1, \"n\": 1}}}",
 "compare": "exact",
 "cookie": null,
 "emails": [],
 "published": []
 },
 {
-"t": 1791256165.25,
+"t": 1791256182.75,
 "actor": "tech",
 "method": "GET",
 "path": "/api/systems/2/gauge-checks",
@@ -2615,14 +2695,14 @@
 "raw": null,
 "status": 200,
 "type": "application/json",
-"answer": "{\"checks\": [{\"atm_psia\": 14.2, \"diff\": {\"dt\": null, \"p_high\": null, \"p_low\": -9.5, \"sat_high\": null, \"sat_low\": -4.9, \"sc\": null, \"sh\": -2.6, \"t_liq\": null, \"t_ret\": null, \"t_suc\": -7.5, \"t_sup\": null}, \"gauge\": {\"dt\": null, \"p_high\": null, \"p_low\": 130.25, \"sat_high\": null, \"sat_low\": 44.8, \"sc\": null, \"sh\": 15.2, \"t_liq\": null, \"t_ret\": null, \"t_suc\": 60.0, \"t_sup\": null}, \"id\": 3, \"note\": null, \"refrigerant\": \"R-410A\", \"system\": {\"dt\": 18.8, \"mode\": \"cooling\", \"p_high\": 359.9, \"p_low\": 120.7, \"run_min\": 6.0, \"sat_high\": 107.1, \"sat_low\": 39.9, \"sc\": 7.3, \"sh\": 12.6, \"t_liq\": 99.8, \"t_ret\": 75.7, \"t_suc\": 52.5, \"t_sup\": 56.9, \"time\": \"2026-10-06T02:59:00.067825+00:00\"}, \"technician\": null, \"time\": \"2026-10-06T02:58:57.250000+00:00\"}], \"summary\": {\"dt\": {\"max\": null, \"mean\": null, \"n\": 0}, \"p_high\": {\"max\": null, \"mean\": null, \"n\": 0}, \"p_low\": {\"max\": -9.5, \"mean\": -9.5, \"n\": 1}, \"sat_high\": {\"max\": null, \"mean\": null, \"n\": 0}, \"sat_low\": {\"max\": -4.9, \"mean\": -4.9, \"n\": 1}, \"sc\": {\"max\": null, \"mean\": null, \"n\": 0}, \"sh\": {\"max\": -2.6, \"mean\": -2.6, \"n\": 1}, \"t_liq\": {\"max\": null, \"mean\": null, \"n\": 0}, \"t_ret\": {\"max\": null, \"mean\": null, \"n\": 0}, \"t_suc\": {\"max\": -7.5, \"mean\": -7.5, \"n\": 1}, \"t_sup\": {\"max\": null, \"mean\": null, \"n\": 0}}}",
+"answer": "{\"checks\": [{\"atm_psia\": 14.2, \"diff\": {\"dt\": null, \"p_high\": null, \"p_low\": -10.7, \"sat_high\": null, \"sat_low\": -5.4, \"sc\": null, \"sh\": -3.0, \"t_liq\": null, \"t_ret\": null, \"t_suc\": -8.4, \"t_sup\": null}, \"gauge\": {\"dt\": null, \"p_high\": null, \"p_low\": 130.25, \"sat_high\": null, \"sat_low\": 44.8, \"sc\": null, \"sh\": 15.2, \"t_liq\": null, \"t_ret\": null, \"t_suc\": 60.0, \"t_sup\": null}, \"id\": 3, \"note\": null, \"refrigerant\": \"R-410A\", \"system\": {\"dt\": 18.9, \"mode\": \"cooling\", \"p_high\": 358.7, \"p_low\": 119.6, \"run_min\": 6.2, \"sat_high\": 106.8, \"sat_low\": 39.4, \"sc\": 6.9, \"sh\": 12.2, \"t_liq\": 99.9, \"t_ret\": 76.1, \"t_suc\": 51.6, \"t_sup\": 57.2, \"time\": \"2026-10-06T02:59:10.140768+00:00\"}, \"technician\": null, \"time\": \"2026-10-06T02:59:14.750000+00:00\"}], \"summary\": {\"dt\": {\"max\": null, \"mean\": null, \"n\": 0}, \"p_high\": {\"max\": null, \"mean\": null, \"n\": 0}, \"p_low\": {\"max\": -10.7, \"mean\": -10.7, \"n\": 1}, \"sat_high\": {\"max\": null, \"mean\": null, \"n\": 0}, \"sat_low\": {\"max\": -5.4, \"mean\": -5.4, \"n\": 1}, \"sc\": {\"max\": null, \"mean\": null, \"n\": 0}, \"sh\": {\"max\": -3.0, \"mean\": -3.0, \"n\": 1}, \"t_liq\": {\"max\": null, \"mean\": null, \"n\": 0}, \"t_ret\": {\"max\": null, \"mean\": null, \"n\": 0}, \"t_suc\": {\"max\": -8.4, \"mean\": -8.4, \"n\": 1}, \"t_sup\": {\"max\": null, \"mean\": null, \"n\": 0}}}",
 "compare": "exact",
 "cookie": null,
 "emails": [],
 "published": []
 },
 {
-"t": 1791256168.75,
+"t": 1791256186.25,
 "actor": "tech",
 "method": "DELETE",
 "path": "/api/systems/1/gauge-checks/3",
@@ -2638,7 +2718,7 @@
 "published": []
 },
 {
-"t": 1791256172.25,
+"t": 1791256189.75,
 "actor": "tech",
 "method": "DELETE",
 "path": "/api/systems/2/gauge-checks/3",
@@ -2654,7 +2734,7 @@
 "published": []
 },
 {
-"t": 1791256175.75,
+"t": 1791256193.25,
 "actor": "tech",
 "method": "GET",
 "path": "/api/systems/2/gauge-checks",
@@ -2670,7 +2750,7 @@
 "published": []
 },
 {
-"t": 1791256179.25,
+"t": 1791256196.75,
 "actor": "tech",
 "method": "GET",
 "path": "/api/fleet",
@@ -2686,7 +2766,7 @@
 "published": []
 },
 {
-"t": 1791256182.75,
+"t": 1791256200.25,
 "actor": "tech",
 "method": "POST",
 "path": "/api/systems/1/invites",
@@ -2695,7 +2775,7 @@
 "raw": null,
 "status": 200,
 "type": "application/json",
-"answer": "{\"email\": \"new@home.example\", \"emailed\": true, \"expires_at\": \"2026-10-13T03:09:42.750000+00:00\", \"status\": \"invited\", \"url\": \"http://localhost:8000/app/#/invite/<tok1>\"}",
+"answer": "{\"email\": \"new@home.example\", \"emailed\": true, \"expires_at\": \"2026-10-13T03:10:00.250000+00:00\", \"status\": \"invited\", \"url\": \"http://localhost:8000/app/#/invite/<tok1>\"}",
 "compare": "exact",
 "cookie": null,
 "emails": [
@@ -2708,7 +2788,7 @@
 "published": []
 },
 {
-"t": 1791256186.25,
+"t": 1791256203.75,
 "actor": "tech",
 "method": "POST",
 "path": "/api/systems/1/invites",
@@ -2717,7 +2797,7 @@
 "raw": null,
 "status": 200,
 "type": "application/json",
-"answer": "{\"email\": \"new@home.example\", \"emailed\": true, \"expires_at\": \"2026-10-13T03:09:46.250000+00:00\", \"status\": \"invited\", \"url\": \"http://localhost:8000/app/#/invite/<tok2>\"}",
+"answer": "{\"email\": \"new@home.example\", \"emailed\": true, \"expires_at\": \"2026-10-13T03:10:03.750000+00:00\", \"status\": \"invited\", \"url\": \"http://localhost:8000/app/#/invite/<tok2>\"}",
 "compare": "exact",
 "cookie": null,
 "emails": [
@@ -2730,7 +2810,7 @@
 "published": []
 },
 {
-"t": 1791256189.75,
+"t": 1791256207.25,
 "actor": "tech",
 "method": "POST",
 "path": "/api/systems/2/invites",
@@ -2746,7 +2826,7 @@
 "published": []
 },
 {
-"t": 1791256193.25,
+"t": 1791256210.75,
 "actor": "tech",
 "method": "POST",
 "path": "/api/systems/2/invites",
@@ -2762,7 +2842,7 @@
 "published": []
 },
 {
-"t": 1791256196.75,
+"t": 1791256214.25,
 "actor": "tech",
 "method": "POST",
 "path": "/api/systems/2/invites",
@@ -2778,7 +2858,7 @@
 "published": []
 },
 {
-"t": 1791256200.25,
+"t": 1791256217.75,
 "actor": "tech",
 "method": "GET",
 "path": "/api/systems/1/people",
@@ -2787,14 +2867,14 @@
 "raw": null,
 "status": 200,
 "type": "application/json",
-"answer": "{\"invites\": [{\"email\": \"new@home.example\", \"expired\": false, \"expires_at\": \"2026-10-13T03:09:46.250000+00:00\", \"id\": 2, \"role\": \"homeowner\"}], \"members\": [{\"email\": \"owner@home.example\", \"last_login\": null, \"name\": \"Owner\", \"user_id\": 1}, {\"email\": \"spouse@home.example\", \"last_login\": null, \"name\": \"Spouse\", \"user_id\": 2}]}",
+"answer": "{\"invites\": [{\"email\": \"new@home.example\", \"expired\": false, \"expires_at\": \"2026-10-13T03:10:03.750000+00:00\", \"id\": 2, \"role\": \"homeowner\"}], \"members\": [{\"email\": \"owner@home.example\", \"last_login\": null, \"name\": \"Owner\", \"user_id\": 1}, {\"email\": \"spouse@home.example\", \"last_login\": null, \"name\": \"Spouse\", \"user_id\": 2}]}",
 "compare": "exact",
 "cookie": null,
 "emails": [],
 "published": []
 },
 {
-"t": 1791256203.75,
+"t": 1791256221.25,
 "actor": "anon",
 "method": "POST",
 "path": "/api/invites/lookup",
@@ -2810,7 +2890,7 @@
 "published": []
 },
 {
-"t": 1791256207.25,
+"t": 1791256224.75,
 "actor": "anon",
 "method": "POST",
 "path": "/api/invites/lookup",
@@ -2819,14 +2899,14 @@
 "raw": null,
 "status": 200,
 "type": "application/json",
-"answer": "{\"account\": \"Desert Air\", \"email\": \"new@home.example\", \"expires_at\": \"2026-10-13T03:09:46.250000+00:00\", \"has_user\": false, \"role\": \"homeowner\", \"system\": \"Home\"}",
+"answer": "{\"account\": \"Desert Air\", \"email\": \"new@home.example\", \"expires_at\": \"2026-10-13T03:10:03.750000+00:00\", \"has_user\": false, \"role\": \"homeowner\", \"system\": \"Home\"}",
 "compare": "exact",
 "cookie": null,
 "emails": [],
 "published": []
 },
 {
-"t": 1791256210.75,
+"t": 1791256228.25,
 "actor": "newbie",
 "method": "POST",
 "path": "/api/invites/accept",
@@ -2842,7 +2922,7 @@
 "published": []
 },
 {
-"t": 1791256214.25,
+"t": 1791256231.75,
 "actor": "newbie",
 "method": "POST",
 "path": "/api/invites/accept",
@@ -2858,7 +2938,7 @@
 "published": []
 },
 {
-"t": 1791256217.75,
+"t": 1791256235.25,
 "actor": "newbie",
 "method": "GET",
 "path": "/api/auth/me",
@@ -2874,7 +2954,7 @@
 "published": []
 },
 {
-"t": 1791256221.25,
+"t": 1791256238.75,
 "actor": "newbie",
 "method": "GET",
 "path": "/api/systems",
@@ -2890,7 +2970,7 @@
 "published": []
 },
 {
-"t": 1791256224.75,
+"t": 1791256242.25,
 "actor": "anon",
 "method": "POST",
 "path": "/api/invites/accept",
@@ -2906,7 +2986,7 @@
 "published": []
 },
 {
-"t": 1791256228.25,
+"t": 1791256245.75,
 "actor": "tech",
 "method": "POST",
 "path": "/api/systems/1/members/1/reset-link",
@@ -2922,7 +3002,7 @@
 "published": []
 },
 {
-"t": 1791256231.75,
+"t": 1791256249.25,
 "actor": "tech",
 "method": "POST",
 "path": "/api/systems/2/members/2/reset-link",
@@ -2938,7 +3018,7 @@
 "published": []
 },
 {
-"t": 1791256235.25,
+"t": 1791256252.75,
 "actor": "anon",
 "method": "POST",
 "path": "/api/auth/reset",
@@ -2954,7 +3034,7 @@
 "published": []
 },
 {
-"t": 1791256238.75,
+"t": 1791256256.25,
 "actor": "owner",
 "method": "POST",
 "path": "/api/auth/reset",
@@ -2970,7 +3050,7 @@
 "published": []
 },
 {
-"t": 1791256242.25,
+"t": 1791256259.75,
 "actor": "owner",
 "method": "POST",
 "path": "/api/auth/reset",
@@ -2986,7 +3066,7 @@
 "published": []
 },
 {
-"t": 1791256245.75,
+"t": 1791256263.25,
 "actor": "owner",
 "method": "GET",
 "path": "/api/auth/me",
@@ -3002,7 +3082,7 @@
 "published": []
 },
 {
-"t": 1791256249.25,
+"t": 1791256266.75,
 "actor": "anon",
 "method": "POST",
 "path": "/api/auth/forgot",
@@ -3024,7 +3104,7 @@
 "published": []
 },
 {
-"t": 1791256252.75,
+"t": 1791256270.25,
 "actor": "spouse",
 "method": "POST",
 "path": "/api/auth/reset",
@@ -3040,7 +3120,7 @@
 "published": []
 },
 {
-"t": 1791256256.25,
+"t": 1791256273.75,
 "actor": "anon",
 "method": "POST",
 "path": "/api/auth/forgot",
@@ -3056,7 +3136,7 @@
 "published": []
 },
 {
-"t": 1791256259.75,
+"t": 1791256277.25,
 "actor": "anon",
 "method": "POST",
 "path": "/api/auth/forgot",
@@ -3078,7 +3158,7 @@
 "published": []
 },
 {
-"t": 1791256263.25,
+"t": 1791256280.75,
 "actor": "anon",
 "method": "POST",
 "path": "/api/auth/forgot",
@@ -3100,7 +3180,7 @@
 "published": []
 },
 {
-"t": 1791256266.75,
+"t": 1791256284.25,
 "actor": "anon",
 "method": "POST",
 "path": "/api/auth/forgot",
@@ -3116,7 +3196,7 @@
 "published": []
 },
 {
-"t": 1791256270.25,
+"t": 1791256287.75,
 "actor": "tech",
 "method": "DELETE",
 "path": "/api/systems/2/members/1",
@@ -3132,7 +3212,7 @@
 "published": []
 },
 {
-"t": 1791256273.75,
+"t": 1791256291.25,
 "actor": "tech",
 "method": "DELETE",
 "path": "/api/systems/2/members/1",
@@ -3148,7 +3228,7 @@
 "published": []
 },
 {
-"t": 1791256277.25,
+"t": 1791256294.75,
 "actor": "owner",
 "method": "GET",
 "path": "/api/systems",
@@ -3164,7 +3244,7 @@
 "published": []
 },
 {
-"t": 1791256280.75,
+"t": 1791256298.25,
 "actor": "owner",
 "method": "GET",
 "path": "/api/systems/2",
@@ -3180,7 +3260,7 @@
 "published": []
 },
 {
-"t": 1791256284.25,
+"t": 1791256301.75,
 "actor": "owner",
 "method": "GET",
 "path": "/api/fleet",
@@ -3196,7 +3276,7 @@
 "published": []
 },
 {
-"t": 1791256287.75,
+"t": 1791256305.25,
 "actor": "owner",
 "method": "GET",
 "path": "/api/systems/1/latest",
@@ -3205,14 +3285,14 @@
 "raw": null,
 "status": 200,
 "type": "application/json",
-"answer": "{\"derived\": {\"G\": true, \"OB\": true, \"W\": false, \"Y\": true, \"approach\": 6.5, \"ctoa\": 14.9, \"dt\": 18.6, \"elec\": {\"cap_fan_pct\": 90.0, \"cap_fan_uf\": 4.5, \"cap_herm_pct\": 100.0, \"cap_herm_uf\": 45.0, \"comp_a\": 12.3, \"comp_pct_rla\": 88, \"contactor\": true, \"contactor_v\": 0.05, \"fan_a\": 1.1, \"fan_pct_fla\": 79, \"line_v\": 236.4, \"start_ms\": 230, \"start_peak_a\": 58.0}, \"flags\": [{\"code\": \"cap_fan\", \"level\": \"warn\", \"text\": \"Run capacitor fan section measures 4.5 uF, rated 5 uF (\\u00b16 %)\"}, {\"code\": \"room_cold\", \"level\": \"alert\", \"text\": \"Room temperature 44.7 F\"}], \"mode\": \"cooling\", \"notes\": [], \"oat\": 93.9, \"orh\": 12.0, \"p_high\": 361.4, \"p_liq\": 361.4, \"p_low\": 119.5, \"p_tsuc\": null, \"p_vap\": 119.5, \"run_min\": 14.8, \"sat_high\": 108.8, \"sat_low\": 40.2, \"sc\": 8.4, \"sh\": 11.7, \"t_dis\": null, \"t_liq\": 100.4, \"t_ret\": 75.8, \"t_suc\": 51.9, \"t_sup\": 57.2, \"t_tsuc\": null, \"targets\": {\"sc\": {\"hi\": 13.0, \"lo\": 7.0, \"source\": \"nameplate\", \"target\": 10.0}, \"sh\": {\"hi\": 30.0, \"lo\": 3.0, \"source\": \"generic\"}}, \"tstat\": {\"call\": \"cool\", \"call_min\": null, \"cfg_ver\": 4, \"fan\": \"auto\", \"mode\": \"cool\", \"out\": {\"G\": true, \"OB\": true, \"W\": false, \"Y\": true}, \"room\": {\"rh\": 41.0, \"t\": 44.7}, \"source\": \"schedule\", \"sp\": {\"cool\": 75.0, \"heat\": 68.0}, \"wait\": null}}, \"nodes\": {\"electrical\": {\"age\": 697.5, \"data\": {\"cap\": {\"fan\": {\"i\": 0.621, \"v\": 366.1}, \"herm\": {\"i\": 6.295, \"v\": 371.1}}, \"contactor\": true, \"err\": [], \"i\": {\"comp\": 12.34, \"fan\": 1.1}, \"node\": \"electrical\", \"start\": {\"ms\": 230, \"peak_a\": 58.0}, \"v\": {\"contactor\": 0.05, \"line\": 236.4}}, \"fw\": null, \"id\": 2, \"ip\": null, \"node\": \"electrical\", \"online\": false, \"rssi\": null, \"status\": null}, \"indoor\": {\"age\": 697.5, \"data\": {\"air\": {\"dt\": null, \"return\": 75.8, \"supply\": 57.2}, \"err\": [], \"fw\": \"0.2.0\", \"mode\": {\"G\": true, \"OB\": true, \"W\": false, \"Y\": true}, \"node\": \"indoor\", \"rssi\": -55}, \"fw\": \"0.2.0\", \"id\": 6, \"ip\": \"192.168.1.121\", \"node\": \"indoor\", \"online\": false, \"rssi\": -55, \"status\": {\"fw\": \"0.2.0\", \"ip\": \"192.168.1.121\", \"online\": true}}, \"outdoor\": {\"age\": 697.5, \"data\": {\"air\": {\"rh\": 12.0, \"t\": 93.9}, \"err\": [], \"fw\": \"0.2.0\", \"mode\": {\"OB\": true, \"Y\": true}, \"node\": \"outdoor\", \"p\": {\"liq\": 361.4, \"tsuc\": null, \"vap\": 119.5}, \"rssi\": -60, \"t\": {\"dis\": null, \"liq\": 100.4, \"suc\": 51.9, \"tsuc\": null}}, \"fw\": \"0.2.0\", \"id\": 3, \"ip\": \"192.168.1.247\", \"node\": \"outdoor\", \"online\": false, \"rssi\": -60, \"status\": {\"fw\": \"0.2.0\", \"ip\": \"192.168.1.247\", \"mac\": \"AA:BB:CC:DD:EE:01\", \"online\": true, \"rssi\": -60}}, \"thermostat\": {\"age\": 717.6, \"data\": {\"call\": \"cool\", \"call_min\": null, \"cfg_ver\": 4, \"err\": [], \"fan\": \"auto\", \"fw\": \"0.1.0\", \"mode\": \"cool\", \"node\": \"thermostat\", \"out\": {\"G\": true, \"OB\": true, \"W\": false, \"Y\": true}, \"room\": {\"rh\": 41.0, \"t\": 44.7}, \"source\": \"schedule\", \"sp\": {\"cool\": 75.0, \"heat\": 68.0}, \"wait\": null}, \"fw\": \"0.1.0\", \"id\": 1, \"ip\": null, \"node\": \"thermostat\", \"online\": false, \"rssi\": null, \"status\": null}}, \"run_started_at\": \"2026-10-06T02:45:00.037412+00:00\", \"time\": \"2026-10-06T02:59:50.222620+00:00\"}",
+"answer": "{\"derived\": {\"G\": true, \"OB\": true, \"W\": false, \"Y\": true, \"approach\": 6.5, \"ctoa\": 14.9, \"dt\": 18.6, \"elec\": {\"cap_fan_pct\": 90.0, \"cap_fan_uf\": 4.5, \"cap_herm_pct\": 100.0, \"cap_herm_uf\": 45.0, \"comp_a\": 12.3, \"comp_pct_rla\": 88, \"contactor\": true, \"contactor_v\": 0.05, \"fan_a\": 1.1, \"fan_pct_fla\": 79, \"line_v\": 236.4, \"start_ms\": 230, \"start_peak_a\": 58.0}, \"flags\": [{\"code\": \"cap_fan\", \"level\": \"warn\", \"text\": \"Run capacitor fan section measures 4.5 uF, rated 5 uF (\\u00b16 %)\"}, {\"code\": \"room_cold\", \"level\": \"alert\", \"text\": \"Room temperature 44.7 F\"}], \"mode\": \"cooling\", \"notes\": [], \"oat\": 93.9, \"orh\": 12.0, \"p_high\": 361.4, \"p_liq\": 361.4, \"p_low\": 119.5, \"p_tsuc\": null, \"p_vap\": 119.5, \"run_min\": 14.8, \"sat_high\": 108.8, \"sat_low\": 40.2, \"sc\": 8.4, \"sh\": 11.7, \"t_dis\": null, \"t_liq\": 100.4, \"t_ret\": 75.8, \"t_suc\": 51.9, \"t_sup\": 57.2, \"t_tsuc\": null, \"targets\": {\"sc\": {\"hi\": 13.0, \"lo\": 7.0, \"source\": \"nameplate\", \"target\": 10.0}, \"sh\": {\"hi\": 30.0, \"lo\": 3.0, \"source\": \"generic\"}}, \"tstat\": {\"call\": \"cool\", \"call_min\": null, \"cfg_ver\": 4, \"fan\": \"auto\", \"mode\": \"cool\", \"out\": {\"G\": true, \"OB\": true, \"W\": false, \"Y\": true}, \"room\": {\"rh\": 41.0, \"t\": 44.7}, \"source\": \"schedule\", \"sp\": {\"cool\": 75.0, \"heat\": 68.0}, \"wait\": null}}, \"nodes\": {\"electrical\": {\"age\": 715.0, \"data\": {\"cap\": {\"fan\": {\"i\": 0.621, \"v\": 366.1}, \"herm\": {\"i\": 6.295, \"v\": 371.1}}, \"contactor\": true, \"err\": [], \"i\": {\"comp\": 12.34, \"fan\": 1.1}, \"node\": \"electrical\", \"start\": {\"ms\": 230, \"peak_a\": 58.0}, \"v\": {\"contactor\": 0.05, \"line\": 236.4}}, \"fw\": null, \"id\": 2, \"ip\": null, \"node\": \"electrical\", \"online\": false, \"rssi\": null, \"status\": null}, \"indoor\": {\"age\": 715.0, \"data\": {\"air\": {\"dt\": null, \"return\": 75.8, \"supply\": 57.2}, \"err\": [], \"fw\": \"0.2.0\", \"mode\": {\"G\": true, \"OB\": true, \"W\": false, \"Y\": true}, \"node\": \"indoor\", \"rssi\": -55}, \"fw\": \"0.2.0\", \"id\": 6, \"ip\": \"192.168.1.121\", \"node\": \"indoor\", \"online\": false, \"rssi\": -55, \"status\": {\"fw\": \"0.2.0\", \"ip\": \"192.168.1.121\", \"online\": true}}, \"outdoor\": {\"age\": 715.0, \"data\": {\"air\": {\"rh\": 12.0, \"t\": 93.9}, \"err\": [], \"fw\": \"0.2.0\", \"mode\": {\"OB\": true, \"Y\": true}, \"node\": \"outdoor\", \"p\": {\"liq\": 361.4, \"tsuc\": null, \"vap\": 119.5}, \"rssi\": -60, \"t\": {\"dis\": null, \"liq\": 100.4, \"suc\": 51.9, \"tsuc\": null}}, \"fw\": \"0.2.0\", \"id\": 3, \"ip\": \"192.168.1.247\", \"node\": \"outdoor\", \"online\": false, \"rssi\": -60, \"status\": {\"fw\": \"0.2.0\", \"ip\": \"192.168.1.247\", \"mac\": \"AA:BB:CC:DD:EE:01\", \"online\": true, \"rssi\": -60}}, \"thermostat\": {\"age\": 735.1, \"data\": {\"call\": \"cool\", \"call_min\": null, \"cfg_ver\": 4, \"err\": [], \"fan\": \"auto\", \"fw\": \"0.1.0\", \"mode\": \"cool\", \"node\": \"thermostat\", \"out\": {\"G\": true, \"OB\": true, \"W\": false, \"Y\": true}, \"room\": {\"rh\": 41.0, \"t\": 44.7}, \"source\": \"schedule\", \"sp\": {\"cool\": 75.0, \"heat\": 68.0}, \"wait\": null}, \"fw\": \"0.1.0\", \"id\": 1, \"ip\": null, \"node\": \"thermostat\", \"online\": false, \"rssi\": null, \"status\": null}}, \"run_started_at\": \"2026-10-06T02:45:00.037412+00:00\", \"time\": \"2026-10-06T02:59:50.222620+00:00\"}",
 "compare": "exact",
 "cookie": null,
 "emails": [],
 "published": []
 },
 {
-"t": 1791256291.25,
+"t": 1791256308.75,
 "actor": "owner",
 "method": "GET",
 "path": "/api/systems/1/equipment",
@@ -3228,7 +3308,7 @@
 "published": []
 },
 {
-"t": 1791256294.75,
+"t": 1791256312.25,
 "actor": "owner",
 "method": "GET",
 "path": "/api/systems/1/service",
@@ -3244,7 +3324,7 @@
 "published": []
 },
 {
-"t": 1791256298.25,
+"t": 1791256315.75,
 "actor": "owner",
 "method": "GET",
 "path": "/api/systems/1/visits",
@@ -3260,7 +3340,7 @@
 "published": []
 },
 {
-"t": 1791256301.75,
+"t": 1791256319.25,
 "actor": "owner",
 "method": "GET",
 "path": "/api/systems/1/gauge-checks",
@@ -3276,7 +3356,23 @@
 "published": []
 },
 {
-"t": 1791256305.25,
+"t": 1791256322.75,
+"actor": "owner",
+"method": "GET",
+"path": "/api/systems/1/threshold-report",
+"headers": null,
+"body": null,
+"raw": null,
+"status": 403,
+"type": "application/json",
+"answer": "{\"detail\": \"for your contractor only\"}",
+"compare": "exact",
+"cookie": null,
+"emails": [],
+"published": []
+},
+{
+"t": 1791256326.25,
 "actor": "owner",
 "method": "POST",
 "path": "/api/systems/1/gauge-checks",
@@ -3292,7 +3388,7 @@
 "published": []
 },
 {
-"t": 1791256308.75,
+"t": 1791256329.75,
 "actor": "owner",
 "method": "POST",
 "path": "/api/systems/1/service/items/filter/done",
@@ -3308,7 +3404,7 @@
 "published": []
 },
 {
-"t": 1791256312.25,
+"t": 1791256333.25,
 "actor": "owner",
 "method": "POST",
 "path": "/api/systems/1/service/items/tuneup/done",
@@ -3324,7 +3420,7 @@
 "published": []
 },
 {
-"t": 1791256315.75,
+"t": 1791256336.75,
 "actor": "owner",
 "method": "POST",
 "path": "/api/systems/1/service/items/filter/done",
@@ -3340,7 +3436,7 @@
 "published": []
 },
 {
-"t": 1791256319.25,
+"t": 1791256340.25,
 "actor": "owner",
 "method": "POST",
 "path": "/api/systems/1/service/items/filter/done",
@@ -3356,7 +3452,7 @@
 "published": []
 },
 {
-"t": 1791256322.75,
+"t": 1791256343.75,
 "actor": "owner",
 "method": "PUT",
 "path": "/api/systems/1/thermostat",
@@ -3365,7 +3461,7 @@
 "raw": null,
 "status": 200,
 "type": "application/json",
-"answer": "{\"applied\": false, \"device\": {\"age\": 752.6, \"fw\": \"0.1.0\", \"id\": 1, \"ip\": null, \"node\": \"thermostat\", \"online\": false, \"rssi\": null, \"status\": null}, \"limits\": {\"aux_delay_s\": [0, 3600], \"aux_droop_f\": [1.0, 10.0], \"aux_lockout_f\": [-20.0, 60.0], \"circulate_min_h\": [0, 60], \"comp_lockout_f\": [-30.0, 50.0], \"differential\": [0.5, 4.0], \"fan_purge_s\": [0, 300], \"max_starts_h\": [2, 8], \"min_off_s\": [120, 1800], \"min_on_s\": [60, 1800]}, \"now\": {\"cool\": 78, \"heat\": 66, \"next_change\": \"2026-10-10T08:00:00\", \"source\": \"schedule\"}, \"present\": true, \"report\": {\"call\": \"cool\", \"call_min\": null, \"cfg_ver\": 4, \"err\": [], \"fan\": \"auto\", \"fw\": \"0.1.0\", \"mode\": \"cool\", \"node\": \"thermostat\", \"out\": {\"G\": true, \"OB\": true, \"W\": false, \"Y\": true}, \"room\": {\"rh\": 41.0, \"t\": 44.7}, \"source\": \"schedule\", \"sp\": {\"cool\": 75.0, \"heat\": 68.0}, \"wait\": null}, \"sent\": true, \"settings\": {\"cool_sp\": 74.0, \"fan\": \"auto\", \"heat_sp\": 70.0, \"hold\": null, \"mode\": \"heat\", \"schedule\": [{\"at\": \"08:00\", \"cool\": 78, \"days\": [5, 6], \"heat\": 66}]}, \"tech\": {\"aux_delay_s\": 600, \"aux_droop_f\": 2.0, \"aux_lockout_f\": 35.0, \"circulate_min_h\": 15, \"comp_lockout_f\": 5.0, \"differential\": 1.0, \"fan_purge_s\": 90, \"has_aux\": true, \"heat_pump\": true, \"max_starts_h\": 4, \"min_off_s\": 300, \"min_on_s\": 300, \"ob_energized\": \"cool\", \"service_pin\": \"0000\", \"tz\": \"America/Phoenix\"}, \"updated_at\": \"2026-10-06T03:12:02.750000+00:00\", \"version\": 13}",
+"answer": "{\"applied\": false, \"device\": {\"age\": 773.6, \"fw\": \"0.1.0\", \"id\": 1, \"ip\": null, \"node\": \"thermostat\", \"online\": false, \"rssi\": null, \"status\": null}, \"limits\": {\"aux_delay_s\": [0, 3600], \"aux_droop_f\": [1.0, 10.0], \"aux_lockout_f\": [-20.0, 60.0], \"circulate_min_h\": [0, 60], \"comp_lockout_f\": [-30.0, 50.0], \"differential\": [0.5, 4.0], \"fan_purge_s\": [0, 300], \"max_starts_h\": [2, 8], \"min_off_s\": [120, 1800], \"min_on_s\": [60, 1800]}, \"now\": {\"cool\": 78, \"heat\": 66, \"next_change\": \"2026-10-10T08:00:00\", \"source\": \"schedule\"}, \"present\": true, \"report\": {\"call\": \"cool\", \"call_min\": null, \"cfg_ver\": 4, \"err\": [], \"fan\": \"auto\", \"fw\": \"0.1.0\", \"mode\": \"cool\", \"node\": \"thermostat\", \"out\": {\"G\": true, \"OB\": true, \"W\": false, \"Y\": true}, \"room\": {\"rh\": 41.0, \"t\": 44.7}, \"source\": \"schedule\", \"sp\": {\"cool\": 75.0, \"heat\": 68.0}, \"wait\": null}, \"sent\": true, \"settings\": {\"cool_sp\": 74.0, \"fan\": \"auto\", \"heat_sp\": 70.0, \"hold\": null, \"mode\": \"heat\", \"schedule\": [{\"at\": \"08:00\", \"cool\": 78, \"days\": [5, 6], \"heat\": 66}]}, \"tech\": {\"aux_delay_s\": 600, \"aux_droop_f\": 2.0, \"aux_lockout_f\": 35.0, \"circulate_min_h\": 15, \"comp_lockout_f\": 5.0, \"differential\": 1.0, \"fan_purge_s\": 90, \"has_aux\": true, \"heat_pump\": true, \"max_starts_h\": 4, \"min_off_s\": 300, \"min_on_s\": 300, \"ob_energized\": \"cool\", \"service_pin\": \"0000\", \"tz\": \"America/Phoenix\"}, \"updated_at\": \"2026-10-06T03:12:23.750000+00:00\", \"version\": 13}",
 "compare": "exact",
 "cookie": null,
 "emails": [],
@@ -3378,7 +3474,7 @@
 ]
 },
 {
-"t": 1791256326.25,
+"t": 1791256347.25,
 "actor": "owner",
 "method": "PUT",
 "path": "/api/systems/1/thermostat/tech",
@@ -3394,7 +3490,7 @@
 "published": []
 },
 {
-"t": 1791256329.75,
+"t": 1791256350.75,
 "actor": "owner",
 "method": "POST",
 "path": "/api/systems/1/alerts/1/ack",
@@ -3410,7 +3506,7 @@
 "published": []
 },
 {
-"t": 1791256333.25,
+"t": 1791256354.25,
 "actor": "owner",
 "method": "GET",
 "path": "/api/account/people",
@@ -3426,7 +3522,7 @@
 "published": []
 },
 {
-"t": 1791256336.75,
+"t": 1791256357.75,
 "actor": "owner",
 "method": "POST",
 "path": "/api/account/invites",
@@ -3442,7 +3538,7 @@
 "published": []
 },
 {
-"t": 1791256340.25,
+"t": 1791256361.25,
 "actor": "owner",
 "method": "POST",
 "path": "/api/auth/password",
@@ -3458,7 +3554,7 @@
 "published": []
 },
 {
-"t": 1791256343.75,
+"t": 1791256364.75,
 "actor": "owner",
 "method": "POST",
 "path": "/api/auth/password",
@@ -3474,7 +3570,7 @@
 "published": []
 },
 {
-"t": 1791256347.25,
+"t": 1791256368.25,
 "actor": "owner",
 "method": "POST",
 "path": "/api/auth/password",
@@ -3490,7 +3586,7 @@
 "published": []
 },
 {
-"t": 1791256350.75,
+"t": 1791256371.75,
 "actor": "owner",
 "method": "POST",
 "path": "/api/auth/logout",
@@ -3506,7 +3602,7 @@
 "published": []
 },
 {
-"t": 1791256354.25,
+"t": 1791256375.25,
 "actor": "owner",
 "method": "GET",
 "path": "/api/auth/me",
@@ -3522,7 +3618,7 @@
 "published": []
 },
 {
-"t": 1791256357.75,
+"t": 1791256378.75,
 "actor": "owner",
 "method": "POST",
 "path": "/api/auth/login",
@@ -3538,7 +3634,7 @@
 "published": []
 },
 {
-"t": 1791256361.25,
+"t": 1791256382.25,
 "actor": "tech",
 "method": "POST",
 "path": "/api/account/invites",
@@ -3547,7 +3643,7 @@
 "raw": null,
 "status": 200,
 "type": "application/json",
-"answer": "{\"email\": \"mate@desertair.example\", \"emailed\": true, \"expires_at\": \"2026-10-13T03:12:41.250000+00:00\", \"status\": \"invited\", \"url\": \"http://localhost:8000/app/#/invite/<tok7>\"}",
+"answer": "{\"email\": \"mate@desertair.example\", \"emailed\": true, \"expires_at\": \"2026-10-13T03:13:02.250000+00:00\", \"status\": \"invited\", \"url\": \"http://localhost:8000/app/#/invite/<tok7>\"}",
 "compare": "exact",
 "cookie": null,
 "emails": [
@@ -3560,7 +3656,7 @@
 "published": []
 },
 {
-"t": 1791256364.75,
+"t": 1791256385.75,
 "actor": "mate",
 "method": "POST",
 "path": "/api/invites/accept",
@@ -3576,7 +3672,7 @@
 "published": []
 },
 {
-"t": 1791256368.25,
+"t": 1791256389.25,
 "actor": "mate",
 "method": "GET",
 "path": "/api/fleet",
@@ -3592,7 +3688,7 @@
 "published": []
 },
 {
-"t": 1791256371.75,
+"t": 1791256392.75,
 "actor": "tech",
 "method": "POST",
 "path": "/api/account/invites",
@@ -3601,7 +3697,7 @@
 "raw": null,
 "status": 200,
 "type": "application/json",
-"answer": "{\"email\": \"later@desertair.example\", \"emailed\": true, \"expires_at\": \"2026-10-13T03:12:51.750000+00:00\", \"status\": \"invited\", \"url\": \"http://localhost:8000/app/#/invite/<tok8>\"}",
+"answer": "{\"email\": \"later@desertair.example\", \"emailed\": true, \"expires_at\": \"2026-10-13T03:13:12.750000+00:00\", \"status\": \"invited\", \"url\": \"http://localhost:8000/app/#/invite/<tok8>\"}",
 "compare": "exact",
 "cookie": null,
 "emails": [
@@ -3614,7 +3710,7 @@
 "published": []
 },
 {
-"t": 1791256375.25,
+"t": 1791256396.25,
 "actor": "tech",
 "method": "POST",
 "path": "/api/account/invites",
@@ -3630,7 +3726,7 @@
 "published": []
 },
 {
-"t": 1791256378.75,
+"t": 1791256399.75,
 "actor": "tech",
 "method": "GET",
 "path": "/api/account/people",
@@ -3639,14 +3735,14 @@
 "raw": null,
 "status": 200,
 "type": "application/json",
-"answer": "{\"invites\": [{\"email\": \"later@desertair.example\", \"expired\": false, \"expires_at\": \"2026-10-13T03:12:51.750000+00:00\", \"id\": 4, \"role\": \"contractor\"}], \"users\": [{\"email\": \"mate@desertair.example\", \"last_login\": \"2026-10-06T03:12:44.750000+00:00\", \"name\": null, \"user_id\": 6}, {\"email\": \"tech@desertair.example\", \"last_login\": \"2026-10-06T03:01:18.750000+00:00\", \"name\": \"Tech\", \"user_id\": 3}]}",
+"answer": "{\"invites\": [{\"email\": \"later@desertair.example\", \"expired\": false, \"expires_at\": \"2026-10-13T03:13:12.750000+00:00\", \"id\": 4, \"role\": \"contractor\"}], \"users\": [{\"email\": \"mate@desertair.example\", \"last_login\": \"2026-10-06T03:13:05.750000+00:00\", \"name\": null, \"user_id\": 6}, {\"email\": \"tech@desertair.example\", \"last_login\": \"2026-10-06T03:01:18.750000+00:00\", \"name\": \"Tech\", \"user_id\": 3}]}",
 "compare": "exact",
 "cookie": null,
 "emails": [],
 "published": []
 },
 {
-"t": 1791256382.25,
+"t": 1791256403.25,
 "actor": "key2",
 "method": "DELETE",
 "path": "/api/invites/1",
@@ -3662,7 +3758,7 @@
 "published": []
 },
 {
-"t": 1791256385.75,
+"t": 1791256406.75,
 "actor": "tech",
 "method": "DELETE",
 "path": "/api/invites/99999",
@@ -3678,7 +3774,7 @@
 "published": []
 },
 {
-"t": 1791256389.25,
+"t": 1791256410.25,
 "actor": "tech",
 "method": "DELETE",
 "path": "/api/account/users/6",
@@ -3694,7 +3790,7 @@
 "published": []
 },
 {
-"t": 1791256392.75,
+"t": 1791256413.75,
 "actor": "tech",
 "method": "DELETE",
 "path": "/api/account/users/3",
@@ -3710,7 +3806,7 @@
 "published": []
 },
 {
-"t": 1791256396.25,
+"t": 1791256417.25,
 "actor": "tech",
 "method": "DELETE",
 "path": "/api/account/users/7",
@@ -3726,7 +3822,7 @@
 "published": []
 },
 {
-"t": 1791256399.75,
+"t": 1791256420.75,
 "actor": "mate",
 "method": "GET",
 "path": "/api/auth/me",
@@ -3742,7 +3838,7 @@
 "published": []
 },
 {
-"t": 1791256403.25,
+"t": 1791256424.25,
 "actor": "tech",
 "method": "GET",
 "path": "/api/account/people",
@@ -3751,14 +3847,14 @@
 "raw": null,
 "status": 200,
 "type": "application/json",
-"answer": "{\"invites\": [{\"email\": \"later@desertair.example\", \"expired\": false, \"expires_at\": \"2026-10-13T03:12:51.750000+00:00\", \"id\": 4, \"role\": \"contractor\"}], \"users\": [{\"email\": \"tech@desertair.example\", \"last_login\": \"2026-10-06T03:01:18.750000+00:00\", \"name\": \"Tech\", \"user_id\": 3}]}",
+"answer": "{\"invites\": [{\"email\": \"later@desertair.example\", \"expired\": false, \"expires_at\": \"2026-10-13T03:13:12.750000+00:00\", \"id\": 4, \"role\": \"contractor\"}], \"users\": [{\"email\": \"tech@desertair.example\", \"last_login\": \"2026-10-06T03:01:18.750000+00:00\", \"name\": \"Tech\", \"user_id\": 3}]}",
 "compare": "exact",
 "cookie": null,
 "emails": [],
 "published": []
 },
 {
-"t": 1791256406.75,
+"t": 1791256427.75,
 "actor": "tech",
 "method": "DELETE",
 "path": "/api/invites/4",
@@ -3774,7 +3870,7 @@
 "published": []
 },
 {
-"t": 1791256410.25,
+"t": 1791256431.25,
 "actor": "tech",
 "method": "GET",
 "path": "/api/account/people",
@@ -3790,7 +3886,7 @@
 "published": []
 },
 {
-"t": 1791256413.75,
+"t": 1791256434.75,
 "actor": "boss",
 "method": "POST",
 "path": "/api/auth/login",
@@ -3806,7 +3902,7 @@
 "published": []
 },
 {
-"t": 1791256417.25,
+"t": 1791256438.25,
 "actor": "boss",
 "method": "DELETE",
 "path": "/api/account/users/3",
@@ -3816,102 +3912,6 @@
 "status": 404,
 "type": "application/json",
 "answer": "{\"detail\": \"no such teammate\"}",
-"compare": "exact",
-"cookie": null,
-"emails": [],
-"published": []
-},
-{
-"t": 1791256420.75,
-"actor": "anon",
-"method": "POST",
-"path": "/api/auth/login",
-"headers": null,
-"body": "{\"email\": \"spouse@home.example\", \"password\": \"wrong guess here\"}",
-"raw": null,
-"status": 401,
-"type": "application/json",
-"answer": "{\"detail\": \"Email or password is not right.\"}",
-"compare": "exact",
-"cookie": null,
-"emails": [],
-"published": []
-},
-{
-"t": 1791256424.25,
-"actor": "anon",
-"method": "POST",
-"path": "/api/auth/login",
-"headers": null,
-"body": "{\"email\": \"spouse@home.example\", \"password\": \"wrong guess here\"}",
-"raw": null,
-"status": 401,
-"type": "application/json",
-"answer": "{\"detail\": \"Email or password is not right.\"}",
-"compare": "exact",
-"cookie": null,
-"emails": [],
-"published": []
-},
-{
-"t": 1791256427.75,
-"actor": "anon",
-"method": "POST",
-"path": "/api/auth/login",
-"headers": null,
-"body": "{\"email\": \"spouse@home.example\", \"password\": \"wrong guess here\"}",
-"raw": null,
-"status": 401,
-"type": "application/json",
-"answer": "{\"detail\": \"Email or password is not right.\"}",
-"compare": "exact",
-"cookie": null,
-"emails": [],
-"published": []
-},
-{
-"t": 1791256431.25,
-"actor": "anon",
-"method": "POST",
-"path": "/api/auth/login",
-"headers": null,
-"body": "{\"email\": \"spouse@home.example\", \"password\": \"wrong guess here\"}",
-"raw": null,
-"status": 401,
-"type": "application/json",
-"answer": "{\"detail\": \"Email or password is not right.\"}",
-"compare": "exact",
-"cookie": null,
-"emails": [],
-"published": []
-},
-{
-"t": 1791256434.75,
-"actor": "anon",
-"method": "POST",
-"path": "/api/auth/login",
-"headers": null,
-"body": "{\"email\": \"spouse@home.example\", \"password\": \"wrong guess here\"}",
-"raw": null,
-"status": 401,
-"type": "application/json",
-"answer": "{\"detail\": \"Email or password is not right.\"}",
-"compare": "exact",
-"cookie": null,
-"emails": [],
-"published": []
-},
-{
-"t": 1791256438.25,
-"actor": "anon",
-"method": "POST",
-"path": "/api/auth/login",
-"headers": null,
-"body": "{\"email\": \"spouse@home.example\", \"password\": \"wrong guess here\"}",
-"raw": null,
-"status": 401,
-"type": "application/json",
-"answer": "{\"detail\": \"Email or password is not right.\"}",
 "compare": "exact",
 "cookie": null,
 "emails": [],
@@ -3951,6 +3951,102 @@
 },
 {
 "t": 1791256448.75,
+"actor": "anon",
+"method": "POST",
+"path": "/api/auth/login",
+"headers": null,
+"body": "{\"email\": \"spouse@home.example\", \"password\": \"wrong guess here\"}",
+"raw": null,
+"status": 401,
+"type": "application/json",
+"answer": "{\"detail\": \"Email or password is not right.\"}",
+"compare": "exact",
+"cookie": null,
+"emails": [],
+"published": []
+},
+{
+"t": 1791256452.25,
+"actor": "anon",
+"method": "POST",
+"path": "/api/auth/login",
+"headers": null,
+"body": "{\"email\": \"spouse@home.example\", \"password\": \"wrong guess here\"}",
+"raw": null,
+"status": 401,
+"type": "application/json",
+"answer": "{\"detail\": \"Email or password is not right.\"}",
+"compare": "exact",
+"cookie": null,
+"emails": [],
+"published": []
+},
+{
+"t": 1791256455.75,
+"actor": "anon",
+"method": "POST",
+"path": "/api/auth/login",
+"headers": null,
+"body": "{\"email\": \"spouse@home.example\", \"password\": \"wrong guess here\"}",
+"raw": null,
+"status": 401,
+"type": "application/json",
+"answer": "{\"detail\": \"Email or password is not right.\"}",
+"compare": "exact",
+"cookie": null,
+"emails": [],
+"published": []
+},
+{
+"t": 1791256459.25,
+"actor": "anon",
+"method": "POST",
+"path": "/api/auth/login",
+"headers": null,
+"body": "{\"email\": \"spouse@home.example\", \"password\": \"wrong guess here\"}",
+"raw": null,
+"status": 401,
+"type": "application/json",
+"answer": "{\"detail\": \"Email or password is not right.\"}",
+"compare": "exact",
+"cookie": null,
+"emails": [],
+"published": []
+},
+{
+"t": 1791256462.75,
+"actor": "anon",
+"method": "POST",
+"path": "/api/auth/login",
+"headers": null,
+"body": "{\"email\": \"spouse@home.example\", \"password\": \"wrong guess here\"}",
+"raw": null,
+"status": 401,
+"type": "application/json",
+"answer": "{\"detail\": \"Email or password is not right.\"}",
+"compare": "exact",
+"cookie": null,
+"emails": [],
+"published": []
+},
+{
+"t": 1791256466.25,
+"actor": "anon",
+"method": "POST",
+"path": "/api/auth/login",
+"headers": null,
+"body": "{\"email\": \"spouse@home.example\", \"password\": \"wrong guess here\"}",
+"raw": null,
+"status": 401,
+"type": "application/json",
+"answer": "{\"detail\": \"Email or password is not right.\"}",
+"compare": "exact",
+"cookie": null,
+"emails": [],
+"published": []
+},
+{
+"t": 1791256469.75,
 "actor": "spouse",
 "method": "POST",
 "path": "/api/auth/login",
@@ -3966,7 +4062,7 @@
 "published": []
 },
 {
-"t": 1791256808.75,
+"t": 1791256829.75,
 "actor": "tech",
 "method": "GET",
 "path": "/api/auth/me",
@@ -3982,7 +4078,7 @@
 "published": []
 },
 {
-"t": 1793935208.75,
+"t": 1793935229.75,
 "actor": "owner",
 "method": "GET",
 "path": "/api/auth/me",
@@ -3998,7 +4094,7 @@
 "published": []
 },
 {
-"t": 1793935209.75,
+"t": 1793935230.75,
 "actor": "tech",
 "method": "GET",
 "path": "/api/systems",
@@ -4014,7 +4110,7 @@
 "published": []
 },
 {
-"t": 1793935213.25,
+"t": 1793935234.25,
 "actor": "key1",
 "method": "GET",
 "path": "/api/systems/1/latest",
@@ -4023,14 +4119,14 @@
 "raw": null,
 "status": 200,
 "type": "application/json",
-"answer": "{\"derived\": {\"G\": true, \"OB\": true, \"W\": false, \"Y\": true, \"approach\": 6.5, \"ctoa\": 14.9, \"dt\": 18.6, \"elec\": {\"cap_fan_pct\": 90.0, \"cap_fan_uf\": 4.5, \"cap_herm_pct\": 100.0, \"cap_herm_uf\": 45.0, \"comp_a\": 12.3, \"comp_pct_rla\": 88, \"contactor\": true, \"contactor_v\": 0.05, \"fan_a\": 1.1, \"fan_pct_fla\": 79, \"line_v\": 236.4, \"start_ms\": 230, \"start_peak_a\": 58.0}, \"flags\": [{\"code\": \"cap_fan\", \"level\": \"warn\", \"text\": \"Run capacitor fan section measures 4.5 uF, rated 5 uF (\\u00b16 %)\"}, {\"code\": \"room_cold\", \"level\": \"alert\", \"text\": \"Room temperature 44.7 F\"}], \"mode\": \"cooling\", \"notes\": [], \"oat\": 93.9, \"orh\": 12.0, \"p_high\": 361.4, \"p_liq\": 361.4, \"p_low\": 119.5, \"p_tsuc\": null, \"p_vap\": 119.5, \"run_min\": 14.8, \"sat_high\": 108.8, \"sat_low\": 40.2, \"sc\": 8.4, \"sh\": 11.7, \"t_dis\": null, \"t_liq\": 100.4, \"t_ret\": 75.8, \"t_suc\": 51.9, \"t_sup\": 57.2, \"t_tsuc\": null, \"targets\": {\"sc\": {\"hi\": 13.0, \"lo\": 7.0, \"source\": \"nameplate\", \"target\": 10.0}, \"sh\": {\"hi\": 30.0, \"lo\": 3.0, \"source\": \"generic\"}}, \"tstat\": {\"call\": \"cool\", \"call_min\": null, \"cfg_ver\": 4, \"fan\": \"auto\", \"mode\": \"cool\", \"out\": {\"G\": true, \"OB\": true, \"W\": false, \"Y\": true}, \"room\": {\"rh\": 41.0, \"t\": 44.7}, \"source\": \"schedule\", \"sp\": {\"cool\": 75.0, \"heat\": 68.0}, \"wait\": null}}, \"nodes\": {\"electrical\": {\"age\": 2679623.0, \"data\": {\"cap\": {\"fan\": {\"i\": 0.621, \"v\": 366.1}, \"herm\": {\"i\": 6.295, \"v\": 371.1}}, \"contactor\": true, \"err\": [], \"i\": {\"comp\": 12.34, \"fan\": 1.1}, \"node\": \"electrical\", \"start\": {\"ms\": 230, \"peak_a\": 58.0}, \"v\": {\"contactor\": 0.05, \"line\": 236.4}}, \"fw\": null, \"id\": 2, \"ip\": null, \"node\": \"electrical\", \"online\": false, \"rssi\": null, \"status\": null}, \"indoor\": {\"age\": 2679623.0, \"data\": {\"air\": {\"dt\": null, \"return\": 75.8, \"supply\": 57.2}, \"err\": [], \"fw\": \"0.2.0\", \"mode\": {\"G\": true, \"OB\": true, \"W\": false, \"Y\": true}, \"node\": \"indoor\", \"rssi\": -55}, \"fw\": \"0.2.0\", \"id\": 6, \"ip\": \"192.168.1.121\", \"node\": \"indoor\", \"online\": false, \"rssi\": -55, \"status\": {\"fw\": \"0.2.0\", \"ip\": \"192.168.1.121\", \"online\": true}}, \"outdoor\": {\"age\": 2679623.0, \"data\": {\"air\": {\"rh\": 12.0, \"t\": 93.9}, \"err\": [], \"fw\": \"0.2.0\", \"mode\": {\"OB\": true, \"Y\": true}, \"node\": \"outdoor\", \"p\": {\"liq\": 361.4, \"tsuc\": null, \"vap\": 119.5}, \"rssi\": -60, \"t\": {\"dis\": null, \"liq\": 100.4, \"suc\": 51.9, \"tsuc\": null}}, \"fw\": \"0.2.0\", \"id\": 3, \"ip\": \"192.168.1.247\", \"node\": \"outdoor\", \"online\": false, \"rssi\": -60, \"status\": {\"fw\": \"0.2.0\", \"ip\": \"192.168.1.247\", \"mac\": \"AA:BB:CC:DD:EE:01\", \"online\": true, \"rssi\": -60}}, \"thermostat\": {\"age\": 2679643.1, \"data\": {\"call\": \"cool\", \"call_min\": null, \"cfg_ver\": 4, \"err\": [], \"fan\": \"auto\", \"fw\": \"0.1.0\", \"mode\": \"cool\", \"node\": \"thermostat\", \"out\": {\"G\": true, \"OB\": true, \"W\": false, \"Y\": true}, \"room\": {\"rh\": 41.0, \"t\": 44.7}, \"source\": \"schedule\", \"sp\": {\"cool\": 75.0, \"heat\": 68.0}, \"wait\": null}, \"fw\": \"0.1.0\", \"id\": 1, \"ip\": null, \"node\": \"thermostat\", \"online\": false, \"rssi\": null, \"status\": null}}, \"run_started_at\": \"2026-10-06T02:45:00.037412+00:00\", \"time\": \"2026-10-06T02:59:50.222620+00:00\"}",
+"answer": "{\"derived\": {\"G\": true, \"OB\": true, \"W\": false, \"Y\": true, \"approach\": 6.5, \"ctoa\": 14.9, \"dt\": 18.6, \"elec\": {\"cap_fan_pct\": 90.0, \"cap_fan_uf\": 4.5, \"cap_herm_pct\": 100.0, \"cap_herm_uf\": 45.0, \"comp_a\": 12.3, \"comp_pct_rla\": 88, \"contactor\": true, \"contactor_v\": 0.05, \"fan_a\": 1.1, \"fan_pct_fla\": 79, \"line_v\": 236.4, \"start_ms\": 230, \"start_peak_a\": 58.0}, \"flags\": [{\"code\": \"cap_fan\", \"level\": \"warn\", \"text\": \"Run capacitor fan section measures 4.5 uF, rated 5 uF (\\u00b16 %)\"}, {\"code\": \"room_cold\", \"level\": \"alert\", \"text\": \"Room temperature 44.7 F\"}], \"mode\": \"cooling\", \"notes\": [], \"oat\": 93.9, \"orh\": 12.0, \"p_high\": 361.4, \"p_liq\": 361.4, \"p_low\": 119.5, \"p_tsuc\": null, \"p_vap\": 119.5, \"run_min\": 14.8, \"sat_high\": 108.8, \"sat_low\": 40.2, \"sc\": 8.4, \"sh\": 11.7, \"t_dis\": null, \"t_liq\": 100.4, \"t_ret\": 75.8, \"t_suc\": 51.9, \"t_sup\": 57.2, \"t_tsuc\": null, \"targets\": {\"sc\": {\"hi\": 13.0, \"lo\": 7.0, \"source\": \"nameplate\", \"target\": 10.0}, \"sh\": {\"hi\": 30.0, \"lo\": 3.0, \"source\": \"generic\"}}, \"tstat\": {\"call\": \"cool\", \"call_min\": null, \"cfg_ver\": 4, \"fan\": \"auto\", \"mode\": \"cool\", \"out\": {\"G\": true, \"OB\": true, \"W\": false, \"Y\": true}, \"room\": {\"rh\": 41.0, \"t\": 44.7}, \"source\": \"schedule\", \"sp\": {\"cool\": 75.0, \"heat\": 68.0}, \"wait\": null}}, \"nodes\": {\"electrical\": {\"age\": 2679644.0, \"data\": {\"cap\": {\"fan\": {\"i\": 0.621, \"v\": 366.1}, \"herm\": {\"i\": 6.295, \"v\": 371.1}}, \"contactor\": true, \"err\": [], \"i\": {\"comp\": 12.34, \"fan\": 1.1}, \"node\": \"electrical\", \"start\": {\"ms\": 230, \"peak_a\": 58.0}, \"v\": {\"contactor\": 0.05, \"line\": 236.4}}, \"fw\": null, \"id\": 2, \"ip\": null, \"node\": \"electrical\", \"online\": false, \"rssi\": null, \"status\": null}, \"indoor\": {\"age\": 2679644.0, \"data\": {\"air\": {\"dt\": null, \"return\": 75.8, \"supply\": 57.2}, \"err\": [], \"fw\": \"0.2.0\", \"mode\": {\"G\": true, \"OB\": true, \"W\": false, \"Y\": true}, \"node\": \"indoor\", \"rssi\": -55}, \"fw\": \"0.2.0\", \"id\": 6, \"ip\": \"192.168.1.121\", \"node\": \"indoor\", \"online\": false, \"rssi\": -55, \"status\": {\"fw\": \"0.2.0\", \"ip\": \"192.168.1.121\", \"online\": true}}, \"outdoor\": {\"age\": 2679644.0, \"data\": {\"air\": {\"rh\": 12.0, \"t\": 93.9}, \"err\": [], \"fw\": \"0.2.0\", \"mode\": {\"OB\": true, \"Y\": true}, \"node\": \"outdoor\", \"p\": {\"liq\": 361.4, \"tsuc\": null, \"vap\": 119.5}, \"rssi\": -60, \"t\": {\"dis\": null, \"liq\": 100.4, \"suc\": 51.9, \"tsuc\": null}}, \"fw\": \"0.2.0\", \"id\": 3, \"ip\": \"192.168.1.247\", \"node\": \"outdoor\", \"online\": false, \"rssi\": -60, \"status\": {\"fw\": \"0.2.0\", \"ip\": \"192.168.1.247\", \"mac\": \"AA:BB:CC:DD:EE:01\", \"online\": true, \"rssi\": -60}}, \"thermostat\": {\"age\": 2679664.1, \"data\": {\"call\": \"cool\", \"call_min\": null, \"cfg_ver\": 4, \"err\": [], \"fan\": \"auto\", \"fw\": \"0.1.0\", \"mode\": \"cool\", \"node\": \"thermostat\", \"out\": {\"G\": true, \"OB\": true, \"W\": false, \"Y\": true}, \"room\": {\"rh\": 41.0, \"t\": 44.7}, \"source\": \"schedule\", \"sp\": {\"cool\": 75.0, \"heat\": 68.0}, \"wait\": null}, \"fw\": \"0.1.0\", \"id\": 1, \"ip\": null, \"node\": \"thermostat\", \"online\": false, \"rssi\": null, \"status\": null}}, \"run_started_at\": \"2026-10-06T02:45:00.037412+00:00\", \"time\": \"2026-10-06T02:59:50.222620+00:00\"}",
 "compare": "exact",
 "cookie": null,
 "emails": [],
 "published": []
 },
 {
-"t": 1793935216.75,
+"t": 1793935237.75,
 "actor": "key1",
 "method": "GET",
 "path": "/api/systems/1/summary",
@@ -4046,7 +4142,7 @@
 "published": []
 },
 {
-"t": 1793935220.25,
+"t": 1793935241.25,
 "actor": "key1",
 "method": "GET",
 "path": "/api/fleet",

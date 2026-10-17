@@ -390,6 +390,7 @@ public sealed class ApiServer
         Route(app, "GET", "/api/systems/{system_id}/visits", ListVisits);
         Route(app, "POST", "/api/systems/{system_id}/visits", AddVisit, body: true);
         Route(app, "DELETE", "/api/systems/{system_id}/visits/{visit_id}", DeleteVisit);
+        Route(app, "GET", "/api/systems/{system_id}/threshold-report", ThresholdReport);
         Route(app, "GET", "/api/systems/{system_id}/gauge-checks", ListGaugeChecks);
         Route(app, "POST", "/api/systems/{system_id}/gauge-checks", AddGaugeCheck, body: true);
         Route(app, "DELETE", "/api/systems/{system_id}/gauge-checks/{check_id}", DeleteGaugeCheck);
@@ -1299,6 +1300,21 @@ public sealed class ApiServer
         r.S.ServiceVisits.Remove(v);
         r.S.SaveChanges();
         return new JsonObject { ["ok"] = true };
+    }
+
+    /// <summary>Steady-cooling spread of superheat, subcooling, delta-T, condensing over ambient and approach
+    /// over the last `days`, next to the alert limits (Report.cs), and alerts raised by code.</summary>
+    object? ThresholdReport(Req r)
+    {
+        var system = TechSystem(r);
+        var daysNode = Validate.Query(r.Query("days"), Field.Float("days", gt: 0, le: 31), JsonValue.Create(14.0));
+        var since = Db.UtcNow() - Minutes(Py.NumberOf(daysNode)!.Value.V * 24 * 60);
+        var rows = r.S.Snapshots.Where(x => x.SystemId == system.Id && x.Time >= since && x.Mode == "cooling").OrderBy(x => x.Time)
+                    .Select(x => new { x.Time, x.Data }).AsEnumerable()
+                    .Select(x => ((x.Time - DateTime.UnixEpoch).Ticks / 1e7, Load(x.Data)));
+        var counts = r.S.Alerts.Where(a => a.SystemId == system.Id && a.RaisedAt >= since).GroupBy(a => a.Code)
+                      .Select(g => new { g.Key, N = g.Count() }).ToDictionary(g => g.Key, g => g.N);
+        return Report.Build(rows, r.S.Equipment.Find(system.Id)?.Info(), counts, daysNode);
     }
 
     // ---------- gauge checks (phase 5: diagnostics vs the technician's gauges) ----------
