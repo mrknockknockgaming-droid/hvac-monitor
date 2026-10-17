@@ -24,7 +24,7 @@ $("#theme").addEventListener("click", function () {
 var S = {
   key: load("fs_key"), me: null, loginMode: load("fs_key") ? "key" : "password", systems: null, sys: null, view: null,
   latest: null, summary: null, history: {}, alerts: null, alertSettings: null, service: null, commands: null, equipment: null, visits: null, recentVisits: null, refrigerants: null, people: null, team: null, fleet: null, inviteResult: null, teamResult: null, pending: {}, form: {}, msg: null, range: load("fs_range") || "1h",
-  preset: load("fs_preset") || "refrigerant", off: {}, lastOk: null, error: null, timers: []
+  preset: load("fs_preset") || "refrigerant", off: {}, picked: [], lastOk: null, error: null, timers: []
 };
 var LIVE_MS = 5000, STALE_S = 30, OUTAGE_S = 90;   // a gap longer than OUTAGE_S breaks chart lines
 
@@ -184,7 +184,7 @@ function route() {
   var changed = !S.sys || S.sys.id !== id;
   S.view = m[1];
   S.sys = sys;
-  if (changed) { S.latest = null; S.summary = null; S.history = {}; S.alerts = null; S.alertSettings = null; S.service = null; S.commands = null; S.equipment = null; S.visits = null; S.recentVisits = null; S.people = null; S.inviteResult = null; S.tstat = null; S.schedDraft = null; S.pending = {}; S.form = {}; stopTimers(); startTimers(); }
+  if (changed) { S.latest = null; S.summary = null; S.history = {}; S.alerts = null; S.alertSettings = null; S.service = null; S.commands = null; S.equipment = null; S.visits = null; S.recentVisits = null; S.people = null; S.inviteResult = null; S.tstat = null; S.schedDraft = null; S.picked = []; S.pending = {}; S.form = {}; stopTimers(); startTimers(); }
   if (S.view === "setup") { pollCommands(); pollPeople(); }
   if (S.view === "equipment") { S.msg = null; pollEquipment(); }
   if (S.view === "service") { S.msg = null; pollVisits(); }
@@ -243,7 +243,9 @@ function pollSummary() {
 }
 function pollAlerts() {
   var id = S.sys.id;
-  api("/api/systems/" + id + "/alerts?days=7").then(function (d) { if (S.sys && S.sys.id === id) { S.alerts = d; render(); } }).catch(function () {});
+  api("/api/systems/" + id + "/alerts?days=7").then(function (d) {
+    if (S.sys && S.sys.id === id) { S.alerts = d; S.picked = S.picked.filter(function (p) { return d.some(function (a) { return a.id === p; }); }); render(); }
+  }).catch(function () {});
   if (S.view !== "home") api("/api/systems/" + id + "/alert-settings").then(function (d) { if (S.sys && S.sys.id === id) { S.alertSettings = d; render(); } }).catch(function () {});
 }
 function pollService() {
@@ -872,8 +874,9 @@ function renderMonitor() {
   var fl = flags(), obWord = S.sys.ob_energized === "heat" ? "B" : "O";
   var html = techHeader("monitor") +
     '<main class="page">' + strip(d) +
-    '<div class="grid-a"><section class="panel" data-chart aria-label="Live trend"><div class="ph"><h2>Live trend</h2>' +
-    '<span class="sub">Shaded bar = compressor running · hover for values</span><div class="right">' +
+    '<div class="grid-a"><section class="panel" data-chart id="trend" aria-label="Live trend"><div class="ph"><h2>Live trend</h2>' +
+    '<span class="sub">Shaded bar = compressor running · hover for values' + (S.picked.length ? " · " + S.picked.length + " alert" + (S.picked.length > 1 ? "s" : "") +
+      ' highlighted <button class="btn" type="button" data-unpick>Clear</button>' : " · tick alerts below to highlight them") + '</span><div class="right">' +
     seg("preset", [["refrigerant", "Refrigerant"], ["air", "Air side"], ["pressure", "Pressure"], ["temperature", "Temperature"], ["all", "All"]], S.preset) +
     seg("range", Object.keys(RANGES).map(function (k) { return [k, RANGES[k].label]; }), S.range) +
     '</div></div><div class="chart-wrap"><div class="plot" id="plot"><div class="tip" role="status"></div></div><div class="legend" id="legend" aria-label="Channels"></div></div></section>' +
@@ -885,6 +888,7 @@ function renderMonitor() {
   bindCommon();
   $$("[data-preset]").forEach(function (b) { b.addEventListener("click", function () { S.preset = b.dataset.preset; S.off = {}; save("fs_preset", S.preset); render(); }); });
   $$("[data-range]").forEach(function (b) { b.addEventListener("click", function () { S.range = b.dataset.range; save("fs_range", S.range); render(); pollHistory(); }); });
+  $$("[data-unpick]").forEach(function (b) { b.addEventListener("click", function () { S.picked = []; render(); }); });
   $$("[data-jump]").forEach(function (a) { a.addEventListener("click", function (e) { e.preventDefault(); var t = document.getElementById(a.dataset.jump); if (t) t.scrollIntoView({ behavior: "smooth" }); }); });
   $$("tr.x").forEach(function (tr) {
     tr.addEventListener("click", function () {
@@ -1082,8 +1086,8 @@ function mutedUntil(code) {
 }
 function alertLog() {
   var list = S.alerts, body, seenCode = {};
-  if (!list) body = '<tr><td colspan="6" class="faint">Loading…</td></tr>';
-  else if (!list.length) body = '<tr class="normal"><td>' + st("ok", "Normal") + '</td><td class="cond" colspan="5">No alerts in the last 7 days.</td></tr>';
+  if (!list) body = '<tr><td colspan="7" class="faint">Loading…</td></tr>';
+  else if (!list.length) body = '<tr class="normal"><td></td><td>' + st("ok", "Normal") + '</td><td class="cond" colspan="5">No alerts in the last 7 days.</td></tr>';
   else body = list.map(function (a) {
     var i = flagInfo(a), sensor = ["sensor_issue", "node_offline", "no_data"].indexOf(a.code) >= 0;
     var state = !a.open ? '<span class="n">' + esc(lasted(a)) + "</span>"
@@ -1097,13 +1101,15 @@ function alertLog() {
         : '<select class="sel" aria-label="Mute emails for this kind of alert" data-alert-mute="' + esc(a.code) + '"><option value="">Mute emails…</option>' +
           '<option value="24">for 1 day</option><option value="168">for 7 days</option><option value="720">for 30 days</option></select>');
     }
-    return "<tr><td>" + st(sensor ? "sensor" : i.level, sensor ? "Sensor" : TECH_LEVEL[i.level]) + '</td><td class="cond">' + esc(a.text) + "</td>" +
+    var pick = S.picked.indexOf(a.id);
+    return "<tr" + (pick >= 0 ? ' class="picked"' : "") + '><td class="pickc"><label class="pick"><input type="checkbox" data-alert-pick="' + a.id + '"' + (pick >= 0 ? " checked" : "") +
+      ' aria-label="Highlight on the chart"><span class="pn">' + (pick >= 0 ? pick + 1 : "") + "</span></label></td><td>" + st(sensor ? "sensor" : i.level, sensor ? "Sensor" : TECH_LEVEL[i.level]) + '</td><td class="cond">' + esc(a.text) + "</td>" +
       '<td class="n">' + esc(when(a.started_at)) + "</td><td>" + state + "</td>" +
       '<td class="faint n">' + (a.emailed_at ? "Emailed " + esc(ampm(a.emailed_at)) : "—") + '</td><td><div class="acts-cell">' + acts.join("") + "</div></td></tr>";
   }).join("");
   return '<section class="panel" id="alert-log" aria-label="Alert log"><div class="ph"><h2>Alert log</h2><span class="sub">Last 7 days · raised after 5 min, cleared after 5 min without the condition</span>' +
-    '<span class="right sub">' + esc(emailSummary()) + ' · <a class="muted" href="#/setup/' + S.sys.id + '">change</a></span></div>' +
-    '<table class="dt diag"><thead><tr><th>Severity</th><th>Condition</th><th>Started</th><th>Duration</th><th>Email</th><th></th></tr></thead><tbody>' + body + "</tbody></table></section>";
+    '<span class="right sub">' + (S.picked.length ? '<a class="muted" href="#" data-jump="trend">' + S.picked.length + " on the chart ↑</a> · " : "") + esc(emailSummary()) + ' · <a class="muted" href="#/setup/' + S.sys.id + '">change</a></span></div>' +
+    '<table class="dt diag"><thead><tr><th class="pickc" title="Tick alerts to highlight them on the trend chart">Chart</th><th>Severity</th><th>Condition</th><th>Started</th><th>Duration</th><th>Email</th><th></th></tr></thead><tbody>' + body + "</tbody></table></section>";
 }
 function emailSummary() {
   var a = S.alertSettings;
@@ -1153,8 +1159,30 @@ root.addEventListener("change", function (e) {
   var t = e.target;
   if (!S.sys || !t.dataset) return;
   if (t.dataset.alertMute && t.value) saveAlertSettings("/alert-mutes/" + encodeURIComponent(t.dataset.alertMute), { hours: +t.value });
+  if (t.dataset.alertPick) pickAlert(+t.dataset.alertPick, t.checked);
   if (t.dataset.alertPref) { var body = {}; body[t.dataset.alertPref] = t.checked; saveAlertSettings("/alert-settings", body); }
 });
+
+// Ticked alerts are shaded on the trend chart. Picking one older than the chart's window widens the
+// window to the smallest range that shows it (alerts go back 7 days, the longest range).
+function pickAlert(id, on) {
+  S.picked = S.picked.filter(function (x) { return x !== id; });
+  if (on) {
+    S.picked.push(id);
+    var a = (S.alerts || []).filter(function (x) { return x.id === id; })[0];
+    var back = a ? (Date.now() - new Date(a.started_at).getTime()) / 60000 + 2 : 0;   // a little room before the start
+    if (back > RANGES[S.range].min) {
+      var fit = Object.keys(RANGES).filter(function (k) { return RANGES[k].min >= back; })[0] || "7d";
+      if (fit !== S.range) { S.range = fit; save("fs_range", S.range); pollHistory(); }
+    }
+  }
+  render();
+}
+function pickedAlerts() {
+  return S.picked.map(function (id, n) { var a = (S.alerts || []).filter(function (x) { return x.id === id; })[0]; return a && { a: a, n: n + 1 }; }).filter(Boolean);
+}
+function alertSpan(a) { return [new Date(a.started_at).getTime() / 1000, a.cleared_at ? new Date(a.cleared_at).getTime() / 1000 : Date.now() / 1000]; }
+function alertLevel(a) { return ["sensor_issue", "node_offline", "no_data"].indexOf(a.code) >= 0 ? "sensor" : flagInfo(a).level; }
 
 // ================================================================ EQUIPMENT VIEW (#/equipment/<id>)
 // Layout from the monitor mockup's "Equipment configuration": System, Ratings & targets, Site.
@@ -1834,6 +1862,20 @@ function drawTrend() {
   var breakGap = maxGap(RANGES[S.range].min);
   rows.forEach(function (r, i) { svgEl("rect", { x: x(r.ts), y: top, width: Math.max(1, x(nextTs(rows, i, breakGap)) - x(r.ts)), height: runH, "class": "runbar" + (r._on > 0.5 ? " on" : "") }, svg); });
 
+  // ticked alerts: a shaded band from start to clear (or now), numbered as in the alert log
+  var picks = pickedAlerts(), tags = [];
+  picks.forEach(function (p) {
+    var sp = alertSpan(p.a), xa = x(Math.max(sp[0], t0)), xb = x(Math.min(sp[1], t1));
+    if (sp[1] < t0 || xb < xa) return;
+    var lv = alertLevel(p.a);
+    svgEl("rect", { x: xa, y: top, width: Math.max(2, xb - xa), height: H - bot - top, "class": "aband al-" + lv }, svg);
+    if (sp[0] >= t0) svgEl("line", { x1: xa, x2: xa, y1: top - 4, y2: H - bot, "class": "aedge al-" + lv }, svg);
+    var tx = xa + 3;
+    while (tags.some(function (u) { return Math.abs(u - tx) < 11; })) tx += 11;   // alerts that start together: side by side
+    tags.push(tx);
+    svgEl("text", { x: tx, y: top - 6, "class": "atag al-" + lv }, svg).textContent = String(p.n);
+  });
+
   var yPos = top + runH + gap, scales = {};
   lanes.forEach(function (l) {
     var hgt = avail * LANES[l].w / wsum, keys = CH.filter(function (c) { return c.lane === l && chOn(c.k); });
@@ -1869,6 +1911,10 @@ function drawTrend() {
     if (!best || mx < pl) { cross.setAttribute("visibility", "hidden"); tip.style.display = "none"; return; }
     cross.setAttribute("x1", x(best.ts)); cross.setAttribute("x2", x(best.ts)); cross.setAttribute("visibility", "visible");
     var h = '<div class="t"><span>' + clock(best.ts * 1000, true) + "</span><span>" + (best._on > 0.5 ? "running" : "off") + "</span></div>";
+    picks.forEach(function (p) {
+      var sp = alertSpan(p.a);
+      if (best.ts >= sp[0] - 60 && best.ts <= sp[1] + 60) h += '<div class="r al"><span class="st ' + alertLevel(p.a) + '"></span><span>' + p.n + " · " + esc(p.a.text) + "</span><span></span></div>";
+    });
     CH.forEach(function (c) { if (chOn(c.k)) h += '<div class="r"><i class="sw ' + c.c + (c.dash ? " dash" : "") + '"></i><span>' + c.n + '</span><span class="v">' + (isNum(best[c.k]) ? fmt(best[c.k]) + " " + c.u : "—") + "</span></div>"; });
     tip.innerHTML = h;
     tip.style.display = "block";
