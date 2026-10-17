@@ -59,6 +59,7 @@ Phases run in order. Customer discovery and IP protection run alongside the buil
 ## Phase 5: Validate the diagnostics
 
 - [ ] Compare superheat, subcooling and delta-T against your own gauge readings
+- [x] Gauge check panel on the Sensors & calibration page: enter your gauge and probe readings, and it stores them next to the system's reading from the same moment and shows the difference, with the average and largest difference over all checks
 - [ ] Tune the alert thresholds from real data
 - [x] Equipment page in the web app, and nameplate subcooling targets for TXV/EEV systems (cloud; the PC dashboard keeps the generic limits)
 - [ ] Add charging-chart target superheat for piston systems (needs indoor humidity from Phase 6)

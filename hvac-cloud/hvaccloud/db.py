@@ -248,6 +248,22 @@ class ServiceVisit(Base):
     created_at: Mapped[dt.datetime] = mapped_column(default=utcnow)
 
 
+class GaugeCheck(Base):
+    """The technician's gauge readings next to the system's own at the same moment (gauge.py)."""
+    __tablename__ = "gauge_checks"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    system_id: Mapped[int] = mapped_column(ForeignKey("systems.id"))
+    time: Mapped[dt.datetime] = mapped_column()          # when the gauges were read
+    technician: Mapped[str | None] = mapped_column(String(200))
+    note: Mapped[str | None] = mapped_column(String(500))
+    refrigerant: Mapped[str] = mapped_column(String(20))
+    atm_psia: Mapped[float] = mapped_column(Float)
+    gauge = mapped_column(Json)                          # entered + derived (gauge.derive)
+    system = mapped_column(Json)                         # nearest snapshot's values (gauge.system_side)
+    created_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+    created_at: Mapped[dt.datetime] = mapped_column(default=utcnow)
+
+
 class AlertPrefs(Base):
     """Who a system's alerts are emailed to. Missing row = the account owner only."""
     __tablename__ = "alert_prefs"

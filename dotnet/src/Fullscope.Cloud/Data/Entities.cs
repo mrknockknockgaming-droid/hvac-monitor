@@ -225,6 +225,22 @@ public sealed class ServiceVisit
     public DateTime CreatedAt { get; set; } = Db.UtcNow();
 }
 
+/// <summary>The technician's gauge readings next to the system's own at the same moment (Api/Gauge.cs).</summary>
+public sealed class GaugeCheck
+{
+    public int Id { get; set; }
+    public int SystemId { get; set; }
+    public DateTime Time { get; set; }                  // when the gauges were read
+    public string? Technician { get; set; }
+    public string? Note { get; set; }
+    public string Refrigerant { get; set; } = "";
+    public double AtmPsia { get; set; }
+    public string? GaugeData { get; set; }              // JSON: entered + derived
+    public string? SystemData { get; set; }             // JSON: nearest snapshot's values
+    public int? CreatedBy { get; set; }
+    public DateTime CreatedAt { get; set; } = Db.UtcNow();
+}
+
 /// <summary>Who a system's alerts are emailed to. Missing row = both.</summary>
 public sealed class AlertPrefs
 {

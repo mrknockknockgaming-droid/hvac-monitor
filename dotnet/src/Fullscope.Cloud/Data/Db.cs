@@ -36,6 +36,7 @@ public sealed class Db(DbContextOptions<Db> options) : DbContext(options)
     public DbSet<EquipmentRow> Equipment => Set<EquipmentRow>();
     public DbSet<ThermostatConfig> ThermostatConfigs => Set<ThermostatConfig>();
     public DbSet<ServiceVisit> ServiceVisits => Set<ServiceVisit>();
+    public DbSet<GaugeCheck> GaugeChecks => Set<GaugeCheck>();
     public DbSet<AlertPrefs> AlertPrefs => Set<AlertPrefs>();
     public DbSet<AlertMute> AlertMutes => Set<AlertMute>();
     public DbSet<RuntimeDay> RuntimeDays => Set<RuntimeDay>();
@@ -226,6 +227,19 @@ public sealed class Db(DbContextOptions<Db> options) : DbContext(options)
             e.HasOne<HvacSystem>().WithMany().HasForeignKey(x => x.SystemId).OnDelete(DeleteBehavior.NoAction);
             e.HasOne<User>().WithMany().HasForeignKey(x => x.CreatedBy).OnDelete(DeleteBehavior.NoAction);
         });
+        b.Entity<GaugeCheck>(e =>
+        {
+            e.ToTable("gauge_checks");
+            Len(e.Property(x => x.Technician), 200);
+            Len(e.Property(x => x.Note), 500);
+            Len(e.Property(x => x.Refrigerant), 20);
+            e.Property(x => x.GaugeData).HasColumnName("gauge");
+            e.Property(x => x.SystemData).HasColumnName("system");
+            Json(e.Property(x => x.GaugeData), sqlite);
+            Json(e.Property(x => x.SystemData), sqlite);
+            e.HasOne<HvacSystem>().WithMany().HasForeignKey(x => x.SystemId).OnDelete(DeleteBehavior.NoAction);
+            e.HasOne<User>().WithMany().HasForeignKey(x => x.CreatedBy).OnDelete(DeleteBehavior.NoAction);
+        });
         b.Entity<AlertPrefs>(e =>
         {
             e.ToTable("alert_prefs");
@@ -280,7 +294,7 @@ public sealed class Db(DbContextOptions<Db> options) : DbContext(options)
         {
             foreach (var p in entity.GetProperties())
             {
-                p.SetColumnName(Snake(p.Name));
+                if (p.GetColumnName() == p.Name) p.SetColumnName(Snake(p.Name));     // unless named with HasColumnName
                 var t = Nullable.GetUnderlyingType(p.ClrType) ?? p.ClrType;
                 if (t == typeof(DateTime))
                 {
