@@ -2,7 +2,7 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 
-#define FW_VERSION "0.2.1"
+#define FW_VERSION "0.2.2"
 
 #if defined(NODE_OUTDOOR)
   #define NODE_NAME "outdoor"
@@ -26,3 +26,4 @@ bool nodeHandleCmd(JsonDocument& cmd, JsonDocument& reply);   // true if handled
 
 inline float round1(float v) { return roundf(v * 10.0f) / 10.0f; }
 inline float round2(float v) { return roundf(v * 100.0f) / 100.0f; }
+inline float round3(float v) { return roundf(v * 1000.0f) / 1000.0f; }

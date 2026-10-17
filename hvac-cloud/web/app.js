@@ -108,6 +108,12 @@ var FLAG_INFO = {
   call_mismatch: { level: "caution", area: "comfort", title: "The thermostat and the equipment disagree",
     sub: "The equipment isn't doing what the thermostat asks.", why: "Usually a wiring or relay problem between the thermostat and the equipment.",
     todo: ["Request a service visit."] },
+  filter_dirty: { level: "caution", area: "cooling", title: "Your air filter is getting clogged",
+    sub: "Replace the filter.", why: "A clogged filter cuts airflow, so the system cools less and uses more electricity.",
+    todo: ["Replace the air filter.", "If it keeps showing soon after a change, mention it to your contractor."] },
+  tesp_high: { level: "caution", area: "cooling", title: "Air isn't moving freely through your system",
+    sub: "Often a dirty filter or a restriction in the ducts.", why: "Restricted airflow lowers comfort and strains the blower motor.",
+    todo: ["Replace the air filter if it looks dirty.", "Make sure vents and return grilles aren't closed or blocked.", "If it keeps showing, request a service visit."] },
   no_data: { level: "advisory", area: "monitoring", title: "We lost contact with your monitors",
     sub: "Usually WiFi or power.", why: "Neither monitor was sending readings, so no checks could run.",
     todo: ["Check that your WiFi is working.", "If it keeps happening, your contractor can check the monitors."] }
@@ -756,6 +762,15 @@ root.addEventListener("click", function (e) {
   }).catch(function (err) { S.msg = "Couldn't save: " + err.message; b.disabled = false; render(); });
 });
 
+function airflowArea(d, fresh) {
+  var blower = ["cooling", "heating", "heat_aux", "fan"].indexOf(d.mode) >= 0;
+  if (!fresh) return { name: "Airflow", cls: "offline", word: "No data", text: "Waiting for readings." };
+  if (hasFlag("filter_dirty")) return { name: "Airflow", cls: "caution", word: "Check soon", text: "The air filter is getting clogged. See above." };
+  if (hasFlag("tesp_high")) return { name: "Airflow", cls: "caution", word: "Check soon", text: "Air isn't moving freely through the system. See above." };
+  if (!blower) return { name: "Airflow", cls: "ok", word: "Good", text: "No problems found. Checked whenever the blower runs." };
+  return { name: "Airflow", cls: "ok", word: "Good", text: "Air moves freely through the filter and ducts." };
+}
+
 function homeHealth(fresh, running) {
   var d = (S.latest && S.latest.derived) || {}, steady = running && (d.run_min || 0) >= 10;
   var online = nodesOnline();
@@ -770,8 +785,9 @@ function homeHealth(fresh, running) {
   var dtT = isNum(d.dt) ? "Air from your vents is about " + Math.round(Math.abs(d.dt)) + "° " + (d.mode === "heating" ? "warmer" : "cooler") + " than the air going in." : "Temperature change across the indoor coil looks right.";
   var rows = [
     area(d.mode === "heating" ? "Heating" : "Cooling", ["dt_low"], dtT, "caution", "Check soon", "Air from your vents isn't changing temperature as much as it should."),
-    { name: "Airflow", cls: "offline", word: "Not measured",
-      text: "Needs static pressure sensors, planned for a later phase. A dirty filter can still show up as weak cooling above." },
+    d.static ? airflowArea(d, fresh)
+      : { name: "Airflow", cls: "offline", word: "Not measured",
+          text: "Needs static pressure sensors. A dirty filter can still show up as weak cooling above." },
     area("Refrigerant", ["sh_low", "sh_high", "sc_low", "sc_high"], "Pressures and temperatures look normal for today's weather.",
       hasFlag("sh_low") ? "fault" : "caution", hasFlag("sh_low") ? "Service needed" : "Check soon", "Refrigerant readings are outside the normal range. See above."),
     area("Outdoor unit", ["ctoa_high"].concat(ELEC_CODES), "Releasing heat normally.",
@@ -1017,7 +1033,8 @@ function sensorHealth(n) {
     return "<tr><th>" + label + "</th><td>" + s + '</td><td class="num faint">' + (optional ? "optional" : "") + "</td></tr>";
   }
   var p = od.p || {}, t = od.t || {}, a = od.air || {}, ia = id.air || {};
-  var hum = ["tca9548a", "sht45_ret", "sht45_sup"], hasRh = "rh_ret" in ia || "rh_sup" in ia;
+  var hum = ["tca9548a", "sht45_ret", "sht45_sup", "sdp810_ret", "sdp810_sup", "sdp810_filt"], hasRh = "rh_ret" in ia || "rh_sup" in ia;
+  var spRows = [["sp_ret", "Return static (SDP810)"], ["sp_sup", "Supply static (SDP810)"], ["sp_filt", "Filter drop (SDP810)"]].filter(function (c) { return c[0] in ia; });
   var other = oerr.concat(ierr).filter(function (e) { return ["ads1", "ads2", "sht30", "ds18b20_missing"].concat(hum).indexOf(e) < 0; });
   return '<section class="panel" aria-label="Sensor health"><div class="ph"><h2>Sensor health</h2><span class="right sub">Click a node for detail</span></div>' +
     '<table class="dt health"><tbody><tr class="sec"><td colspan="3">Nodes</td></tr>' +
@@ -1033,7 +1050,8 @@ function sensorHealth(n) {
     (hasRh ? ch("Return humidity (SHT45)", ia.rh_ret, ierr.indexOf("tca9548a") >= 0 ? "tca9548a" : "sht45_ret", ierr) +
              ch("Supply humidity (SHT45)", ia.rh_sup, ierr.indexOf("tca9548a") >= 0 ? "tca9548a" : "sht45_sup", ierr)
            : '<tr class="unavail"><th>Indoor humidity (SHT45)</th><td>' + st("offline", "Not installed") + '</td><td class="num faint">optional</td></tr>') +
-    '<tr class="unavail"><th>Static pressure</th><td>' + st("offline", "Not installed") + '</td><td class="num faint">phase 6</td></tr>' +
+    (spRows.length ? spRows.map(function (c) { return ch(c[1], ia[c[0]], ierr.indexOf("tca9548a") >= 0 ? "tca9548a" : "sdp810_" + c[0].slice(3), ierr); }).join("")
+      : '<tr class="unavail"><th>Static pressure (SDP810)</th><td>' + st("offline", "Not installed") + '</td><td class="num faint">optional</td></tr>') +
     (other.length ? '<tr class="sec"><td colspan="3">Other errors</td></tr><tr><th colspan="3"><span class="mono">' + esc(other.join(", ")) + "</span></th></tr>" : "") +
     "</tbody></table></section>";
 }
@@ -1073,17 +1091,27 @@ function rhRows(a) {
     row("Enthalpy", "calc", "h", "Btu/lb", isNum(a.dh) ? a.dh : null);
 }
 
+function staticRows(p) {
+  if (!p) return '<tr class="unavail"><th>Static pressure (return, supply, TESP)</th><td class="tagc"></td><td class="num" colspan="3">Not installed</td></tr>';
+  function mark(code) { return hasFlag(code) ? '<span class="tgt">' + st("caution", "High") + "</span>" : ""; }
+  var limit = isNum(p.max) ? '<span class="tgt">TESP · rated ' + fmt(p.max, 2) + "</span>" : '<span class="tgt">TESP</span>';
+  return '<tr><th>Static pressure</th><td class="tagc"><span class="src">meas</span></td><td class="num">' + num(p.ret, "in. w.c.", 2) + '</td><td class="num">' + num(p.sup, "in. w.c.", 2) +
+    '</td><td class="num">' + num(p.tesp, "in. w.c.", 2) + (hasFlag("tesp_high") ? mark("tesp_high") : limit) + "</td></tr>" +
+    '<tr><th>Filter pressure drop</th><td class="tagc"><span class="src">meas</span></td><td class="num" colspan="2"></td><td class="num">' + num(p.filter, "in. w.c.", 2) +
+    (hasFlag("filter_dirty") ? mark("filter_dirty") : '<span class="tgt">Flag &gt; 0.30</span>') + "</td></tr>";
+}
+
 function airTable(d) {
-  var dt = judged(d.dt, ["dt_low"], d), a = d.air_rh;
+  var dt = judged(d.dt, ["dt_low"], d), a = d.air_rh, p = d.static;
   return '<section class="panel" aria-label="Air-side performance"><div class="ph"><h2>Air-side performance</h2><span class="sub">Supply and return air (DS18B20' + (a ? ", SHT45" : "") + ")</span></div>" +
     '<table class="dt"><thead><tr><th>Measurement</th><th class="tagc"></th><th class="num">Return</th><th class="num">Supply</th><th class="num">Difference</th></tr></thead><tbody>' +
     '<tr class="key"><th>Dry bulb</th><td class="tagc"><span class="src">meas</span></td><td class="num">' + num(d.t_ret, "°F") + '</td><td class="num">' + num(d.t_sup, "°F") +
     '</td><td class="num"><span class="muted" style="font-size:12px">ΔT</span> ' + num(d.dt, "°F") + '<span class="tgt">' + (dt[1] ? st(dt[0] || "offline", dt[1]) : "") + "</span></td></tr>" +
-    rhRows(a) +
-    '<tr class="unavail"><th>Static pressure (return, supply, TESP)</th><td class="tagc"></td><td class="num" colspan="3">Not installed</td></tr>' +
+    rhRows(a) + staticRows(p) +
     '<tr class="unavail"><th>Capacity (needs airflow' + (a ? "" : " + humidity") + ')</th><td class="tagc"></td><td class="num" colspan="3">Not available</td></tr>' +
-    '</tbody></table><div class="na-note">' + (a ? "Static pressure sensors are planned for roadmap phase 6. Wet bulb and enthalpy use the site's atmospheric pressure."
-      : "Indoor humidity and static pressure sensors are planned for roadmap phase 6.") + "</div></section>";
+    '</tbody></table><div class="na-note">' + [a ? "Wet bulb and enthalpy use the site's atmospheric pressure." : "",
+      p ? "TESP = supply minus return static; flagged above the Equipment page's rated maximum while the blower runs." : "",
+      a && p ? "" : "Humidity (SHT45) and static pressure (SDP810) sensors are optional add-ons on the indoor node."].filter(Boolean).join(" ") + "</div></section>";
 }
 
 function diagPanel(fl, d) {
@@ -1248,7 +1276,7 @@ function renderEquipment() {
       row("Superheat", '<span class="faint">Flagged below 3 or above 30 °F</span>', esc(e.targets.sh.note)) +
       row("Rated cooling capacity", eqNum("f-eq-btuh", e.rated_btuh, "BTU/hr", "Rated cooling capacity"), '<span class="faint">Capacity, phase 6</span>') +
       row("Rated airflow", eqNum("f-eq-cfm", e.rated_cfm, "CFM", "Rated airflow"), '<span class="faint">Capacity, phase 6</span>') +
-      row("Max external static", eqNum("f-eq-esp", e.max_esp, "in. w.c.", "Maximum external static pressure"), '<span class="faint">Static sensors, phase 6</span>') +
+      row("Max external static", eqNum("f-eq-esp", e.max_esp, "in. w.c.", "Maximum external static pressure"), '<span class="faint">Flags total external static above this</span>') +
       row("Compressor RLA / LRA", '<div class="acts-cell">' + eqNum("f-eq-rla", e.comp_rla, "A", "Compressor RLA") + eqNum("f-eq-lra", e.comp_lra, "A", "Compressor LRA") + "</div>", "Electrical module: amps") +
       row("Condenser fan FLA", eqNum("f-eq-fla", e.fan_fla, "A", "Condenser fan FLA"), "Electrical module: fan amps") +
       row("Run capacitor", '<div class="acts-cell">' + eqNum("f-eq-caph", e.cap_herm_uf, "µF HERM", "Run capacitor HERM µF") + eqNum("f-eq-capf", e.cap_fan_uf, "µF fan", "Run capacitor fan µF") + "</div>", "Electrical module: ±6 %") +
@@ -1489,6 +1517,21 @@ function renderSetup() {
       : '<div class="na-note">No TCA9548A found on the indoor node\'s I2C terminal (J5). Fit the mux with the return probe on channel 0 and the supply probe on channel 1, then press Rescan probes.</div>') +
     "</section>";
 
+  var spIn = is["static"] || {};
+  var sRows = [["sp_ret", "Return plenum", "ch 2"], ["sp_sup", "Supply plenum", "ch 3"], ["sp_filt", "Across the filter", "ch 4"]].map(function (c) {
+    var k = c[0];
+    if (!spIn[k] && !(k in air)) return "";
+    return "<tr><th>" + c[1] + ' <span class="faint mono">' + c[2] + '</span></th><td class="num">' + reading(air[k], "in. w.c.", true, "sdp810_" + k.slice(3), ierr, 3) + "</td>" +
+      '<td class="num n">' + offsetTxt((ic[k] || {}).o, 3) + "</td>" +
+      '<td><div class="acts-cell">' + actBtn("spzero", "Zero", "indoor", k) + actBtn("reset", "Reset", "indoor", k) + "</div></td></tr>";
+  }).join("");
+  var spPanel = '<section class="panel" aria-label="Static pressure"><div class="ph"><h2>Static pressure</h2><span class="sub">Indoor node · SDP810 on the TCA9548A</span><span class="right">' + nodeSub("indoor", "The indoor node") + "</span></div>" +
+    (sRows ? '<table class="dt"><thead><tr><th>Sensor</th><th class="num">Reading</th><th class="num">Offset</th><th>Calibrate</th></tr></thead><tbody>' + sRows + "</tbody></table>" +
+      '<ol class="howto"><li><b>Zero:</b> with the blower off for a minute (or the tubes pulled off), press Zero for each sensor.</li>' +
+      "<li>Return reads negative and supply positive while the blower runs; TESP is supply minus return.</li></ol>"
+      : '<div class="na-note">No SDP810 found. Fit them on mux channels 2 (return plenum), 3 (supply plenum, after the coil) and 4 (across the filter), then press Rescan probes.</div>') +
+    "</section>";
+
   var html = techHeader("setup") +
     (S.msg ? '<div class="stale-banner" role="status">' + esc(S.msg) + "</div>" : "") +
     '<main class="page">' +
@@ -1507,7 +1550,7 @@ function renderSetup() {
     "<li><b>Set:</b> or compare against a trusted thermometer at any temperature, enter its reading and press Set.</li>" +
     "<li><b>3.3 V rail:</b> measure between 3V3 and GND on the ESP32 with a meter; entering it makes every thermistor more accurate.</li></ol></section>" +
 
-    humPanel +
+    humPanel + spPanel +
     '<div class="cfg">' +
     '<section class="panel" aria-label="Air probes"><div class="ph"><h2>Air probes</h2><span class="sub">Indoor node · DS18B20</span><span class="right">' + nodeSub("indoor", "The indoor node") + "</span></div>" +
     '<table class="dt"><thead><tr><th>Probe</th><th class="num">Reading</th><th class="num">Offset</th><th>Calibrate</th></tr></thead><tbody>' + aRows + "</tbody></table>" +
@@ -1749,6 +1792,9 @@ root.addEventListener("click", function (e) {
   } else if (act === "swap") {
     if (!confirm("Swap which probe is supply and which is return?")) return;
     cmd = { cmd: "ds_swap" };
+  } else if (act === "spzero") {
+    if (!confirm("Zero " + name + "?\n\nOnly do this with the blower off (or the sensor's tubes pulled off).")) return;
+    cmd = { cmd: "cal_zero", ch: ch };
   } else if (act === "rhswap") {
     if (!confirm("Swap which humidity probe is supply and which is return?")) return;
     cmd = { cmd: "rh_swap" };

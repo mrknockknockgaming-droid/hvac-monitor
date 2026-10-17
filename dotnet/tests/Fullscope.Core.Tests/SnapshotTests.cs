@@ -12,7 +12,7 @@ public class SnapshotTests
     {
         SystemType = J.Str(e, "system_type"), Metering = J.Str(e, "metering"),
         Tonnage = J.Num(e, "tonnage")?.V, ScTarget = J.Num(e, "sc_target")?.V, ScTolerance = J.Num(e, "sc_tolerance")?.V,
-        ElevationFt = J.Num(e, "elevation_ft")?.V, CompRla = J.Num(e, "comp_rla")?.V, CompLra = J.Num(e, "comp_lra")?.V,
+        MaxEsp = J.Num(e, "max_esp")?.V, ElevationFt = J.Num(e, "elevation_ft")?.V, CompRla = J.Num(e, "comp_rla")?.V, CompLra = J.Num(e, "comp_lra")?.V,
         FanFla = J.Num(e, "fan_fla")?.V, CapHermUf = J.Num(e, "cap_herm_uf")?.V, CapFanUf = J.Num(e, "cap_fan_uf")?.V,
         VoltMin = J.Num(e, "volt_min")?.V, VoltMax = J.Num(e, "volt_max")?.V,
     };
@@ -26,6 +26,7 @@ public class SnapshotTests
         var eq = Equip(c["equipment"]);
         snap = Psychro.Apply(snap, c["indoor"]?.DeepClone(), (double)c["atm"]!);
         snap = Equipment.Apply(snap, eq);
+        snap = Airflow.Apply(snap, c["indoor"]?.DeepClone(), eq);
         snap = Electrical.Apply(snap, c["electrical"]?.DeepClone() as JsonObject, eq);
         snap = Thermostat.Apply(snap, c["thermostat"]?.DeepClone() as JsonObject);
         Assert.Equal((string)c["expected"]!, Py.Dumps(snap, sortKeys: true));

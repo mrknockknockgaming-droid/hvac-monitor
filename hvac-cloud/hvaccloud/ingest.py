@@ -17,7 +17,7 @@ import time
 
 from sqlalchemy import select
 
-from . import alerts, calc, display, electrical, equipment, maintenance, psychro, settings, thermostat
+from . import airflow, alerts, calc, display, electrical, equipment, maintenance, psychro, settings, thermostat
 from .db import (Alert, Command, Device, Equipment, RuntimeDay, Snapshot, System, Telemetry, ThermostatConfig, as_utc,
                  init_db, make_engine, session_factory, utcnow)
 from .refrigerants import Tables
@@ -204,6 +204,7 @@ class Ingest:
         snap = psychro.apply(snap, nodes.get("indoor"), system.atm_psia)  # indoor humidity (cloud only)
         eq = s.get(Equipment, system.id)
         snap = equipment.apply(snap, eq)                                # nameplate targets (cloud only)
+        snap = airflow.apply(snap, nodes.get("indoor"), eq)              # static pressure (cloud only)
         snap = electrical.apply(snap, self._electrical_state(s, system, now), eq)
         snap = thermostat.apply(snap, self._thermostat_state(s, system, now))
         system.run_started_at = ts(run_start) if run_start else None

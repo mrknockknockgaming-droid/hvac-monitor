@@ -153,7 +153,7 @@ def test_run_only_alerts_stay_open_between_cycles(sessions, seeded):
         assert alerts.sync(s, system, [], T0 + 2400, 300, alerts.unjudged(starting)) == []
         ev = alerts.sync(s, system, [], T0 + 3000, 300, alerts.unjudged(running))   # judged fine: clears
         assert [e[0] for e in ev] == ["cleared"]
-    assert alerts.unjudged({"mode": "cooling", "Y": True, "run_min": 15, "elec": {"line_v": 240}}) == set()
+    assert alerts.unjudged({"mode": "cooling", "Y": True, "run_min": 15, "elec": {"line_v": 240}, "static": {"tesp": 0.5}}) == set()
     assert "contactor_drop" in alerts.unjudged({"mode": "cooling", "Y": True, "run_min": 15, "elec": None})
     offline = {"mode": "cooling", "Y": True, "run_min": 15, "flags": [{"code": "node_offline", "node": "outdoor"}]}
     assert "sh_low" in alerts.unjudged(offline)

@@ -1,11 +1,14 @@
 // Indoor node: supply/return air temperatures and thermostat calls (Y, W, G, O/B).
 // Matches schematic sheet 2. Optional (phase 6): supply and return humidity from two SHT45s behind a
 // TCA9548A I2C mux on J5 (both SHT45s answer at 0x44): return on mux channel 0, supply on channel 1.
+// Static pressure: three SDP810-500Pa on mux channels 2 (return plenum), 3 (supply plenum, after the
+// coil) and 4 (across the filter), reported in inches of water column.
 #ifdef NODE_INDOOR
 
 #include "common.h"
 #include "settings.h"
 #include "mode_inputs.h"
+#include "sdp810.h"
 #include "sht45.h"
 #include <OneWire.h>
 #include <DallasTemperature.h>
@@ -33,6 +36,13 @@ static bool muxOk = false, muxSeen = false, rhSwap = false;
 static bool rhOk[2] = {false, false};                         // [0] return, [1] supply
 static float rhPct[2] = {NAN, NAN}, rhUncal[2] = {NAN, NAN}, rhTempF[2] = {NAN, NAN};
 static Cal calRh[2];
+
+static const uint8_t SP_CH[3] = {2, 3, 4};                  // mux channels: return, supply, filter
+static const char* const SP_KEY[3] = {"sp_ret", "sp_sup", "sp_filt"};
+static const char* const SP_ERR[3] = {"sdp810_ret", "sdp810_sup", "sdp810_filt"};
+static bool spStarted[3] = {false, false, false}, spOk[3] = {false, false, false}, spSeen[3] = {false, false, false};
+static float spVal[3] = {NAN, NAN, NAN}, spUncal[3] = {NAN, NAN, NAN};
+static Cal calSp[3];
 
 static uint32_t convStart = 0;
 static bool converting = false;
@@ -105,6 +115,43 @@ static void readHumidity() {
   if (!muxSelect(0xFF)) { muxOk = false; rhOk[0] = rhOk[1] = false; }   // all channels off; failing = mux gone
 }
 
+static bool sdpStart(uint8_t ch) {
+  if (!muxSelect(ch)) return false;
+  Wire.beginTransmission(SDP810_ADDR);
+  Wire.write((uint8_t)(SDP810_START >> 8));
+  Wire.write((uint8_t)(SDP810_START & 0xFF));
+  return Wire.endTransmission() == 0;
+}
+
+static bool sdpRead(uint8_t ch, float& inwc) {
+  if (!muxSelect(ch)) return false;
+  uint8_t b[9];
+  if (Wire.requestFrom(SDP810_ADDR, (uint8_t)9) != 9) return false;
+  for (uint8_t i = 0; i < 9; i++) b[i] = Wire.read();
+  return sdp810Decode(b, inwc);
+}
+
+// Each SDP810 runs in continuous mode once started; the first reading comes on the next cycle.
+static void readStatic() {
+  for (uint8_t i = 0; i < 3; i++) {
+    spOk[i] = false;
+    if (!muxOk) { spStarted[i] = false; spVal[i] = spUncal[i] = NAN; continue; }
+    if (!spStarted[i]) {
+      spStarted[i] = sdpStart(SP_CH[i]);
+      if (spStarted[i] && !spSeen[i]) Serial.printf("[hw] SDP810 %s found\n", SP_KEY[i]);
+      spSeen[i] = spSeen[i] || spStarted[i];
+      spVal[i] = spUncal[i] = NAN;
+      continue;
+    }
+    float v;
+    spOk[i] = sdpRead(SP_CH[i], v);
+    if (!spOk[i]) { spStarted[i] = false; spVal[i] = spUncal[i] = NAN; continue; }   // start it again next cycle
+    spUncal[i] = v;
+    spVal[i] = calSp[i].apply(v);
+  }
+  if (muxOk) muxSelect(0xFF);
+}
+
 static void scanHumidity() {
   muxOk = muxSelect(0xFF);
   muxSeen = muxSeen || muxOk;
@@ -118,6 +165,7 @@ void nodeSetup() {
   calRh[0].name = "rh_ret"; calRh[0].load();
   calRh[1].name = "rh_sup"; calRh[1].load();
   rhSwap = setGetB("rh_swap", false);
+  for (uint8_t i = 0; i < 3; i++) { calSp[i].name = SP_KEY[i]; calSp[i].load(); }
   scanProbes();
   Wire.begin(PIN_SDA, PIN_SCL);
   Wire.setClock(100000);
@@ -132,6 +180,7 @@ void nodeLoop() {
     ds.requestTemperatures();
     convStart = now; lastRequest = now; converting = true;
     readHumidity();                                   // while the DS18B20s convert
+    readStatic();
   }
   if (converting && now - convStart >= CONV_MS) {
     converting = false;
@@ -157,6 +206,10 @@ void nodeFillTelemetry(JsonDocument& doc) {
       else { air["rh_" + k] = nullptr; air["t_rh_" + k] = nullptr; }
     }
   }
+  for (uint8_t i = 0; i < 3; i++) {                 // in. w.c.; only once that sensor has been found
+    if (!spSeen[i]) continue;
+    if (spOk[i]) air[SP_KEY[i]] = round3(spVal[i]); else air[SP_KEY[i]] = nullptr;
+  }
 
   JsonArray err = doc["err"].to<JsonArray>();
   if (found < 2) err.add("ds18b20_missing");
@@ -165,6 +218,7 @@ void nodeFillTelemetry(JsonDocument& doc) {
   if (muxSeen && !muxOk) err.add("tca9548a");
   if (muxOk && !rhOk[0]) err.add("sht45_ret");
   if (muxOk && !rhOk[1]) err.add("sht45_sup");
+  for (uint8_t i = 0; i < 3; i++) if (muxOk && spSeen[i] && spStarted[i] == false) err.add(SP_ERR[i]);
 }
 
 void nodeFillStatus(JsonDocument& doc) {
@@ -179,6 +233,8 @@ void nodeFillStatus(JsonDocument& doc) {
   rh["swap"] = rhSwap;
   cal["rh_ret"]["o"] = calRh[0].offset;
   cal["rh_sup"]["o"] = calRh[1].offset;
+  JsonObject sp = doc["static"].to<JsonObject>();
+  for (uint8_t i = 0; i < 3; i++) { sp[SP_KEY[i]] = spSeen[i]; cal[SP_KEY[i]]["o"] = calSp[i].offset; }
 }
 
 // Commands (send JSON to hvac/<site>/indoor/cmd):
@@ -189,13 +245,24 @@ void nodeFillStatus(JsonDocument& doc) {
 //  {"cmd":"rescan"}                               look for probes (and the humidity mux) again
 //  {"cmd":"rh_swap"}                              humidity supply and return are reversed -> swap them
 //  {"cmd":"cal_ref","ch":"rh_ret","ref":75.0}     humidity probe at a known % RH (cal_set / cal_reset too)
+//  {"cmd":"cal_zero","ch":"sp_ret"}               static sensor reads 0 now (blower off; cal_set / cal_reset too)
 bool nodeHandleCmd(JsonDocument& cmd, JsonDocument& reply) {
   const char* c  = cmd["cmd"] | "";
   const char* ch = cmd["ch"]  | "";
+  int sp = !strcmp(ch, "sp_ret") ? 0 : !strcmp(ch, "sp_sup") ? 1 : !strcmp(ch, "sp_filt") ? 2 : -1;
   Cal* cal = !strcmp(ch, "t_sup") ? &calSup : !strcmp(ch, "t_ret") ? &calRet
-           : !strcmp(ch, "rh_ret") ? &calRh[0] : !strcmp(ch, "rh_sup") ? &calRh[1] : nullptr;
+           : !strcmp(ch, "rh_ret") ? &calRh[0] : !strcmp(ch, "rh_sup") ? &calRh[1]
+           : sp >= 0 ? &calSp[sp] : nullptr;
   float uncal = cal == &calSup ? supUncal : cal == &calRet ? retUncal
-              : cal == &calRh[0] ? rhUncal[0] : rhUncal[1];
+              : cal == &calRh[0] ? rhUncal[0] : cal == &calRh[1] ? rhUncal[1] : sp >= 0 ? spUncal[sp] : NAN;
+
+  if (!strcmp(c, "cal_zero")) {
+    if (sp < 0) { reply["ok"] = false; reply["error"] = "ch must be sp_ret, sp_sup or sp_filt"; return true; }
+    if (isnan(uncal)) { reply["ok"] = false; reply["error"] = "no reading from that sensor"; return true; }
+    cal->offset = -uncal;
+    cal->save();
+    reply["ok"] = true; reply["ch"] = ch; reply["offset"] = cal->offset; return true;
+  }
 
   if (!strcmp(c, "ds_swap")) {
     swapProbes = !swapProbes; setPutB("ds_swap", swapProbes);
@@ -207,10 +274,11 @@ bool nodeHandleCmd(JsonDocument& cmd, JsonDocument& reply) {
   }
   if (!strcmp(c, "rescan")) {
     scanProbes(); scanHumidity();
+    for (uint8_t i = 0; i < 3; i++) spStarted[i] = false;
     reply["ok"] = true; reply["found"] = found; reply["mux"] = muxOk; return true;
   }
   if (!strcmp(c, "cal_ref") || !strcmp(c, "cal_set") || !strcmp(c, "cal_reset")) {
-    if (!cal) { reply["ok"] = false; reply["error"] = "ch must be t_sup, t_ret, rh_ret or rh_sup"; return true; }
+    if (!cal) { reply["ok"] = false; reply["error"] = "ch must be t_sup, t_ret, rh_ret, rh_sup or an sp_ channel"; return true; }
     if (!strcmp(c, "cal_ref")) {
       float ref = cmd["ref"] | NAN;
       if (isnan(ref) || isnan(uncal)) { reply["ok"] = false; reply["error"] = "need ref and a valid reading"; return true; }

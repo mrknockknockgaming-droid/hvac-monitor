@@ -28,6 +28,7 @@ public static class Alerts
     public static readonly HashSet<string> SteadyCodes = ["sh_low", "sh_high", "sc_low", "sc_high", "dt_low", "ctoa_high"];
     public static readonly HashSet<string> SettledCodes = ["contactor_open", "comp_not_running", "fan_not_running", "comp_amps_high", "fan_amps_high"];
     public static readonly HashSet<string> RunningCodes = [.. SettledCodes, "cap_herm", "cap_fan", "contactor_drop", "voltage"];
+    public static readonly HashSet<string> AirflowCodes = ["tesp_high", "filter_dirty"];       // Airflow: blower on
     const double SteadyMin = 10, SettleMin = 1.0;
 
     /// <summary>Codes whose checks could not run on this snapshot (see SteadyCodes).</summary>
@@ -39,6 +40,8 @@ public static class Alerts
         if (mode is not ("cooling" or "heating") || runMin < SteadyMin) outSet.UnionWith(SteadyCodes);
         if (!J.Truthy(snap, "Y") || !J.Truthy(snap, "elec")) outSet.UnionWith(RunningCodes);
         else if (runMin < SettleMin) outSet.UnionWith(SettledCodes);
+        if (mode is not ("cooling" or "heating" or "heat_aux" or "fan") || !J.Truthy(snap, "static"))
+            outSet.UnionWith(AirflowCodes);                    // blower off, or no static sensors reporting
         if (J.Flags(snap).Any(f => J.Str(f, "code") == "node_offline" && J.Str(f, "node") is "outdoor" or "indoor"))
             outSet.UnionWith(SteadyCodes);                     // can't compute superheat etc. without both nodes
         return outSet;
@@ -123,6 +126,10 @@ public static class Alerts
                        "Request a service visit."),
         ["dt_low"] = ("Air from your vents isn't as cool as it should be", "Your system runs longer and uses more electricity.",
                       "Check your air filter and replace it if it looks grey or dusty, and make sure vents aren't blocked."),
+        ["filter_dirty"] = ("Your air filter is getting clogged", "A clogged filter cuts airflow, so the system cools less and uses more electricity.",
+                            "Replace the air filter."),
+        ["tesp_high"] = ("Air isn't moving freely through your system", "Restricted airflow lowers comfort and strains the blower motor.",
+                         "Replace the air filter if it looks dirty; if this keeps showing, request a service visit."),
         ["ctoa_high"] = ("Outdoor unit isn't releasing heat well", "The compressor runs hotter and uses more electricity.",
                          "Clear debris from around the outdoor unit (about 2 ft), then request a coil cleaning."),
         ["node_offline"] = ("A monitor isn't reporting", "Heating and cooling are not affected; some checks are paused.",
@@ -170,6 +177,7 @@ public static class Alerts
         ["comp_not_running"] = "fault", ["fan_not_running"] = "fault", ["contactor_open"] = "fault",
         ["comp_amps_high"] = "caution", ["fan_amps_high"] = "caution", ["cap_herm"] = "caution", ["cap_fan"] = "caution",
         ["contactor_drop"] = "caution", ["voltage"] = "caution", ["slow_start"] = "caution",
+        ["filter_dirty"] = "caution", ["tesp_high"] = "caution",
     };
 
     public static List<string> HomeownerEmails(Db s, int systemId) =>
