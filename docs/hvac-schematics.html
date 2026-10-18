@@ -65,6 +65,7 @@ body.fit .sch{width:100%}
 </style></head><body>
 <main>
 <header class="top"><h1>HVAC monitor wiring schematics</h1>
+<p class="lede"><strong>Rev A only.</strong> Rev B (LoRa radio, SETUP button, CT inputs, discharge thermistor, on-board I2C mux) is defined by <code>hardware/scripts/design.py</code> and the generated <code>hardware/*-carrier/*-schematic.pdf</code>; see <code>hardware/board-terminals.md</code>.</p>
 <p class="lede">Prototype rev A for the outdoor refrigerant node and indoor air node. Net labels with the same name are connected. Red nets carry 24 VAC.</p>
 <nav><a href="#outdoor">Outdoor node</a><a href="#indoor">Indoor node</a><button id="fit" type="button" aria-pressed="false">Fit drawings to screen</button></nav>
 <div class="legend"><span><i class="k sig"></i>Signal net</span><span><i class="k rail"></i>Power rail</span><span><i class="k hv"></i>24 VAC net</span><span><i class="k fut"></i>Future / not fitted</span></div>
