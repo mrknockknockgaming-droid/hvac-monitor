@@ -12,6 +12,8 @@ bool  setGetB(const char* k, bool d)        { return prefs.isKey(k) ? prefs.getB
 void  setPutB(const char* k, bool v)        { prefs.putBool(k, v); }
 uint32_t setGetU(const char* k, uint32_t d) { return prefs.isKey(k) ? prefs.getUInt(k, d) : d; }
 void  setPutU(const char* k, uint32_t v)    { prefs.putUInt(k, v); }
+String setGetS(const char* k, const char* d) { return prefs.isKey(k) ? prefs.getString(k, d) : String(d); }
+void  setPutS(const char* k, const String& v) { prefs.putString(k, v); }
 void  setClear(const char* k)               { if (prefs.isKey(k)) prefs.remove(k); }
 
 void Cal::load() {

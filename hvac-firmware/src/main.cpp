@@ -6,6 +6,7 @@
 #include "lora_link.h"
 #include "net.h"
 #include "settings.h"
+#include "setup_ble.h"
 #include <WiFi.h>
 
 static uint32_t lastPublish = 0;
@@ -81,6 +82,7 @@ void setup() {
   pinMode(PIN_LED, OUTPUT);
   pinMode(PIN_SETUP, INPUT_PULLUP);
   settingsBegin();
+  setupBleBegin();                   // SETUP held 3 s (or asked before a restart): Bluetooth WiFi setup
   intervalMs = setGetU("interval", 5000);
   nodeSetup();
   if (LORA_ENABLED) {
@@ -93,6 +95,7 @@ void setup() {
 }
 
 void loop() {
+  setupBleLoop();
   if (LORA_ENABLED) loraLoop(); else netLoop();
   if (LORA_ENABLED && millis() - lastLoraStatus >= LORA_STATUS_MS) {
     lastLoraStatus = millis();

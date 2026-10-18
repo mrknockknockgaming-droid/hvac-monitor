@@ -1,6 +1,7 @@
 #include "net.h"
 #include "common.h"
 #include "config.h"
+#include "setup_ble.h"
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
 #include <PubSubClient.h>
@@ -24,6 +25,8 @@ static CmdHandler   cmdHandler = nullptr;
 static StatusFiller statusFiller = nullptr;
 
 static String tTele, tStatus, tCmd, tReply, clientId;
+static String wifiSsid = WIFI_SSID, wifiPass = WIFI_PASS;   // or the network saved by Bluetooth setup
+static bool wifiFromSetup = false;
 static uint32_t lastWifiTry = 0, lastMqttTry = 0, wifiDownSince = 0, wifiUpSince = 0;
 static bool otaReady = false, ntpStarted = false, wifiWasUp = false;
 
@@ -113,10 +116,11 @@ void netBegin(CmdHandler onCmd, StatusFiller onStatus) {
   tCmd  = base + "cmd";       tReply  = base + "reply";
   clientId = String("hvac-") + NODE_NAME + "-" + String((uint32_t)ESP.getEfuseMac(), HEX);
 
+  wifiFromSetup = setupBleWifi(wifiSsid, wifiPass);
   WiFi.mode(WIFI_STA);
   WiFi.setHostname(("hvac-" NODE_NAME));
   WiFi.setAutoReconnect(true);
-  WiFi.begin(WIFI_SSID, WIFI_PASS);
+  WiFi.begin(wifiSsid.c_str(), wifiPass.c_str());
   lastWifiTry = millis();
   wifiDownSince = millis();
 
@@ -129,7 +133,7 @@ void netBegin(CmdHandler onCmd, StatusFiller onStatus) {
   mqtt.setBufferSize(1024);
   mqtt.setKeepAlive(30);
   mqtt.setSocketTimeout(10);
-  Serial.printf("[net] connecting to %s; broker %s:%d%s\n", WIFI_SSID, MQTT_HOST, MQTT_PORT, MQTT_TLS ? " (TLS)" : "");
+  Serial.printf("[net] connecting to %s (%s); broker %s:%d%s\n", wifiSsid.c_str(), wifiFromSetup ? "from setup" : "config.h", MQTT_HOST, MQTT_PORT, MQTT_TLS ? " (TLS)" : "");
 }
 
 void netLoop() {
@@ -139,7 +143,7 @@ void netLoop() {
     if (now - lastWifiTry > WIFI_RETRY_MS) {
       lastWifiTry = now;
       WiFi.disconnect();
-      WiFi.begin(WIFI_SSID, WIFI_PASS);
+      WiFi.begin(wifiSsid.c_str(), wifiPass.c_str());
       Serial.println("[net] WiFi retry");
     }
     if (now - wifiDownSince > WIFI_REBOOT_MS) {
@@ -198,6 +202,7 @@ void netPublishStatus() {
   doc["ip"] = WiFi.localIP().toString();
   doc["mac"] = WiFi.macAddress();
   doc["rssi"] = WiFi.RSSI();
+  doc["wifi_src"] = wifiFromSetup ? "setup" : "config";
   doc["tls"] = (bool)MQTT_TLS;
   doc["backlog"] = backlog.size();
   doc["dropped"] = dropped;
