@@ -117,6 +117,7 @@ Sheet-metal cabinets and homeowner WiFi are the weak points for nodes at the con
 - [x] Define a compact telemetry format that fits LoRa airtime limits: 45-byte encrypted frames that decode to the same JSON, so the cloud needs no changes (tested reference in radio/lorafmt.py)
 - [x] Gateway buffers readings and forwards them to the cloud over WiFi (written and merged into main Oct 4, not yet run on radios: a plug-in gateway for a Heltec V3, or the thermostat as the gateway, which also feeds the outdoor temperature to the controller offline)
 - [x] LoRa firmware for the nodes (LORA\_ENABLED in config.h: readings, status and calibration commands over the radio), with the frame format and encryption ported to C++ and checked byte for byte against the Python reference; each site picks one of 8 channels from its site id; a tool makes each node's id and key
+- [x] Humidity, static pressure and current readings over LoRa (merged Oct 18, PR #61): the indoor frame carries an optional humidity and static tail, current readings get their own frame, and the gateway republishes them on the same topics; built and tested on the PC
 - [x] Keep a WiFi-direct mode for installs without a display node (kept: WiFi stays the default; LoRa is a config switch)
 - [ ] Confirm the production module's FCC grant covers 500 kHz operation (candidates with modular approval: Heltec HT-CT62, Seeed Wio-SX1262, RAK3172)
 - [ ] Decide: LoRa + gateway, WiFi only, or cellular (use the contractor interviews)
