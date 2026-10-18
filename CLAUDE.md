@@ -251,6 +251,15 @@ temperatures, superheat, subcooling and delta-T.
 - Schematics rev A: https://claude.ai/artifact/VUq261XjNKgZRz52N9HCxV (not reproduced here)
 
 ## Network
+- LIVE since 2026-10-18: https://app.fullscope-app.com/app/ (domain on Cloudflare, tunnel "fullscope"
+  -> CT 120 :8000; sign in there, the cookie is HTTPS-only). Proxmox host pve2 = 192.168.1.170
+  (root password only, no SSH key from the PC: Tyler runs deploy.ps1 and container commands).
+  Alert email: Gmail App Password in the CT's fullscope.env SMTP_*; account 1 email set with
+  `fullscope-manage set-email`. Backups: Proxmox job 02:00 daily, CT 120 snapshot, zstd, keep 7,
+  to storage `backup` (sdb 1.4 TB ext4 at /mnt/pve-backup; sdc/sdd 465 GB still unused); no copy
+  off the box yet. Public IP (router WAN = 136.63.24.46, not CGNAT, may change): outside boards
+  later need MQTT_PUBLIC_HOST + router 8883 + broker passwords + a DNS updater. Proxmox web Shell:
+  Ctrl+O/Ctrl+X get caught by the browser, so use F3/F2 in nano or sed.
 - User's PC: now 192.168.1.204 (was .191; DHCP changed it, so give it a DHCP reservation in the
   router or the nodes' MQTT_HOST breaks again). Runs Mosquitto on 1883 + the dashboard until the
   Proxmox LXC (deploy/lxc/) takes over; then the nodes' MQTT_HOST is the container's fixed IP. Outdoor ESP32: 192.168.1.247. Indoor ESP32: 192.168.1.121.

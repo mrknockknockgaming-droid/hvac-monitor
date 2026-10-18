@@ -139,4 +139,11 @@ The nodes in your own house keep using port 1883 on your network: nothing change
 - in Cloudflare DNS an `A` record `mqtt` to your public IP, **DNS only** (grey cloud), and the
   router forwarding TCP 8883 to the container. Never forward 1883 or 8000.
 
+**Tyler's setup (2026-10-18):** `PUBLIC_HOST=app.fullscope-app.com`, tunnel `fullscope`, Gmail for
+email (`SMTP_*`, test with `fullscope-manage test-email 1` after `fullscope-manage set-email 1 <address>`).
+Backups of the whole container: Proxmox job (Datacenter > Backup) daily at 02:00, snapshot mode,
+zstd, keep 7, to the directory storage `backup` on a second disk (`/mnt/pve-backup`, mounted from
+fstab by label `pve-backup`, `nofail`). A backup is about 430 MB and takes under a minute. Restore:
+pve2 > backup > Backups > Restore. These are still in the same box: copy one off it now and then.
+
 Clearing `PUBLIC_HOST` stops the tunnel; set `COOKIE_SECURE=false` and `APP_URL` back by hand.
