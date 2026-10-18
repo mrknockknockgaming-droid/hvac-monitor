@@ -37,8 +37,9 @@ bool Gateway::receive(const uint8_t* frame, size_t n, double received_at, bool h
     uint32_t id, counter;
     if (!open_frame(dev->key, frame, n, type, id, counter, payload, plen)) return fail("authentication failed");
     if (dev->seen && counter <= dev->last_counter) return fail("replayed or repeated frame");
-    const std::string base = "hvac/" + dev->site + "/" + dev->node + "/";
-    if (type == OUTDOOR || type == INDOOR) {
+    // the outdoor node's current sensors publish as their own node, as on WiFi
+    const std::string base = "hvac/" + dev->site + "/" + (type == ELECTRICAL ? std::string("electrical") : dev->node) + "/";
+    if (type == OUTDOOR || type == INDOOR || type == ELECTRICAL) {
         if (!unpack_reading(type, payload, plen, received_at, doc)) return fail("bad reading");
         if (has_radio) {
             JsonObject radio = doc["radio"].to<JsonObject>();

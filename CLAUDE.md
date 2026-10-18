@@ -90,8 +90,8 @@ temperatures, superheat, subcooling and delta-T.
     still rev A until re-exported with OpenSCAD (commands in hardware/enclosures/README.md).
   - CT inputs (fw 0.3.0, `src/ct.cpp`, maths in `include/ct_math.h`, host test in
     tools/host_tests): RMS every 2 s at 3 kHz/channel, 1.5 s compressor-start capture on the Y
-    rising edge; the outdoor node publishes them as the `electrical` node every 5 s (WiFi only;
-    no LoRa frame type yet). Channels ct_comp/ct_fan/ct_herm are off until `fitted`; `cal_ref`
+    rising edge; the outdoor node publishes them as the `electrical` node every 5 s (over LoRa
+    as frame type 6, which the gateway republishes on the electrical topics). Channels ct_comp/ct_fan/ct_herm are off until `fitted`; `cal_ref`
     with clamp-meter amps sets the A/V scale. Version 1 sends contactor = Y and no voltages.
 - `_archive/` — original download zips, old copies of start-hvac.bat, and 2025 prototypes
   (PlatformIO `HVAC_Monitor` sketch, MicroPython `temp code.py`, empty `hvacmonitoring.cpp`).
@@ -189,7 +189,8 @@ temperatures, superheat, subcooling and delta-T.
     on J5 by itself (no setting) and reports air.rh_ret/rh_sup + t_rh_ret/t_rh_sup (SHT45 temps). Ingest adds
     snap["air_rh"] (RH, wet bulb, dew point, enthalpy at the site's atm_psia, dh) only when those keys are
     present, then equipment.apply judges piston systems in cooling against the charging-chart target
-    superheat (3 x WB - 80 - ODB) / 2 ± 5 F; calc's floodback alert (< 3 F) always stays. Not carried over LoRa yet.
+    superheat (3 x WB - 80 - ODB) / 2 ± 5 F; calc's floodback alert (< 3 F) always stays. Over LoRa, humidity and static ride in an
+    optional 15-byte tail on the indoor frame (radio/README.md section 3).
   - Static pressure (phase 6, `hvaccloud/airflow.py` + C# `Airflow.cs`): SDP810s on mux channels 2-4 report
     air.sp_ret/sp_sup/sp_filt (in. w.c., zero with cal_zero, blower off). Ingest adds snap["static"] (ret, sup,
     filter, tesp = sup - ret, max = Equipment max_esp) after equipment.apply; while the blower runs, TESP > max_esp

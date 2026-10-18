@@ -8,6 +8,7 @@
 #include "mode_inputs.h"
 #include "ct.h"
 #include "net.h"
+#include "lora_link.h"
 #include <Wire.h>
 #include <Adafruit_ADS1X15.h>
 #include <Adafruit_SHT31.h>
@@ -102,17 +103,16 @@ static uint32_t lastElec = 0;
 static const uint32_t ELEC_MS = 5000;   // CT readings, published as the "electrical" node
 
 static void publishElectrical() {
-#if !LORA_ENABLED                       // over LoRa the electrical node needs its own frame type (radio/)
   JsonDocument doc;
   doc["node"] = "electrical";
   doc["fw"] = FW_VERSION;
   doc["uptime"] = millis() / 1000;
-  if (netTimeValid()) doc["ts"] = serialized(String(netEpoch(), 3));
+  if (!LORA_ENABLED && netTimeValid()) doc["ts"] = serialized(String(netEpoch(), 3));
   ctFillTelemetry(doc, modeGet(0));
+  if (LORA_ENABLED) { loraSendReading(doc); return; }   // its own frame type; the gateway republishes it
   String out;
   serializeJson(doc, out);
   netPublishNode("electrical", out);
-#endif
 }
 
 // ---------- Helpers ----------

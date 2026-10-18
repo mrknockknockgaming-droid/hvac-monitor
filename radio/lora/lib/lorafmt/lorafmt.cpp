@@ -16,13 +16,18 @@ constexpr uint8_t NULL8 = 255;
 constexpr uint16_t NULLU16 = 0xFFFF;
 constexpr int OTHER_ERR = 15;
 const char* const OUTDOOR_ERRS[] = {"ads1", "ads2", "sht30", "rail5v", "p_liq", "p_vap", "p_tsuc", "t_suc", "t_liq", "t_tsuc", "t_dis"};
-const char* const INDOOR_ERRS[] = {"ds18b20_missing", "t_sup", "t_ret"};
+const char* const INDOOR_ERRS[] = {"ds18b20_missing", "t_sup", "t_ret", "tca9548a", "sht45_ret", "sht45_sup",
+                                   "sdp810_ret", "sdp810_sup", "sdp810_filt"};
+constexpr int N_INDOOR_ERRS = 9;
+const char* const ELEC_ERRS[] = {"ct_comp", "ct_fan", "ct_herm"};
+const char* const SP_KEYS[] = {"sp_ret", "sp_sup", "sp_filt"};
 const char* const MODE_BITS[] = {"Y", "OB", "W", "G"};
 const char* const COMMANDS[] = {"status", "reboot", "interval", "cal_zero", "cal_span", "cal_ref", "cal_set", "cal_reset",
-                                "range", "fitted", "ntc_b", "v33", "ds_swap", "rescan"};
-constexpr int N_COMMANDS = 14;
-const char* const CHANNELS[] = {nullptr, "p_liq", "p_vap", "p_tsuc", "t_suc", "t_liq", "t_tsuc", "t_dis", "t_sup", "t_ret"};
-constexpr int N_CHANNELS = 10;
+                                "range", "fitted", "ntc_b", "v33", "ds_swap", "rescan", "rh_swap", "ct_scale"};
+constexpr int N_COMMANDS = 16;
+const char* const CHANNELS[] = {nullptr, "p_liq", "p_vap", "p_tsuc", "t_suc", "t_liq", "t_tsuc", "t_dis", "t_sup", "t_ret",
+                                "rh_ret", "rh_sup", "sp_ret", "sp_sup", "sp_filt", "ct_comp", "ct_fan", "ct_herm"};
+constexpr int N_CHANNELS = 18;
 const char* const REPLY_ERRORS[] = {"", "unknown command", "unknown channel", "channel has no valid reading",
                                     "need ref and a valid reading", "apply at least ~50 psi before spanning",
                                     "value out of range", "bad frame"};
@@ -60,10 +65,26 @@ int16_t i16(JsonVariantConst v, double scale = 10) {
     return static_cast<int16_t>(r < -32767 ? -32767 : r > 32767 ? 32767 : r);
 }
 
-void f16(JsonObject o, const char* key, int16_t n, double scale = 10) {
+void f16(JsonObject o, const char* key, int16_t n, double scale = 10, int places = 1) {
+    const double f = std::pow(10.0, places);
     if (n == NULL16) o[key] = nullptr;
-    else o[key] = std::round(n / scale * 10) / 10;
+    else o[key] = std::round(n / scale * f) / f;
 }
+
+// unsigned x scale, NULLU16 = no reading (amps, start peak)
+uint16_t u16(JsonVariantConst v, double scale) {
+    if (!is_num(v)) return NULLU16;
+    const long r = pyround(v.as<double>() * scale);
+    return static_cast<uint16_t>(r < 0 ? 0 : r > 65534 ? 65534 : r);
+}
+
+void fu16(JsonObject o, const char* key, uint32_t n, double scale, int places) {
+    const double f = std::pow(10.0, places);
+    if (n == NULLU16) o[key] = nullptr;
+    else o[key] = std::round(n / scale * f) / f;
+}
+
+bool has(JsonVariantConst o, const char* key) { return !o[key].isUnbound(); }
 
 int index_of(const char* const* names, int count, const char* s) {
     if (!s) return -1;
@@ -139,9 +160,39 @@ size_t pack_reading(JsonVariantConst doc, uint32_t age_s, uint8_t& type, uint8_t
         JsonVariantConst air = doc["air"];
         w.u16(age);
         w.u8(modes(doc["mode"]));
-        w.u16(err_bits(INDOOR_ERRS, 3, doc["err"]));
+        w.u16(err_bits(INDOOR_ERRS, N_INDOOR_ERRS, doc["err"]));
         w.i16(i16(air["supply"]));
         w.i16(i16(air["return"]));
+        w.u32(is_num(doc["uptime"]) ? static_cast<uint32_t>(doc["uptime"].as<double>()) : 0);
+        // humidity mux and static sensors ride along only when the node has them
+        uint8_t present = has(air, "rh_ret") ? 1 : 0;
+        for (int k = 0; k < 3; k++)
+            if (has(air, SP_KEYS[k])) present |= static_cast<uint8_t>(2 << k);
+        if (!present) return w.n;
+        w.u8(present);
+        for (const char* k : {"rh_ret", "rh_sup"}) {
+            JsonVariantConst v = air[k];
+            if (!is_num(v)) w.u16(NULLU16);
+            else { long r = pyround(v.as<double>() * 10); w.u16(r < 0 ? 0 : r > 1000 ? 1000 : r); }
+        }
+        w.i16(i16(air["t_rh_ret"]));
+        w.i16(i16(air["t_rh_sup"]));
+        for (const char* k : SP_KEYS) w.i16(i16(air[k], 1000));
+        return w.n;
+    }
+    if (!strcmp(node, "electrical")) {
+        type = ELECTRICAL;
+        JsonVariantConst i = doc["i"], herm = doc["cap"]["herm"], start = doc["start"];
+        const bool st = start.is<JsonObjectConst>();
+        w.u16(age);
+        w.u8((doc["contactor"].as<bool>() ? 1 : 0) | (st ? 2 : 0));
+        w.u16(err_bits(ELEC_ERRS, 3, doc["err"]));
+        w.u16(u16(i["comp"], 100));
+        w.u16(u16(i["fan"], 100));
+        w.u16(herm.is<JsonObjectConst>() ? u16(herm["i"], 100) : NULLU16);
+        w.u16(st ? u16(start["peak_a"], 10) : 0);
+        if (!st) w.u16(0);
+        else { const double ms = start["ms"].as<double>(); w.u16(ms < 0 ? 0 : ms > 65535 ? 65535 : static_cast<uint32_t>(ms)); }
         w.u32(is_num(doc["uptime"]) ? static_cast<uint32_t>(doc["uptime"].as<double>()) : 0);
         return w.n;
     }
@@ -169,7 +220,7 @@ bool unpack_reading(uint8_t type, const uint8_t* p, size_t n, double received_at
         if (rh == NULLU16) air["rh"] = nullptr; else air["rh"] = rh / 10.0;
         if (v5 == NULL8) doc["v5"] = nullptr; else doc["v5"] = round_to(4.0 + v5 / 100.0, 2);
         unbits(doc["err"].to<JsonArray>(), OUTDOOR_ERRS, 11, errs);
-    } else if (type == INDOOR && n == 13) {
+    } else if (type == INDOOR && (n == 13 || n == 28)) {
         age = r.u16();
         const uint32_t m = r.u8(), errs = r.u16();
         const int16_t sup = r.i16(), ret = r.i16();
@@ -182,7 +233,48 @@ bool unpack_reading(uint8_t type, const uint8_t* p, size_t n, double received_at
         f16(air, "return", ret);
         if (sup == NULL16 || ret == NULL16) air["dt"] = nullptr;
         else air["dt"] = round_to(ret / 10.0 - sup / 10.0, 1);
-        unbits(doc["err"].to<JsonArray>(), INDOOR_ERRS, 3, errs);
+        if (n == 28) {
+            const uint32_t present = r.u8(), rh_r = r.u16(), rh_s = r.u16();
+            const int16_t t_r = r.i16(), t_s = r.i16();
+            if (present & 1) {
+                fu16(air, "rh_ret", rh_r, 10, 1);
+                f16(air, "t_rh_ret", t_r);
+                fu16(air, "rh_sup", rh_s, 10, 1);
+                f16(air, "t_rh_sup", t_s);
+            }
+            for (int k = 0; k < 3; k++) {
+                const int16_t v = r.i16();
+                if (present & (2u << k)) f16(air, SP_KEYS[k], v, 1000, 3);
+            }
+        }
+        unbits(doc["err"].to<JsonArray>(), INDOOR_ERRS, N_INDOOR_ERRS, errs);
+    } else if (type == ELECTRICAL && n == 19) {
+        age = r.u16();
+        const uint32_t bits = r.u8(), errs = r.u16(), comp = r.u16(), fan = r.u16(), herm = r.u16(), peak = r.u16(),
+                       ms = r.u16(), up = r.u32();
+        doc["node"] = "electrical";
+        doc["uptime"] = up;
+        doc["contactor"] = (bits & 1) != 0;
+        JsonObject v = doc["v"].to<JsonObject>();
+        v["line"] = nullptr;
+        v["contactor"] = nullptr;
+        JsonObject io = doc["i"].to<JsonObject>();
+        fu16(io, "comp", comp, 100, 2);
+        fu16(io, "fan", fan, 100, 2);
+        JsonObject cap = doc["cap"].to<JsonObject>();
+        if (herm == NULLU16) cap["herm"] = nullptr;
+        else {
+            JsonObject h = cap["herm"].to<JsonObject>();
+            h["v"] = nullptr;
+            fu16(h, "i", herm, 100, 2);
+        }
+        cap["fan"] = nullptr;
+        if (bits & 2) {
+            JsonObject s = doc["start"].to<JsonObject>();
+            s["peak_a"] = round_to(peak / 10.0, 1);
+            s["ms"] = ms;
+        } else doc["start"] = nullptr;
+        unbits(doc["err"].to<JsonArray>(), ELEC_ERRS, 3, errs);
     } else {
         return false;
     }
@@ -235,6 +327,7 @@ size_t pack_command(JsonVariantConst cmd, uint8_t* out, const char** err) {
     else if (n == "cal_span" || n == "cal_ref") value = cmd["ref"].as<double>();
     else if (n == "range") value = cmd["bar"].as<double>();
     else if (n == "ntc_b" || n == "v33") value = cmd["value"].as<double>();
+    else if (n == "ct_scale") value = cmd["a_per_v"].as<double>();
     else if (n == "fitted") flag = cmd["on"].as<bool>() ? 1 : 0;
     else if (n == "cal_set") {
         if (!cmd["scale"].isUnbound()) { if (err) *err = "cal_set over LoRa takes offset only"; return 0; }
@@ -263,6 +356,7 @@ bool unpack_command(const uint8_t* p, size_t n, JsonDocument& doc) {
     else if (name == "cal_span" || name == "cal_ref") doc["ref"] = value;
     else if (name == "range") doc["bar"] = value;
     else if (name == "ntc_b" || name == "v33") doc["value"] = value;
+    else if (name == "ct_scale") doc["a_per_v"] = value;
     else if (name == "fitted") doc["on"] = flag != 0;
     else if (name == "cal_set") doc["offset"] = value;
     return true;
@@ -274,7 +368,7 @@ size_t pack_reply(JsonVariantConst reply, uint8_t* out) {
     int code = index_of(REPLY_ERRORS, N_REPLY_ERRORS, e);
     if (code < 0) code = N_REPLY_ERRORS - 1;
     double first = 0;
-    for (const char* k : {"offset", "ms", "ntc_b", "v33", "fs_bar"}) {      // the first one present
+    for (const char* k : {"offset", "ms", "ntc_b", "v33", "fs_bar", "a_per_v"}) {      // the first one present
         if (!reply[k].isUnbound()) { first = reply[k].as<double>(); break; }
     }
     W w{out};
@@ -283,11 +377,18 @@ size_t pack_reply(JsonVariantConst reply, uint8_t* out) {
     w.u8(code);
     w.f32(static_cast<float>(first));
     w.f32(static_cast<float>(reply["scale"].isUnbound() ? 1.0 : reply["scale"].as<double>()));
+    // current sensors and rh_swap say more than offset/scale: channel + bits (fit, rh_swap)
+    const char* ch = reply["ch"] | "";
+    if (index_of(ELEC_ERRS, 3, ch) >= 0 || has(reply, "rh_swap")) {
+        const int ci = index_of(CHANNELS, N_CHANNELS, ch);
+        w.u8(ci > 0 ? ci : 0);
+        w.u8((reply["fit"].as<bool>() ? 1 : 0) | (reply["rh_swap"].as<bool>() ? 2 : 0));
+    }
     return w.n;
 }
 
 bool unpack_reply(const uint8_t* p, size_t n, JsonDocument& doc) {
-    if (n != 11) return false;
+    if (n != 11 && n != 13) return false;
     R r{p, n};
     const uint32_t c = r.u8(), ok = r.u8(), code = r.u8();
     const double first = r.f32(), scale = r.f32();
@@ -295,6 +396,17 @@ bool unpack_reply(const uint8_t* p, size_t n, JsonDocument& doc) {
     if (c < N_COMMANDS) doc["cmd"] = COMMANDS[c]; else doc["cmd"] = nullptr;
     doc["ok"] = ok != 0;
     if (code) doc["error"] = code < N_REPLY_ERRORS ? REPLY_ERRORS[code] : "bad frame";
+    if (n == 13) {
+        const uint32_t ch = r.u8(), bits = r.u8();
+        if (c < N_COMMANDS && !strcmp(COMMANDS[c], "rh_swap")) {
+            if (ok) doc["rh_swap"] = (bits & 2) != 0;
+        } else if (ok && ch < N_CHANNELS && CHANNELS[ch]) {
+            doc["ch"] = CHANNELS[ch];
+            doc["a_per_v"] = round_to(first, 4);
+            doc["fit"] = (bits & 1) != 0;
+        }
+        return true;
+    }
     if (c < N_COMMANDS && ok) {
         const std::string name = COMMANDS[c];
         if (name.rfind("cal_", 0) == 0) {
