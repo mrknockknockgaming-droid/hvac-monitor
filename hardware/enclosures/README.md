@@ -11,7 +11,7 @@ layout changes, update `BOARD`, `HOLES`, `MARGIN`, `GLANDS`, `SMA_X`, `SETUP` an
 `outdoor_box.scad` / `indoor_box.scad` (and `SIZE` / `HOLES` / `TIES` in `mount_plate.scad`)
 and re-export.
 
-Rev B (2026-10-18): the boards grew to 110 x 110 (outdoor) and 110 x 90 (indoor). Both have a
+Rev B (2026-10-18): the boards are 100 x 100 (outdoor) and 100 x 88 (indoor). Both have a
 LoRa radio (SMA bulkhead in the top wall) and a SETUP button (plunger through the lid). The
 outdoor board also has three CT jacks on its left edge (plug openings in the left wall).
 **The STLs in `stl/` and the PNGs in `png/` are still rev A** until they are re-exported.
@@ -20,7 +20,7 @@ under Regenerating before printing.
 
 ## Option 1: off the shelf
 
-| | Outdoor (110 x 110 board) | Indoor (110 x 90 board) |
+| | Outdoor (100 x 100 board) | Indoor (100 x 88 board) |
 |---|---|---|
 | Box | Hammond **1554R2GY** (160 x 160 x 61 mm) | Hammond **1554R2GY** |
 | Why | UV-stabilised polycarbonate, IP66/67/68, NEMA 4X, -40 to +110 °C | same box, one SKU; attic air handlers in Mesa run past ABS's 60 °C limit |
@@ -28,18 +28,18 @@ under Regenerating before printing.
 | Extra holes | 3x 9 mm in the left wall on the CT jack axes (board edge about 4.5 mm from the wall), 6.6 mm SMA in the top wall | 6.6 mm SMA in the top wall |
 
 Fit: the 1554R's cavity is about 150 mm square. The outdoor board needs about 4.5 (CT jacks
-against the left wall) + 110 + 22 (J2/J8 plugs and a wire bend) = 137 mm across and about
-12 (J1 plug) + 110 + 10 (JST cables) = 132 mm down. The indoor board needs about 10 + 110 + 22
-= 142 mm across and 12 + 90 + 22 (J2 plug, mux sensor cables) = 124 mm down. Both fit,
-without the extra gland room the printed boxes have. Press SETUP with the lid open. Check
+against the left wall) + 100 + 22 (J2/J8 plugs and a wire bend) = 127 mm across and about
+12 (J1 plug) + 100 + 10 (JST cables) = 122 mm down. The indoor board needs about 10 + 100 + 22
+= 132 mm across and 12 + 88 + 22 (J2 plug, mux sensor cables) = 122 mm down. Both fit with
+room to spare. Press SETUP with the lid open. Check
 Hammond's drawing for the inner-panel pattern before drilling.
 
 ## Option 2: printed (this folder)
 
 | File | Box outside (with lid) | Board clearance [left, right, bottom, top] |
 |---|---|---|
-| `outdoor_box.scad` | 159 x 178 x 53 mm with mounting bars | 4.5, 26, 24, 26 mm |
-| `indoor_box.scad`  | 164 x 166 x 53 mm with mounting bars | 10, 26, 32, 26 mm |
+| `outdoor_box.scad` | 149 x 168 x 53 mm with mounting bars | 4.5, 26, 24, 26 mm |
+| `indoor_box.scad`  | 154 x 164 x 53 mm with mounting bars | 10, 26, 32, 26 mm |
 | `sht30_shield.scad` | 90 mm dia louvre shield for the outdoor air probe | |
 | `mount_plate.scad` | open test plates, see below | |
 
@@ -53,8 +53,8 @@ Design:
   drips off the cables. A breather vent sits low on the left wall.
 - Two mounting bars (print 2 per box) screw to the back of the corner posts with
   M3 countersunk screws and carry slotted tabs for #10 / M5 wall screws. They are
-  separate parts so the base stays within the 180 x 180 bed (the outdoor base is 178 mm
-  long), and they hold the box 6 mm off the wall.
+  separate parts so the base stays within the 180 x 180 bed, and they hold the box 6 mm off
+  the wall.
 - **LoRa antenna**: `SMA_X` puts a 6.6 mm SMA bulkhead hole, with an anti-rotation flat, in
   the top wall straight above the Wio-SX1262's u.FL. Use a 10-15 cm u.FL to SMA-bulkhead
   pigtail and a 900 MHz whip outside.
@@ -83,7 +83,8 @@ Gland plan (holes are metric thread + 0.3 mm):
 | Indoor | M16 | Y W G O/B thermostat cable (J2) |
 | Indoor | M20 | SDP810 static-pressure sensors (J8-J10), 3-hole insert |
 | Indoor | M20 | SHT45 return + supply probes (J6, J7), 2-hole insert |
-| Indoor | M16 x 2 | 24 VAC (J1); main I2C bus (J5), blanking plug until used |
+| Indoor | M16 | 24 VAC (J1) |
+| Indoor | M16, right wall | main I2C bus (J5), blanking plug until used |
 | Both | M12 | breather vent (ePTFE membrane), stops the box pumping in humid air as it heats and cools |
 | Both | 6.6 mm, top wall | SMA bulkhead for the LoRa antenna |
 
@@ -139,8 +140,8 @@ equipment, such as the electrical compartment of a package unit:
 
 | File | Plate |
 |---|---|
-| `stl/outdoor_plate.stl` | 142 x 142 x 4 mm |
-| `stl/indoor_plate.stl` | 142 x 122 x 4 mm |
+| `stl/outdoor_plate.stl` | 132 x 132 x 4 mm |
+| `stl/indoor_plate.stl` | 132 x 120 x 4 mm |
 
 - The board sits on four 8 mm standoffs (M3 heat-set inserts, M3 x 6 screws),
   so its solder side is 12 mm off the sheet metal.

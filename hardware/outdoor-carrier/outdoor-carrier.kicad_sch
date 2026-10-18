@@ -2,7 +2,7 @@
 	(version 20231120)
 	(generator "eeschema")
 	(generator_version "8.0")
-	(uuid "0a4ff93b-8cc2-4234-93d5-318125a0d53a")
+	(uuid "a3555098-1a98-4881-afe1-f5acdcd91772")
 	(paper "A2")
 	(title_block
 		(title "HVAC Monitor outdoor carrier")
@@ -4772,7 +4772,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "3ea66c02-0fd6-4093-b06f-a41e0055d3ca")
+		(uuid "cf0e9c61-57aa-4bb7-bd1d-cd4c5aef01e4")
 		(property "Reference" "J1"
 			(at 30.48 35.56 0)
 			(effects
@@ -4826,14 +4826,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "969da738-9746-4aa6-b762-99abf070b2c0")
+			(uuid "1806b0f5-a7b1-4109-bd30-931e00726f5b")
 		)
 		(pin "2"
-			(uuid "c7e73732-80b2-41f6-8e26-b285486e1e57")
+			(uuid "a1d71c52-f945-4555-b836-cee762ef3522")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "J1")
 					(unit 1)
 				)
@@ -4848,7 +4848,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "b24e0706-b289-4bac-9f83-081f7c646822")
+		(uuid "3c381e4c-ee2e-4368-80dc-276078b9c4bb")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -4858,7 +4858,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "d699d12d-0ed8-43c7-b7d1-a82b6fedf95d")
+		(uuid "e8ae0e06-944d-45f5-8a22-bfeb257e9eb7")
 		(property "Reference" "#PWR001"
 			(at 19.05 40.64 90)
 			(hide yes)
@@ -4904,11 +4904,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "2bf9ddd9-a1ac-4379-ab2b-716cba6c8b26")
+			(uuid "361207cd-dcfe-4725-8fb5-9294978b39bd")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR001")
 					(unit 1)
 				)
@@ -4923,7 +4923,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "b6755cf9-d10c-4b5a-aab9-2feb3d13e501")
+		(uuid "fadc6660-06c5-4603-be6c-6a5826ebfed0")
 		(property "Reference" "F1"
 			(at 52.832 38.1 90)
 			(effects
@@ -4968,14 +4968,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "3f1ea3cc-2287-4110-9178-8215004dfab4")
+			(uuid "f9503c69-55c2-4558-bb13-d548b3698217")
 		)
 		(pin "2"
-			(uuid "9f099d39-aee1-43b7-9810-46915becf175")
+			(uuid "f7c5c68d-93a1-4c5a-9ce7-34c3d2c2b830")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "F1")
 					(unit 1)
 				)
@@ -4990,7 +4990,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "9aa8a488-4524-4aa6-9695-9a47881a9f56")
+		(uuid "24945bf9-1b96-425e-9901-5e65095e2799")
 	)
 	(label "VAC_F"
 		(at 50.8 41.91 270)
@@ -5000,7 +5000,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "7346c7ae-48b9-408e-9c63-090c6d0a3860")
+		(uuid "377a6127-09dd-4fde-8c61-4be24017abf5")
 	)
 	(symbol
 		(lib_id "Device:D_TVS")
@@ -5010,7 +5010,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "7633a6d3-b7db-4f04-8c62-d1fa587f18d4")
+		(uuid "b460faf3-130a-4d26-81fd-aa1cf2dd3da2")
 		(property "Reference" "D1"
 			(at 71.12 35.56 0)
 			(effects
@@ -5055,14 +5055,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "0a5de995-f962-42fa-821e-6e83471cdfee")
+			(uuid "e6cdc19c-6d5f-475c-81dc-668c74d50263")
 		)
 		(pin "2"
-			(uuid "0295dc94-a27e-4ca3-b614-4d5eb83b8bdc")
+			(uuid "235b845b-4679-4c41-9088-029dae816946")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "D1")
 					(unit 1)
 				)
@@ -5077,7 +5077,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "da75466b-4143-4129-82c0-ce3c9a02e38a")
+		(uuid "28ca7223-312b-4924-be63-d7d73300d0c9")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -5087,7 +5087,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "7da92d5c-dab4-4787-9ff0-866105181a28")
+		(uuid "ac4da38c-6f85-4521-b587-fc66e2d053d7")
 		(property "Reference" "#PWR002"
 			(at 81.28 38.1 90)
 			(hide yes)
@@ -5133,11 +5133,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "6adf4ee8-3f03-4323-89fe-c124a363307a")
+			(uuid "37a9409d-51bc-4e21-9038-4e874bab99d7")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR002")
 					(unit 1)
 				)
@@ -5152,7 +5152,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "9923133c-4405-45cc-831f-003a0cd7b3d6")
+		(uuid "d055ad88-71ae-4aaa-a1a4-684fe868560c")
 		(property "Reference" "D2"
 			(at 101.6 35.56 0)
 			(effects
@@ -5197,14 +5197,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "9efc1656-d320-4e77-91a7-8ea282734aff")
+			(uuid "a3778773-6e8b-43b3-8fa9-1dda28971cd4")
 		)
 		(pin "2"
-			(uuid "934eda1b-3520-4233-8d11-af54bc4284a7")
+			(uuid "ed2761c2-e31c-4168-974f-4f19566a6fbc")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "D2")
 					(unit 1)
 				)
@@ -5219,7 +5219,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "8c6348ae-98f9-49d3-89a4-bf27b10c6ef7")
+		(uuid "671a64ca-b3a2-40e6-8e4a-c8d42ff0525b")
 	)
 	(label "VAC_F"
 		(at 105.41 38.1 0)
@@ -5229,7 +5229,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "4fd0e58a-32f8-4674-b247-e077c7124d32")
+		(uuid "fd0392c5-ba20-436b-99dd-c8fa5a015292")
 	)
 	(symbol
 		(lib_id "Device:C_Polarized")
@@ -5239,7 +5239,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "215730b2-4575-46cb-a5ba-00c512f7847f")
+		(uuid "2a3953ab-0c16-4cf4-88c4-06f9889578e6")
 		(property "Reference" "C1"
 			(at 125.095 35.56 0)
 			(effects
@@ -5286,14 +5286,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "c71a2ea1-3971-4dc0-a42a-827e7919097c")
+			(uuid "aead5eb0-ce63-4d75-aa92-68f41d579e89")
 		)
 		(pin "2"
-			(uuid "6ea69438-a426-4127-a2a4-43879b0c069d")
+			(uuid "88d55f7a-bc13-47de-9104-66e70a10eea8")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "C1")
 					(unit 1)
 				)
@@ -5308,7 +5308,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "20a009dd-6d31-4dc1-959e-25d5162c488c")
+		(uuid "fc84cad4-d796-4a0d-aa81-6e7ccc85564f")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -5318,7 +5318,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "442d8960-cabc-4605-99f4-779ec1296860")
+		(uuid "0dd385cc-9e94-46ab-b369-801fdb6ae75d")
 		(property "Reference" "#PWR003"
 			(at 124.46 48.26 0)
 			(hide yes)
@@ -5364,11 +5364,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "e5a26d97-2a6a-4393-9796-97a370eac793")
+			(uuid "44b9ae93-f1e6-4dba-aa65-2127c7ca28af")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR003")
 					(unit 1)
 				)
@@ -5383,7 +5383,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "63f6b7ee-a5a5-4909-984c-4c56e633126d")
+		(uuid "1b1d7ea1-249a-4a7d-b883-d177c3a9ea15")
 		(property "Reference" "C2"
 			(at 137.795 35.56 0)
 			(effects
@@ -5430,14 +5430,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "890a7cd7-552a-413f-ac3b-246063a4b884")
+			(uuid "3b213ec1-9ce4-42ab-9ac9-a5f12a048854")
 		)
 		(pin "2"
-			(uuid "54f7dcf1-9c61-4a6a-a9a9-80f62a1fc2ae")
+			(uuid "a6ee5b2e-8183-4fbc-90a4-452a27808eb4")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "C2")
 					(unit 1)
 				)
@@ -5452,7 +5452,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "41697f6e-dbcc-4e87-9ef3-03a17b5c24fd")
+		(uuid "dfd24d1d-7273-4252-ab6b-d484c8f46288")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -5462,7 +5462,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "99ea5ac5-8e33-459a-9dac-616bede75405")
+		(uuid "73fba5dc-971e-420b-a7d8-94854d97e41a")
 		(property "Reference" "#PWR004"
 			(at 137.16 48.26 0)
 			(hide yes)
@@ -5508,11 +5508,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "dfcab58b-2ab9-4056-970d-7504f69a02e7")
+			(uuid "0f8e5997-aad3-43d6-b46a-57c344f4a1d1")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR004")
 					(unit 1)
 				)
@@ -5527,7 +5527,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "a34acc91-d1ff-40fe-9aa2-74936c2f93d3")
+		(uuid "0a8c91a1-52c7-4fb4-a91e-9cdf9351282d")
 		(property "Reference" "U2"
 			(at 165.1 33.02 0)
 			(effects
@@ -5574,20 +5574,20 @@
 			)
 		)
 		(pin "1"
-			(uuid "aea7c352-f8a5-4aa3-ba97-ddc0b1702205")
+			(uuid "b48b6e9a-384a-4983-8d5c-ceedf445d840")
 		)
 		(pin "2"
-			(uuid "70eb179c-96da-4d0e-bb6e-2c34439166b4")
+			(uuid "e6253406-f148-4eb8-ab4c-a1f207b1c9bc")
 		)
 		(pin "3"
-			(uuid "9688bc4b-b9b1-48ba-a636-82384f8f1e18")
+			(uuid "e7815148-0780-4742-b189-bcbc7f7583c8")
 		)
 		(pin "4"
-			(uuid "cbd62e59-2625-460d-bd35-c72a006ae7ee")
+			(uuid "0c95bb61-82b1-4c64-b158-d41cfff27bc9")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "U2")
 					(unit 1)
 				)
@@ -5602,7 +5602,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "a73b8750-4424-45e1-a341-07b4ee92db84")
+		(uuid "4e5821c6-a1b6-45f0-82ff-26e397cbb2e2")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -5612,7 +5612,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "f2ec9916-db0c-40bc-8f4b-35c0c10313fc")
+		(uuid "b3b9cb4d-c833-41e2-bb43-81f9da79b460")
 		(property "Reference" "#PWR005"
 			(at 156.21 39.37 90)
 			(hide yes)
@@ -5658,11 +5658,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "478e31c3-446b-4fd8-8015-3d68fb09da0b")
+			(uuid "51e9a170-ae0b-40e7-bba2-7a5c97fafd3e")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR005")
 					(unit 1)
 				)
@@ -5677,7 +5677,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "ffbb60a1-1f3f-40d9-b065-a44cdebad62f")
+		(uuid "bcd8a054-e613-4dea-aa01-73f15e253470")
 		(property "Reference" "#PWR006"
 			(at 184.15 36.83 90)
 			(hide yes)
@@ -5723,11 +5723,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "440d3a96-3f00-4bf8-9230-1b9ef5e079f9")
+			(uuid "ca1a25da-ea0e-4d36-ac8e-4063ab3d2a4e")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR006")
 					(unit 1)
 				)
@@ -5742,7 +5742,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "0099b5d3-9d64-4ee8-a491-162d4161d6f2")
+		(uuid "cd2c4f53-8db4-4168-8229-85b7c9096af7")
 		(property "Reference" "#PWR007"
 			(at 194.31 39.37 90)
 			(hide yes)
@@ -5788,11 +5788,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "50b3d386-85f6-4637-b67e-37cd1a14ff22")
+			(uuid "f8e364af-a538-48f5-8b1f-fbef5ec39458")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR007")
 					(unit 1)
 				)
@@ -5807,7 +5807,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "788a4d6b-9c13-4163-8e2e-2845072179d9")
+		(uuid "7cf2537a-1412-4a43-8458-3e191d292d3e")
 		(property "Reference" "U1"
 			(at 317.5 46.99 0)
 			(effects
@@ -5854,98 +5854,98 @@
 			)
 		)
 		(pin "1"
-			(uuid "77fb266e-2f45-416a-925a-d8781bdc06de")
+			(uuid "eaeb5574-3099-4799-ada4-708aa2857ce4")
 		)
 		(pin "2"
-			(uuid "ef630fc1-54ef-4d91-8696-fe6597118372")
+			(uuid "345e81c2-33ed-4cc1-877d-0e9db3bc69e1")
 		)
 		(pin "3"
-			(uuid "d10ffbca-09cb-43cc-adf0-843410b2caba")
+			(uuid "6fea801d-00e5-41d9-a73a-d279ffc6fd8f")
 		)
 		(pin "4"
-			(uuid "7388509c-4110-45e5-9206-06a41534ec85")
+			(uuid "28ab29d5-2468-4ab1-bef5-121ecfe53247")
 		)
 		(pin "5"
-			(uuid "23a0fe3b-4f21-4aab-ab7f-c02af5fee24f")
+			(uuid "f650e57f-1001-4e7c-91ef-528762d59538")
 		)
 		(pin "6"
-			(uuid "0c2f3b42-e22c-4d2d-bf67-e132343779b2")
+			(uuid "28a952c1-66f2-4dfd-ba30-321488084027")
 		)
 		(pin "7"
-			(uuid "13e563ac-df8c-4fe2-8fd5-9a0c5ac12ddf")
+			(uuid "c3766a24-8cdc-4856-bc75-343408f77fc6")
 		)
 		(pin "8"
-			(uuid "46edd48a-764f-4a4b-a6a2-ab6a1c8f1d4b")
+			(uuid "a14fb0d4-b8d1-41fc-ac93-fcea3a4b8980")
 		)
 		(pin "9"
-			(uuid "9335129c-0389-4997-9f77-1dc98cfac8e7")
+			(uuid "17542273-cf37-4f6a-b287-3073c4282d83")
 		)
 		(pin "10"
-			(uuid "6265f261-ea65-4e9c-95c2-9c954ec84c91")
+			(uuid "c7214cb5-a5b0-41ba-b76f-90b89910617b")
 		)
 		(pin "11"
-			(uuid "3b69eafc-4c20-4b05-a952-51d109fa57d0")
+			(uuid "ed3c07dc-573f-485a-862a-4a4ae08750f1")
 		)
 		(pin "12"
-			(uuid "b7901644-b4e7-4721-8919-f008ed730b5c")
+			(uuid "85026073-a9ae-4a54-976a-68d764d03d72")
 		)
 		(pin "13"
-			(uuid "e15075ec-e9bd-497c-a30b-a3709d3afb60")
+			(uuid "24eeb751-f658-4ca3-a85f-73bc3750111c")
 		)
 		(pin "14"
-			(uuid "deefe21c-176d-47b0-9a64-9b32c98ee227")
+			(uuid "83533708-65ae-4e54-8dc5-a44cc347ec67")
 		)
 		(pin "15"
-			(uuid "54108e6f-195d-4f52-b068-402f11addd3b")
+			(uuid "85fb29ea-0f9e-4886-9393-63c6de51d576")
 		)
 		(pin "16"
-			(uuid "ecae6722-860c-4853-b88c-8a43f3c92b53")
+			(uuid "ce573d56-4d09-4f4a-b011-19b90fd71ba5")
 		)
 		(pin "17"
-			(uuid "fab2775d-082f-418a-888b-8b443978bad4")
+			(uuid "905a487a-ad56-4c57-99c6-fbbb04d8c6fe")
 		)
 		(pin "18"
-			(uuid "ee0ac804-136a-4969-94d0-8c9d7e450c9f")
+			(uuid "5170664b-05a8-4a17-b7df-57f4136a2ce3")
 		)
 		(pin "19"
-			(uuid "00df79bc-5fb1-4ec2-8e5d-46ed4d6ada07")
+			(uuid "9a9b96b5-38a3-45e7-8cb6-edcd7cb5b74c")
 		)
 		(pin "20"
-			(uuid "94591eb0-6f50-40f8-b21e-64af78a7948f")
+			(uuid "66e15a82-5a43-4881-941b-968af0d4e808")
 		)
 		(pin "21"
-			(uuid "d2ceb748-ba44-4937-ae2b-aed86c6ced7d")
+			(uuid "943b3d6e-7a89-457d-a0b3-44cb61b57d46")
 		)
 		(pin "22"
-			(uuid "c43e1248-9c6d-489c-8fa9-548efeeb3499")
+			(uuid "8913a2f4-bbe1-4693-a742-e5ca27ffd25f")
 		)
 		(pin "23"
-			(uuid "98b94f71-314b-4f98-b8c1-d5bcfbe5ddc7")
+			(uuid "ad4cadbd-63d6-482d-beba-8c0bb06d624d")
 		)
 		(pin "24"
-			(uuid "7f15833a-7f08-4a92-a380-74f8b3c98e69")
+			(uuid "45d58236-7f32-4d0a-81ed-9ccf8a3ab1f4")
 		)
 		(pin "25"
-			(uuid "1ffd230f-c6d2-4f63-a74d-4f9cb83d62c0")
+			(uuid "2994a7ae-8ea4-4dcd-a126-894b7c6ee68b")
 		)
 		(pin "26"
-			(uuid "6c7f4d44-da8f-433c-9838-91a185852ffd")
+			(uuid "4d6f2e36-b7e0-43f9-806f-b2b44fe6579b")
 		)
 		(pin "27"
-			(uuid "7620d016-aebe-4b69-8928-ff2a4d9b5c7a")
+			(uuid "d2b0a408-e1f8-4a7b-9861-7a1e1a8367ba")
 		)
 		(pin "28"
-			(uuid "951b7498-499f-4c51-bc7b-5e96e18c51e1")
+			(uuid "7ab2a7c3-b4be-43f2-a388-95311b1d6742")
 		)
 		(pin "29"
-			(uuid "1907c652-a902-4a61-84ac-f1d1fbd9ff27")
+			(uuid "79c07024-d870-469f-bab8-714a53024b18")
 		)
 		(pin "30"
-			(uuid "ef38968b-8a99-4ab9-9c10-974efebf93fd")
+			(uuid "e581ba09-ef67-4b04-987c-836eeb1bb23a")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "U1")
 					(unit 1)
 				)
@@ -5954,7 +5954,7 @@
 	)
 	(no_connect
 		(at 314.96 50.8)
-		(uuid "2068ed70-8d04-4ee2-9c70-ac434930634c")
+		(uuid "fefb8388-9be7-429b-8ba8-8203d8d51556")
 	)
 	(label "CT1_ADC"
 		(at 314.96 53.34 180)
@@ -5964,7 +5964,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "8e749efd-00c4-4845-ae4b-0e189d93afed")
+		(uuid "fcfcacff-3a62-4f26-87e9-b68a70ce18a3")
 	)
 	(label "CT2_ADC"
 		(at 314.96 55.88 180)
@@ -5974,7 +5974,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "51b913d1-924e-43f6-80c1-e3d26e22fcbd")
+		(uuid "5f695a31-c8cd-4eb7-8223-cce9c7d657ed")
 	)
 	(label "MODE_Y"
 		(at 314.96 58.42 180)
@@ -5984,7 +5984,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "84c4d58c-5850-413a-a0b0-697192f16b21")
+		(uuid "6be108c4-3f1f-4511-9bf6-d6e5db43b464")
 	)
 	(label "MODE_OB"
 		(at 314.96 60.96 180)
@@ -5994,7 +5994,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "5dfe89c6-8955-4cd7-be17-f24cda7bd4e9")
+		(uuid "c6f468af-eeae-4406-b8fd-de9ac3f7c1b1")
 	)
 	(label "CT3_ADC"
 		(at 314.96 63.5 180)
@@ -6004,11 +6004,11 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "357fcec0-5687-4403-86db-8ad5e4aefb2b")
+		(uuid "3e7c4bb4-8c24-4528-83cf-522aa0933864")
 	)
 	(no_connect
 		(at 314.96 66.04)
-		(uuid "510cc6fc-c28c-4a23-a7ce-70bc0d8157f6")
+		(uuid "3c125ccb-fef5-4785-8c84-93c7245bc38a")
 	)
 	(label "LORA_BUSY"
 		(at 314.96 68.58 180)
@@ -6018,7 +6018,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "f63f1f14-7df6-459f-95c4-a12f30b33a41")
+		(uuid "366b4345-fb2c-48c8-a6fd-04f05be30ae9")
 	)
 	(label "LORA_DIO1"
 		(at 314.96 71.12 180)
@@ -6028,7 +6028,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "786a3d9d-23ae-414e-bb11-e2252148bbe9")
+		(uuid "c26cafe6-14df-4468-b8f8-b82b5432bb26")
 	)
 	(label "LORA_NRST"
 		(at 314.96 73.66 180)
@@ -6038,7 +6038,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "3cb0c3d5-c759-48ef-b516-c9497b3e4c93")
+		(uuid "77e4e7ba-a1ce-47c3-9d87-3b73b2e7fe3b")
 	)
 	(label "SETUP"
 		(at 314.96 76.2 180)
@@ -6048,11 +6048,11 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "b9ac2204-a61c-458d-ac42-172ee926778d")
+		(uuid "cd907505-3e64-40f6-adc5-bb5d3cf41595")
 	)
 	(no_connect
 		(at 314.96 78.74)
-		(uuid "4fd3e752-5c14-4b7f-a7f6-4bd259de100c")
+		(uuid "0a7240c6-2e8a-4785-8863-f7d9be75caf5")
 	)
 	(label "LORA_RFSW"
 		(at 314.96 81.28 180)
@@ -6062,7 +6062,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "b6f6ba8a-3456-4bec-b3a1-639537bd4638")
+		(uuid "ed332b34-a3e4-415d-bc57-5a8093c51533")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -6072,7 +6072,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "9bfc42c1-9e18-46f1-a710-c491dd64d88f")
+		(uuid "8f30e97c-6f7a-4401-b61b-83098caf31d5")
 		(property "Reference" "#PWR008"
 			(at 308.61 83.82 90)
 			(hide yes)
@@ -6118,11 +6118,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "7d601ae2-eadf-4a32-9ffd-a309f600dc01")
+			(uuid "96795d20-37cf-453f-bb76-2ea9cab4241e")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR008")
 					(unit 1)
 				)
@@ -6137,7 +6137,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "78b175a3-e143-4808-909a-f3e3b2254ad5")
+		(uuid "1d44b39c-6b53-48cb-9e4e-97b84005677b")
 		(property "Reference" "#PWR009"
 			(at 318.77 86.36 90)
 			(hide yes)
@@ -6183,11 +6183,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "3f074145-abdc-47ab-bf04-2e4237a11274")
+			(uuid "9aefbf54-9f4b-44c9-a1a8-9161ff661692")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR009")
 					(unit 1)
 				)
@@ -6202,7 +6202,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "1e6c1d8f-ac47-467c-ab6a-f5b892a54ef0")
+		(uuid "268b59b1-4832-449d-bb1b-e3d72c09853f")
 	)
 	(label "SCL"
 		(at 345.44 53.34 0)
@@ -6212,15 +6212,15 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "0337048f-cc3d-4339-bd38-7053f4504203")
+		(uuid "181bb8f1-928e-42eb-8cf2-04f13021832e")
 	)
 	(no_connect
 		(at 345.44 55.88)
-		(uuid "c418b56c-d574-4e0a-b103-a188549ef43e")
+		(uuid "e8f171e4-c315-4dbf-bcdf-118a80837008")
 	)
 	(no_connect
 		(at 345.44 58.42)
-		(uuid "50d54d25-a413-4461-8a2b-5c6dbc38c5f2")
+		(uuid "899084ff-479f-4561-a5d5-93c6bd91217d")
 	)
 	(label "SDA"
 		(at 345.44 60.96 0)
@@ -6230,7 +6230,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "5c4cd7ed-bb80-4806-9b83-d16574eb5d72")
+		(uuid "8621f6c4-af37-4660-a563-143dddbaf0ad")
 	)
 	(label "LORA_MISO"
 		(at 345.44 63.5 0)
@@ -6240,7 +6240,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "cc6ced5f-7c68-47de-a421-733b86ace9a6")
+		(uuid "97a99386-9383-48cb-830c-d792dfb9ed32")
 	)
 	(label "LORA_SCK"
 		(at 345.44 66.04 0)
@@ -6250,7 +6250,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "530a7bf3-5336-4568-a7b8-6435fd5562ac")
+		(uuid "e1bb7576-27cc-4ff3-9500-efd192a1f88c")
 	)
 	(label "LORA_NSS"
 		(at 345.44 68.58 0)
@@ -6260,27 +6260,27 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "27cf1707-e932-4b4c-b861-6a466cff00d4")
+		(uuid "56d50e40-3e23-4db9-8a6f-a5892afc4046")
 	)
 	(no_connect
 		(at 345.44 71.12)
-		(uuid "c7f46f50-526e-4d97-9810-1d4ce7a27f91")
+		(uuid "fdae0254-be5e-4efe-9738-db3e24eb503c")
 	)
 	(no_connect
 		(at 345.44 73.66)
-		(uuid "409a169f-8bdf-4bb7-87b3-22d1950b4e11")
+		(uuid "acc95275-7ecf-4531-b717-6a53e47dd1a3")
 	)
 	(no_connect
 		(at 345.44 76.2)
-		(uuid "ded5df43-8d18-40d5-95c3-18c11db7892c")
+		(uuid "affcaad1-544b-4df3-98d6-33e557f87150")
 	)
 	(no_connect
 		(at 345.44 78.74)
-		(uuid "17422120-2b75-417f-a175-2abc1211d585")
+		(uuid "cfc1bd99-8d01-41de-979b-ba2e39b8971a")
 	)
 	(no_connect
 		(at 345.44 81.28)
-		(uuid "f1115fd3-01f4-4f17-95b3-dee3ffc8f378")
+		(uuid "47af5a29-89bf-422a-90bd-82a756113604")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -6290,7 +6290,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "d7588ef7-8f7f-49cd-8630-a424a62c3acc")
+		(uuid "5f2a5a2c-782b-4c9a-a2ce-71d8a3a42706")
 		(property "Reference" "#PWR010"
 			(at 351.79 83.82 90)
 			(hide yes)
@@ -6336,11 +6336,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "2ca70a83-3bf8-4a7a-b55e-003956bb5c27")
+			(uuid "654c09ce-775d-4571-9968-6642432fa5d1")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR010")
 					(unit 1)
 				)
@@ -6355,7 +6355,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "93d52915-30fa-4bbe-ac05-114869ed3d70")
+		(uuid "3e78cfb0-be46-40ac-ad2c-d24688fde975")
 		(property "Reference" "#PWR011"
 			(at 341.63 86.36 90)
 			(hide yes)
@@ -6401,11 +6401,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "37fd1450-629e-48eb-84dd-9bb47d63b8a5")
+			(uuid "eea3896c-d70b-4e81-bb69-eed78bc0c754")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR011")
 					(unit 1)
 				)
@@ -6420,7 +6420,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "9f18ab0f-549e-412f-8b0b-5f42ebed3f55")
+		(uuid "9d586f43-919d-418b-90a5-1fb6278ec107")
 		(property "Reference" "U3"
 			(at 43.18 91.44 0)
 			(effects
@@ -6467,38 +6467,38 @@
 			)
 		)
 		(pin "1"
-			(uuid "b3430cbc-19de-4686-b888-8ae6b15c865a")
+			(uuid "d52cbe0a-158a-4b62-9eec-f1e34cf3af17")
 		)
 		(pin "2"
-			(uuid "b74b9d88-91da-44a6-a46e-9c12063e7ed5")
+			(uuid "89274562-c71a-42ed-a9e2-890592f4149d")
 		)
 		(pin "3"
-			(uuid "775b2796-581d-448e-bde9-170f9461a095")
+			(uuid "62d190fd-193e-40b1-9030-ed5e68a3e39e")
 		)
 		(pin "4"
-			(uuid "30e35b67-30ee-45c9-8879-364d67062c1c")
+			(uuid "34b7b663-6236-48b2-9224-9fd577555e0f")
 		)
 		(pin "5"
-			(uuid "0409068d-4c16-4c27-9f64-4ad69fd69f55")
+			(uuid "07d5d814-a2d8-4dac-8a5f-2052815498d8")
 		)
 		(pin "6"
-			(uuid "b0a0bd2e-ede3-4037-9e81-9f4fa3046074")
+			(uuid "b7b7d653-467f-485f-a0fa-bb152339932a")
 		)
 		(pin "7"
-			(uuid "b2748b47-70ea-4263-a289-d62c8774a38f")
+			(uuid "6adc5440-fd32-4381-b4d7-5ed0227c3494")
 		)
 		(pin "8"
-			(uuid "61d887d0-f201-4ce8-9d15-92ba0384fa11")
+			(uuid "94b5a48a-3104-4e72-8647-a79a28f4a531")
 		)
 		(pin "9"
-			(uuid "fb17246d-7d0f-4b40-b2b7-4e48e64f4bb8")
+			(uuid "6e1376aa-692f-44ae-b8e7-e5a114260db8")
 		)
 		(pin "10"
-			(uuid "7e509954-64fc-4f1c-838a-197af70f7ce8")
+			(uuid "ab8e8657-21ab-401d-83d4-baa7c0ccec38")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "U3")
 					(unit 1)
 				)
@@ -6513,7 +6513,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "3850289d-a89e-4d5a-9610-92ab9b50c6b8")
+		(uuid "9e47e253-2661-4592-9ade-ef7034ff2cea")
 		(property "Reference" "#PWR012"
 			(at 44.45 95.25 90)
 			(hide yes)
@@ -6559,11 +6559,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "3c8d64fd-200d-4ab5-bf04-3e556542bd60")
+			(uuid "7e919e0a-e3e9-4d2c-817b-b53ad612502f")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR012")
 					(unit 1)
 				)
@@ -6578,7 +6578,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "21e04d84-5846-4340-9528-be3ccc36ac18")
+		(uuid "7e9ee2cf-3487-45de-84c1-491fe5d2ff83")
 		(property "Reference" "#PWR013"
 			(at 34.29 97.79 90)
 			(hide yes)
@@ -6624,11 +6624,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "8b1577b9-c5e0-4712-98fc-c6c5f7f36966")
+			(uuid "6d5a2f2e-1386-43a6-9b5c-368769417633")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR013")
 					(unit 1)
 				)
@@ -6643,7 +6643,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "79daec35-e1fd-417b-a47b-b427e6364f2c")
+		(uuid "2d0857ca-a29b-4b16-aa97-8e4dbe99c822")
 	)
 	(label "SDA"
 		(at 40.64 102.87 180)
@@ -6653,7 +6653,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "1f7809ec-84d6-4eaf-87e5-33485a4fda03")
+		(uuid "b689874b-0d60-4931-a976-6608b28b6000")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -6663,7 +6663,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "b111c3ae-26bf-4006-83c3-ac2472609f07")
+		(uuid "6d3a1452-6a09-4e40-8861-ed462e4771bb")
 		(property "Reference" "#PWR014"
 			(at 34.29 105.41 90)
 			(hide yes)
@@ -6709,11 +6709,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "fa7b2187-f8f0-4df5-b359-30fe2511e1de")
+			(uuid "2d7a6164-3439-411d-8093-7e09f4426b94")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR014")
 					(unit 1)
 				)
@@ -6722,7 +6722,7 @@
 	)
 	(no_connect
 		(at 40.64 107.95)
-		(uuid "5a81ad20-b4ef-4e39-a958-020add62d80f")
+		(uuid "cf14d341-aee4-40d2-8307-25c57bdd147a")
 	)
 	(label "P_LIQ"
 		(at 60.96 95.25 0)
@@ -6732,7 +6732,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "45f916bd-ca89-442d-946e-76b5e8c7c4b9")
+		(uuid "b9f18f92-2652-4637-ad1e-dc95907bf286")
 	)
 	(label "P_VAP"
 		(at 60.96 97.79 0)
@@ -6742,7 +6742,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "61427fd1-e455-46ed-a18c-b870f96da2b4")
+		(uuid "7b3962b1-de45-4d99-925b-fcc8bedc9573")
 	)
 	(label "P_TSUC"
 		(at 60.96 100.33 0)
@@ -6752,7 +6752,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "aa66144b-3354-42ef-b972-9b09a358ba6f")
+		(uuid "44d7d7d5-d379-40f2-8faa-1358e1644c43")
 	)
 	(label "V5_MON"
 		(at 60.96 102.87 0)
@@ -6762,7 +6762,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "55993624-2965-4dec-8c55-b3ee000a0ff6")
+		(uuid "90f03486-7c75-47e4-ab62-04a6d32772f1")
 	)
 	(symbol
 		(lib_id "hvac_carrier:ADS1115_Module")
@@ -6772,7 +6772,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "3f9676f0-08b2-47d7-91a4-3db4b1523b1b")
+		(uuid "7e6b9311-da91-4945-9ad2-417972e2e91f")
 		(property "Reference" "U4"
 			(at 124.46 91.44 0)
 			(effects
@@ -6819,38 +6819,38 @@
 			)
 		)
 		(pin "1"
-			(uuid "32673131-f062-4a95-9078-98658940810a")
+			(uuid "892ef868-ccd5-4f31-9840-b3ae5ca074a9")
 		)
 		(pin "2"
-			(uuid "394a7ff4-a505-40cf-9c09-f665c267de1b")
+			(uuid "b597b526-0318-4348-b565-07c0b25f11c2")
 		)
 		(pin "3"
-			(uuid "8688bc1f-aea5-4a33-bebb-a04bc35ccdab")
+			(uuid "496711b9-a051-4115-a10f-178ce7d0fa7a")
 		)
 		(pin "4"
-			(uuid "f3bd12c3-bfb5-4f2e-8365-58e136ea5ff9")
+			(uuid "eedd3ad1-767b-4d54-8020-6522ef7b18e7")
 		)
 		(pin "5"
-			(uuid "f999a428-8294-456d-ab09-47c167aa75c4")
+			(uuid "456bdb64-1433-41b5-93af-2c9d145ad7bf")
 		)
 		(pin "6"
-			(uuid "e27cf7a8-c35d-4f6d-8f08-c4dc80ee7bf3")
+			(uuid "6769dbbc-bb07-4546-bb50-ec60c74ed898")
 		)
 		(pin "7"
-			(uuid "b59250da-873b-4c51-84ff-cb4f417d93a6")
+			(uuid "0a361692-c02b-4397-aece-eb1313225176")
 		)
 		(pin "8"
-			(uuid "ebd8fdcd-852d-4e4a-b118-05d51962824b")
+			(uuid "48f963f2-58e2-4098-8888-eaec9c5f4658")
 		)
 		(pin "9"
-			(uuid "6fc4a84a-13be-440d-a067-bf7181281425")
+			(uuid "e912137b-57e0-4407-b94e-e65421e41ce4")
 		)
 		(pin "10"
-			(uuid "f397904f-a801-46cd-9d5c-ccedd97f6ecd")
+			(uuid "af2ebfa8-9bdf-4050-8050-f63c43f0035c")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "U4")
 					(unit 1)
 				)
@@ -6865,7 +6865,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "d77f96eb-571f-4234-b215-da8ea9ca7542")
+		(uuid "95075d5b-61d4-47f5-8fc4-8dead45ba77f")
 		(property "Reference" "#PWR015"
 			(at 125.73 95.25 90)
 			(hide yes)
@@ -6911,11 +6911,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "fa20e5c0-cae6-4999-a569-6f0fe5d57202")
+			(uuid "854c32bc-0c6e-4345-a7ac-8fb0a9f9481e")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR015")
 					(unit 1)
 				)
@@ -6930,7 +6930,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "a3bcb052-588c-46ea-afb6-840cb51f2170")
+		(uuid "4a1ab730-8b39-47c6-a602-d3590100ee24")
 		(property "Reference" "#PWR016"
 			(at 115.57 97.79 90)
 			(hide yes)
@@ -6976,11 +6976,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "bce2b2be-4189-4ca8-a462-8a606acd9193")
+			(uuid "661fdc0c-7763-4b2f-97e7-bdd8241186dc")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR016")
 					(unit 1)
 				)
@@ -6995,7 +6995,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "90fc8acb-63bc-4cb8-9cab-ea2a4773098e")
+		(uuid "c5b8b2fb-dbb6-47b1-80ba-dd60413450eb")
 	)
 	(label "SDA"
 		(at 121.92 102.87 180)
@@ -7005,7 +7005,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "63a5af41-df5e-4e2b-9602-e33044ad3ceb")
+		(uuid "6b5a8278-92ff-4783-bd49-00a1820b0349")
 	)
 	(symbol
 		(lib_id "power:+3V3")
@@ -7015,7 +7015,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "c2f2bd20-ce2a-4b7a-aaa1-06d2ee6d3118")
+		(uuid "29b1d919-2264-4a44-97cf-2577454fda0e")
 		(property "Reference" "#PWR017"
 			(at 125.73 105.41 90)
 			(hide yes)
@@ -7061,11 +7061,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "705abed0-213a-4b28-a21b-cb3795d6436f")
+			(uuid "8cffc1c8-e6b8-4870-b8d3-c4079bcc6804")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR017")
 					(unit 1)
 				)
@@ -7074,7 +7074,7 @@
 	)
 	(no_connect
 		(at 121.92 107.95)
-		(uuid "ea3b8c89-7fa7-402f-a572-220119fccf3f")
+		(uuid "ea021c42-1e1b-4b77-aea5-1bc4330ea8c5")
 	)
 	(label "T_SUC"
 		(at 142.24 95.25 0)
@@ -7084,7 +7084,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "078ff8d7-bb50-4a34-b6ee-6c072d5f636d")
+		(uuid "ea9e10f2-4686-486d-80bb-1c02bfaa2c24")
 	)
 	(label "T_LIQ"
 		(at 142.24 97.79 0)
@@ -7094,7 +7094,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "2b89a6de-776c-4b46-aa36-4192d82ef473")
+		(uuid "0ba8b610-bb13-4b6b-9e51-edc31c961783")
 	)
 	(label "T_TSUC"
 		(at 142.24 100.33 0)
@@ -7104,7 +7104,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "fd601a72-bcac-48ea-8d6c-a1cebff0d218")
+		(uuid "41324a9f-4231-40af-86b6-a2f62b139bfa")
 	)
 	(label "T_DIS"
 		(at 142.24 102.87 0)
@@ -7114,7 +7114,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "d3672c90-4d8d-4d5b-a6da-dfd1b30fe57d")
+		(uuid "927281a8-268f-4ff4-8b30-a465a4499204")
 	)
 	(symbol
 		(lib_id "Connector_Generic:Conn_01x04")
@@ -7124,7 +7124,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "734d3e31-929a-4c37-9c40-0f41ac25e4b2")
+		(uuid "215d7334-4cb3-4b1e-9f6d-51669107a979")
 		(property "Reference" "J8"
 			(at 205.74 96.52 0)
 			(effects
@@ -7178,20 +7178,20 @@
 			)
 		)
 		(pin "1"
-			(uuid "adfc2601-bd7e-404c-bdce-06aad1925f78")
+			(uuid "516315d5-6b6a-45e5-af5e-f2dee3b218a0")
 		)
 		(pin "2"
-			(uuid "0082a396-c99f-4971-9081-362604442140")
+			(uuid "32c230f1-7e92-4d6b-9bb2-2c1b029f18a9")
 		)
 		(pin "3"
-			(uuid "ea3c7fa7-bfb2-4876-8bf0-59aebfa303e0")
+			(uuid "bc466611-5c48-45f8-8982-acbb6aeb9e7b")
 		)
 		(pin "4"
-			(uuid "98bd7492-36fc-47ec-b55f-8a518dc4f2e0")
+			(uuid "b6134044-e74a-4f12-9c72-7bb1f6d16433")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "J8")
 					(unit 1)
 				)
@@ -7206,7 +7206,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "cff64d28-38cb-47b4-bc9d-badb9a427b72")
+		(uuid "ee04af58-20d6-4b84-afc1-d34fbdc95107")
 		(property "Reference" "#PWR018"
 			(at 204.47 99.06 90)
 			(hide yes)
@@ -7252,11 +7252,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "2380525a-1bdc-4edb-916c-039bc3aa5ccd")
+			(uuid "3bf59852-6148-4e4a-b4f9-88403884c5a7")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR018")
 					(unit 1)
 				)
@@ -7271,7 +7271,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "5d105735-fe8e-4b08-8614-5210c7cdfc3e")
+		(uuid "a42545ea-8726-4445-8402-3a6c3e45ed2e")
 		(property "Reference" "#PWR019"
 			(at 194.31 101.6 90)
 			(hide yes)
@@ -7317,11 +7317,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "d69b51a9-9e96-48d8-bc51-3fba8598ac3d")
+			(uuid "9d5f9dde-28f5-4a96-aaa9-461dca5f6e9a")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR019")
 					(unit 1)
 				)
@@ -7336,7 +7336,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "e9cfc441-f25a-4fe7-adf1-7f9f41a95d48")
+		(uuid "0df605d1-2824-4cce-92e9-9f99f220c668")
 	)
 	(label "SCL"
 		(at 200.66 106.68 180)
@@ -7346,7 +7346,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "cdc0b629-111c-405a-857f-92be67d196c7")
+		(uuid "644a88fa-c5e0-49d1-8dfe-2746070fa3fc")
 	)
 	(symbol
 		(lib_id "Connector_Generic:Conn_01x03")
@@ -7356,7 +7356,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "d80af959-3254-4ec3-bfab-279c5092c43b")
+		(uuid "406de17e-9e7f-4349-9a51-5b8003e8a189")
 		(property "Reference" "J3"
 			(at 22.86 142.24 0)
 			(effects
@@ -7410,17 +7410,17 @@
 			)
 		)
 		(pin "1"
-			(uuid "d0db4248-336a-4497-bb87-c0ca43c469f2")
+			(uuid "95f8b241-8efa-4080-b5d1-8477af193fc4")
 		)
 		(pin "2"
-			(uuid "5c6e252b-ef71-4e6e-aa05-6ed25f52f46b")
+			(uuid "cfdda3d6-e77f-42cb-b067-5b8841e289e8")
 		)
 		(pin "3"
-			(uuid "a0480aac-89c3-46f4-944a-a216df73dd33")
+			(uuid "1e9d7748-a15d-477d-bb47-42d2f7ab746d")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "J3")
 					(unit 1)
 				)
@@ -7435,7 +7435,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "929e8528-4d93-47d8-99f9-43849d9d9a2c")
+		(uuid "ebb6e769-de25-41ec-afc1-33ca97516449")
 		(property "Reference" "#PWR020"
 			(at 21.59 144.78 90)
 			(hide yes)
@@ -7481,11 +7481,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "1d797719-59ff-46ff-a9a8-a0c2bf05e114")
+			(uuid "eec0930b-cb2c-40cc-bd56-d366796a9801")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR020")
 					(unit 1)
 				)
@@ -7500,7 +7500,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "8adcf586-6fbb-475c-863f-393960db00af")
+		(uuid "959feed6-7029-471c-bb9c-3fcb3e70ec9c")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -7510,7 +7510,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "5dd9b01a-fcc4-43d5-9a01-34754438dc0f")
+		(uuid "4a00bca0-9ec3-4fe6-8cbd-c5b9dea05a91")
 		(property "Reference" "#PWR021"
 			(at 11.43 149.86 90)
 			(hide yes)
@@ -7556,11 +7556,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "d6631962-ba17-410d-b53b-2dc2431a6fbd")
+			(uuid "8eb8a13e-85ba-4e99-81c7-b66fe3cc6046")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR021")
 					(unit 1)
 				)
@@ -7575,7 +7575,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "c1e30503-ced4-4f7b-ba5a-b3bda330ea84")
+		(uuid "8ea472d4-4876-47ea-ad04-1665b18c403f")
 		(property "Reference" "R1"
 			(at 45.212 147.32 90)
 			(effects
@@ -7620,14 +7620,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "501abbec-efc6-4861-a199-fa3526e53160")
+			(uuid "49d06e9f-9e6d-4016-833c-328795dcd5aa")
 		)
 		(pin "2"
-			(uuid "62248fa4-1825-4086-bd48-9ff266854ccf")
+			(uuid "96244f00-ed77-4407-acde-1fbfb753d6d0")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "R1")
 					(unit 1)
 				)
@@ -7642,7 +7642,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "f559f833-daeb-4f70-9a88-af19e8903184")
+		(uuid "994151ba-0b4a-42c5-932c-62a91cc9144c")
 	)
 	(label "P_LIQ"
 		(at 43.18 151.13 270)
@@ -7652,7 +7652,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "5077b307-e2cc-4a58-99a2-fb13eb94278f")
+		(uuid "33481f70-4a5c-4828-b316-da75eaec385b")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -7662,7 +7662,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "32991d7a-4087-4452-a6f4-2a91089ebe1b")
+		(uuid "1818e6ce-9c53-45f4-84bb-df2528a121dc")
 		(property "Reference" "R2"
 			(at 57.912 147.32 90)
 			(effects
@@ -7707,14 +7707,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "dbc6712b-04c3-4929-8573-3f65ffceffbf")
+			(uuid "a3fecd06-02dc-4310-85fb-646c0876120f")
 		)
 		(pin "2"
-			(uuid "80a73877-98b9-4063-b0ef-bf4b42c9145d")
+			(uuid "739b82c5-f65a-4cd9-8adf-4a37987c1e8a")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "R2")
 					(unit 1)
 				)
@@ -7729,7 +7729,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "f4e042d7-b04e-46f9-8bd8-110c6b2c6a26")
+		(uuid "fc687b86-8f83-4dd8-a0cd-760cfae5297e")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -7739,7 +7739,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "8f0289cc-cd2c-4fa6-99db-9402b841b0c0")
+		(uuid "0d89dc56-81e2-4aec-bcab-00f5209e1bc5")
 		(property "Reference" "#PWR022"
 			(at 55.88 157.48 0)
 			(hide yes)
@@ -7785,11 +7785,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "1e6d0a62-833c-4f59-a942-191762f1fe5f")
+			(uuid "9a3884bb-8732-4efa-bce6-6d2d4770a734")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR022")
 					(unit 1)
 				)
@@ -7804,7 +7804,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "270db93b-a94d-4b41-a8d8-f12c46594be7")
+		(uuid "48287d78-ff76-42ee-964b-38a14b41c79f")
 		(property "Reference" "C3"
 			(at 69.215 144.78 0)
 			(effects
@@ -7851,14 +7851,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "c041853e-54ea-482e-a74e-3ef23cfde76d")
+			(uuid "bdd32ccc-a8ed-47e0-a892-fd7059dc493c")
 		)
 		(pin "2"
-			(uuid "8accef19-d842-41b6-b987-87e76373e0e8")
+			(uuid "7d8ba415-e1fa-4b49-8baa-a4a8c37a2882")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "C3")
 					(unit 1)
 				)
@@ -7873,7 +7873,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "59e4a84c-b98a-4e92-b64e-0e33fda3aa97")
+		(uuid "746c654c-3957-4b71-83fe-e1e02a58813a")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -7883,7 +7883,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "b338a520-4f95-4b18-9fa7-d46987005e49")
+		(uuid "4e4a898e-5f63-4d01-b88d-21a1129d1dda")
 		(property "Reference" "#PWR023"
 			(at 68.58 157.48 0)
 			(hide yes)
@@ -7929,11 +7929,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "b55cebb9-426e-4487-a9db-27563ad8f762")
+			(uuid "33575c5e-c4ab-4bdc-90ca-6c5c81025272")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR023")
 					(unit 1)
 				)
@@ -7948,7 +7948,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "da59ab7b-61a9-4d2a-b481-0950c067218b")
+		(uuid "18f4d305-c18b-42bb-9ee1-eb2719341c82")
 		(property "Reference" "J4"
 			(at 96.52 142.24 0)
 			(effects
@@ -8002,17 +8002,17 @@
 			)
 		)
 		(pin "1"
-			(uuid "f7dcba17-3a6b-4946-a700-8e0eb95b9a12")
+			(uuid "a78e3710-2743-4d19-8a2f-ad74b8a54c69")
 		)
 		(pin "2"
-			(uuid "38a34754-1028-4534-b514-e54da9946c3d")
+			(uuid "002d3dd9-cdd9-41d6-8400-7bf99e10cdce")
 		)
 		(pin "3"
-			(uuid "c9aa2a96-d5bc-43bc-a24b-59bb0c08e27f")
+			(uuid "2d991c3a-03a0-4a9f-8ce4-8d490f6bb058")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "J4")
 					(unit 1)
 				)
@@ -8027,7 +8027,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "6a53edf4-1cc5-46a5-8b1c-feb6332a4588")
+		(uuid "35194886-bde4-4505-a8c2-1675a9d5b893")
 		(property "Reference" "#PWR024"
 			(at 95.25 144.78 90)
 			(hide yes)
@@ -8073,11 +8073,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "e391f4aa-9a46-4d9d-aff8-ac706596f06e")
+			(uuid "120974ec-3ed0-4b2b-bf10-6db92879ffba")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR024")
 					(unit 1)
 				)
@@ -8092,7 +8092,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "78abda37-b89e-4d27-af47-ccae404c8476")
+		(uuid "d51ca419-1206-4b4b-b1f0-d860f3fa5b90")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -8102,7 +8102,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "9db2e50e-cce5-4c6e-887c-00d3a24f17b5")
+		(uuid "1b809bbd-fd73-4b76-a927-54f6a3f8a067")
 		(property "Reference" "#PWR025"
 			(at 85.09 149.86 90)
 			(hide yes)
@@ -8148,11 +8148,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "69f78399-f9cd-47e4-98d5-53f405073cbc")
+			(uuid "baba6676-3072-4d33-977c-0048fb77040e")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR025")
 					(unit 1)
 				)
@@ -8167,7 +8167,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "5ac5fba3-65e1-4e56-84ca-748ab28fb823")
+		(uuid "09fdd042-b59b-4bb6-9dec-86bd84d0ffef")
 		(property "Reference" "R3"
 			(at 118.872 147.32 90)
 			(effects
@@ -8212,14 +8212,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "491a0cc1-daab-427a-9642-b0b7b4674295")
+			(uuid "b8dd3f43-9680-4558-8e03-0b21e2f05864")
 		)
 		(pin "2"
-			(uuid "a617b2c2-9b2d-4b54-858b-6233128cbb11")
+			(uuid "55ec3205-dcc9-4cae-a698-2e4a51070fd4")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "R3")
 					(unit 1)
 				)
@@ -8234,7 +8234,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "0a0bad3c-e83a-48d9-aabb-9591ce6c153a")
+		(uuid "25c74108-6748-4128-8d1a-5b9afa61ac01")
 	)
 	(label "P_VAP"
 		(at 116.84 151.13 270)
@@ -8244,7 +8244,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "1ba7d56d-2192-4eef-8b02-16fb07461529")
+		(uuid "1a1d4226-fe96-4b6b-94e7-570159af4de0")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -8254,7 +8254,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "ea250ab3-ad45-444d-ab91-efd0f27a5610")
+		(uuid "9837decc-3a01-4be3-91c4-650d8f333dbe")
 		(property "Reference" "R4"
 			(at 131.572 147.32 90)
 			(effects
@@ -8299,14 +8299,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "1f03e22a-d276-4fa6-930e-0cceeaff0b97")
+			(uuid "c02e8fcb-2689-4ca0-b1ae-fa822f55bc2e")
 		)
 		(pin "2"
-			(uuid "f1a80c43-5bb3-4601-bf50-0d02db468c70")
+			(uuid "31f158ed-1d22-49e6-b8f4-0d1227113f10")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "R4")
 					(unit 1)
 				)
@@ -8321,7 +8321,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "d86c99aa-6339-4ee6-b3e5-2c82b6271320")
+		(uuid "4882387e-f1d8-4353-a852-1300b94b626a")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -8331,7 +8331,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "d89167a4-fdf1-4bbe-8758-710067f63efc")
+		(uuid "d36d65d3-9d60-4429-ad4f-3aba5b3efdb4")
 		(property "Reference" "#PWR026"
 			(at 129.54 157.48 0)
 			(hide yes)
@@ -8377,11 +8377,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "6e470327-c934-434f-9343-f17c00feaf6f")
+			(uuid "2ec9cd00-93f9-4cf5-8b0a-ecf607488f92")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR026")
 					(unit 1)
 				)
@@ -8396,7 +8396,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "b5c4adb4-287e-4534-9eed-5717fcd35ca7")
+		(uuid "12bde57e-13eb-4e05-b3ac-c34c3e65eecc")
 		(property "Reference" "C4"
 			(at 142.875 144.78 0)
 			(effects
@@ -8443,14 +8443,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "345d568a-5ed8-4364-bc4c-bc63ac855a93")
+			(uuid "dd160f0f-8064-440d-b06d-19c143f1277d")
 		)
 		(pin "2"
-			(uuid "dedc7eed-da88-4f74-853c-9612986a6209")
+			(uuid "cd68756e-9e5b-4031-8184-7381448035f5")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "C4")
 					(unit 1)
 				)
@@ -8465,7 +8465,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "a42cd99c-8d0a-44ae-856e-96b32bf5a6da")
+		(uuid "8e881bde-a0a6-45a6-971c-b88a9b5f68d7")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -8475,7 +8475,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "31012cb1-f90c-4d48-bf3a-a46304e7a488")
+		(uuid "526c3dbd-90a5-439e-8365-3b953eb7979f")
 		(property "Reference" "#PWR027"
 			(at 142.24 157.48 0)
 			(hide yes)
@@ -8521,11 +8521,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "4bf1b226-b22c-407e-b292-f5384cbfe446")
+			(uuid "511952d5-4fcd-4083-9d21-57f1f684351f")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR027")
 					(unit 1)
 				)
@@ -8540,7 +8540,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "83a673ef-c155-433a-9a4a-3622353e9355")
+		(uuid "29a916c1-d44c-446a-b845-84dd7bbd901a")
 		(property "Reference" "J5"
 			(at 170.18 142.24 0)
 			(effects
@@ -8594,17 +8594,17 @@
 			)
 		)
 		(pin "1"
-			(uuid "dafd86a2-bbb3-4bff-9c32-8c13f0094439")
+			(uuid "f3dc0f1a-e1ed-44d0-9c47-0fb81f88c349")
 		)
 		(pin "2"
-			(uuid "be162569-b7b3-4c68-85f7-ac3188be10fb")
+			(uuid "b56d4c40-1bb0-4e9f-aa78-8ab3ae1378cf")
 		)
 		(pin "3"
-			(uuid "f02465b0-5d28-49d1-b2b9-73476428baa0")
+			(uuid "846b2787-fa35-4baf-a9ec-ea5e91a7ede0")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "J5")
 					(unit 1)
 				)
@@ -8619,7 +8619,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "2b44f426-f9a8-4196-8830-8fe528cefe81")
+		(uuid "952efb71-e21d-4343-bbd4-8d99964f1db4")
 		(property "Reference" "#PWR028"
 			(at 168.91 144.78 90)
 			(hide yes)
@@ -8665,11 +8665,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "43750d4b-f2cf-430a-919f-3f25c721c5b0")
+			(uuid "3a03053b-c753-4408-a12c-ac0600667fb6")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR028")
 					(unit 1)
 				)
@@ -8684,7 +8684,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "abbae5fb-2094-40b7-9824-8ae1b2ef2d81")
+		(uuid "1edcf005-5d65-4311-a0ea-8431ee34dceb")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -8694,7 +8694,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "c64d22d5-b74c-4dda-8542-0179c1901baa")
+		(uuid "4b073e56-7cf1-4d14-b87b-7055da13531f")
 		(property "Reference" "#PWR029"
 			(at 158.75 149.86 90)
 			(hide yes)
@@ -8740,11 +8740,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "9b79842b-21d3-4b47-a238-4d62f44885d2")
+			(uuid "feb52391-f776-4b15-8e29-79cba8a626f0")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR029")
 					(unit 1)
 				)
@@ -8759,7 +8759,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "e2acc507-0c12-4d61-abd7-f941c9e54b30")
+		(uuid "9ed6145a-e8d1-4241-b8fb-9f05ca4fd87d")
 		(property "Reference" "R5"
 			(at 192.532 147.32 90)
 			(effects
@@ -8804,14 +8804,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "6f1139b4-bfd1-4c7d-9b79-8e27e6d0f32f")
+			(uuid "f7ab3d7e-96f0-413c-ab64-da2ca6dfc4de")
 		)
 		(pin "2"
-			(uuid "4f2ec91d-4f3b-4ac8-90b7-dddb8b4d2125")
+			(uuid "d5582b64-d4b5-49da-a1c8-94221dda2847")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "R5")
 					(unit 1)
 				)
@@ -8826,7 +8826,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "43cbc886-1f4f-4648-8fdd-64e4a8b3dff9")
+		(uuid "214f4cda-f733-4787-8156-e20657e0c79f")
 	)
 	(label "P_TSUC"
 		(at 190.5 151.13 270)
@@ -8836,7 +8836,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "5d9114c6-7085-446b-bc81-99f0a7302d3a")
+		(uuid "83d719b2-7297-4380-a1ed-4e80814b3189")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -8846,7 +8846,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "2cb61f9e-3614-40e2-8c75-8afc4af8bd7f")
+		(uuid "8ba2a66a-f58a-422b-8647-96fa72b995cb")
 		(property "Reference" "R6"
 			(at 205.232 147.32 90)
 			(effects
@@ -8891,14 +8891,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "a9fc4841-c8c6-4b8b-8a20-b744ab33afbf")
+			(uuid "5c41616f-7770-4307-8d00-df1fb53c6ef7")
 		)
 		(pin "2"
-			(uuid "d68d289b-f3f9-40fb-a157-8050295bff85")
+			(uuid "57aef1e4-c6af-4a7d-8867-2ab0902cb620")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "R6")
 					(unit 1)
 				)
@@ -8913,7 +8913,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "0568e188-f765-4958-a281-7b33a73c396c")
+		(uuid "1dcc2203-cd39-4305-b572-b8154f27238d")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -8923,7 +8923,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "4dfeeffc-cb61-43f2-b304-ed841a49d036")
+		(uuid "e5b26a7c-9003-49d9-a933-6236979495e6")
 		(property "Reference" "#PWR030"
 			(at 203.2 157.48 0)
 			(hide yes)
@@ -8969,11 +8969,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "a5dacd1a-bca8-4638-b57f-900428fb0c99")
+			(uuid "0447c56a-2b12-4027-b105-1cf7d1d3ef56")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR030")
 					(unit 1)
 				)
@@ -8988,7 +8988,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "74b5e5f1-51c5-4df6-92c1-b70119c8fcfa")
+		(uuid "9ad34317-3300-4d20-bc85-348311186ff3")
 		(property "Reference" "C5"
 			(at 216.535 144.78 0)
 			(effects
@@ -9035,14 +9035,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "d99f9630-22ff-40ac-baf3-e280d9eda4f9")
+			(uuid "ab4c0e4a-d601-4531-8303-0f4466c715e2")
 		)
 		(pin "2"
-			(uuid "2c96e53f-a2f5-4f3b-b21b-c5ccb473869d")
+			(uuid "9e3ecb5b-26fe-445d-ac8b-bb244ad931a7")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "C5")
 					(unit 1)
 				)
@@ -9057,7 +9057,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "1efb653e-2e3d-4bc9-8252-d7dc7647f3d3")
+		(uuid "4b108d10-f0bb-4495-961d-f69f103b0901")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -9067,7 +9067,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "db95bacb-f995-4b2b-8bc4-e4a84c571477")
+		(uuid "7b7f205b-f389-4cec-b6a7-382ff807ec3b")
 		(property "Reference" "#PWR031"
 			(at 215.9 157.48 0)
 			(hide yes)
@@ -9113,11 +9113,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "fcef27b5-436b-4df0-9803-a4e40c353496")
+			(uuid "f3cdba46-912f-4a4e-b234-5652ca8d2efc")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR031")
 					(unit 1)
 				)
@@ -9132,7 +9132,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "c3da0727-c12b-4bc9-adbe-ff2894817bd1")
+		(uuid "4263391c-5641-4742-8d21-fcd74117057c")
 		(property "Reference" "R7"
 			(at 258.572 147.32 90)
 			(effects
@@ -9177,14 +9177,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "746bb91b-8e89-4875-a6e2-cad62894e0d5")
+			(uuid "69c20b9e-6974-481d-a1e8-3372eed1b774")
 		)
 		(pin "2"
-			(uuid "e2a76263-c194-4b3a-93fa-46b8e1111957")
+			(uuid "b83f8d9a-3dcd-480c-8230-aa1276d64dde")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "R7")
 					(unit 1)
 				)
@@ -9199,7 +9199,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "c5dd6ff9-a3a4-4424-a275-a619c767d99e")
+		(uuid "d17e7215-7b6d-42f8-bd1c-d7e6705763ad")
 		(property "Reference" "#PWR032"
 			(at 256.54 147.32 0)
 			(hide yes)
@@ -9245,11 +9245,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "f7bdb4df-09f1-43d6-bca6-77bc88a942f3")
+			(uuid "4a5ec37c-7e26-4947-babf-2be33713bea7")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR032")
 					(unit 1)
 				)
@@ -9264,7 +9264,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "5024305e-1d36-459d-a115-04f432aed149")
+		(uuid "1ef181be-0abe-4a17-89ba-a1fe3b9d61d8")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -9274,7 +9274,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "a40136b4-efa1-4c54-8c2f-430f1af8335d")
+		(uuid "a2e74774-709f-41d2-8bcf-c6a7327be9e0")
 		(property "Reference" "R8"
 			(at 271.272 147.32 90)
 			(effects
@@ -9319,14 +9319,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "442c46d9-822a-41df-a463-b00065e13434")
+			(uuid "2071c42c-3a22-4cb4-af55-38593f905a9b")
 		)
 		(pin "2"
-			(uuid "d80935fb-ddfe-46a4-99aa-6c71711422ef")
+			(uuid "d3141e2b-da7b-4190-85ef-2dc1eee3c579")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "R8")
 					(unit 1)
 				)
@@ -9341,7 +9341,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "a3a9c846-624e-4b7d-9c2f-a43872e0e915")
+		(uuid "6cd3f7f9-7f39-41b7-9818-d22e3c5ee7e5")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -9351,7 +9351,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "7f2d95dc-deb1-4e1e-b1b0-90e65e36c7a5")
+		(uuid "eb839d1d-37ae-406a-8279-39d3cfc50c39")
 		(property "Reference" "#PWR033"
 			(at 269.24 157.48 0)
 			(hide yes)
@@ -9397,11 +9397,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "aade8ac8-6ed0-40e0-86be-c45ba170a487")
+			(uuid "790459e3-e714-45a4-a86d-78a98eb1aabb")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR033")
 					(unit 1)
 				)
@@ -9416,7 +9416,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "ad37c0c3-a827-4fd1-8a78-a81a3386c40c")
+		(uuid "389149be-eaed-4ff5-ac98-622b20979c44")
 		(property "Reference" "C6"
 			(at 282.575 144.78 0)
 			(effects
@@ -9463,14 +9463,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "675e95f0-9577-489c-b511-c7e3368dcd24")
+			(uuid "128a352f-8f7a-4fdf-9d2e-f3101a12a09d")
 		)
 		(pin "2"
-			(uuid "201944e9-f4e6-4664-8274-40d12637b12e")
+			(uuid "e37fda42-8cf7-4262-a482-2c9755d48d65")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "C6")
 					(unit 1)
 				)
@@ -9485,7 +9485,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "8a04c6f3-be94-40af-84e9-69cc57662759")
+		(uuid "3e5a0393-8295-4272-8b15-d8b5753d240c")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -9495,7 +9495,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "12d0783b-0099-425b-9376-fcc9ce733ec5")
+		(uuid "4904fc23-f4e2-41cb-bb3b-97122518e7f3")
 		(property "Reference" "#PWR034"
 			(at 281.94 157.48 0)
 			(hide yes)
@@ -9541,11 +9541,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "6c8a3113-e5f2-4615-985a-869c3652211b")
+			(uuid "fbb82fed-993f-4aa2-a776-429997dfa773")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR034")
 					(unit 1)
 				)
@@ -9560,7 +9560,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "196d205b-847a-4f34-87ff-9caef1493e4c")
+		(uuid "a81c8ddd-dcf8-42e6-8998-988857272dd9")
 		(property "Reference" "R9"
 			(at 32.512 190.5 90)
 			(effects
@@ -9605,14 +9605,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "ddb65239-90c6-45b7-aa29-d46546897513")
+			(uuid "f26abf15-e21c-4553-9313-8762406dca18")
 		)
 		(pin "2"
-			(uuid "ab5c5c44-862c-48c2-be9b-466ff27729a0")
+			(uuid "d973148d-cec0-42b8-9f87-32e52c699f00")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "R9")
 					(unit 1)
 				)
@@ -9627,7 +9627,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "67b1cd5d-5bae-476e-9a26-a1efcea7561a")
+		(uuid "21111eb8-cc5b-44c9-a53c-1230093088a0")
 		(property "Reference" "#PWR035"
 			(at 30.48 190.5 0)
 			(hide yes)
@@ -9673,11 +9673,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "1c6c6d78-dad9-4f2f-b913-04ca54e3a1fa")
+			(uuid "47425b75-46f5-428c-a236-f90a7b204466")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR035")
 					(unit 1)
 				)
@@ -9692,7 +9692,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "3eb4a901-ccd9-4c17-96ea-ef64fe3df4f8")
+		(uuid "8858227a-caeb-4ebc-8c17-cae5c64ef7f1")
 	)
 	(symbol
 		(lib_id "Device:Thermistor_NTC")
@@ -9702,7 +9702,7 @@
 		(in_bom yes)
 		(on_board no)
 		(dnp no)
-		(uuid "0e602b1a-cc30-4c49-a410-67686223a3c7")
+		(uuid "bcdb7adf-649a-4ff2-aa23-6a9dd4033cf4")
 		(property "Reference" "TH1"
 			(at 38.735 190.5 90)
 			(effects
@@ -9747,14 +9747,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "86570f8e-44c2-4a2e-894d-8b14d1b9b2cd")
+			(uuid "436bb114-fad6-42ba-813e-74525943ab35")
 		)
 		(pin "2"
-			(uuid "84414846-e5bd-40b7-a9fa-d861159d37ef")
+			(uuid "1222f84d-354b-439f-b7c2-ac32d23dd602")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "TH1")
 					(unit 1)
 				)
@@ -9769,7 +9769,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "211d9050-2456-4c19-94c4-620a0d36f207")
+		(uuid "ca55ffb8-6517-43f6-9dda-45d5b228a88e")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -9779,7 +9779,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "cb46820a-bc47-45d2-8e96-d30e154b6ebf")
+		(uuid "abb7bd34-9465-497c-a504-102fa19d20a8")
 		(property "Reference" "#PWR036"
 			(at 43.18 200.66 0)
 			(hide yes)
@@ -9825,11 +9825,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "52e9d608-aac7-4310-b110-8d5e4aa1ace6")
+			(uuid "9a84e33b-7d69-4e8a-b876-ad3c6950fe03")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR036")
 					(unit 1)
 				)
@@ -9844,7 +9844,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "5e8ef270-a1f0-4c19-b4e1-5e930c22a751")
+		(uuid "5ebde1d8-219d-42c2-8956-00b73334f6a5")
 		(property "Reference" "C7"
 			(at 56.515 187.96 0)
 			(effects
@@ -9891,14 +9891,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "c16d9128-1a7d-4df2-991a-631eed655dc3")
+			(uuid "db85ff5b-96dc-4206-8d31-c52556dd689f")
 		)
 		(pin "2"
-			(uuid "7d4702c0-224a-4c06-bd84-d84f97be37ae")
+			(uuid "0c541a50-a7cf-4077-ba92-ff858a076aaa")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "C7")
 					(unit 1)
 				)
@@ -9913,7 +9913,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "bf15e786-dc98-4ede-ae9d-e72d755e8d09")
+		(uuid "92578a5c-60de-4b40-ba44-1d0bdacb15d9")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -9923,7 +9923,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "64ddc8e7-69d3-4a65-bf49-c75fa808c635")
+		(uuid "691a78d1-7764-4023-b9c4-64e186c4298c")
 		(property "Reference" "#PWR037"
 			(at 55.88 200.66 0)
 			(hide yes)
@@ -9969,11 +9969,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "2813a922-865e-4189-b5e6-1899e6f72be6")
+			(uuid "6de40a95-06dd-406f-a07c-411e5f7fc282")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR037")
 					(unit 1)
 				)
@@ -9988,7 +9988,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "24e58fb6-f2de-4364-99bb-19ddbcb0e8fe")
+		(uuid "8f484fae-8c0e-43b5-9fb7-a9445b153397")
 		(property "Reference" "J6"
 			(at 76.2 187.96 0)
 			(effects
@@ -10042,14 +10042,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "d662ca3e-03ad-45ac-8913-bb22c1e11a6c")
+			(uuid "33dfdce9-c06d-408c-a3b9-daf72b59719c")
 		)
 		(pin "2"
-			(uuid "da91971f-5bbd-4768-a7cb-d2722b6c492f")
+			(uuid "85a62e91-de99-4274-b5ed-b7b934d98476")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "J6")
 					(unit 1)
 				)
@@ -10064,7 +10064,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "fe5613de-b596-4f12-ab1a-873ecd1628dc")
+		(uuid "5022ea5a-587b-45fd-ab41-d4fbe4e7c937")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -10074,7 +10074,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "011b88b4-9c6b-4c1f-904c-acc6e880d907")
+		(uuid "166fe3bf-1b91-406a-89f2-074208f31b9b")
 		(property "Reference" "#PWR038"
 			(at 64.77 193.04 90)
 			(hide yes)
@@ -10120,11 +10120,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "2903d332-f8c7-4be6-9672-f865cd34ddb4")
+			(uuid "ca3936de-6f3c-4cea-8aee-3675ceb2132d")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR038")
 					(unit 1)
 				)
@@ -10139,7 +10139,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "067d0e56-214d-490b-a361-a2dbb55ca368")
+		(uuid "d05a27a3-18c3-44f4-942c-9dc887abfcec")
 		(property "Reference" "R10"
 			(at 113.792 190.5 90)
 			(effects
@@ -10184,14 +10184,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "f4477d95-2542-42d7-9e9a-8e1beebc89f2")
+			(uuid "b865c2c1-42c4-4606-ba77-08c44aa526d4")
 		)
 		(pin "2"
-			(uuid "7d8d93ef-2b8f-4e67-83ba-8583e25c753c")
+			(uuid "6b6eb0da-6cb4-4be9-aab9-82de8d05dac7")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "R10")
 					(unit 1)
 				)
@@ -10206,7 +10206,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "f68e542e-80ca-446d-930f-3f29171a0a00")
+		(uuid "aba17c61-d96e-422f-9360-17e57d0ed10d")
 		(property "Reference" "#PWR039"
 			(at 111.76 190.5 0)
 			(hide yes)
@@ -10252,11 +10252,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "b4fe8883-0a90-4147-b244-b540ef122e1c")
+			(uuid "73ca1431-817e-40ac-9f94-4ce7e5bd4912")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR039")
 					(unit 1)
 				)
@@ -10271,7 +10271,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "49a24646-60fa-45e0-825f-e77661feb2c3")
+		(uuid "7a522443-c2e2-4ee0-94aa-6cae884b1667")
 	)
 	(symbol
 		(lib_id "Device:Thermistor_NTC")
@@ -10281,7 +10281,7 @@
 		(in_bom yes)
 		(on_board no)
 		(dnp no)
-		(uuid "8eed7b83-918f-452d-a029-d7a5a8f78163")
+		(uuid "1afbbd01-0279-4dbc-8873-56b7d0d1ac6a")
 		(property "Reference" "TH2"
 			(at 120.015 190.5 90)
 			(effects
@@ -10326,14 +10326,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "5969e9ae-2e62-4aa0-81dd-e3571c8e5dce")
+			(uuid "3b6324b4-0fe8-4cf0-ac31-0b79f8033648")
 		)
 		(pin "2"
-			(uuid "f8b738a8-0365-4aec-9dee-595186f06c15")
+			(uuid "47214dbd-ccfd-462a-8e94-04078725fe96")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "TH2")
 					(unit 1)
 				)
@@ -10348,7 +10348,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "f3906266-10a4-4c7a-9f34-d7209b5fb399")
+		(uuid "6404820a-a265-4464-aeb3-056afb90c016")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -10358,7 +10358,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "4e073e4e-f913-43b5-990c-647d9de85b07")
+		(uuid "8ed6ae55-f9d9-42a5-8463-85a6e1dc4b82")
 		(property "Reference" "#PWR040"
 			(at 124.46 200.66 0)
 			(hide yes)
@@ -10404,11 +10404,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "d8ef0684-4752-400c-a215-3d22fb91417a")
+			(uuid "ea552be3-f33a-4002-9d81-c00ec896cfc3")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR040")
 					(unit 1)
 				)
@@ -10423,7 +10423,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "4cbe9678-77f1-4fba-8fef-eb749fbfd630")
+		(uuid "076442c1-c6ac-4425-9b26-d9f410d97238")
 		(property "Reference" "C8"
 			(at 137.795 187.96 0)
 			(effects
@@ -10470,14 +10470,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "b31c85dc-da23-4424-9d46-aa18271a7097")
+			(uuid "e841f00a-fbf4-435f-8456-9e58f72aaa68")
 		)
 		(pin "2"
-			(uuid "8e5c6006-db5d-4492-8f7c-4a7b808c41d0")
+			(uuid "972a48bd-5a1c-4e10-bffa-9d73cf049714")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "C8")
 					(unit 1)
 				)
@@ -10492,7 +10492,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "3c428ff7-964f-4d2f-8787-7f79e5914ae8")
+		(uuid "3cf922c8-47b6-4d04-b1a2-4a0f9414971f")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -10502,7 +10502,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "c23c4e77-aafd-4067-a845-afa3332a543b")
+		(uuid "f26b00e6-eb5f-4258-8c79-229c99ef9950")
 		(property "Reference" "#PWR041"
 			(at 137.16 200.66 0)
 			(hide yes)
@@ -10548,11 +10548,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "78ae361e-5859-40ed-a822-d1d84dff237b")
+			(uuid "0ac0ac17-b644-4ad5-b368-881c914fed71")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR041")
 					(unit 1)
 				)
@@ -10567,7 +10567,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "8c637dbd-d081-42fe-98f5-e4b9c5357af7")
+		(uuid "91de1490-689a-4871-823a-13f540e59df3")
 		(property "Reference" "J7"
 			(at 157.48 187.96 0)
 			(effects
@@ -10621,14 +10621,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "12defe10-04b8-458b-a178-b3072bd86da3")
+			(uuid "85492824-86e2-4968-adc7-4cdffb9ee6e1")
 		)
 		(pin "2"
-			(uuid "421171fd-9042-4f6c-9242-3333a8d3c1a7")
+			(uuid "75d9d2cf-aae1-44e6-8041-bbbbe9865a3d")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "J7")
 					(unit 1)
 				)
@@ -10643,7 +10643,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "96e448b4-ee8c-4865-8ddc-e15addfc7436")
+		(uuid "329d36a2-ddc6-473b-8a24-7277b5f30678")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -10653,7 +10653,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "0b54d6e8-84ba-48e7-9590-58ea931908e2")
+		(uuid "256d7bd8-cdc3-4f91-a0fe-a62489980709")
 		(property "Reference" "#PWR042"
 			(at 146.05 193.04 90)
 			(hide yes)
@@ -10699,11 +10699,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "79137894-a616-4eb7-8350-48c2c267c3c0")
+			(uuid "8f1b18e3-63e0-4e5b-bac7-7b3ecd5c633b")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR042")
 					(unit 1)
 				)
@@ -10718,7 +10718,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "36dfa875-7ea4-4289-8486-917e89491273")
+		(uuid "cfc16697-94b6-4885-b597-1ea5210346cf")
 		(property "Reference" "R15"
 			(at 195.072 190.5 90)
 			(effects
@@ -10763,14 +10763,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "6627812e-0766-484b-a2d0-eea9c86a5982")
+			(uuid "6673b585-f167-4e4a-8135-d9d14fb83222")
 		)
 		(pin "2"
-			(uuid "82e01a1f-b89e-4ddb-8b9e-9f9a04c4623f")
+			(uuid "833a02f7-0b75-49c7-8903-c85023045dfc")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "R15")
 					(unit 1)
 				)
@@ -10785,7 +10785,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "5e483df0-1249-4941-bd68-418626993c86")
+		(uuid "81e248dc-d9f8-477b-a8a8-451fedc3c9ce")
 		(property "Reference" "#PWR043"
 			(at 193.04 190.5 0)
 			(hide yes)
@@ -10831,11 +10831,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "fe6b822c-696d-4ffa-90c2-5aba81191636")
+			(uuid "cf10bafa-f302-434a-9505-3e2c77b08026")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR043")
 					(unit 1)
 				)
@@ -10850,7 +10850,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "888f89de-bd9d-45c4-b66f-6ab99cdd56d5")
+		(uuid "241a9932-eb02-432c-8cb2-7a4c2d10b3dd")
 	)
 	(symbol
 		(lib_id "Device:Thermistor_NTC")
@@ -10860,7 +10860,7 @@
 		(in_bom yes)
 		(on_board no)
 		(dnp yes)
-		(uuid "ad8c00ad-1994-46ed-8346-2dce903457c7")
+		(uuid "1fd9c25b-d540-4038-84d0-8b8e058edec1")
 		(property "Reference" "TH3"
 			(at 201.295 190.5 90)
 			(effects
@@ -10905,14 +10905,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "10c5681b-5cbc-4e18-a149-71bf48c4850a")
+			(uuid "0c88e308-7d21-4c02-a65f-8c488419ada8")
 		)
 		(pin "2"
-			(uuid "def5e5f5-52d9-4568-8f39-8788a29808b6")
+			(uuid "28ba18b8-3d21-46d7-8281-a9246f865267")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "TH3")
 					(unit 1)
 				)
@@ -10927,7 +10927,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "689d64f4-7861-4743-a806-d12cd521a960")
+		(uuid "9047a13c-a836-45b6-9ea7-8d29f402c53a")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -10937,7 +10937,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "e3824470-b760-4f19-ae8c-5e8297a9525c")
+		(uuid "3469082f-e564-4c97-b515-b6c4326a4783")
 		(property "Reference" "#PWR044"
 			(at 205.74 200.66 0)
 			(hide yes)
@@ -10983,11 +10983,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "d1aca3d1-8bc2-4850-8c4e-af5ff1251fb6")
+			(uuid "c3479829-f8b5-4585-94ef-bd2a32096db7")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR044")
 					(unit 1)
 				)
@@ -11002,7 +11002,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "8dc53bbf-46d4-4fa4-bbf9-ab8fdbc56bac")
+		(uuid "12042947-2f0d-4cd4-a9c1-24e71c635de8")
 		(property "Reference" "C9"
 			(at 219.075 187.96 0)
 			(effects
@@ -11049,14 +11049,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "15a4e114-bd41-46f0-800c-932e4cf6a076")
+			(uuid "cba8d67f-8bc9-4889-a72c-486b86bffeda")
 		)
 		(pin "2"
-			(uuid "0c161b15-3f76-4a40-92c5-5c5791d384ae")
+			(uuid "076b781f-2962-46bc-b4ad-1f3a441c0b88")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "C9")
 					(unit 1)
 				)
@@ -11071,7 +11071,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "b25db112-71d4-410a-ba45-f229697dbc73")
+		(uuid "08c8ebda-6efa-4e3c-be88-d473d01d3a1b")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -11081,7 +11081,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "82382bab-3c0f-4134-abaf-19cbc65f5a13")
+		(uuid "a414d517-01b7-4df5-8266-cb6e4f07b7be")
 		(property "Reference" "#PWR045"
 			(at 218.44 200.66 0)
 			(hide yes)
@@ -11127,11 +11127,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "57c2a385-df0d-4737-a4b5-53a49d2756a4")
+			(uuid "7eb48398-7023-488a-b25b-b0c0a7b5e14d")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR045")
 					(unit 1)
 				)
@@ -11146,7 +11146,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "849b0dd0-eaa3-48bd-9e5d-773d9cf536af")
+		(uuid "e6c22c07-9602-4c97-b4ee-32adc01fa4d3")
 		(property "Reference" "J9"
 			(at 238.76 187.96 0)
 			(effects
@@ -11200,14 +11200,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "c93bfef2-5221-4d4f-a56b-574761af5b8f")
+			(uuid "0b344188-6e2e-492a-b365-64119785c1ad")
 		)
 		(pin "2"
-			(uuid "dae31714-add8-46ee-9644-609e2b56e2c7")
+			(uuid "641f3bb5-d2f7-49b2-a8b1-f8c4b149bbe3")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "J9")
 					(unit 1)
 				)
@@ -11222,7 +11222,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "3b35f965-b484-404e-abd2-cf74ef5b9ef1")
+		(uuid "aafbc741-2807-4ed2-9c3a-c01d2734e61b")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -11232,7 +11232,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "39558c79-ea32-4646-9dcd-85e635eb2165")
+		(uuid "52c8963e-5fa1-4eb0-a855-52bafea6b7c0")
 		(property "Reference" "#PWR046"
 			(at 227.33 193.04 90)
 			(hide yes)
@@ -11278,11 +11278,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "b7f79a20-d097-4094-819d-e3bf7423a830")
+			(uuid "2eb8e742-be7f-4fcd-b3a3-076d1aa7b9d3")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR046")
 					(unit 1)
 				)
@@ -11297,7 +11297,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "8a910b33-f405-41af-abf6-abd7ad20da54")
+		(uuid "ee180222-7f3b-4f04-ab16-064583c18d60")
 		(property "Reference" "R16"
 			(at 276.352 190.5 90)
 			(effects
@@ -11342,14 +11342,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "9ecdedc7-96c6-4c7d-9858-fa6ed2972ec4")
+			(uuid "33fc3724-1176-4761-9a24-1fea3fa1d333")
 		)
 		(pin "2"
-			(uuid "88b42541-fbaf-4d93-a978-b4c01ecbe513")
+			(uuid "1af1e385-1acb-413c-bd59-e7bb92c3e789")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "R16")
 					(unit 1)
 				)
@@ -11364,7 +11364,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "e4f185b1-5ce5-4863-a87a-7df1ff861bbd")
+		(uuid "93ef5919-663c-44b6-9bee-64102e8de7e4")
 		(property "Reference" "#PWR047"
 			(at 274.32 190.5 0)
 			(hide yes)
@@ -11410,11 +11410,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "4ae97457-1ede-43d7-9851-2a960242e328")
+			(uuid "e6603cd4-9def-471f-b40a-cd90f7cbddab")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR047")
 					(unit 1)
 				)
@@ -11429,7 +11429,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "071ec5e3-371a-4287-a887-d332a3b7f78e")
+		(uuid "38d21d3e-0131-40e5-be20-97c1889e2194")
 	)
 	(symbol
 		(lib_id "Device:Thermistor_NTC")
@@ -11439,7 +11439,7 @@
 		(in_bom yes)
 		(on_board no)
 		(dnp yes)
-		(uuid "c2f5c7c3-fcda-4940-8b9d-744ebaf94277")
+		(uuid "373a0fd5-4768-46f3-9831-ff64b7cab000")
 		(property "Reference" "TH4"
 			(at 282.575 190.5 90)
 			(effects
@@ -11484,14 +11484,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "b05d4a26-886e-4aa0-aa99-0b333d68ad97")
+			(uuid "9949e783-25e0-4144-b5a3-96f5e17251cd")
 		)
 		(pin "2"
-			(uuid "98f9e090-1996-4147-88b7-652352758164")
+			(uuid "2992abf5-2c8b-4a36-802d-ea6acc0e9166")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "TH4")
 					(unit 1)
 				)
@@ -11506,7 +11506,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "4aac1a08-a4a0-4481-9f0f-dce4759b0855")
+		(uuid "a7de017c-c8a9-41f7-b896-14a1f2d8349a")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -11516,7 +11516,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "7afb0b12-cfa1-4926-82c9-cd1c2e0ee0ef")
+		(uuid "bf56f2cf-c182-4d62-aeee-3aa292090120")
 		(property "Reference" "#PWR048"
 			(at 287.02 200.66 0)
 			(hide yes)
@@ -11562,11 +11562,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "2adfdc52-c59a-4649-9461-a93c9b620078")
+			(uuid "623e0e32-ead4-4f25-bb3e-f7d7379bf3e5")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR048")
 					(unit 1)
 				)
@@ -11581,7 +11581,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "eedfc388-9009-43f2-9515-daaca18d9790")
+		(uuid "1ab8c926-15a6-4dd4-86e8-f11e1a338d3c")
 		(property "Reference" "C10"
 			(at 300.355 187.96 0)
 			(effects
@@ -11628,14 +11628,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "1cc19050-c676-40d7-b8ac-711643cc77aa")
+			(uuid "fa66e161-324a-4c24-b1b2-0fccb9151602")
 		)
 		(pin "2"
-			(uuid "92aabab7-fc7b-4cc3-9c54-534980595a2c")
+			(uuid "59372609-384a-464f-8dca-7da3cf1863d0")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "C10")
 					(unit 1)
 				)
@@ -11650,7 +11650,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "86e38db4-7399-4758-b55e-23677bcdc11f")
+		(uuid "efd60bcf-1a08-4ab6-94cd-9d842b2bf6d6")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -11660,7 +11660,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "9e4b3f89-27d8-4780-9d66-0248ef68d180")
+		(uuid "152ef469-f89e-44c2-9d17-de5359589fcc")
 		(property "Reference" "#PWR049"
 			(at 299.72 200.66 0)
 			(hide yes)
@@ -11706,11 +11706,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "f053aea8-47aa-468c-b470-9cc09b650a0a")
+			(uuid "af49c48a-1465-4b82-9806-8108f96c9151")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR049")
 					(unit 1)
 				)
@@ -11725,7 +11725,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "d627f66b-ab10-4354-8c89-5422e0a681ce")
+		(uuid "ba10c5ec-c415-45ed-8915-1ae960927d9f")
 		(property "Reference" "J10"
 			(at 320.04 187.96 0)
 			(effects
@@ -11779,14 +11779,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "bbdd0c02-6f07-4f70-8e34-e556e97ee82f")
+			(uuid "69541a22-24d8-4994-be41-63744d306f66")
 		)
 		(pin "2"
-			(uuid "5ea3396c-6ea1-4ddc-a4c2-eae60a09471b")
+			(uuid "d7483914-21ff-4b09-bb42-60095244dd37")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "J10")
 					(unit 1)
 				)
@@ -11801,7 +11801,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "2a8ce829-a327-4455-a7e8-154213222681")
+		(uuid "6be2156d-b743-45e3-94b7-674a08a73ef7")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -11811,7 +11811,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "89428b85-0ce0-452f-bd0b-224b3b1bf2c9")
+		(uuid "123c2673-cec0-4657-8fbb-d6c32b5ff457")
 		(property "Reference" "#PWR050"
 			(at 308.61 193.04 90)
 			(hide yes)
@@ -11857,11 +11857,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "afc8689b-37f7-4c83-a309-9557078a5ee8")
+			(uuid "c5c408e5-ef31-41fb-8fa1-7c018f37daad")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR050")
 					(unit 1)
 				)
@@ -11876,7 +11876,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "2d174406-dacc-4b95-9e27-2d01475666ca")
+		(uuid "d256f88e-5d15-44e1-b1f6-a18b704b958f")
 		(property "Reference" "R17"
 			(at 347.472 236.22 90)
 			(effects
@@ -11921,14 +11921,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "f83ae0cd-2fd0-4d74-b00a-56d7ad58ee22")
+			(uuid "c6cd1afa-7b45-4c36-8e02-bb7287af2cff")
 		)
 		(pin "2"
-			(uuid "a5867374-e3fc-4dcc-8cc4-85ce3da407d1")
+			(uuid "e189d923-e50b-437c-ab3b-d709a57f6096")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "R17")
 					(unit 1)
 				)
@@ -11943,7 +11943,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "46e5a161-dd80-4c2e-8107-7864075eed40")
+		(uuid "284f6ceb-c91a-479b-8928-58cf3163b86d")
 		(property "Reference" "#PWR051"
 			(at 345.44 236.22 0)
 			(hide yes)
@@ -11989,11 +11989,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "c048fe3f-e3e6-469e-808d-2f4d2f641a4f")
+			(uuid "2cd9db81-e6f8-466c-8621-7d66a8f13f82")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR051")
 					(unit 1)
 				)
@@ -12008,7 +12008,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "988cb1a4-f2a1-451e-b8de-5e0234a1a0ce")
+		(uuid "2f2bb2dd-ea98-496d-8bc0-e6a6e045415a")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -12018,7 +12018,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "dbef166f-95e0-4260-a42a-31cc98c8fabe")
+		(uuid "adc95bfb-2c42-424b-ad2b-888b2cde31e6")
 		(property "Reference" "R18"
 			(at 360.172 236.22 90)
 			(effects
@@ -12063,14 +12063,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "bb82e56b-73dd-4ebb-bc74-d2f14b8d8b70")
+			(uuid "6d1491fd-723c-45fb-8c35-20a903c3c2d2")
 		)
 		(pin "2"
-			(uuid "4682dfa3-ee96-4c94-8451-4c942d60f7ed")
+			(uuid "39d7e1e9-9548-4828-a38c-b7d5f9b91cbf")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "R18")
 					(unit 1)
 				)
@@ -12085,7 +12085,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "aa38416f-051a-4bfe-a559-585f45558d2b")
+		(uuid "b212cdb7-c0cf-4460-a83e-cc7ce1711e6b")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -12095,7 +12095,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "eef21d5c-f793-4535-9090-59067dbde4d9")
+		(uuid "aedaaf9b-21ea-4ac7-863b-16c1b26a6412")
 		(property "Reference" "#PWR052"
 			(at 358.14 246.38 0)
 			(hide yes)
@@ -12141,11 +12141,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "ebf5d9d6-3d26-4890-bbfc-65ec6d1c8c95")
+			(uuid "103bc618-56c1-4db7-a56f-135ad5f05eb7")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR052")
 					(unit 1)
 				)
@@ -12160,7 +12160,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "bb0a36f3-ab30-4a16-8081-268d53f5901f")
+		(uuid "af72c77b-b72c-4411-b911-3317fa156688")
 		(property "Reference" "C11"
 			(at 371.475 233.68 0)
 			(effects
@@ -12207,14 +12207,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "e83dce29-c08a-4f5e-bf18-74be1eddbc2b")
+			(uuid "f5f03a2b-6e76-4735-978f-7738906cff55")
 		)
 		(pin "2"
-			(uuid "1ca3fd83-8b26-40b2-b67e-ca522072b58f")
+			(uuid "675d8155-00b2-4b8e-932c-2f04fe6e4316")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "C11")
 					(unit 1)
 				)
@@ -12229,7 +12229,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "fbb6403a-4f83-495e-8f05-8699a629ca6c")
+		(uuid "f64dc54f-efef-4944-82ee-5dd90c873e16")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -12239,7 +12239,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "ef64887a-7858-43a4-b554-1cf1b22120f9")
+		(uuid "f67aeff6-f924-4e5d-a0dd-7e8ed5224d33")
 		(property "Reference" "#PWR053"
 			(at 370.84 246.38 0)
 			(hide yes)
@@ -12285,11 +12285,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "514b29b0-ceff-4f5e-ba74-f3402a2d559b")
+			(uuid "4c83decc-6e05-447c-957e-0b6e75269efd")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR053")
 					(unit 1)
 				)
@@ -12304,7 +12304,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "8699926a-5778-4a3f-ac88-177dd49af9de")
+		(uuid "b870e7b2-b975-4082-b79e-7ed2482f8725")
 		(property "Reference" "J11"
 			(at 22.86 273.05 0)
 			(effects
@@ -12349,17 +12349,17 @@
 			)
 		)
 		(pin "R"
-			(uuid "fc25c62c-efeb-466e-a6de-00b7f6fa0340")
+			(uuid "9fa2c740-a959-4452-b302-21f0a07ab06b")
 		)
 		(pin "S"
-			(uuid "8a24c9f6-6e6b-48d4-ad48-02d1997f78d1")
+			(uuid "177cffe2-dde4-4c34-abf3-397efd68ed0b")
 		)
 		(pin "T"
-			(uuid "c90628ba-37f3-4735-8659-daf172e0c57d")
+			(uuid "3662654b-12b4-44bb-87cc-aa84d86c03eb")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "J11")
 					(unit 1)
 				)
@@ -12368,7 +12368,7 @@
 	)
 	(no_connect
 		(at 27.94 281.94)
-		(uuid "b1190b42-8431-4c8d-be41-ee76cdfe41e6")
+		(uuid "1e0ad59e-8a8e-4502-8e6f-c5808a75aa73")
 	)
 	(label "CT_BIAS"
 		(at 27.94 279.4 0)
@@ -12378,7 +12378,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "6d5d0613-5f3d-4203-8d1b-44d6fd7b9eb2")
+		(uuid "e37c6516-14a9-495f-94de-885a5db2d3e8")
 	)
 	(label "CT1_IN"
 		(at 27.94 284.48 0)
@@ -12388,7 +12388,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "ba9ad5b6-2323-4ef9-ab85-1f7189c494fd")
+		(uuid "3e6b4fb3-1c17-475c-8d04-1dec23e6f368")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -12398,7 +12398,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "37803b2b-c659-4188-9dc3-d497e00dd121")
+		(uuid "0456efde-52c4-41bf-9258-aa0df1a11358")
 		(property "Reference" "R19"
 			(at 45.212 281.94 90)
 			(effects
@@ -12443,14 +12443,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "37f6f73d-f6e3-4622-beaa-a0eac71b8aab")
+			(uuid "560df4e1-a944-4454-9b69-08d48dd664c7")
 		)
 		(pin "2"
-			(uuid "e262ca57-1098-45df-a7f9-fa3fd9f94298")
+			(uuid "e9d62d2c-21ce-423b-abcf-26f1e5c02d8e")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "R19")
 					(unit 1)
 				)
@@ -12465,7 +12465,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "40f6c82a-e767-419c-ad5f-817e625fe2bc")
+		(uuid "679e121d-4ac1-4f88-8b08-2c55b44a0805")
 	)
 	(label "CT_BIAS"
 		(at 43.18 285.75 270)
@@ -12475,7 +12475,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "27fbd88f-0fa6-4495-a2e0-de3fc6f747e1")
+		(uuid "8d34404d-569e-41ba-887e-e762c2469753")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -12485,7 +12485,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "517b933f-49fc-44fa-9a12-e5ce5094c7cf")
+		(uuid "f4f1c048-8ec3-4c42-b602-4d830784ee87")
 		(property "Reference" "R20"
 			(at 57.912 281.94 90)
 			(effects
@@ -12530,14 +12530,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "db1fffc2-fc34-45f6-a4be-9f6430831711")
+			(uuid "f642fd4c-a9c5-4940-92e7-4343a73bc9f8")
 		)
 		(pin "2"
-			(uuid "99d9494e-3c97-40a5-9274-78f3c8a5b188")
+			(uuid "4ffd64df-5b6c-452c-be50-9cfa86bd16f4")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "R20")
 					(unit 1)
 				)
@@ -12552,7 +12552,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "9ca99389-ebdb-45b3-9316-4458b7a1c64a")
+		(uuid "afb02143-e81b-4e79-b9f4-3c36f966e20d")
 	)
 	(label "CT1_ADC"
 		(at 55.88 285.75 270)
@@ -12562,7 +12562,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "8ca22e76-2f8d-4068-8c7d-0d1b34d5cc67")
+		(uuid "f01815f7-61b9-470e-9b29-1b38c3e80ce2")
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -12572,7 +12572,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "81abb876-c3b6-47fb-bb61-4e58758a886e")
+		(uuid "567bbced-61f5-48c5-8b1e-e660aabc0f22")
 		(property "Reference" "C12"
 			(at 69.215 279.4 0)
 			(effects
@@ -12619,14 +12619,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "4704aa25-4774-4b29-aaf6-8d54e0eef245")
+			(uuid "aaa97487-83fd-41b2-ac6d-6cb88859f82e")
 		)
 		(pin "2"
-			(uuid "a0ed0892-0a1a-444b-9cf6-da400e66690f")
+			(uuid "84ad9e08-8f83-4d24-8d7c-0d58f85d5b69")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "C12")
 					(unit 1)
 				)
@@ -12641,7 +12641,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "68012560-92a1-47d0-9d70-909c6b4b4c77")
+		(uuid "4dc2e812-c43a-485e-8dd7-c1e67dfc9f6c")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -12651,7 +12651,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "24359f82-17cc-43c9-9f63-de9cd9a7f5f1")
+		(uuid "10de3f68-115d-4056-b7a5-475fc2cd978d")
 		(property "Reference" "#PWR054"
 			(at 68.58 292.1 0)
 			(hide yes)
@@ -12697,11 +12697,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "e542d399-a5fb-4706-9b94-ec538b615cf4")
+			(uuid "f61e20ae-740a-45e0-ba8b-c9d4e0a48988")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR054")
 					(unit 1)
 				)
@@ -12716,7 +12716,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "382ad985-8515-457a-89fd-7068cd0f95a4")
+		(uuid "0b9adaf3-bdad-4283-ab58-f11f0878074b")
 		(property "Reference" "J12"
 			(at 96.52 273.05 0)
 			(effects
@@ -12761,17 +12761,17 @@
 			)
 		)
 		(pin "R"
-			(uuid "319b79db-a4c8-4ac4-b8fa-cdb983b9236c")
+			(uuid "fbb942ec-bacb-46fe-9cca-ce6a7f24abd3")
 		)
 		(pin "S"
-			(uuid "8b2ca7d9-ab65-48a5-99d5-d16b93864411")
+			(uuid "d7964932-0e1b-4b52-af99-9ed4e60d5bcf")
 		)
 		(pin "T"
-			(uuid "feff8b07-68e1-4a32-8dd8-47018e2d62d5")
+			(uuid "1393c90d-4883-430b-869c-dc1b7f89912c")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "J12")
 					(unit 1)
 				)
@@ -12780,7 +12780,7 @@
 	)
 	(no_connect
 		(at 101.6 281.94)
-		(uuid "6beb5535-e54c-420a-b342-4bf0b77b24da")
+		(uuid "dd9ea66c-adf9-4a8a-bc27-994cc0306b91")
 	)
 	(label "CT_BIAS"
 		(at 101.6 279.4 0)
@@ -12790,7 +12790,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "9d5df380-26e8-4b7c-8d45-ad5f47ba60c4")
+		(uuid "58e29f2c-ada3-4332-b989-7df4ae1b3ec6")
 	)
 	(label "CT2_IN"
 		(at 101.6 284.48 0)
@@ -12800,7 +12800,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "405b4277-21c6-40af-89f8-3f2d920bc409")
+		(uuid "f105086d-0d0a-4544-a83e-f6ca97a14046")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -12810,7 +12810,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp yes)
-		(uuid "65f7de5c-8227-4b68-af54-42029d5c075c")
+		(uuid "2cdae194-b6ef-4f47-95f5-e644ef0f008f")
 		(property "Reference" "R21"
 			(at 118.872 281.94 90)
 			(effects
@@ -12855,14 +12855,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "1a84e0ba-6519-4886-b73b-6b7027c981a7")
+			(uuid "56ab91bb-3f81-4a49-bb67-dfcd10b2e47c")
 		)
 		(pin "2"
-			(uuid "41a83f79-86b4-4686-a5bd-4eb9e8841045")
+			(uuid "524ebc60-8732-497d-af88-e65054de5c74")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "R21")
 					(unit 1)
 				)
@@ -12877,7 +12877,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "51b0b45d-4fc5-4c62-a792-5fd0bea90d02")
+		(uuid "76cb030e-d7ae-42ec-838f-3ebcf64bcc31")
 	)
 	(label "CT_BIAS"
 		(at 116.84 285.75 270)
@@ -12887,7 +12887,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "728c42d8-ffd9-4f1f-869b-915a091e601a")
+		(uuid "40941160-5082-4855-9bd3-4650e0fc3acc")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -12897,7 +12897,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "b5a6c7dd-6a6d-4512-ae76-3a790a6e6a98")
+		(uuid "568d2b3a-5618-47e7-859d-fa5e9bdb541f")
 		(property "Reference" "R22"
 			(at 131.572 281.94 90)
 			(effects
@@ -12942,14 +12942,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "a1b3f1c5-7ebb-4bf2-b5cf-98f6a9eb3b8c")
+			(uuid "fdc31ab0-436a-4b95-bdae-749e227e3dbb")
 		)
 		(pin "2"
-			(uuid "fb8a73da-9bcc-4d3f-a5d1-564cb6418b82")
+			(uuid "06ed51db-29ec-433f-a322-1ce03caa49c1")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "R22")
 					(unit 1)
 				)
@@ -12964,7 +12964,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "38f3f7f5-8ff4-4276-9d26-000ca0ab19e8")
+		(uuid "18ac2702-99ff-41f6-a5e3-c1545d3866a7")
 	)
 	(label "CT2_ADC"
 		(at 129.54 285.75 270)
@@ -12974,7 +12974,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "258e9d11-aa79-4631-a206-a030ed395995")
+		(uuid "f7333fc8-8fb4-4af6-8794-3f90ec56892f")
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -12984,7 +12984,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "ed766ab7-f8e4-41b8-8585-6ca04e028fdb")
+		(uuid "2c536893-cd6f-4691-ad89-8902dd59664f")
 		(property "Reference" "C13"
 			(at 142.875 279.4 0)
 			(effects
@@ -13031,14 +13031,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "0a7ac70f-348e-47e9-825d-f4b68f7341d3")
+			(uuid "61ee3ded-864a-4dc0-a15f-5f5db20fb7cb")
 		)
 		(pin "2"
-			(uuid "54ac200e-971d-450f-a8e7-657d3da83cb7")
+			(uuid "4749d4ca-9724-476d-8c19-99a7435ad46e")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "C13")
 					(unit 1)
 				)
@@ -13053,7 +13053,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "d1791dfb-c528-496d-ac2a-a5c9951fe42a")
+		(uuid "8c55ec6b-4a6d-4d27-ba5a-40e587a35dd6")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -13063,7 +13063,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "0557f345-9ec4-4848-be74-0ea48367d23c")
+		(uuid "2ffbb583-5bd9-4aa6-8e2c-bd72fe1e72be")
 		(property "Reference" "#PWR055"
 			(at 142.24 292.1 0)
 			(hide yes)
@@ -13109,11 +13109,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "6f7b5947-b0fc-4d87-b6ec-3a67c8e06a9f")
+			(uuid "ab6f8ea8-5592-4936-8542-200ba673dcf4")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR055")
 					(unit 1)
 				)
@@ -13128,7 +13128,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "c57fe037-874d-48af-982a-33e7d25c6849")
+		(uuid "932fdee3-4935-48c2-9153-01873bd5939c")
 		(property "Reference" "J13"
 			(at 170.18 273.05 0)
 			(effects
@@ -13173,17 +13173,17 @@
 			)
 		)
 		(pin "R"
-			(uuid "e86f24ae-bad5-48d5-b4e7-c4eeeac53de4")
+			(uuid "63b9ab29-014b-483f-acd0-6e34bbba47d5")
 		)
 		(pin "S"
-			(uuid "e9104552-3d3e-4b4d-806e-238d2c73b248")
+			(uuid "baf67530-fcbe-45b8-965b-a1aec6f0b2df")
 		)
 		(pin "T"
-			(uuid "6e5eaec0-bf71-4d3d-aadf-fcc5bfaa29b1")
+			(uuid "792cd3ab-90b4-4b97-83da-953b271aea3f")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "J13")
 					(unit 1)
 				)
@@ -13192,7 +13192,7 @@
 	)
 	(no_connect
 		(at 175.26 281.94)
-		(uuid "54b2aeae-0da9-42cb-a802-4177f915d8af")
+		(uuid "e93b9c23-15cb-4909-83a9-ac995da82f80")
 	)
 	(label "CT_BIAS"
 		(at 175.26 279.4 0)
@@ -13202,7 +13202,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "11150d09-f726-4400-8825-9612c8418559")
+		(uuid "0253d1be-167c-471e-8a44-c93068aa3b4f")
 	)
 	(label "CT3_IN"
 		(at 175.26 284.48 0)
@@ -13212,7 +13212,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "e5a55854-89db-4e9c-b70c-1ebbc0269ecc")
+		(uuid "c43472e8-4979-49b3-9b98-9e6b491fc718")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -13222,7 +13222,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp yes)
-		(uuid "59a2f42f-2156-4e0b-8395-628bcc56ea6d")
+		(uuid "a7b0c87b-0d32-4e20-9772-92d23a8ee1f6")
 		(property "Reference" "R23"
 			(at 192.532 281.94 90)
 			(effects
@@ -13267,14 +13267,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "97425240-2684-46c2-9804-1c466af2eeef")
+			(uuid "4f09a0a9-72b9-4d62-bb07-978506a545c0")
 		)
 		(pin "2"
-			(uuid "3f7837ee-8143-4d1d-84a1-69fd3e15afd1")
+			(uuid "06537e02-1717-46a4-9218-04892168bc22")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "R23")
 					(unit 1)
 				)
@@ -13289,7 +13289,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "808b1b94-fdb6-4899-8a4d-2f66df221907")
+		(uuid "f6691f3e-0262-4cf2-a147-e78501db2d82")
 	)
 	(label "CT_BIAS"
 		(at 190.5 285.75 270)
@@ -13299,7 +13299,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "f364bc1b-0c30-4ce5-a7ca-ed8237e3d4d3")
+		(uuid "72bf5c5b-7b8f-4e42-a572-3ad24cba84ac")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -13309,7 +13309,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "c081f9f9-77c4-4c69-a8dd-7f5e851c3d9d")
+		(uuid "c91ceac8-8446-4f78-a6f0-c34d2e7c89a7")
 		(property "Reference" "R24"
 			(at 205.232 281.94 90)
 			(effects
@@ -13354,14 +13354,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "cddee2e1-b861-42cc-8008-a9de9233516e")
+			(uuid "f4955714-815c-4719-a312-32926b64b945")
 		)
 		(pin "2"
-			(uuid "337016be-880f-4f62-a077-aceb7b6a928e")
+			(uuid "4853ab1b-b4e7-4f4e-9c1a-62a9edf8ccd7")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "R24")
 					(unit 1)
 				)
@@ -13376,7 +13376,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "67e91a6a-3cc6-44d4-9d5a-469192077d14")
+		(uuid "6d3e6648-9ba7-47db-a357-61981459c632")
 	)
 	(label "CT3_ADC"
 		(at 203.2 285.75 270)
@@ -13386,7 +13386,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "d7e615d0-3f0d-49d9-aaa0-f0546e7fc8cb")
+		(uuid "71513bd0-1f77-43cf-9767-5580efc51acb")
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -13396,7 +13396,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "46d3d67b-198b-429c-a030-9e21d1bc1491")
+		(uuid "371a91e5-4519-4f93-8fe0-12bb8db8076b")
 		(property "Reference" "C14"
 			(at 216.535 279.4 0)
 			(effects
@@ -13443,14 +13443,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "e1d06ddd-7980-4f0f-9eb7-779858ff5e63")
+			(uuid "dede59da-32f7-4045-9772-886b7ee4b900")
 		)
 		(pin "2"
-			(uuid "bfad6f9d-a455-4c5f-8b24-2f18c6bbb11c")
+			(uuid "261c7d19-6f5d-45c8-b201-183cd739779f")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "C14")
 					(unit 1)
 				)
@@ -13465,7 +13465,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "e76f9288-7bb2-4f67-be4a-d586fab7ea9b")
+		(uuid "42823dd2-c04c-41f0-8929-196db4e4d56b")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -13475,7 +13475,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "4d6d4ff7-bee7-41bb-9b88-2fbb4e845fc1")
+		(uuid "895c418a-79e3-43e2-8357-e5c43863983b")
 		(property "Reference" "#PWR056"
 			(at 215.9 292.1 0)
 			(hide yes)
@@ -13521,11 +13521,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "da220f49-8eca-411c-b8c7-e34f598f255c")
+			(uuid "083a729e-2874-45b5-bd38-a668af9a8704")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR056")
 					(unit 1)
 				)
@@ -13540,7 +13540,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "0f53fa8e-fe69-450c-ae23-68f4f82ac1a2")
+		(uuid "623ba980-56b2-4335-805f-1b2abe8dcc3b")
 		(property "Reference" "U8"
 			(at 19.05 316.865 0)
 			(effects
@@ -13586,17 +13586,17 @@
 			)
 		)
 		(pin "1"
-			(uuid "33a314e2-5f9a-49ce-9bd4-764effb7926b")
+			(uuid "cd6d5924-d02c-4e49-b730-29da8f9bff64")
 		)
 		(pin "2"
-			(uuid "8df47447-b844-461b-abf3-2a371843600f")
+			(uuid "457575c5-1c55-43f1-be79-f2d70276c336")
 		)
 		(pin "3"
-			(uuid "43a21975-19cc-4191-a3d8-efd4415688de")
+			(uuid "652549ac-5f51-4bba-9f02-51f71a6228b8")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "U8")
 					(unit 1)
 				)
@@ -13611,7 +13611,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "d2ef98c8-3733-49c0-82b2-058877b78c42")
+		(uuid "03c7abe3-0b67-4afe-84af-68f20afa346e")
 		(property "Reference" "#PWR057"
 			(at 22.86 334.01 0)
 			(hide yes)
@@ -13657,11 +13657,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "e893688b-bcf1-4012-9723-976a206e2a70")
+			(uuid "129d21cc-bb69-4ebb-b9f7-dcb2037a069b")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR057")
 					(unit 1)
 				)
@@ -13676,7 +13676,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "f084700d-9f9d-4abc-b85a-73c63d22a30f")
+		(uuid "1766b732-e1a9-459f-8855-ce51ab11bcd6")
 	)
 	(symbol
 		(lib_id "power:+5V")
@@ -13686,7 +13686,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "653bb08c-4aa8-489a-a8d3-d9fae8ca15dd")
+		(uuid "ebb87df8-0881-4cf1-915c-d3910149db87")
 		(property "Reference" "#PWR058"
 			(at 19.05 320.04 90)
 			(hide yes)
@@ -13732,11 +13732,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "6884c75b-ee0c-4f9e-a87d-1e8dbe2bd309")
+			(uuid "1d972d05-4ade-44fe-a6d4-34642e440fc5")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR058")
 					(unit 1)
 				)
@@ -13751,7 +13751,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "db905155-4c98-409a-82ec-6c5b6b5fa505")
+		(uuid "0546053d-9f92-41f9-9634-76d0e7970c6f")
 		(property "Reference" "C15"
 			(at 43.815 317.5 0)
 			(effects
@@ -13798,14 +13798,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "452978ad-76a9-469d-b23c-e693f1116de6")
+			(uuid "73f56174-6d2d-4549-97f3-0b723394a06f")
 		)
 		(pin "2"
-			(uuid "02b1eceb-92f4-499a-a719-367093934065")
+			(uuid "65be7b38-8fce-40c4-8819-edb40bf25659")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "C15")
 					(unit 1)
 				)
@@ -13820,7 +13820,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "a170a713-e1e4-46d0-acf4-cfa134c7038e")
+		(uuid "67e4b19b-35a3-44f3-b947-a4efda4257c5")
 		(property "Reference" "#PWR059"
 			(at 43.18 320.04 0)
 			(hide yes)
@@ -13866,11 +13866,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "3d03b81c-be6e-43c3-811d-fc879ce587ed")
+			(uuid "9d1ee8ec-9680-46ca-834c-9be3c0c9f79c")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR059")
 					(unit 1)
 				)
@@ -13885,7 +13885,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "fd626666-6eb4-4198-8860-ef1f2a86c509")
+		(uuid "bbf07d0f-e8ee-48f3-a7a6-6adf3db74e5a")
 		(property "Reference" "#PWR060"
 			(at 43.18 330.2 0)
 			(hide yes)
@@ -13931,11 +13931,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "1665b83e-b793-4d93-a9f9-b9a056bbc0bd")
+			(uuid "80239962-3b4e-47d2-b28f-a81f2e677296")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR060")
 					(unit 1)
 				)
@@ -13950,7 +13950,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "2a763c8a-1bb9-4fc0-ad82-62d0b372a3bc")
+		(uuid "63c8f538-c597-4ac6-8539-5d395044b066")
 		(property "Reference" "C16"
 			(at 56.515 317.5 0)
 			(effects
@@ -13997,14 +13997,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "c5d12da7-22a6-49f6-8129-e778350836b9")
+			(uuid "915d3769-8c95-4d8c-b81f-bdc5865a7b2a")
 		)
 		(pin "2"
-			(uuid "f5ae2e36-78d9-441c-80bb-c1b3f3464909")
+			(uuid "f5c88045-4596-418c-a157-ea2115c9cc15")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "C16")
 					(unit 1)
 				)
@@ -14019,7 +14019,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "2dd3a126-213b-4118-baff-5b8ef3083571")
+		(uuid "a7305763-ed8b-497e-a468-60c3559d7acc")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -14029,7 +14029,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "ed9daf34-68a9-495a-8f77-77dc26688a40")
+		(uuid "4ae5d390-36d8-4b87-a2f3-de08004fa550")
 		(property "Reference" "#PWR061"
 			(at 55.88 330.2 0)
 			(hide yes)
@@ -14075,11 +14075,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "d2668d96-26bf-47aa-999c-df5a9008867f")
+			(uuid "51ebc24e-4df6-4596-810d-57fad1053a1a")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR061")
 					(unit 1)
 				)
@@ -14094,7 +14094,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "29ebb8e6-efe9-44fe-b4eb-bd1b7fc18573")
+		(uuid "e5f92aa0-376b-42f3-af6d-b014968df1ef")
 		(property "Reference" "C17"
 			(at 69.215 317.5 0)
 			(effects
@@ -14141,14 +14141,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "b74e0790-e2ed-46d7-ae0d-30117418570a")
+			(uuid "95449403-d8ee-4e91-9606-e88429e8c8e4")
 		)
 		(pin "2"
-			(uuid "6cb9feb4-900f-40f8-bf0a-e507ed78cc45")
+			(uuid "b609fc81-a1f7-4a29-9bd0-479cd8311af2")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "C17")
 					(unit 1)
 				)
@@ -14163,7 +14163,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "2ddeab36-8eb5-4d26-8432-e2f02614a756")
+		(uuid "48f0a1d1-ee88-4e6a-91b4-84c8b2fd93fa")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -14173,7 +14173,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "6cc8fd6b-1067-48c8-8d63-8ce36a6a29ca")
+		(uuid "69b2139d-8fd0-47dc-9af0-5d9df9a9b940")
 		(property "Reference" "#PWR062"
 			(at 68.58 330.2 0)
 			(hide yes)
@@ -14219,11 +14219,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "b7c6427f-c4f2-4e01-8973-69e8b26cdebd")
+			(uuid "fd3c2882-8e3c-4d62-8def-c1ccc811d965")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR062")
 					(unit 1)
 				)
@@ -14238,7 +14238,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "116b85bf-20c6-4383-947c-30150dacafbc")
+		(uuid "0050691e-dd31-4bed-b40d-addc3189d85f")
 		(property "Reference" "U7"
 			(at 88.9 308.61 0)
 			(effects
@@ -14285,44 +14285,44 @@
 			)
 		)
 		(pin "8"
-			(uuid "e2e95ee9-e8b7-46aa-b060-94d5727b98f4")
+			(uuid "909426d0-34be-4e7c-8b49-5ee64a608f93")
 		)
 		(pin "7"
-			(uuid "c534ba15-4a95-482e-b7c3-9099af09f7ea")
+			(uuid "3af894b8-d6c4-4e02-9872-0c36a60a7c83")
 		)
 		(pin "10"
-			(uuid "f965e230-c327-4a92-b907-bd84d6693f74")
+			(uuid "79932d54-7672-4b1e-96bc-35f7ea3277c2")
 		)
 		(pin "9"
-			(uuid "b40c8f82-369b-44d9-b233-790b8c0799de")
+			(uuid "050666e5-f57a-45d4-bc78-09d6b8dee6de")
 		)
 		(pin "1"
-			(uuid "7219a1cf-9110-4b62-964d-58e3299201a8")
+			(uuid "5e36df29-d8d5-48a2-a1d6-d18949cfd8d4")
 		)
 		(pin "6"
-			(uuid "8d6d34b3-2572-477f-a27a-4ea75b2a2ccb")
+			(uuid "cbcc7468-25e6-4786-abdc-e245bfe29bb9")
 		)
 		(pin "4"
-			(uuid "2fd61cd8-5f5e-48b6-9f22-cfbf743a2fcd")
+			(uuid "f52e853e-78a5-42a1-84a1-93d72e28f844")
 		)
 		(pin "3"
-			(uuid "5e7ac7cc-b24b-4335-8cd0-7709d341bb8d")
+			(uuid "8b3de8df-917f-4132-b976-4dbcdfab4867")
 		)
 		(pin "2"
-			(uuid "ba803f16-a0a8-4c6c-b5df-40aa37dd6b50")
+			(uuid "2f921bab-65ca-490b-b70e-a206e51f1fdb")
 		)
 		(pin "5"
-			(uuid "01851145-5eb8-4cc8-99c9-722959eedd2b")
+			(uuid "97c91fd0-2ad9-445a-a2a3-8c7d334a0ac4")
 		)
 		(pin "11"
-			(uuid "6911dde4-693c-4085-8257-a9011287040f")
+			(uuid "20f3305f-b951-4cda-b14c-7aff270c7323")
 		)
 		(pin "12"
-			(uuid "253172e6-3b51-4781-938b-41ebd3daeed8")
+			(uuid "7c206e1b-b77d-4949-828b-0e9e4c189d41")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "U7")
 					(unit 1)
 				)
@@ -14337,7 +14337,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "60644d96-991d-4b43-b2a4-971a63a7a759")
+		(uuid "4207a0fb-f0ea-462b-b8b4-86f75e7354bb")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -14347,7 +14347,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "7ea27ea4-1b59-4748-b65e-6095c6562195")
+		(uuid "fd0da9a3-3fb4-4e1d-a36f-def192176c02")
 		(property "Reference" "#PWR063"
 			(at 80.01 314.96 90)
 			(hide yes)
@@ -14393,11 +14393,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "28a52dd1-84a5-44fb-a087-d4cc1dc72343")
+			(uuid "8e7920d9-2d04-41b9-aff4-65c7bdc11a6e")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR063")
 					(unit 1)
 				)
@@ -14412,7 +14412,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "217eea2a-736e-4759-a35e-218626afc591")
+		(uuid "f2769b24-c08b-454c-b7ac-c7f4a8f7faf0")
 		(property "Reference" "#PWR064"
 			(at 80.01 317.5 90)
 			(hide yes)
@@ -14458,11 +14458,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "17abaa1e-12b5-4ea6-be98-912a156a3e87")
+			(uuid "2e0e49d8-aff7-44a4-9f0d-f6a08851d90c")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR064")
 					(unit 1)
 				)
@@ -14471,7 +14471,7 @@
 	)
 	(no_connect
 		(at 86.36 320.04)
-		(uuid "ed377890-9a54-4ec3-81ae-e071289e9890")
+		(uuid "912f8bd9-a7c3-439f-85f3-1f7ca911e159")
 	)
 	(label "LORA_RFSW"
 		(at 86.36 322.58 180)
@@ -14481,7 +14481,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "40c7cbe1-3f53-4eae-82bd-c151cf443227")
+		(uuid "4090fb49-df82-40c3-a7e3-b6d83695bc0a")
 	)
 	(label "LORA_NSS"
 		(at 111.76 312.42 0)
@@ -14491,7 +14491,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "51c7aae7-2211-4a38-9f80-ac957dea3f13")
+		(uuid "d97abd07-eda2-4faa-a888-12aaa1377fa4")
 	)
 	(label "LORA_SCK"
 		(at 111.76 314.96 0)
@@ -14501,7 +14501,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "bc2e95fb-2d34-4f56-8f2e-f41bb5998532")
+		(uuid "6a402229-fd0f-462e-8313-df5fe3c3037c")
 	)
 	(label "LORA_MOSI"
 		(at 111.76 317.5 0)
@@ -14511,7 +14511,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "e50c2c3a-7ae1-4bdc-a29a-b679a882dbe7")
+		(uuid "37bda926-eaea-44f4-8757-8f817b48382d")
 	)
 	(label "LORA_MISO"
 		(at 111.76 320.04 0)
@@ -14521,7 +14521,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "09324df5-713e-4bd1-9f63-7d915fbc9a27")
+		(uuid "ef960fe8-131e-44cb-8b13-cf2b4feef06a")
 	)
 	(label "LORA_NRST"
 		(at 111.76 322.58 0)
@@ -14531,7 +14531,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "8b239d8a-7c42-4ad6-b9e8-e295989521b4")
+		(uuid "46d62014-1455-46d1-b23f-7dc4ed4c4c28")
 	)
 	(label "LORA_BUSY"
 		(at 111.76 325.12 0)
@@ -14541,7 +14541,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "6450ef0d-f297-4351-9349-e612a2f61b46")
+		(uuid "b8525322-47ed-4649-82fc-010020d88e35")
 	)
 	(label "LORA_DIO1"
 		(at 111.76 327.66 0)
@@ -14551,7 +14551,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "b326a97b-df76-4235-8c73-8172bade9e14")
+		(uuid "d3911214-72b4-4488-a6eb-67adac5ea85b")
 	)
 	(symbol
 		(lib_id "Switch:SW_Push")
@@ -14561,7 +14561,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "5136d2e6-5725-4782-87a9-2fd5cbe7d547")
+		(uuid "fe3ba27d-f625-4888-bc3b-678ec499467b")
 		(property "Reference" "SW1"
 			(at 143.51 317.5 0)
 			(effects
@@ -14607,14 +14607,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "6568c51b-6e78-4f39-a266-65b04a91922c")
+			(uuid "25719f73-2307-46f2-852f-9d3b96924ff2")
 		)
 		(pin "2"
-			(uuid "3e1c7016-52dd-4b72-9f75-f139674807e5")
+			(uuid "dea45f0d-bece-4826-94ab-7c9e1bd71da7")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "SW1")
 					(unit 1)
 				)
@@ -14629,7 +14629,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "2d13eb89-d515-4908-98ec-f7927150a35b")
+		(uuid "692a106c-fe4f-4dc8-914b-a19bc527df6e")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -14639,7 +14639,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "432cc966-27c6-4569-aff6-0361eb55103e")
+		(uuid "aaefb7dd-472d-4764-a312-deee0f650ce8")
 		(property "Reference" "#PWR065"
 			(at 153.67 320.04 90)
 			(hide yes)
@@ -14685,11 +14685,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "5cdbc0cd-c9ca-471c-bfd4-af9e7c60a840")
+			(uuid "54326bb6-a0ba-4bf4-bc4e-0d2f742151df")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR065")
 					(unit 1)
 				)
@@ -14704,7 +14704,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "cc0ebbf8-d246-4349-bd62-0868e1140e80")
+		(uuid "c8983409-c104-4d91-86f4-3b4c7eb6ec91")
 		(property "Reference" "J2"
 			(at 30.48 233.68 0)
 			(effects
@@ -14758,14 +14758,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "74d7680f-5d1c-419a-b64d-cec2c30678e5")
+			(uuid "8a84d980-ea28-403f-b7b8-c0c7fad58a37")
 		)
 		(pin "2"
-			(uuid "c54790b0-326b-46c7-849b-b06c9c7fc5d4")
+			(uuid "f240fe15-af7d-4801-adf9-6d51c622fa43")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "J2")
 					(unit 1)
 				)
@@ -14780,7 +14780,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "2b07f759-49bd-45c1-8c2e-1f961e3d7420")
+		(uuid "fa4db18b-f673-45cf-909a-b800ecb2bc97")
 	)
 	(label "OB_24V"
 		(at 25.4 238.76 180)
@@ -14790,7 +14790,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "d977ddde-f0fb-493e-ba61-9721e186de76")
+		(uuid "7bb81766-d216-471d-a61a-9c611fb68fe9")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -14800,7 +14800,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "2320246f-9ec7-4287-a94a-d3f479abae33")
+		(uuid "d372f49f-4398-4508-a5da-25a0c2978e05")
 		(property "Reference" "R11"
 			(at 68.072 236.22 90)
 			(effects
@@ -14845,14 +14845,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "85784386-4c8f-47b3-bc8c-2df0e4156538")
+			(uuid "c75ff7b8-b789-44c1-ba49-773466a87aaa")
 		)
 		(pin "2"
-			(uuid "e44de5c8-8340-4faa-8fa4-6647f1154ddd")
+			(uuid "d0016175-688b-4123-a589-7f663455576a")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "R11")
 					(unit 1)
 				)
@@ -14867,7 +14867,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "668a1743-e2ef-407f-902f-504a9f5f2037")
+		(uuid "6a3a931e-7e64-4e40-ab40-957ff924c8be")
 	)
 	(label "Y_OPTO"
 		(at 66.04 240.03 270)
@@ -14877,7 +14877,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "a933f1e9-fa82-4636-87e0-a6fb7b2c2265")
+		(uuid "4950014a-97c9-4063-a84c-8003395b9c5c")
 	)
 	(symbol
 		(lib_id "Isolator:H11AA1")
@@ -14887,7 +14887,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "dced32ea-3163-4f57-a511-1ba8a54b6d86")
+		(uuid "eaadc59a-427c-4043-a780-43fe3a408e98")
 		(property "Reference" "U5"
 			(at 86.106 231.267 0)
 			(effects
@@ -14936,26 +14936,26 @@
 			)
 		)
 		(pin "1"
-			(uuid "b8cef020-23bb-4e76-be18-26a409ae7bee")
+			(uuid "f86bb48c-fd4c-4d6c-b274-4d32b21240e8")
 		)
 		(pin "2"
-			(uuid "151901d2-9d99-4937-9c9c-98aadf083167")
+			(uuid "61d570d4-9ee8-43f0-9978-160c4cecbdc2")
 		)
 		(pin "3"
-			(uuid "c258f131-5f19-4fb7-b8f4-af1c78075fbd")
+			(uuid "0764ffa1-85dd-459c-9820-bf65c9ae2a4c")
 		)
 		(pin "4"
-			(uuid "a850ced8-680c-40cb-a6ef-94a2701edd73")
+			(uuid "110ef148-561f-41f2-9cbb-20699b1c08d9")
 		)
 		(pin "5"
-			(uuid "5756db3b-b7a5-41a8-a38e-d4c54075aa08")
+			(uuid "0dc485b9-33cb-4c19-99cc-74c1c1adca91")
 		)
 		(pin "6"
-			(uuid "de97af85-e8e0-4062-adc1-2fed802ff4ec")
+			(uuid "313d267e-3277-4d85-aed0-a4c04cab8616")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "U5")
 					(unit 1)
 				)
@@ -14970,7 +14970,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "e5efae64-01d7-4fc1-abbc-4ab348807f37")
+		(uuid "f1c86729-3061-42a0-b5ea-971042eeecc8")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -14980,7 +14980,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "db961182-0043-4018-aa8a-398ee0ae2390")
+		(uuid "2e7110e6-a82d-47f6-92c7-49264920fdd6")
 		(property "Reference" "#PWR066"
 			(at 77.47 238.76 90)
 			(hide yes)
@@ -15026,11 +15026,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "8078cc64-472d-47a2-82ed-05df3b90066c")
+			(uuid "d2f665d1-ce30-4362-b480-943360851c13")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR066")
 					(unit 1)
 				)
@@ -15039,7 +15039,7 @@
 	)
 	(no_connect
 		(at 86.36 236.22)
-		(uuid "440af39b-5d9d-4e46-a055-8840aede7602")
+		(uuid "95308299-e3d7-4ce0-8f6c-1f52b641af84")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -15049,7 +15049,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "31e9b756-2e15-43e8-94a2-4d52ab9ef156")
+		(uuid "af1d4b28-cf2b-43a2-b14b-71aa03ac12b0")
 		(property "Reference" "#PWR067"
 			(at 105.41 238.76 90)
 			(hide yes)
@@ -15095,11 +15095,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "cc904a73-9f4b-4919-a575-750a9d3b7949")
+			(uuid "046b4080-0cd9-4266-b9fa-e475b747538e")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR067")
 					(unit 1)
 				)
@@ -15114,11 +15114,11 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "6958ad28-026b-48d4-85f3-5dc1738e57f3")
+		(uuid "d908a9c2-3402-45d5-9ee7-4de5fedb5b5c")
 	)
 	(no_connect
 		(at 99.06 233.68)
-		(uuid "2c89b411-af6a-43b7-b70b-80925939718f")
+		(uuid "69a8b2f0-6749-4225-9f73-1395fe12269c")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -15128,7 +15128,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "5a9374ff-fe5e-4db3-9efb-ad7a3ed80783")
+		(uuid "885cf738-5c4a-4573-84f8-31fdf7ba714a")
 		(property "Reference" "R12"
 			(at 118.872 236.22 90)
 			(effects
@@ -15173,14 +15173,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "3597f200-3c34-48d8-8bac-0c05b0e2ca73")
+			(uuid "67b0e4c2-c5ca-44f0-befd-77d9522d6cf2")
 		)
 		(pin "2"
-			(uuid "3bf08966-e462-434a-9e92-4762255bbc34")
+			(uuid "d788d81d-ec7a-4324-99a2-c730208012ec")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "R12")
 					(unit 1)
 				)
@@ -15195,7 +15195,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "1c6d4eed-3391-4b39-bb87-47ffc7c39975")
+		(uuid "bbe0d8ac-fc73-4da4-bc62-b987b4b62299")
 		(property "Reference" "#PWR068"
 			(at 116.84 236.22 0)
 			(hide yes)
@@ -15241,11 +15241,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "7d74d039-d555-4c8f-b616-ab64e3d50d90")
+			(uuid "05b8f19c-e09f-4c6d-92f2-2e611525d61d")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR068")
 					(unit 1)
 				)
@@ -15260,7 +15260,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "f8fa8da0-cb03-4404-8060-2bdfe7f20d84")
+		(uuid "699439f6-9bda-4777-9c18-d881129d0fcc")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -15270,7 +15270,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "609fd2df-eeb1-48ea-9626-ceabc45b37ee")
+		(uuid "a3cc5ed9-5e11-4772-b013-92e3fcd4c31a")
 		(property "Reference" "R13"
 			(at 149.352 236.22 90)
 			(effects
@@ -15315,14 +15315,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "bd2777ff-d542-4d29-9adc-173fbbb5eadd")
+			(uuid "7650003b-b4bc-4858-8e4f-bb97435eccc7")
 		)
 		(pin "2"
-			(uuid "ae7e63e6-b293-465c-9adc-1078e89e925e")
+			(uuid "0bafdaf6-d1d9-499b-85f9-b306870c4b01")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "R13")
 					(unit 1)
 				)
@@ -15337,7 +15337,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "a6ff240c-8b44-4cd2-9562-dfa47702ab10")
+		(uuid "21d3573c-61f5-40c5-9128-ab8817b66d3e")
 	)
 	(label "OB_OPTO"
 		(at 147.32 240.03 270)
@@ -15347,7 +15347,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "27dc91cf-5700-40f7-95d2-fca3ecab00f8")
+		(uuid "1e573423-1ca4-477c-8930-523c4d54759f")
 	)
 	(symbol
 		(lib_id "Isolator:H11AA1")
@@ -15357,7 +15357,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "6d818298-bc4d-4eb8-88e4-67972057b652")
+		(uuid "1493d17c-3f68-4ef1-b6c2-5611cc70d968")
 		(property "Reference" "U6"
 			(at 167.386 231.267 0)
 			(effects
@@ -15406,26 +15406,26 @@
 			)
 		)
 		(pin "1"
-			(uuid "40efeacf-fad7-4be4-b521-e2ea13d77727")
+			(uuid "88abd95b-c348-46f3-938f-41076e02adc4")
 		)
 		(pin "2"
-			(uuid "ed119aa1-a832-4a9a-99c9-64e2e8d0aac7")
+			(uuid "08b445fd-13d6-43da-bb6b-2103c034f052")
 		)
 		(pin "3"
-			(uuid "e303468b-fd65-4850-ad7d-f5b4eec9aded")
+			(uuid "35bf95fe-89bb-43b9-9e4d-458ebeb89d21")
 		)
 		(pin "4"
-			(uuid "0c678756-4e9e-44e0-9f25-958d028e453b")
+			(uuid "3d17d95a-698f-48dc-9a83-120e2d62d0ef")
 		)
 		(pin "5"
-			(uuid "d084477c-f0cf-4e92-a79c-1d37732baf86")
+			(uuid "9efc7159-93c8-4c18-8ab6-b2aa944efa48")
 		)
 		(pin "6"
-			(uuid "1b0f7183-b185-4857-a525-3b66a4ad522a")
+			(uuid "e493954f-b910-48ed-a38f-44542f6b97a8")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "U6")
 					(unit 1)
 				)
@@ -15440,7 +15440,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "2adc9aa3-46ec-4d8d-8f0c-2744abb8c3a7")
+		(uuid "03ba71fd-4488-48c9-a558-04f12a294923")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -15450,7 +15450,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "e87133f0-4cb7-4462-b049-552cebd4560e")
+		(uuid "30581674-ada0-4dfa-a5eb-d3f2c3a8d08a")
 		(property "Reference" "#PWR069"
 			(at 158.75 238.76 90)
 			(hide yes)
@@ -15496,11 +15496,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "2c290f20-c30b-4210-9775-da529bfb0374")
+			(uuid "a55593d9-8ce1-4213-a1a3-654f12b4cc75")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR069")
 					(unit 1)
 				)
@@ -15509,7 +15509,7 @@
 	)
 	(no_connect
 		(at 167.64 236.22)
-		(uuid "a9b59a83-fbca-4645-9576-9f8ea8586401")
+		(uuid "8b6176e6-87d4-4733-9424-aecc586da4de")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -15519,7 +15519,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "82b0cd09-e654-43cb-9e6c-4f2f490dccef")
+		(uuid "72b82653-cad2-4ecc-866c-e615c7b349b5")
 		(property "Reference" "#PWR070"
 			(at 186.69 238.76 90)
 			(hide yes)
@@ -15565,11 +15565,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "a0c8700c-a201-408e-9cb8-5a4883e2631e")
+			(uuid "54d516c5-e6a4-43b6-ae16-e00c5d32fb16")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR070")
 					(unit 1)
 				)
@@ -15584,11 +15584,11 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "aeca7a8a-071c-49bb-8139-ab23db6989fc")
+		(uuid "00bd19de-1417-42dd-ac46-79ccb7a83fd0")
 	)
 	(no_connect
 		(at 180.34 233.68)
-		(uuid "14cb933b-824f-42d1-bc6f-f80e0e05d442")
+		(uuid "36e8bf93-2027-4bcc-b806-553cd62a5e06")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -15598,7 +15598,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "393d0ec9-ddcd-4097-811e-5bc9d2d186ca")
+		(uuid "578428ef-4207-4cd5-8995-49e79132ed52")
 		(property "Reference" "R14"
 			(at 200.152 236.22 90)
 			(effects
@@ -15643,14 +15643,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "786a3750-2930-4fc7-bce6-a8ea12541dab")
+			(uuid "c6e5199f-33f6-43b8-ae1e-688becd5750e")
 		)
 		(pin "2"
-			(uuid "96e87a24-fb11-4346-9c4a-937eac02a61d")
+			(uuid "7027d535-37ae-4531-b2fc-485ad203edb4")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "R14")
 					(unit 1)
 				)
@@ -15665,7 +15665,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "37c689d4-4252-4935-95e5-7f3e7b3e60fc")
+		(uuid "0c70024b-91b9-455f-82b5-d7a94fce8be7")
 		(property "Reference" "#PWR071"
 			(at 198.12 236.22 0)
 			(hide yes)
@@ -15711,11 +15711,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "9921f6e2-7562-4332-961a-4ada054c3c34")
+			(uuid "8bdde89a-977d-49e9-86d2-0fbbd80d76bd")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR071")
 					(unit 1)
 				)
@@ -15730,7 +15730,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "ff1fcafd-ef61-41f5-affb-10f560cd4251")
+		(uuid "e0b624e5-232b-41da-a429-5abcfde55e3c")
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole")
@@ -15740,7 +15740,7 @@
 		(in_bom no)
 		(on_board yes)
 		(dnp no)
-		(uuid "02492283-a684-46fb-bfd2-36948868016c")
+		(uuid "9c64646f-fbab-487f-8803-6d84e4e804e9")
 		(property "Reference" "H1"
 			(at 274.32 238.76 0)
 			(effects
@@ -15786,7 +15786,7 @@
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "H1")
 					(unit 1)
 				)
@@ -15801,7 +15801,7 @@
 		(in_bom no)
 		(on_board yes)
 		(dnp no)
-		(uuid "7e3a6982-e8ce-473a-bda3-a6075f56b9b5")
+		(uuid "83baddb9-e4b2-4ac3-82f1-ad43f99d5dc3")
 		(property "Reference" "H2"
 			(at 287.02 238.76 0)
 			(effects
@@ -15847,7 +15847,7 @@
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "H2")
 					(unit 1)
 				)
@@ -15862,7 +15862,7 @@
 		(in_bom no)
 		(on_board yes)
 		(dnp no)
-		(uuid "525e1491-2dfb-4419-a153-413d7f64a873")
+		(uuid "61243053-7c99-4c20-b3cf-50e09669fe8c")
 		(property "Reference" "H3"
 			(at 299.72 238.76 0)
 			(effects
@@ -15908,7 +15908,7 @@
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "H3")
 					(unit 1)
 				)
@@ -15923,7 +15923,7 @@
 		(in_bom no)
 		(on_board yes)
 		(dnp no)
-		(uuid "77809ec0-a9a2-4664-9a53-da8a3562608b")
+		(uuid "82430f4f-986f-45fc-9363-3de947c69f1a")
 		(property "Reference" "H4"
 			(at 312.42 238.76 0)
 			(effects
@@ -15969,7 +15969,7 @@
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "H4")
 					(unit 1)
 				)
@@ -15986,7 +15986,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "be6c6ca2-679c-4cd5-bba5-9ecc28e18db8")
+		(uuid "e349094c-8098-439c-a077-b43f159d7a50")
 	)
 	(text "B  Controller"
 		(exclude_from_sim no)
@@ -15998,7 +15998,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "a0dfe04c-c205-4b33-9c64-f43a5563e46d")
+		(uuid "ad4194ea-ef33-4ee0-8dda-e3aa80ed7a49")
 	)
 	(text "C  I2C devices"
 		(exclude_from_sim no)
@@ -16010,7 +16010,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "0026d59b-e838-47d7-977b-c970b3af4955")
+		(uuid "6ca8f477-d7ff-4d21-a3d5-2b79583061ec")
 	)
 	(text "D  Analog inputs"
 		(exclude_from_sim no)
@@ -16022,7 +16022,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "192f38c5-27ad-4c83-925f-a8a13694dbad")
+		(uuid "c044d192-2d8b-4ce6-ad25-7983ac0ee16f")
 	)
 	(text "D  Thermistors (J9/R15/C9/TH3 added: T_TSUC channel)"
 		(exclude_from_sim no)
@@ -16034,7 +16034,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "ae5ca767-9984-4d1d-bbf6-80ca6117fd80")
+		(uuid "35dd19e7-660d-4986-8585-2eacff73b5d2")
 	)
 	(text "E  Mode inputs"
 		(exclude_from_sim no)
@@ -16046,7 +16046,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "73299779-8cb8-423e-a24d-9980aadd2897")
+		(uuid "7b15e746-47de-4891-88bc-ee0c184a1928")
 	)
 	(text "Mounting"
 		(exclude_from_sim no)
@@ -16058,7 +16058,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "a3bfcff5-eb19-493b-8792-ef9b8838a4f4")
+		(uuid "a5699d8c-7efe-4546-9eb0-5dfb1e08d120")
 	)
 	(text "F  CT inputs (electrical module version 1)"
 		(exclude_from_sim no)
@@ -16070,7 +16070,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "c6ecfb9b-51a5-4cd9-83bc-c470367176e8")
+		(uuid "84a67752-f499-472a-9fca-35e774f15e7b")
 	)
 	(text "F  CT_BIAS 1.34 V"
 		(exclude_from_sim no)
@@ -16082,7 +16082,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "0b43c33b-b07f-4d20-a2c2-12fa5f161ffa")
+		(uuid "03cf41b6-143a-4ac2-b763-f46656e1d58d")
 	)
 	(text "G  LoRa radio and SETUP button"
 		(exclude_from_sim no)
@@ -16094,7 +16094,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "fb593d81-1e69-4e76-80f3-b9d087d0f018")
+		(uuid "abc0bae2-2223-43df-8c33-f3435ea47fe9")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -16104,7 +16104,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "b6f6ccb0-a006-4f4f-b095-aad8d651c1e6")
+		(uuid "0312173c-ba83-4557-8cd7-a68da1d91783")
 		(property "Reference" "#PWR072"
 			(at 223.52 21.59 0)
 			(hide yes)
@@ -16150,11 +16150,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "0bfd3761-4f85-4710-bede-a815c334af11")
+			(uuid "9c17840f-5121-4bbc-9487-344c6d70cf0a")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR072")
 					(unit 1)
 				)
@@ -16169,7 +16169,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "bbbf0a1b-b18e-4bb7-9009-d8f1fbe2284d")
+		(uuid "ef4efd81-a8af-442f-b433-73f052a67f32")
 		(property "Reference" "#FLG073"
 			(at 223.52 34.925 0)
 			(hide yes)
@@ -16215,11 +16215,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "86798cf9-cd6a-4157-8c85-4c0f3ca3fc51")
+			(uuid "ed312a47-f48a-4356-8f22-280d192b2103")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#FLG073")
 					(unit 1)
 				)
@@ -16235,7 +16235,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "2ed4d176-7676-45df-b49e-6a6abdc31577")
+		(uuid "f5d88bec-a40d-429e-b143-4e98866d0321")
 	)
 	(symbol
 		(lib_id "power:+5V")
@@ -16245,7 +16245,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "9b842053-bd6b-4dad-a656-69e7f5893d3d")
+		(uuid "033d8afb-359b-40fe-9c29-c7d12abc7c70")
 		(property "Reference" "#PWR074"
 			(at 236.22 31.75 0)
 			(hide yes)
@@ -16291,11 +16291,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "900509cf-3164-4f96-bd13-8eeb6dae246b")
+			(uuid "4c04c36e-2d3f-424d-abcf-e082846c5cc7")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR074")
 					(unit 1)
 				)
@@ -16310,7 +16310,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "b85d7fa4-cdcf-4077-8482-2ee280b35f41")
+		(uuid "e6b27695-d679-467e-9966-dba04d961bb1")
 		(property "Reference" "#FLG075"
 			(at 236.22 34.925 0)
 			(hide yes)
@@ -16356,11 +16356,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "9282288c-6669-4f62-b4db-0115d64ffa3a")
+			(uuid "260d94ec-b19d-4d15-a837-426ad720130f")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#FLG075")
 					(unit 1)
 				)
@@ -16376,7 +16376,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "cfb0428e-88e0-446a-bbbf-19829a195a66")
+		(uuid "4721c3b2-f9a5-44bd-9f0f-b1367aa6dbdb")
 	)
 	(symbol
 		(lib_id "power:+3V3")
@@ -16386,7 +16386,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "f206473f-17d3-4af5-88d2-0c79b7190b47")
+		(uuid "2c835e95-bfbf-4321-b0ad-5c3f04bf9ff3")
 		(property "Reference" "#PWR076"
 			(at 248.92 31.75 0)
 			(hide yes)
@@ -16432,11 +16432,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "f3417b4e-6b73-47ac-9dcc-8642eb32587b")
+			(uuid "97d97ed0-3020-4337-b31e-f1980cf761c8")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#PWR076")
 					(unit 1)
 				)
@@ -16451,7 +16451,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "701c21d5-ad44-469b-b52e-97a674c2d8cb")
+		(uuid "acddda16-7025-4c82-9bd4-85b884edd619")
 		(property "Reference" "#FLG077"
 			(at 248.92 34.925 0)
 			(hide yes)
@@ -16497,11 +16497,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "1f5408c3-b5ae-446d-9472-9b5f5f606709")
+			(uuid "b2f9665e-5336-4c69-a9cb-e8ff9654264a")
 		)
 		(instances
 			(project "outdoor-carrier"
-				(path "/0a4ff93b-8cc2-4234-93d5-318125a0d53a"
+				(path "/a3555098-1a98-4881-afe1-f5acdcd91772"
 					(reference "#FLG077")
 					(unit 1)
 				)
@@ -16517,7 +16517,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "02ec547a-8066-478d-aafe-65e3f3be3497")
+		(uuid "9ac7a3f1-b81d-49d1-9735-25cc6c395cd3")
 	)
 	(sheet_instances
 		(path "/"

@@ -35,10 +35,12 @@ def shift(d, dx=0.0, dy=0.0):
     return {k: (x + dx, y + dy, r) for k, (x, y, r) in d.items()}
 
 
-# Top band, identical on both boards: ESP32 (antenna off the left edge), the LoRa radio at
-# the top edge with its u.FL toward the top wall (SMA bulkhead above it), the SETUP button,
-# and the rev A power corner moved 10 mm right.
-TOP = dict(shift({
+# Top band, identical on both boards (100 mm wide): ESP32 (antenna off the left edge), the
+# LoRa radio at the top edge with its u.FL toward the top wall (SMA bulkhead above it), its
+# caps beside it, and the rev A power corner. The radio's regulator, input cap and the SETUP
+# button sit right of C1, where rev A had only the "Set U2" note.
+TOP = {
+    'U1': (2.5, 29.85, 0),     # ESP32 pin 1 (EN); D23..3V3 row at y = 4.45
     'J1': (90.0, 8.54, 180),   # 24 VAC, plug faces the top edge
     'F1': (80.0, 15.5, 180),   # clip pads 1 at x 80/75, pads 2 at x 65/60
     'D2': (70.5, 22.5, 180),   # K at x 70.5, A at x 60.34
@@ -47,15 +49,13 @@ TOP = dict(shift({
     'C2': (60.0, 32.2, 0),     # right at U2 IN+
     'U2': (77.5, 45.0, 0),     # module centre
     'H4': (96.5, 3.5, 0),
-}, dx=10.0), **{
-    'U1': (2.5, 29.85, 0),     # ESP32 pin 1 (EN); D23..3V3 row at y = 4.45
-    'LORA': (62.5, 6.3, 90),   # Wio-SX1262 centre; pins 1-8 on the right, u.FL at the top
+    'LORA': (62.5, 6.3, 90),       # Wio-SX1262 centre; pins 1-8 on the right, u.FL at the top
     'LORA_C': (72.0, 2.4, 0),      # 0.1 µF at the module's VCC pin
     'LORA_COUT': (72.1, 8.2, 0),   # 22 µF on +3V3_RF
-    'LORA_LDO': (81.5, 6.3, 0),    # AMS1117 centre
-    'LORA_CIN': (87.9, 4.0, 0),    # 10 µF on its +5V input
-    'SW1': (56.5, 16.0, 0),
-})
+    'SW1': (91.46, 14.0, 0),       # SETUP, centre (94.71, 16.25), clear of J1's labels
+    'LORA_LDO': (89.5, 24.0, 0),   # AMS1117 centre
+    'LORA_CIN': (86.5, 31.0, 0),   # 10 µF on its +5V input
+}
 
 # ref names of the LoRa parts on each board (design.lora_section arguments)
 LORA_REFS = {'outdoor-carrier': dict(LORA='U7', LORA_LDO='U8', LORA_CIN='C15', LORA_COUT='C16',
@@ -70,92 +70,99 @@ def top(name):
 
 
 def mux_jacks():
-    """Indoor: J6-J10 along the bottom edge, two 0805 pull-ups above each."""
+    """Indoor: J6-J10 along the bottom edge, two 0805 pull-ups above each (J10's sit higher,
+    clear of J5)."""
     d = {}
     for i in range(5):
         x = 32.3 + 14.0 * i
-        d[f'J{6 + i}'] = (x, 85.5, 0)
-        d[f'R{11 + 2 * i}'] = (x + 1.6, 75.4, 0)   # SDn pull-up
-        d[f'R{12 + 2 * i}'] = (x + 6.4, 75.4, 0)   # SCn pull-up
+        d[f'J{6 + i}'] = (x, 83.5, 0)
+        d[f'R{11 + 2 * i}'] = (x + 1.6, 70.6, 0)   # SDn pull-up
+        d[f'R{12 + 2 * i}'] = (x + 6.4, 70.6, 0)   # SCn pull-up
+    d['R19'], d['R20'] = (80.5, 62.5, 0), (80.5, 66.0, 0)
     return d
 
 
 PLACE = {
     'outdoor-carrier': dict(top('outdoor-carrier'), **{
-        'H1': (3.5, 35.5, 0), 'H2': (3.5, 106.5, 0), 'H3': (106.5, 106.5, 0),
+        'H1': (3.5, 35.5, 0), 'H2': (3.5, 96.5, 0), 'H3': (96.5, 96.5, 0),
         # CT inputs: 3.5 mm jacks on the left edge (sockets face out), 0805 parts beside each
         # origin x 4.5 puts the footprint's own edge line (with the nose notch) on x = 0
         'J11': (4.5, 46.0, 270), 'J12': (4.5, 60.0, 270), 'J13': (4.5, 74.0, 270),
         'R19': (14.5, 42.0, 0), 'R20': (14.5, 46.0, 0), 'C12': (14.5, 50.0, 0),
         'R21': (14.5, 56.0, 0), 'R22': (14.5, 60.0, 0), 'C13': (14.5, 64.0, 0),
         'R23': (14.5, 70.0, 0), 'R24': (14.5, 74.0, 0), 'C14': (14.5, 78.0, 0),
-        'R17': (14.5, 84.0, 0), 'R18': (14.5, 87.5, 0), 'C11': (4.5, 85.5, 0),   # CT_BIAS
-        'U3': (22.5, 41.5, 0), 'U4': (22.5, 62.5, 0),
+        'R17': (14.5, 83.0, 0), 'R18': (14.5, 86.0, 0), 'C11': (4.5, 85.5, 0),   # CT_BIAS
+        'U3': (21.5, 41.5, 0), 'U4': (21.5, 62.5, 0),
         # filter caps at the ADS1115 inputs (rev A general note 4)
-        'C3': (33.0, 36.5, 0), 'C4': (38.6, 36.5, 0), 'C5': (44.2, 36.5, 0), 'C6': (49.8, 36.5, 0),
-        'C7': (24.5, 58.95, 0), 'C8': (30.1, 58.95, 0), 'C9': (35.7, 58.95, 0),
-        'C10': (41.3, 58.95, 0),
-        # divider columns (pad 1 on top), right of U3
-        'R1': (51.5, 42.0, 270), 'R2': (51.5, 54.5, 270), 'R3': (55.0, 42.0, 270),
-        'R4': (55.0, 54.5, 270), 'R5': (58.5, 42.0, 270), 'R6': (58.5, 54.5, 270),
-        'R7': (62.0, 42.0, 270), 'R8': (62.0, 54.5, 270),
-        # thermistor reference resistors, right of U4
-        'R9': (51.5, 69.0, 270), 'R10': (55.0, 69.0, 270), 'R15': (58.5, 69.0, 270),
-        'R16': (62.0, 69.0, 270),
+        'C3': (32.0, 36.5, 0), 'C4': (37.6, 36.5, 0), 'C5': (43.2, 36.5, 0), 'C6': (48.8, 36.5, 0),
+        'C7': (23.5, 58.95, 0), 'C8': (29.1, 58.95, 0), 'C9': (34.7, 58.95, 0),
+        'C10': (40.3, 58.95, 0),
+        # divider columns (pad 1 on top), under U2 and right of U3/U4
+        'R1': (49.5, 58.0, 270), 'R2': (49.5, 70.5, 270), 'R3': (53.0, 58.0, 270),
+        'R4': (53.0, 70.5, 270), 'R5': (56.5, 58.0, 270), 'R6': (56.5, 70.5, 270),
+        'R7': (60.0, 58.0, 270), 'R8': (60.0, 70.5, 270),
+        # thermistor reference resistors, under U4
+        'R9': (21.1, 81.0, 0), 'R10': (35.1, 81.0, 0), 'R15': (21.1, 85.0, 0),
+        'R16': (35.1, 85.0, 0),
         # JST XH sensor headers along the bottom edge (body 0.5 mm in from the edge)
-        'J3': (11.0, 105.5, 0), 'J4': (26.0, 105.5, 0), 'J5': (41.0, 105.5, 0),
-        'J6': (56.0, 105.5, 0), 'J7': (68.5, 105.5, 0), 'J9': (81.0, 105.5, 0),
-        'J10': (93.5, 105.5, 0),
-    }, **shift({
-        # mode inputs: AC side toward J2, transistor side toward the ESP32 (rev A + 10 mm)
-        'U5': (74.5, 66.0, 180), 'U6': (74.5, 79.0, 180),
+        'J3': (11.0, 95.5, 0), 'J4': (25.0, 95.5, 0), 'J5': (39.0, 95.5, 0),
+        'J6': (53.0, 95.5, 0), 'J7': (64.5, 95.5, 0), 'J9': (76.0, 95.5, 0),
+        'J10': (87.5, 95.5, 0),
+        # mode inputs: AC side toward J2, transistor side toward the ESP32 (rev A positions)
+        'U5': (75.0, 66.0, 180), 'U6': (75.0, 79.0, 180),
         'R11': (84.2, 69.6, 180), 'R13': (84.2, 82.6, 180),
-        'R12': (62.0, 58.0, 270), 'R14': (62.0, 71.5, 270),
+        'R12': (63.8, 58.0, 270), 'R14': (63.8, 71.5, 270),
         # right edge, plugs face out
         'J2': (91.46, 64.0, 90), 'J8': (91.46, 85.72, 90),
-    }, dx=10.0)),
+    }),
     'indoor-carrier': dict(top('indoor-carrier'), **mux_jacks(), **{
-        'H1': (3.5, 35.5, 0), 'H2': (3.5, 86.5, 0), 'H3': (106.5, 86.5, 0),
+        'H1': (3.5, 35.5, 0), 'H2': (3.5, 84.5, 0), 'H3': (60.5, 60.5, 0),   # H3 under U2
         # DS18B20 jacks on the left edge, pin 1 at the top
         'J3': (4.5, 44.0, 270), 'J4': (4.5, 60.0, 270),
-        'J2': (10.5, 81.46, 0),            # mode inputs, bottom edge
-        'J5': (101.46, 77.0, 90),          # main-bus I2C terminal, right edge
-        'U7': (77.0, 66.0, 0), 'R10': (71.0, 60.0, 0), 'C3': (83.0, 60.0, 0),   # TCA9548A
+        'J2': (10.5, 79.46, 0),            # mode inputs, bottom edge
+        'J5': (91.46, 74.0, 90),           # main-bus I2C terminal, right edge under U2
+        'U7': (72.0, 62.0, 0), 'R10': (66.0, 57.2, 0), 'C3': (78.8, 58.0, 0),   # TCA9548A
+        'R9': (51.3, 55.4, 270),           # U6 pull-up, below U6 (clear of U2)
+        'R1': (55.3, 56.9, 270),           # 1-Wire pull-up
     }, **shift({
         'U3': (10.5, 50.0, 90), 'U4': (22.1, 50.0, 90), 'U5': (33.7, 50.0, 90), 'U6': (45.3, 50.0, 90),
         'R2': (10.5, 66.0, 90), 'R4': (22.1, 66.0, 90), 'R6': (33.7, 66.0, 90), 'R8': (45.3, 66.0, 90),
         'R3': (18.85, 40.5, 270), 'R5': (30.45, 40.5, 270), 'R7': (42.05, 40.5, 270),
-        'R9': (53.7, 40.5, 270),
-        'R1': (48.5, 64.5, 0),
-    }, dx=4.0)),
+    }, dx=2.0)),
 }
 
 TEXT = {
-    'outdoor-carrier': [('HVAC Monitor rev B', 34.0, 86.0, 1.3), ('outdoor carrier', 34.0, 88.4, 1.3),
+    'outdoor-carrier': [('HVAC Monitor rev B', 56.0, 84.2, 1.0), ('outdoor carrier', 56.0, 86.0, 1.0),
                         ('CT1 comp', 18.15, 48.0, 0.9, 90), ('CT2 fan', 18.15, 62.0, 0.9, 90),
                         ('CT3 HERM', 18.15, 76.0, 0.9, 90)],
-    'indoor-carrier': [('HVAC Monitor rev B', 21.0, 71.0, 1.3), ('indoor carrier', 21.0, 73.4, 1.3)],
+    'indoor-carrier': [('HVAC Monitor rev B', 21.0, 69.3, 1.1), ('indoor carrier', 21.0, 71.3, 1.1)],
 }
-COMMON_TEXT = [('Set U2 to', 101.5, 26.5, 1.1), ('5.00 V first', 101.5, 28.3, 1.1),
+COMMON_TEXT = [('Set U2 to', 77.5, 49.5, 1.1), ('5.00 V first', 77.5, 51.3, 1.1),
                ('USB', 49.0, 17.0, 1.2), ('← antenna', 5.0, 11.0, 1.0),
-               ('SETUP', 59.75, 24.0, 1.0), ('LoRa ANT ↑', 48.5, 2.6, 1.0)]
+               ('SETUP', 88.6, 17.25, 1.0, 90), ('LoRa ANT ↑', 48.5, 2.6, 1.0)]
 
 DIVIDERS_BODY = {r: 'body' for r in ('R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'R9', 'R10',
                                      'R15', 'R16')}
 # C7-C10 sit between the two ADS1115 sockets: refs just inside U3's outline (as on rev A)
 DIVIDERS_BODY.update({c: (x + 1.25, 56.4) for c, x in
-                      (('C7', 24.5), ('C8', 30.1), ('C9', 35.7), ('C10', 41.3))})
+                      (('C7', 23.5), ('C8', 29.1), ('C9', 34.7), ('C10', 40.3))})
+LORA_TEXT = {'F1': 'body', 'C17': (73.25, 4.65), 'C16': (76.8, 11.3), 'C15': (93.5, 31.0), 'SW1': (86.4, 17.25, 90)}
 
 # reference designator overrides: 'body' = centred on the part, 'right' = right of it,
 # or an absolute (x, y) in board mm
 REF_AT = {
-    'outdoor-carrier': dict(DIVIDERS_BODY, **{
-        'C2': 'right', 'R11': 'body', 'R13': 'body', 'C17': (73.25, 4.65), 'C16': (76.8, 11.3), 'C15': (88.9, 8.4),
+    'outdoor-carrier': dict(DIVIDERS_BODY, **LORA_TEXT, **{
+        'C2': 'right', 'R11': 'body', 'R13': 'body', 'R12': 'body', 'R14': 'body',
+        'R17': 'right', 'R18': 'right', 'U8': 'right',
         'J11': (18.15, 42.0, 90), 'J12': (18.15, 56.0, 90), 'J13': (18.15, 70.0, 90),
         'C11': (4.5, 81.5)}),
     'indoor-carrier': {'C2': 'right', 'R3': 'body', 'R5': 'body', 'R7': 'body', 'R9': 'body',
+                       'R1': 'body', 'R2': 'body', 'R4': 'body', 'R6': 'body', 'R8': 'body',
+                       'J10': (86.9, 78.5, 90), 'U9': 'right', 'R10': (66.0, 59.3),
                        'U3': 'above', 'U4': 'above', 'U5': 'above', 'U6': 'above',
-                       'J3': (4.5, 39.6), 'J4': (4.5, 55.6), 'C6': (73.25, 4.65), 'C5': (76.8, 11.3), 'C4': (88.9, 8.4)},
+                       'J3': (4.5, 39.6), 'J4': (4.5, 55.6), 'C6': LORA_TEXT['C17'],
+                       'C5': LORA_TEXT['C16'], 'C4': LORA_TEXT['C15'], 'SW1': LORA_TEXT['SW1'],
+                       'F1': 'body'},
 }
 
 # ---------------------------------------------------------------- net classes

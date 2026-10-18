@@ -23,8 +23,8 @@ with plug-in modules):
   * Indoor: TCA9548A mux (U7, 0x70) on the board with JST-XH 4-pin jacks for the SHT45
     return/supply (ch 0/1) and SDP810 return/supply/filter (ch 2/3/4), 10k pull-ups per
     channel. J5 stays as the main-bus I2C terminal, now fitted.
-  * Layout (gen_pcb.py): both boards 110 mm wide (outdoor 110 x 110, indoor 110 x 90) for the
-    Hammond 1554R2GY; CT passives and the mux parts are 0805 hand-solder SMD.
+  * Layout (gen_pcb.py): outdoor 100 x 100, indoor 100 x 88 (same parts as the first rev B
+    layout, packed tighter); CT passives and the mux parts are 0805 hand-solder SMD.
 Additions needed to make a board (not on rev A):
   * H1-H4 M3 mounting holes.
   * Names for nets rev A leaves unnamed: VAC_IN, VAC_F, VRAW (named on rev A
@@ -301,7 +301,7 @@ def indoor():
 
 BOARDS = {
     'outdoor-carrier': dict(parts=outdoor, title='HVAC Monitor outdoor carrier',
-                            size=(110, 110)),
+                            size=(100, 100)),
     'indoor-carrier': dict(parts=indoor, title='HVAC Monitor indoor carrier',
-                           size=(110, 90)),
+                           size=(100, 88)),
 }

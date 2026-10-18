@@ -23,15 +23,15 @@ screw_slot = [6.6, 11];  // corner slots, diagonal, so the plate can shift a few
 screw_at  = 8;       // slot centre in from each plate corner
 tie_slot  = [4, 2];  // cable-tie slots (length, width)
 
-SIZE  = board == "outdoor" ? [110, 110] : [110, 90];   // rev B
+SIZE  = board == "outdoor" ? [100, 100] : [100, 88];   // rev B
 HOLES = board == "outdoor"
-    ? [[3.5, 35.5], [3.5, 106.5], [106.5, 106.5], [106.5, 3.5]]
-    : [[3.5, 35.5], [3.5, 86.5], [106.5, 86.5], [106.5, 3.5]];
+    ? [[3.5, 35.5], [3.5, 96.5], [96.5, 96.5], [96.5, 3.5]]
+    : [[3.5, 35.5], [3.5, 84.5], [60.5, 60.5], [96.5, 3.5]];
 // cable-tie slot pairs (board mm, y down) just outside the board edge where
 // the sensor and 24 VAC wires leave, for strain relief
 TIES = board == "outdoor"
-    ? [[20, 115], [50, 115], [80, 115], [115, 62], [115, 80], [100, -5], [-6, 53], [-6, 67]]
-    : [[20, 95], [50, 95], [80, 95], [115, 70], [100, -5], [-6, 54]];
+    ? [[20, 105], [50, 105], [80, 105], [105, 62], [105, 80], [86, -5], [-6, 53], [-6, 67]]
+    : [[20, 93], [50, 93], [80, 93], [105, 66], [86, -5], [-6, 54]];
 
 W = SIZE[0] + 2 * margin;
 L = SIZE[1] + 2 * margin;
