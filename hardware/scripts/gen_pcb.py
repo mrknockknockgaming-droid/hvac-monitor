@@ -78,8 +78,8 @@ PLACE = {
 }
 
 TEXT = {
-    'outdoor-carrier': [('HVAC Monitor rev A', 19.0, 83.4, 1.3), ('outdoor carrier', 19.0, 85.8, 1.3)],
-    'indoor-carrier': [('HVAC Monitor rev A', 77.0, 60.5, 1.3), ('indoor carrier', 77.0, 63.0, 1.3)],
+    'outdoor-carrier': [('HVAC Monitor rev B', 19.0, 83.4, 1.3), ('outdoor carrier', 19.0, 85.8, 1.3)],
+    'indoor-carrier': [('HVAC Monitor rev B', 77.0, 60.5, 1.3), ('indoor carrier', 77.0, 63.0, 1.3)],
 }
 COMMON_TEXT = [('Set U2 to', 91.5, 26.5, 1.1), ('5.00 V first', 91.5, 28.3, 1.1),
                ('USB', 49.0, 17.0, 1.2), ('← antenna', 5.0, 11.0, 1.0)]
@@ -102,8 +102,8 @@ NETCLASSES = [
     ('Opto24', 0.3, 0.3, 0.6, 0.3, ['/*_OPTO']),                             # series R to opto LED
     ('Rail5V', 1.0, 0.3, 0.9, 0.5, ['+5V']),
     ('Ground', 0.8, 0.25, 0.9, 0.5, ['GND']),
-    ('Rail3V3', 0.5, 0.2, 0.7, 0.35, ['+3V3']),
-    ('Analog', 0.3, 0.2, 0.6, 0.3, ['/P_*', '/V5_MON', '/T_*']),               # dividers, thermistors
+    ('Rail3V3', 0.5, 0.2, 0.7, 0.35, ['+3V3', '/+3V3_RF']),
+    ('Analog', 0.3, 0.2, 0.6, 0.3, ['/P_*', '/V5_MON', '/T_*', '/CT*']),       # dividers, thermistors, CTs
 ]
 ANALOG_TO_24VAC_MM = 3.0
 
@@ -330,7 +330,7 @@ def build(name):
     board.GetDesignSettings().SetBoardThickness(FromMM(1.6))
     board.SetCopperLayerCount(2)
     tb = board.GetTitleBlock()
-    tb.SetTitle(cfg['title']); tb.SetRevision('A'); tb.SetDate('2026-09-27')
+    tb.SetTitle(cfg['title']); tb.SetRevision('B'); tb.SetDate('2026-10-18')
     add_edge(board, w, h)
 
     nets = {}

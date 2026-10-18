@@ -1412,7 +1412,9 @@ root.addEventListener("click", function (e) {
 // Sends the firmware's own commands (hvac-firmware/src/node_outdoor.cpp, node_indoor.cpp) and shows
 // each node's reply. Settings shown here come from the node's status message, refreshed after a change.
 var PCH = [["p_liq", "liq", "Liquid line", "J3"], ["p_vap", "vap", "Vapor port", "J4"], ["p_tsuc", "tsuc", "True suction", "J5"]];
-var TCH = [["t_suc", "suc", "Suction line", "J6 · TH1"], ["t_liq", "liq", "Liquid line", "J7 · TH2"], ["t_tsuc", "tsuc", "True suction line", "J9 · TH3"]];
+var TCH = [["t_suc", "suc", "Suction line", "J6 · TH1"], ["t_liq", "liq", "Liquid line", "J7 · TH2"], ["t_tsuc", "tsuc", "True suction line", "J9 · TH3"], ["t_dis", "dis", "Discharge line", "J10 · TH4"]];
+// rev B outdoor board CT inputs (hvac-firmware/src/ct.cpp); readings arrive as the "electrical" node
+var CTCH = [["ct_comp", "Compressor common", "J11 · CT1"], ["ct_fan", "Condenser fan", "J12 · CT2"], ["ct_herm", "HERM lead", "J13 · CT3"]];
 var QUIET = { status: 1 };                                  // sent automatically; kept out of the log
 var REFRESH_AFTER = { fitted: 1, cal_zero: 1, cal_span: 1, cal_ref: 1, cal_reset: 1, range: 1, ntc_b: 1, v33: 1, ds_swap: 1, rh_swap: 1, rescan: 1 };
 var REPLY_WAIT_S = 20;
@@ -1532,6 +1534,22 @@ function renderSetup() {
       : '<div class="na-note">No SDP810 found. Fit them on mux channels 2 (return plenum), 3 (supply plenum, after the coil) and 4 (across the filter), then press Rescan probes.</div>') +
     "</section>";
 
+  var el = nodeOf("electrical"), ed = (el && el.data) || {}, eraw = ed.raw || {}, eerr = ed.err || [];
+  function ctAmps(k) { return k === "ct_herm" ? ((ed.cap || {}).herm || {}).i : (ed.i || {})[k.slice(3)]; }
+  var cRows = CTCH.map(function (c) {
+    var k = c[0], cal = oc[k];
+    if (!cal) return "";
+    return "<tr><th>" + c[1] + ' <span class="faint mono">' + c[2] + "</span></th><td>" + fitSeg("outdoor", k, cal.fit) + "</td>" +
+      '<td class="num">' + reading(ctAmps(k), "A", cal.fit, k, eerr) + '</td><td class="num faint n">' + (isNum(eraw[k]) ? eraw[k].toFixed(3) + " V" : "—") + "</td>" +
+      '<td class="num n">' + (isNum(cal.a_per_v) ? cal.a_per_v.toFixed(1) : "—") + ' <span class="faint">A/V</span></td>' +
+      '<td><div class="acts-cell">' + field("f-ref-" + k, "A", "clamp meter", c[1] + " reference current") + actBtn("ref", "Set", "outdoor", k) + actBtn("reset", "Reset", "outdoor", k) + "</div></td></tr>";
+  }).join("");
+  var ctPanel = cRows ? '<section class="panel" aria-label="Current sensors"><div class="ph"><h2>Current sensors</h2><span class="sub">Outdoor node · SCT-013 clamps</span><span class="right">' + nodeSub("outdoor", "The outdoor node") + "</span></div>" +
+    '<table class="dt"><thead><tr><th>Clamp</th><th>Installed</th><th class="num">Reading</th><th class="num">Signal</th><th class="num">Scale</th><th>Calibrate</th></tr></thead><tbody>' + cRows + "</tbody></table>" +
+    '<ol class="howto"><li><b>Installed:</b> turn a clamp on once it is around its wire and plugged into its jack. Its readings show on the Monitor page under Electrical.</li>' +
+    "<li><b>Set:</b> with the compressor running, read the same wire with a clamp meter, enter the amps and press Set.</li>" +
+    "<li>Clamp only insulated wires, inside the unit's electrical compartment, with the power off while you fit them.</li></ol></section>" : "";
+
   var html = techHeader("setup") +
     (S.msg ? '<div class="stale-banner" role="status">' + esc(S.msg) + "</div>" : "") +
     '<main class="page">' +
@@ -1550,7 +1568,7 @@ function renderSetup() {
     "<li><b>Set:</b> or compare against a trusted thermometer at any temperature, enter its reading and press Set.</li>" +
     "<li><b>3.3 V rail:</b> measure between 3V3 and GND on the ESP32 with a meter; entering it makes every thermistor more accurate.</li></ol></section>" +
 
-    humPanel + spPanel +
+    ctPanel + humPanel + spPanel +
     '<div class="cfg">' +
     '<section class="panel" aria-label="Air probes"><div class="ph"><h2>Air probes</h2><span class="sub">Indoor node · DS18B20</span><span class="right">' + nodeSub("indoor", "The indoor node") + "</span></div>" +
     '<table class="dt"><thead><tr><th>Probe</th><th class="num">Reading</th><th class="num">Offset</th><th>Calibrate</th></tr></thead><tbody>' + aRows + "</tbody></table>" +
@@ -1771,6 +1789,9 @@ root.addEventListener("click", function (e) {
   } else if (act === "ice") {
     if (!confirm("Calibrate " + name + " to 32.0 °F?\n\nThe probe should have been in stirred ice water for 3 minutes.")) return;
     cmd = { cmd: "cal_ref", ch: ch, ref: 32 };
+  } else if (act === "ref" && ch.indexOf("ct_") === 0) {
+    if (!need("f-ref-" + ch, 1, 200, "the clamp meter reading (A)")) return;
+    cmd = { cmd: "cal_ref", ch: ch, ref: v };
   } else if (act === "ref" && ch.indexOf("rh_") === 0) {
     if (!need("f-ref-" + ch, 5, 100, "the reference humidity (%)")) return;
     cmd = { cmd: "cal_ref", ch: ch, ref: v };

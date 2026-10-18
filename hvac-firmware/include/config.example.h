@@ -32,19 +32,19 @@
 #define LORA_ENABLED   0
 #define LORA_DEVICE_ID 0x00000000
 #define LORA_KEY       "00000000000000000000000000000000"
-// SX1262 module wiring (defaults: VSPI SCK 18 / MISO 19 / MOSI 23, NSS 5, DIO1 26, RST 27, BUSY 25;
-// TCXO 1.8 V as on the Wio-SX1262). Check against the carrier board before the first power-up.
+// SX1262 module wiring (defaults: VSPI SCK 18 / MISO 19 / MOSI 23, NSS 5, DIO1 26, RST 27, BUSY 25,
+// RF_SW 13; TCXO 1.8 V as on the Wio-SX1262). The rev B carriers are wired this way.
 // #define LORA_PIN_NSS 5
 // #define LORA_PIN_DIO1 26
 // #define LORA_PIN_RST 27
 // #define LORA_PIN_BUSY 25
+// #define LORA_PIN_RXEN 13
 // #define LORA_TCXO_V 1.8
 
-// Outdoor board voltage dividers (kilohms), only if it was built with values other than the
-// schematic's: pressure dividers 10k top / 20k bottom, rail monitor 10k top / 15k bottom.
-// For a board built with 10k everywhere:
-// #define P_DIV_BOTTOM_K 10.0
-// #define RAIL_DIV_BOTTOM_K 10.0
+// Outdoor board voltage dividers (kilohms). The defaults are rev B: 10k everywhere (rev A boards
+// were built that way too). Only for a board built to the rev A drawing (20k / 15k bottoms):
+// #define P_DIV_BOTTOM_K 20.0
+// #define RAIL_DIV_BOTTOM_K 15.0
 // (P_DIV_TOP_K and RAIL_DIV_TOP_K exist too.) The build refuses values that would overdrive the ADC.
 
 // Password for over-the-air firmware updates

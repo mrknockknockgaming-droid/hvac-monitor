@@ -6,25 +6,28 @@
 #include "config.h"
 #include "settings.h"
 #include "mode_inputs.h"
+#include "ct.h"
+#include "net.h"
 #include <Wire.h>
 #include <Adafruit_ADS1X15.h>
 #include <Adafruit_SHT31.h>
 
 // ---------- Hardware constants ----------
 static const float PSI_PER_BAR    = 14.5038f;
-// Voltage dividers in kilohms (top resistor to the signal, bottom to ground). Defaults are the rev A
-// board as designed; set them in config.h if the board was built with other values (e.g. all 10k).
+// Voltage dividers in kilohms (top resistor to the signal, bottom to ground). Defaults are rev B (10k
+// everywhere, as rev A was built); set them in config.h for a board built with the rev A drawing's
+// 20k / 15k bottom resistors.
 #ifndef P_DIV_TOP_K
 #define P_DIV_TOP_K 10.0         // R1, R3, R5
 #endif
 #ifndef P_DIV_BOTTOM_K
-#define P_DIV_BOTTOM_K 20.0      // R2, R4, R6
+#define P_DIV_BOTTOM_K 10.0      // R2, R4, R6
 #endif
 #ifndef RAIL_DIV_TOP_K
 #define RAIL_DIV_TOP_K 10.0      // R7
 #endif
 #ifndef RAIL_DIV_BOTTOM_K
-#define RAIL_DIV_BOTTOM_K 15.0   // R8
+#define RAIL_DIV_BOTTOM_K 10.0   // R8
 #endif
 // The ADS1115 runs from 3.3 V: readings must stay below that, and nothing may pass its 3.6 V absolute
 // maximum. Sensors top out at 4.5 V (5 V if a wire faults high); the 5 V rail can reach 5.5 V.
@@ -84,7 +87,7 @@ static TempCh T[] = {
   {"t_suc",  0, true },   // TH1 suction line
   {"t_liq",  1, true },   // TH2 liquid line
   {"t_tsuc", 2, false},   // future
-  {"t_dis",  3, false},   // future (needs high-temp thermistor)
+  {"t_dis",  3, false},   // TH4 discharge line (rev B J10; a thermistor rated past 250 F)
 };
 static const int NT = sizeof(T) / sizeof(T[0]);
 
@@ -95,6 +98,22 @@ static float v33 = 3.30f;              // supply feeding the thermistor dividers
 static float airF = NAN, airRh = NAN;
 static uint32_t lastRead = 0;
 static const uint32_t READ_MS = 1000;
+static uint32_t lastElec = 0;
+static const uint32_t ELEC_MS = 5000;   // CT readings, published as the "electrical" node
+
+static void publishElectrical() {
+#if !LORA_ENABLED                       // over LoRa the electrical node needs its own frame type (radio/)
+  JsonDocument doc;
+  doc["node"] = "electrical";
+  doc["fw"] = FW_VERSION;
+  doc["uptime"] = millis() / 1000;
+  if (netTimeValid()) doc["ts"] = serialized(String(netEpoch(), 3));
+  ctFillTelemetry(doc, modeGet(0));
+  String out;
+  serializeJson(doc, out);
+  netPublishNode("electrical", out);
+#endif
+}
 
 // ---------- Helpers ----------
 static float readVolts(Adafruit_ADS1115& a, uint8_t ch) {
@@ -181,10 +200,13 @@ void nodeSetup() {
                 ads1Ok ? "ok" : "MISSING", ads2Ok ? "ok" : "MISSING", shtOk ? "ok" : "MISSING");
 
   modeInputsBegin(MODES, sizeof(MODES) / sizeof(MODES[0]));
+  ctBegin();
 }
 
 void nodeLoop() {
+  ctLoop(modeGet(0));                     // MODE_Y: a rising edge captures the compressor start
   uint32_t now = millis();
+  if (ctAnyFitted() && now - lastElec >= ELEC_MS) { lastElec = now; publishElectrical(); }
   if (now - lastRead < READ_MS) return;
   lastRead = now;
   if (!ads1Ok) ads1Ok = ads1.begin(0x48, &Wire);   // retry if a module was unplugged
@@ -237,6 +259,7 @@ void nodeFillStatus(JsonDocument& doc) {
   doc["v33"] = v33;
   doc["p_div"] = P_DIV_GAIN;        // so the build's divider settings show in the status
   doc["rail_div"] = RAIL_DIV_GAIN;
+  ctFillStatus(cal);
 }
 
 // Commands (send JSON to hvac/<site>/outdoor/cmd):
@@ -249,9 +272,11 @@ void nodeFillStatus(JsonDocument& doc) {
 //  {"cmd":"fitted","ch":"p_tsuc","on":true}     enable a channel once the sensor is installed
 //  {"cmd":"ntc_b","value":3950}                 thermistor B-value
 //  {"cmd":"v33","value":3.30}                   measured 3.3 V rail (improves thermistor accuracy)
+//  CT channels ct_comp / ct_fan / ct_herm: see ctHandleCmd in ct.cpp
 bool nodeHandleCmd(JsonDocument& cmd, JsonDocument& reply) {
   const char* c  = cmd["cmd"] | "";
   const char* ch = cmd["ch"]  | "";
+  if (!strncmp(ch, "ct_", 3)) return ctHandleCmd(cmd, reply);
   PressureCh* p = findP(ch);
   TempCh*     t = findT(ch);
   Cal* cal = p ? &p->cal : (t ? &t->cal : nullptr);

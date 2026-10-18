@@ -22,6 +22,7 @@ bool LoraRadio::begin(const LoraPins& p, double mhz, uint8_t sf, int8_t dbm) {
         return ok_ = false;
     }
     if (p.dio2_rf_switch) radio->setDio2AsRfSwitch(true);
+    if (p.rxen >= 0) radio->setRfSwitchPins(p.rxen, RADIOLIB_NC);   // DIO2 drives TX, RF_SW high = RX
     radio->setCRC(true);
     radio->setPacketReceivedAction(on_dio1);
     radio->startReceive();
