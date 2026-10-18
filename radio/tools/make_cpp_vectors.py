@@ -24,11 +24,11 @@ def maybe(v, p=0.12):
 
 
 def num(lo, hi, places=3):
-    """A random value that is never an exact rounding tie when packed (x10 or x100): JSON parsers can
-    read a decimal 1 ulp apart, which only matters exactly on a tie."""
+    """A random value that is never an exact rounding tie when packed (x10, x100 or x1000): JSON parsers can
+    read a decimal 1 ulp apart, which only matters exactly on a tie (x1000: static pressure)."""
     while True:
         v = round(rng.uniform(lo, hi), places)
-        if all(abs((v * s) % 1 - 0.5) > 1e-6 and abs(((v - 4) * s) % 1 - 0.5) > 1e-6 for s in (10, 100)):
+        if all(abs((v * s) % 1 - 0.5) > 1e-6 and abs(((v - 4) * s) % 1 - 0.5) > 1e-6 for s in (10, 100, 1000)):
             return v
 
 
@@ -44,9 +44,26 @@ def outdoor_doc():
 
 def indoor_doc():
     errs = rng.sample(lf.INDOOR_ERRS + ["odd"], rng.choice([0, 0, 0, 1]))
-    return {"node": "indoor", "fw": "0.2.0", "uptime": rng.randrange(0, 2_000_000),
-            "mode": {k: rng.random() < 0.5 for k in ("Y", "W", "G", "OB")},
-            "air": {"supply": maybe(num(40, 130)), "return": maybe(num(55, 90)), "dt": None}, "err": errs}
+    air = {"supply": maybe(num(40, 130)), "return": maybe(num(55, 90)), "dt": None}
+    if rng.random() < 0.5:                   # humidity mux and/or static sensors (rev B indoor board)
+        if rng.random() < 0.7:
+            air.update({"rh_ret": maybe(num(10, 90)), "t_rh_ret": maybe(num(55, 90)),
+                        "rh_sup": maybe(num(30, 99)), "t_rh_sup": maybe(num(40, 130))})
+        for k in lf.SP_KEYS:
+            if rng.random() < 0.6:
+                air[k] = maybe(num(-1.2, 1.2, 4))
+    return {"node": "indoor", "fw": "0.3.0", "uptime": rng.randrange(0, 2_000_000),
+            "mode": {k: rng.random() < 0.5 for k in ("Y", "W", "G", "OB")}, "air": air, "err": errs}
+
+
+def electrical_doc():
+    errs = rng.sample(lf.ELEC_ERRS + ["odd"], rng.choice([0, 0, 0, 1]))
+    herm = maybe(num(0, 30), 0.4)
+    return {"node": "electrical", "fw": "0.3.0", "uptime": rng.randrange(0, 2_000_000), "contactor": rng.random() < 0.6,
+            "v": {"line": None, "contactor": None}, "i": {"comp": maybe(num(0, 60), 0.3), "fan": maybe(num(0, 4), 0.3)},
+            "cap": {"herm": None if herm is None else {"v": None, "i": herm}, "fan": None},
+            "start": {"peak_a": num(5, 120, 2), "ms": rng.randrange(80, 1500)} if rng.random() < 0.5 else None,
+            "raw": {"ct_comp": 0.1}, "err": errs}
 
 
 def c_str(s):
@@ -65,7 +82,7 @@ def main():
     out.append("struct VReading { const char* doc; unsigned age; unsigned dev, counter; const char* payload; const char* frame; const char* json; };")
     out.append("static const VReading V_READINGS[] = {")
     for i in range(300):
-        doc = outdoor_doc() if i % 2 == 0 else indoor_doc()
+        doc = (outdoor_doc, indoor_doc, electrical_doc)[i % 3]()
         age = rng.choice([0, 0, 0, 5, 300, 70000])
         dev, counter = rng.randrange(1, 2**32), rng.randrange(0, 2**32)
         ftype, payload = lf.pack_reading(doc, age)
@@ -87,7 +104,10 @@ def main():
             {"cmd": "cal_reset", "ch": "p_tsuc"}, {"cmd": "range", "ch": "p_liq", "bar": 50},
             {"cmd": "fitted", "ch": "t_tsuc", "on": True}, {"cmd": "fitted", "ch": "t_dis", "on": False},
             {"cmd": "ntc_b", "value": 3950}, {"cmd": "v33", "value": 3.312}, {"cmd": "ds_swap"}, {"cmd": "rescan"},
-            {"cmd": "cal_zero", "ch": "t_sup"}, {"cmd": "cal_ref", "ch": "t_ret", "ref": 72.25}]
+            {"cmd": "cal_zero", "ch": "t_sup"}, {"cmd": "cal_ref", "ch": "t_ret", "ref": 72.25},
+            {"cmd": "cal_zero", "ch": "sp_filt"}, {"cmd": "cal_ref", "ch": "rh_ret", "ref": 75.0}, {"cmd": "rh_swap"},
+            {"cmd": "fitted", "ch": "ct_herm", "on": True}, {"cmd": "cal_ref", "ch": "ct_comp", "ref": 14.2},
+            {"cmd": "ct_scale", "ch": "ct_fan", "a_per_v": 5.0}]
     bad = [{"cmd": "selfdestruct"}, {"cmd": "cal_zero", "ch": "p_nope"}, {"cmd": "cal_set", "ch": "p_liq", "offset": 1, "scale": 1.01}]
     out.append("struct VCommand { const char* cmd; const char* payload; const char* json; };   // payload \"\" = refused")
     out.append("static const VCommand V_COMMANDS[] = {")
@@ -103,7 +123,10 @@ def main():
                {"cmd": "cal_span", "ok": False, "error": "apply at least ~50 psi before spanning"},
                {"cmd": "interval", "ok": True, "ms": 10000}, {"cmd": "ntc_b", "ok": True, "ntc_b": 3950},
                {"cmd": "status", "ok": True}, {"cmd": "zap", "ok": False, "error": "unknown command"},
-               {"cmd": "cal_set", "ok": False, "error": "something new"}, {"cmd": "range", "ok": True, "fs_bar": 35}]
+               {"cmd": "cal_set", "ok": False, "error": "something new"}, {"cmd": "range", "ok": True, "fs_bar": 35},
+               {"cmd": "cal_ref", "ok": True, "ch": "ct_comp", "a_per_v": 112.5, "fit": True},
+               {"cmd": "fitted", "ok": True, "ch": "ct_fan", "a_per_v": 5.0, "fit": False},
+               {"cmd": "rh_swap", "ok": True, "rh_swap": True}, {"cmd": "cal_zero", "ok": True, "ch": "sp_ret", "offset": 0.012, "scale": 1.0}]
     out.append("struct VReply { const char* reply; const char* payload; const char* json; };")
     out.append("static const VReply V_REPLIES[] = {")
     for r in replies:
@@ -129,6 +152,7 @@ def main():
     session.append(bytes(tampered))
     session.append(lf.seal(KEY, 0x0A0B0C0D, 15, *lf.pack_command({"cmd": "status"})))   # nodes don't send commands
     session.append(lf.seal(KEY, 0x0A0B0C0D, 16, *lf.pack_reading(o)))
+    session.append(lf.seal(KEY, 0x0A0B0C0D, 17, *lf.pack_reading(electrical_doc())))   # -> hvac/home/electrical/
     out.append("struct VGateway { const char* frame; const char* topic; const char* json; };   // topic \"\" = refused")
     out.append("static const VGateway V_GATEWAY[] = {")
     for k, frame in enumerate(session):

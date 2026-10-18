@@ -51,7 +51,11 @@ that on a real house. Airtime is tiny: one 77 ms frame every 5 s is 1.5 % of the
   └──── authenticated, not encrypted ─────┘
 ```
 
-- **Readings:** outdoor 28-byte payload → 45-byte frame; indoor 13 → 30. Values are int16 tenths
+- **Readings:** outdoor 28-byte payload → 45-byte frame; indoor 13 → 30, or 28 → 45 when the
+  indoor node has the humidity mux or static-pressure sensors (rev B board: RH and SHT45
+  temperatures in tenths, static in thousandths of an inch w.c., a bit for each sensor present so
+  the JSON keys match WiFi exactly); electrical (the outdoor node's current sensors, type 6)
+  19 → 36, amps in hundredths, published as the `electrical` node. Values are int16 tenths
   (psig, °F), humidity in tenths of a percent, the 5 V rail in 10 mV steps, mode inputs and error
   codes as bit fields, and `age` (seconds since measured, for readings kept during an outage).
   The gateway turns them back into **exactly the JSON the WiFi firmware sends**, plus `ts` and
@@ -59,7 +63,9 @@ that on a real house. Airtime is tiny: one 77 ms frame every 5 s is 1.5 % of the
   dashboard need no changes.**
 - **Status:** firmware version, interval, backlog, dropped (10 bytes).
 - **Commands / replies:** every command on the Sensors & calibration page fits in 7 bytes
-  (command, channel, value, flag); replies carry ok, an error code and the new offset/scale.
+  (command, channel, value, flag), including the humidity, static and current-sensor channels,
+  `rh_swap` and `ct_scale`; replies carry ok, an error code and the new offset/scale (current
+  sensors and `rh_swap` add 2 bytes: channel, fitted, swap).
 - **Not over LoRa:** the raw sensor volts/ohms and the full calibration table. Commissioning
   (zero, span, ice bath) can still be done over LoRa; the raw numbers are only visible when the
   node is set up on WiFi. A "send raw values" command can be added if technicians miss them.

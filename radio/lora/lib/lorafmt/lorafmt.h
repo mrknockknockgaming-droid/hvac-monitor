@@ -14,10 +14,10 @@ namespace lorafmt {
 
 constexpr uint8_t VERSION = 1;
 constexpr size_t HEADER_LEN = 9, TAG_LEN = 8, MAX_PAYLOAD = 32, MAX_FRAME = HEADER_LEN + MAX_PAYLOAD + TAG_LEN;
-enum Type : uint8_t { OUTDOOR = 1, INDOOR = 2, STATUS = 3, COMMAND = 4, REPLY = 5 };
+enum Type : uint8_t { OUTDOOR = 1, INDOOR = 2, STATUS = 3, COMMAND = 4, REPLY = 5, ELECTRICAL = 6 };
 
 // ---- payloads <-> the WiFi firmware's JSON
-// Telemetry JSON (node "outdoor" or "indoor") -> payload; returns its length (0 if not a reading).
+// Telemetry JSON (node "outdoor", "indoor" or "electrical") -> payload; returns its length (0 if not a reading).
 size_t pack_reading(JsonVariantConst doc, uint32_t age_s, uint8_t& type, uint8_t* out);
 // payload -> telemetry JSON as the WiFi firmware publishes it (no fw / rssi). received_at < 0: no "ts".
 bool unpack_reading(uint8_t type, const uint8_t* p, size_t n, double received_at, JsonDocument& doc);
