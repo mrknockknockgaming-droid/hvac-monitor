@@ -84,6 +84,10 @@ temperatures, superheat, subcooling and delta-T.
     compressor VP, CT2 fan VN, CT3 HERM GPIO32; CT_BIAS 1.34 V). Indoor: on-board TCA9548A with
     JST-XH 4-pin jacks for SHT45 ch 0/1 and SDP810 ch 2-4. Rev B source = design.py + generated
     KiCad files/PDFs; docs/hvac-schematics.html stays rev A. Layout/routing runs on the PC (KiCad).
+    Boards: outdoor 110 x 110, indoor 110 x 90 (both still fit the 1554R2GY). preroute.py is empty for
+    rev B; `hardware/route-all.sh` repeats Freerouting until DRC is clean (results vary per run), and
+    `scripts/make_fab.py` writes gerbers/zip, BOM, renders, PDFs and reports. Enclosure STLs/PNGs are
+    still rev A until re-exported with OpenSCAD (commands in hardware/enclosures/README.md).
   - CT inputs (fw 0.3.0, `src/ct.cpp`, maths in `include/ct_math.h`, host test in
     tools/host_tests): RMS every 2 s at 3 kHz/channel, 1.5 s compressor-start capture on the Y
     rising edge; the outdoor node publishes them as the `electrical` node every 5 s (WiFi only;

@@ -1,6 +1,7 @@
 // Indoor node: supply/return air temperatures and thermostat calls (Y, W, G, O/B).
 // Matches schematic sheet 2. Optional (phase 6): supply and return humidity from two SHT45s behind a
-// TCA9548A I2C mux on J5 (both SHT45s answer at 0x44): return on mux channel 0, supply on channel 1.
+// TCA9548A I2C mux (on the rev B board, J6-J10; on rev A an external one on J5; both SHT45s answer at
+// 0x44): return on mux channel 0, supply on channel 1.
 // Static pressure: three SDP810-500Pa on mux channels 2 (return plenum), 3 (supply plenum, after the
 // coil) and 4 (across the filter), reported in inches of water column.
 #ifdef NODE_INDOOR

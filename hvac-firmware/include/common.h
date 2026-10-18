@@ -16,6 +16,7 @@
 #define PIN_SDA   21
 #define PIN_SCL   22
 #define PIN_LED    2
+#define PIN_SETUP 14   // rev B SETUP button to GND (reserved for phone/BLE setup; not acted on yet)
 
 // Implemented by node_outdoor.cpp or node_indoor.cpp
 void nodeSetup();
