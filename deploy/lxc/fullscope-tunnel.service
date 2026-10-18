@@ -1,0 +1,16 @@
+[Unit]
+Description=Cloudflare Tunnel to the Fullscope web app (https://PUBLIC_HOST -> port 8000)
+After=network-online.target fullscope-api.service
+Wants=network-online.target
+
+[Service]
+# TUNNEL_TOKEN=... written by fullscope-tunnel-token (root only, kept out of the command line)
+EnvironmentFile=/etc/fullscope/cloudflared.env
+ExecStart=/usr/bin/cloudflared --no-autoupdate tunnel run
+DynamicUser=true
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

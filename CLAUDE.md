@@ -36,7 +36,7 @@ temperatures, superheat, subcooling and delta-T.
   `install.sh` inside (idempotent; settings in /etc/fullscope/fullscope.env, read via
   FULLSCOPE_ENV_FILE). Runs the C# build in /opt/fullscope/bin (`-Python` for the Python one;
   /etc/fullscope/runtime says which). `fullscope-manage` = `fullscope manage` in the CT. Develop on the PC, commit, then
-  re-run deploy.ps1 to ship. See deploy/lxc/README.md. Keep new cloud settings/deps working there.
+  re-run deploy.ps1 to ship. Going live from home (2026-10-18): PUBLIC_HOST in fullscope.env + `fullscope-tunnel-token` = Cloudflare Tunnel to :8000 (APP_URL https, COOKIE_SECURE follow); MQTT_PUBLIC_HOST adds a TLS listener on 8883 (CA in /etc/fullscope/tls, needs broker passwords) for boards in other homes. See deploy/lxc/README.md. Keep new cloud settings/deps working there.
 - `dotnet/` — C# (.NET 10) port of the cloud server and bench dashboard (2026-10-15, PRs #42, #44,
   #45 and part 4). One program `fullscope`: ingest | api | manage | bench | demo | simulate. It is
   what the LXC runs (deploy.ps1 builds it on the PC, needs the .NET 10 SDK; `-Python` rolls back to

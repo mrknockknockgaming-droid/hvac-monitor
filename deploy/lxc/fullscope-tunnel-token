@@ -1,0 +1,23 @@
+#!/bin/sh
+# Saves the Cloudflare Tunnel token (Zero Trust > Networks > Tunnels > your tunnel) without it
+# showing on screen or in the shell history, then starts the tunnel. Run inside the LXC:
+#   fullscope-tunnel-token
+set -e
+[ "$(id -u)" = 0 ] || { echo "run as root" >&2; exit 1; }
+printf "Paste the tunnel token (it won't show), then Enter: "
+stty -echo; read -r token; stty echo; echo
+token=$(printf %s "$token" | tr -d ' \r\n')
+case "$token" in
+  *cloudflared*) token=${token##* } ;;     # pasted the whole "cloudflared service install <token>" line
+esac
+[ ${#token} -ge 100 ] || { echo "that doesn't look like a tunnel token (too short)" >&2; exit 1; }
+umask 077
+printf 'TUNNEL_TOKEN=%s\n' "$token" > /etc/fullscope/cloudflared.env
+if grep -q '^PUBLIC_HOST=..*' /etc/fullscope/fullscope.env; then
+  systemctl enable -q fullscope-tunnel
+  systemctl restart fullscope-tunnel
+  sleep 3
+  systemctl --no-pager --lines=5 status fullscope-tunnel || true
+else
+  echo "Saved. Set PUBLIC_HOST in /etc/fullscope/fullscope.env and re-run install.sh to start the tunnel."
+fi
