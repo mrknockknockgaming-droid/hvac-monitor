@@ -73,7 +73,7 @@ Phases run in order. Customer discovery and IP protection run alongside the buil
 - [ ] Buy 3 SDP810-500Pa sensors, tubing and static taps; fit taps in both plenums and on both sides of the filter, wire to mux channels 2-4, flash the indoor node and zero with the blower off
 - [x] SHT45 supply and return humidity, software side (Oct 17): indoor firmware 0.2.1 finds a TCA9548A on J5 by itself (return probe on channel 0, supply on 1); the web app shows RH, wet bulb, dew point and enthalpy, with a Humidity probes panel (swap, calibration) on Sensors & calibration
 - [ ] Buy 2 SHT45 probes and a TCA9548A, solder a terminal into the indoor board's J5, fit the probes in the return and supply, and flash the indoor node
-- [ ] Update firmware and schematics to rev B
+- [x] Update firmware and schematics to rev B (merged Oct 18): both boards get the Wio-SX1262 LoRa module and a SETUP button; outdoor adds the discharge thermistor and three clamp-on current sensor jacks (firmware 0.3.0 reads them); indoor has the sensor hub on board. Not ordered yet
 
 ## Phase 7: Cloud stack, running locally
 
@@ -161,7 +161,7 @@ Sheet-metal cabinets and homeowner WiFi are the weak points for nodes at the con
 
 - [ ] Amps, contactor voltage drop and capacitor under load (kept separate so the core product stays low-voltage)
 - [x] Software side built (merged into main Oct 4): 10 diagnostic rules (compressor or fan not running, contactor not closing, amps vs RLA/FLA, run capacitor ±6 %, contactor drop, line voltage, slow starts), nameplate fields on the Equipment page, technician and homeowner views, a simulator with each fault; design in electrical/README.md
-- [ ] Version 1 hardware, clamp-on current sensors only (no line contact, covers 5 of the 10 rules): prototype with the outdoor ESP32, then choose an add-on board or the outdoor carrier rev B
+- [ ] Version 1 hardware, clamp-on current sensors only (no line contact, covers 5 of the 10 rules): built into the outdoor carrier rev B (three jacks, firmware 0.3.0, merged Oct 18); test once rev B boards are built
 - [ ] Version 2: isolated voltage board for the capacitor test, contactor drop and line voltage, then a test-lab review for UL/IEC 61010
 - [x] Electrical module merged into main with the thermostat (Oct 4); it stays unused until a module is installed
 
