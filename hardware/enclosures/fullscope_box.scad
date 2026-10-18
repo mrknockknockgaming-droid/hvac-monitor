@@ -43,6 +43,18 @@ ear_slot    = [5.2, 9];   // #10 / M5 screw slot
 
 gland_z     = 19;    // gland centre above the floor top
 
+// SETUP button (rev B): a 6 x 6 mm tact switch on the board, pressed through the lid by a
+// captive printed plunger in a guide tube; an optional TPU boot snaps over the lid ring.
+sw_h        = 5.0;   // switch actuator top above the PCB (6 x 6 x 5 mm part)
+btn_d       = 7.0;   // plunger shaft
+btn_clear   = 0.4;   // diametral clearance in the tube
+tube_l      = 8;     // guide tube under the lid
+tube_od     = 11;
+btn_collar  = [10, 1.5];   // captive collar under the tube (d, h)
+btn_proud   = 0.5;   // plunger top above the boot ring at rest
+ring_d      = 14;    // boot ring on the lid top
+ring_h      = 2;
+
 // standard metric gland / vent holes (thread + 0.3 mm)
 M12 = 12.3; M16 = 16.3; M20 = 20.3; M25 = 25.3;
 
@@ -69,9 +81,10 @@ function post_xy(iw, il) = let(o = wall + post_inset)
 function b2box(p, m_left, m_bottom, bh) = [m_left + p[0], m_bottom + (bh - p[1])];
 
 // ---------------------------------------------------------------- base
-// glands: list of [wall, position_along_wall, hole_d]; wall is "bottom",
+// glands: list of [wall, position_along_wall, hole_d, (centre height)]; wall is "bottom",
 //         "top", "left" or "right"; position is measured in box x (bottom/top)
-//         or box y (left/right) from the inner corner at the origin.
+//         or box y (left/right) from the inner corner at the origin. The height above the
+//         floor top defaults to gland_z (the CT jack openings give their own).
 module fs_base(board, holes, m, glands = [], sma = undef, label = "") {
     bw = board[0]; bh = board[1];
     iw = m[0] + bw + m[1];          // m = [left, right, bottom, top]
@@ -99,8 +112,12 @@ module fs_base(board, holes, m, glands = [], sma = undef, label = "") {
         for (p = post_xy(iw, il)) translate([p[0], p[1], -floor_t - 1]) cylinder(d = insert_d, h = insert_l + 1);
         // glands and vent
         for (g = glands) gland_hole(g, iw, il);
-        // optional SMA bulkhead (future 900 MHz radio), on the top wall
-        if (sma != undef) translate([sma, il - 1, gland_z]) rotate([-90, 0, 0]) cylinder(d = 6.6, h = wall + 2);
+        // SMA bulkhead for the LoRa antenna (6.35 mm 1/4-36 thread), on the top wall, above the
+        // radio's u.FL; flat side down for the anti-rotation flat of most bulkheads
+        if (sma != undef) translate([sma, il - 1, gland_z]) rotate([-90, 0, 0]) intersection() {
+            cylinder(d = 6.6, h = wall + 2);
+            translate([-4, -2.9, 0]) cube([8, 8, wall + 2]);
+        }
         // label on the back
         if (label != "") translate([iw / 2, il / 2, -floor_t - 0.01]) mirror([1, 0, 0])
             linear_extrude(0.6) text(label, size = 7, halign = "center", valign = "center");
@@ -108,23 +125,31 @@ module fs_base(board, holes, m, glands = [], sma = undef, label = "") {
 }
 
 module gland_hole(g, iw, il) {
-    w = g[0]; a = g[1]; d = g[2];
-    if (w == "bottom") translate([a, 1, gland_z]) rotate([90, 0, 0]) cylinder(d = d, h = wall + 2);
-    if (w == "top")    translate([a, il - 1, gland_z]) rotate([-90, 0, 0]) cylinder(d = d, h = wall + 2);
-    if (w == "left")   translate([1, a, gland_z]) rotate([0, -90, 0]) cylinder(d = d, h = wall + 2);
-    if (w == "right")  translate([iw - 1, a, gland_z]) rotate([0, 90, 0]) cylinder(d = d, h = wall + 2);
+    w = g[0]; a = g[1]; d = g[2]; z = len(g) > 3 ? g[3] : gland_z;
+    if (w == "bottom") translate([a, 1, z]) rotate([90, 0, 0]) cylinder(d = d, h = wall + 2);
+    if (w == "top")    translate([a, il - 1, z]) rotate([-90, 0, 0]) cylinder(d = d, h = wall + 2);
+    if (w == "left")   translate([1, a, z]) rotate([0, -90, 0]) cylinder(d = d, h = wall + 2);
+    if (w == "right")  translate([iw - 1, a, z]) rotate([0, 90, 0]) cylinder(d = d, h = wall + 2);
 }
 
 // ---------------------------------------------------------------- lid
 // Modelled in place (sits on the rim). Print it flipped: groove side up.
-module fs_lid(board, m, label = "") {
+// btn = SETUP switch centre in board mm (undef: no button opening).
+module fs_lid(board, m, label = "", btn = undef) {
     iw = m[0] + board[0] + m[1];
     il = m[2] + board[1] + m[3];
+    bp = btn == undef ? undef : b2box(btn, m[0], m[2], board[1]);
     translate([0, 0, inner_h]) difference() {
         union() {
             translate([-wall, -wall, 0]) rrect(iw + 2 * wall, il + 2 * wall, r_in + wall, lid_t);
             for (p = post_xy(iw, il)) translate([p[0], p[1], 0]) cylinder(d = post_d, h = lid_t);
+            if (bp != undef) translate([bp[0], bp[1], 0]) {
+                translate([0, 0, -tube_l]) cylinder(d = tube_od, h = tube_l + 0.01);   // guide tube
+                translate([0, 0, lid_t - 0.01]) cylinder(d = ring_d, h = ring_h);      // boot ring
+            }
         }
+        if (bp != undef) translate([bp[0], bp[1], -tube_l - 1])
+            cylinder(d = btn_d + btn_clear, h = tube_l + lid_t + ring_h + 2);
         // gasket groove on the wall centreline
         translate([0, 0, -0.01]) linear_extrude(gasket_dep + 0.01)
             ring2d(iw, il, r_in, wall / 2 + gasket_w / 2, wall / 2 - gasket_w / 2);
@@ -135,6 +160,30 @@ module fs_lid(board, m, label = "") {
         }
         if (label != "") translate([iw / 2, il / 2, lid_t - 0.6])
             linear_extrude(1) text(label, size = 8, halign = "center", valign = "center");
+        if (bp != undef) translate([bp[0], bp[1] - ring_d / 2 - 5, lid_t - 0.6])
+            linear_extrude(1) text("SETUP", size = 4, halign = "center", valign = "center");
+    }
+}
+
+// SETUP plunger, modelled in place: rests 0.6 mm above the switch, collar under the tube keeps
+// it captive (fit it from inside before closing the lid). Prints upright, collar down.
+function btn_len() = inner_h + lid_t + ring_h + btn_proud - (standoff_h + 1.6 + sw_h + 0.6);
+module fs_button(board, m, btn) {
+    bp = b2box(btn, m[0], m[2], board[1]);
+    z0 = standoff_h + 1.6 + sw_h + 0.6;
+    translate([bp[0], bp[1], z0]) {
+        cylinder(d = btn_d, h = btn_len());
+        // collar top touches the tube bottom at rest
+        translate([0, 0, inner_h - tube_l - z0 - btn_collar[1]]) cylinder(d = btn_collar[0], h = btn_collar[1]);
+    }
+}
+
+// Optional weather boot (print in TPU 95A): a cup that presses over the lid's boot ring, with
+// 1.5 mm of room over the plunger; press through it. Prints open side down.
+module fs_boot() {
+    difference() {
+        cylinder(d = ring_d + 2.4, h = ring_h + btn_proud + 1.5 + 0.8);
+        translate([0, 0, -0.01]) cylinder(d = ring_d - 0.2, h = ring_h + btn_proud + 1.5);
     }
 }
 
@@ -172,12 +221,16 @@ module fs_board_ghost(board, m, parts) {
             translate([a[0], a[1], standoff_h + 1.6]) cube([p[2] - p[0], p[3] - p[1], p[4]]);
 }
 
-// layout: "assembly" (box + ghost board + lid lifted), "base", "lid", "bar"
-module fs_render(layout, board, holes, m, glands, parts, sma = undef, name = "") {
+// layout: "assembly" (box + ghost board + lid lifted), "base", "lid", "bar", "button", "boot"
+module fs_render(layout, board, holes, m, glands, parts, sma = undef, name = "", btn = undef) {
     if (layout == "base") fs_base(board, holes, m, glands, sma, name);
     else if (layout == "bar") fs_bar(board, m);
     else if (layout == "lid")
-        translate([0, 0, inner_h + lid_t]) rotate([180, 0, 0]) fs_lid(board, m, name);
+        translate([0, 0, inner_h + lid_t]) rotate([180, 0, 0]) fs_lid(board, m, name, btn);
+    else if (layout == "button" && btn != undef)
+        let(bp = b2box(btn, m[0], m[2], board[1])) translate([-bp[0], -bp[1], -(standoff_h + 1.6 + sw_h + 0.6)])
+            fs_button(board, m, btn);
+    else if (layout == "boot") fs_boot();
     else {
         color("lightgray") fs_base(board, holes, m, glands, sma, name);
         il = m[2] + board[1] + m[3];
@@ -186,6 +239,7 @@ module fs_render(layout, board, holes, m, glands, parts, sma = undef, name = "")
             translate([m[0] + board[0] + m[1], il, -floor_t - bar_t]) rotate([0, 0, 180]) fs_bar(board, m);
         }
         fs_board_ghost(board, m, parts);
-        color("white", 0.5) translate([0, 0, 25]) fs_lid(board, m, name);
+        if (btn != undef) color("orange") fs_button(board, m, btn);
+        color("white", 0.5) translate([0, 0, 25]) fs_lid(board, m, name, btn);
     }
 }
