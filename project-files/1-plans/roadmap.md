@@ -130,6 +130,7 @@ Sheet-metal cabinets and homeowner WiFi are the weak points for nodes at the con
 - [ ] Decide on ESP32-C5 for the gateway's WiFi (adds 5 GHz support)
 - [ ] Enable secure boot and flash encryption
 - [ ] Load unique device credentials at manufacturing
+- [x] SETUP button WiFi setup over Bluetooth on both nodes (merged Oct 18, PR #62, firmware 0.3.1): hold SETUP 3 s, then use the ESP BLE Provisioning app with the node's setup code; needs one USB flash per node (new flash layout). Builds pass; not yet tried with a phone
 - [ ] Bluetooth WiFi setup for the gateway from a phone, with QR claim codes that pair all devices
 - [ ] Cloud firmware updates, relayed through the gateway to the nodes
 - [ ] Local buffering during outages (nodes keep 10 minutes since firmware 0.2; longer storage and the gateway still to do)
