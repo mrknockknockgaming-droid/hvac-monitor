@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "C:\\Users\\mrkno\\hvac-monitor\\hardware\\outdoor-carrier\\outdoor-carrier.kicad_sch")
-		(date "2026-09-27T08:26:49")
+		(date "2026-10-17T18:25:56")
 		(tool "Eeschema 10.0.6")
 		(sheet
 			(number "1")
@@ -11,12 +11,12 @@
 			(title_block
 				(title "HVAC Monitor outdoor carrier")
 				(company "HVAC Monitor")
-				(rev "A")
-				(date "2026-09-27")
+				(rev "B")
+				(date "2026-10-18")
 				(source "outdoor-carrier.kicad_sch")
 				(comment
 					(number "1")
-					(value "Transcribed from docs/hvac-schematics.html rev A")
+					(value "Rev A from docs/hvac-schematics.html; rev B additions in design.py")
 				)
 				(comment
 					(number "2")
@@ -93,7 +93,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "2165cdf2-f3c7-46b3-bcaf-22df1d984baa")
+			(tstamps "78311d3b-ed1f-4312-a1f3-ab2ad25dd2ac")
 			(units
 				(unit
 					(name "A")
@@ -147,7 +147,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f615ecbe-1aa9-4f4e-992e-7796d7ea8bdd")
+			(tstamps "bc5bb831-2992-4aa7-af23-393afe91615b")
 			(units
 				(unit
 					(name "A")
@@ -201,7 +201,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "73faa97c-dae0-4bed-bc30-d3b07494fa2f")
+			(tstamps "5574a6fb-d47d-4906-b730-941ea7d62c58")
 			(units
 				(unit
 					(name "A")
@@ -255,7 +255,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "470e9515-c020-47b8-86aa-bef39c7b94a0")
+			(tstamps "9540619d-63cf-4203-9af5-516066f80754")
 			(units
 				(unit
 					(name "A")
@@ -309,7 +309,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "654b08af-2338-4858-9b5d-ba9fb9757352")
+			(tstamps "0c091b3b-3a08-4b52-96ef-9830c01aa9cf")
 			(units
 				(unit
 					(name "A")
@@ -363,7 +363,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6b6748a8-acda-492c-9a9d-6341c04ce1d9")
+			(tstamps "57b44c94-3349-4a01-a008-61d911e7c002")
 			(units
 				(unit
 					(name "A")
@@ -417,7 +417,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "eb7de2e3-2536-474a-a88f-441cec2f270c")
+			(tstamps "f6fd4260-04b2-4f61-8ba5-ebaf7df82d66")
 			(units
 				(unit
 					(name "A")
@@ -471,7 +471,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a846ce87-e081-4a33-827a-4dec6feeddaa")
+			(tstamps "61d0232f-a832-4797-9c87-079c0f43062b")
 			(units
 				(unit
 					(name "A")
@@ -525,7 +525,439 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "8918fe71-7ef8-40b8-a4ec-61e3da1bbf8d")
+			(tstamps "182d1bff-2ecd-41c9-9fd1-46d0a2888c46")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C10")
+			(value "0.1µF")
+			(footprint "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "C")
+				(description "Unpolarized capacitor")
+			)
+			(property
+				(name "Sheetname")
+				(value "outdoor-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "outdoor-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "cap capacitor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "C_*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "8139db61-7488-44bb-9d8d-e952e912097a")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C11")
+			(value "10µF 16V")
+			(footprint "Capacitor_THT:CP_Radial_D5.0mm_P2.00mm")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_THT:CP_Radial_D5.0mm_P2.00mm")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "C_Polarized")
+				(description "Polarized capacitor")
+			)
+			(property
+				(name "Sheetname")
+				(value "outdoor-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "outdoor-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "cap capacitor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "CP_*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "0edf7f5d-9321-4b66-9f58-c4a7165d6a68")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C12")
+			(value "10nF")
+			(footprint "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "C")
+				(description "Unpolarized capacitor")
+			)
+			(property
+				(name "Sheetname")
+				(value "outdoor-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "outdoor-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "cap capacitor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "C_*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "b0ad6972-26a1-45ce-9fb5-cd989505a3e0")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C13")
+			(value "10nF")
+			(footprint "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "C")
+				(description "Unpolarized capacitor")
+			)
+			(property
+				(name "Sheetname")
+				(value "outdoor-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "outdoor-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "cap capacitor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "C_*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "a97cf528-6028-4e2f-bb47-45e47bde02a9")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C14")
+			(value "10nF")
+			(footprint "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "C")
+				(description "Unpolarized capacitor")
+			)
+			(property
+				(name "Sheetname")
+				(value "outdoor-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "outdoor-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "cap capacitor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "C_*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "ccfd9936-7892-4a1d-a4a4-53d053163d5a")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C15")
+			(value "10µF 16V")
+			(footprint "Capacitor_THT:CP_Radial_D5.0mm_P2.00mm")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_THT:CP_Radial_D5.0mm_P2.00mm")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "C_Polarized")
+				(description "Polarized capacitor")
+			)
+			(property
+				(name "Sheetname")
+				(value "outdoor-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "outdoor-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "cap capacitor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "CP_*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "1cb36f2f-ae83-4a3f-9a70-3005fc40564f")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C16")
+			(value "22µF 10V")
+			(footprint "Capacitor_THT:CP_Radial_D5.0mm_P2.00mm")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_THT:CP_Radial_D5.0mm_P2.00mm")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "C_Polarized")
+				(description "Polarized capacitor")
+			)
+			(property
+				(name "Sheetname")
+				(value "outdoor-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "outdoor-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "cap capacitor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "CP_*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "3a8b0a74-0495-4665-9964-9ac79f52c616")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C17")
+			(value "0.1µF")
+			(footprint "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "C")
+				(description "Unpolarized capacitor")
+			)
+			(property
+				(name "Sheetname")
+				(value "outdoor-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "outdoor-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "cap capacitor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "C_*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "6fecb490-66c6-457c-a396-fe519431c777")
 			(units
 				(unit
 					(name "A")
@@ -579,7 +1011,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7c32d0a4-86e5-4e0b-9d6d-e0d76b5c4749")
+			(tstamps "1639982a-3f33-4668-9846-f1a6af3593a7")
 			(units
 				(unit
 					(name "A")
@@ -633,7 +1065,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f7624a3f-c54e-4293-bdf8-a2cf6520039c")
+			(tstamps "cbde6832-57d8-464f-9fc2-ad184f46eaa9")
 			(units
 				(unit
 					(name "A")
@@ -687,7 +1119,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e974ff98-b7c0-47f4-a610-9ac69601f82d")
+			(tstamps "7581e609-0061-4b91-9a5c-6df39b054de3")
 			(units
 				(unit
 					(name "A")
@@ -744,7 +1176,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "bf2decdf-6e39-406e-b8f9-2f20555095cf")
+			(tstamps "934c9103-292b-4af2-af0c-838ab31ec040")
 			(units
 				(unit
 					(name "A")
@@ -794,7 +1226,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a88032d5-11e4-4e47-bbd8-c6aebc0c74d0")
+			(tstamps "01d10f0e-bed0-4912-ac6b-a4081e6b704d")
 			(units
 				(unit
 					(name "A")
@@ -844,7 +1276,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d2e24abf-5e2b-43f9-b48d-30892e0dea94")
+			(tstamps "772f1059-09b4-4827-889b-d75acac86cf2")
 			(units
 				(unit
 					(name "A")
@@ -894,7 +1326,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1d537cff-00d3-4bb5-b099-46c2c45e8b82")
+			(tstamps "dfd25211-4f7f-4c99-b3f8-61f28574d148")
 			(units
 				(unit
 					(name "A")
@@ -947,7 +1379,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "98440483-424e-4640-951d-6186542945b0")
+			(tstamps "1a65e9eb-7b0a-4d04-9e7e-f0fa94584b52")
 			(units
 				(unit
 					(name "A")
@@ -1007,7 +1439,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5653ec43-b6b8-42a1-95e7-fd4388120082")
+			(tstamps "c2cad1be-3098-432a-b1df-a773666bfc8c")
 			(units
 				(unit
 					(name "A")
@@ -1067,7 +1499,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "24b4a994-716f-438e-bf41-8ca387568191")
+			(tstamps "950001b4-db5b-4f6a-8d70-192ea581c56d")
 			(units
 				(unit
 					(name "A")
@@ -1130,7 +1562,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "40296353-31b2-4c41-89fe-5a158c6e1b76")
+			(tstamps "8c23407f-68a0-469c-9269-e07066cf43b4")
 			(units
 				(unit
 					(name "A")
@@ -1193,7 +1625,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "df4c740f-abed-4a2f-8c68-4bea6fd30d5d")
+			(tstamps "eee2c6f4-f324-4cf2-929f-ba61d0a351ed")
 			(units
 				(unit
 					(name "A")
@@ -1256,7 +1688,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c1ee3a1f-96c6-4848-bde4-b05c67a49357")
+			(tstamps "c8888d77-35a2-4ebb-aa7a-d9f2326ddc4c")
 			(units
 				(unit
 					(name "A")
@@ -1316,7 +1748,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f2ee64b6-38ef-4309-867e-29e1832dde39")
+			(tstamps "6b44b0d6-5beb-44d4-a8cc-a1cfb4e0a035")
 			(units
 				(unit
 					(name "A")
@@ -1376,7 +1808,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "03341655-fa1c-4b16-b0bd-00946668eb18")
+			(tstamps "664511a6-5dc2-42c0-92f9-713dbfdc2614")
 			(units
 				(unit
 					(name "A")
@@ -1442,7 +1874,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "561d7dba-4e9b-4bd6-ac6f-e62c46eb189a")
+			(tstamps "4e70a5e2-208b-43fa-81fe-3364e0d66461")
 			(units
 				(unit
 					(name "A")
@@ -1452,6 +1884,237 @@
 						)
 						(pin
 							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J10")
+			(value "TH4 discharge")
+			(footprint "Connector_JST:JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical")
+			(fields
+				(field
+					(name "Silkscreen") "TH / TH")
+				(field
+					(name "Footprint") "Connector_JST:JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Connector_Generic")
+				(part "Conn_01x02")
+				(description "Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)")
+			)
+			(property
+				(name "Silkscreen")
+				(value "TH / TH")
+			)
+			(property
+				(name "Sheetname")
+				(value "outdoor-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "outdoor-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "connector")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "Connector*:*_1x??_*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "dea15844-f1c3-45c9-a398-26f9f6f912f3")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J11")
+			(value "CT1 compressor")
+			(footprint "Connector_Audio:Jack_3.5mm_CUI_SJ1-3523N_Horizontal")
+			(fields
+				(field
+					(name "Footprint") "Connector_Audio:Jack_3.5mm_CUI_SJ1-3523N_Horizontal")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Connector_Audio")
+				(part "AudioJack3")
+				(description "Audio Jack, 3 Poles (Stereo / TRS)")
+			)
+			(property
+				(name "Sheetname")
+				(value "outdoor-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "outdoor-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "audio jack receptacle stereo headphones phones TRS connector")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "Jack*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "17da0cda-b0ad-44a4-995c-dd16c6bc9abc")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "S")
+						)
+						(pin
+							(num "R")
+						)
+						(pin
+							(num "T")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J12")
+			(value "CT2 fan")
+			(footprint "Connector_Audio:Jack_3.5mm_CUI_SJ1-3523N_Horizontal")
+			(fields
+				(field
+					(name "Footprint") "Connector_Audio:Jack_3.5mm_CUI_SJ1-3523N_Horizontal")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Connector_Audio")
+				(part "AudioJack3")
+				(description "Audio Jack, 3 Poles (Stereo / TRS)")
+			)
+			(property
+				(name "Sheetname")
+				(value "outdoor-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "outdoor-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "audio jack receptacle stereo headphones phones TRS connector")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "Jack*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "ed2cef2f-cdd8-4e21-bef2-28e7db4dcf10")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "S")
+						)
+						(pin
+							(num "R")
+						)
+						(pin
+							(num "T")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J13")
+			(value "CT3 HERM")
+			(footprint "Connector_Audio:Jack_3.5mm_CUI_SJ1-3523N_Horizontal")
+			(fields
+				(field
+					(name "Footprint") "Connector_Audio:Jack_3.5mm_CUI_SJ1-3523N_Horizontal")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Connector_Audio")
+				(part "AudioJack3")
+				(description "Audio Jack, 3 Poles (Stereo / TRS)")
+			)
+			(property
+				(name "Sheetname")
+				(value "outdoor-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "outdoor-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "audio jack receptacle stereo headphones phones TRS connector")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "Jack*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "0ee74b6b-c7c2-4961-9fa6-4da00b776115")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "S")
+						)
+						(pin
+							(num "R")
+						)
+						(pin
+							(num "T")
 						)
 					)
 				)
@@ -1496,7 +2159,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "2bb679a6-21bd-40c8-92e1-c3cd5e8cf39b")
+			(tstamps "76f457f9-d7e7-4908-879d-cd0a0f3d5850")
 			(units
 				(unit
 					(name "A")
@@ -1513,7 +2176,7 @@
 		)
 		(comp
 			(ref "R2")
-			(value "20k 1%")
+			(value "10k 1%")
 			(footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
 			(fields
 				(field
@@ -1550,7 +2213,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "69409497-e892-49f7-a54f-f5e37415535d")
+			(tstamps "451e7806-068a-4fe4-b17c-b711abbbff3e")
 			(units
 				(unit
 					(name "A")
@@ -1604,7 +2267,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "900822a7-2246-44ae-bc6d-8e219ea24d17")
+			(tstamps "41644c0f-92ed-442c-b677-f3907e439917")
 			(units
 				(unit
 					(name "A")
@@ -1621,7 +2284,7 @@
 		)
 		(comp
 			(ref "R4")
-			(value "20k 1%")
+			(value "10k 1%")
 			(footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
 			(fields
 				(field
@@ -1658,7 +2321,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a95cb4af-24b4-4cd9-8b3c-10a5fdf940bc")
+			(tstamps "e9982de4-047e-4751-8c74-ebc00dcc7d02")
 			(units
 				(unit
 					(name "A")
@@ -1712,7 +2375,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a3c29850-3e52-4733-a38c-d2c36e79af77")
+			(tstamps "148881c1-01bb-469c-a6bd-a88b224440fe")
 			(units
 				(unit
 					(name "A")
@@ -1729,7 +2392,7 @@
 		)
 		(comp
 			(ref "R6")
-			(value "20k 1%")
+			(value "10k 1%")
 			(footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
 			(fields
 				(field
@@ -1766,7 +2429,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "4c11d4a9-b5d9-4f56-bacf-d7870ec78ba1")
+			(tstamps "86a6e1e8-a573-4d1e-bb42-6b2467576686")
 			(units
 				(unit
 					(name "A")
@@ -1820,7 +2483,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ecfb7459-cdda-4425-937d-17d4f26eb1d1")
+			(tstamps "cbaf6ddd-95dc-4c23-8fc4-713915ddc28d")
 			(units
 				(unit
 					(name "A")
@@ -1837,7 +2500,7 @@
 		)
 		(comp
 			(ref "R8")
-			(value "15k 1%")
+			(value "10k 1%")
 			(footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
 			(fields
 				(field
@@ -1874,7 +2537,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b581be56-a6c4-4642-a324-b84f75456110")
+			(tstamps "40e38e64-f430-4fb4-92ac-9924ad27e957")
 			(units
 				(unit
 					(name "A")
@@ -1928,7 +2591,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "15fd1265-65d6-46c2-a3c0-311e125b9292")
+			(tstamps "d52b7dc3-b811-4693-a2d5-aadd94057d14")
 			(units
 				(unit
 					(name "A")
@@ -1982,7 +2645,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "eb37e683-01a8-449a-8dc4-2c67ed666bc3")
+			(tstamps "c063e3ca-a59b-41f9-9df8-82fd94dfeb54")
 			(units
 				(unit
 					(name "A")
@@ -2036,7 +2699,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "81eff126-f8dc-40cf-9cae-038475833f1c")
+			(tstamps "3a460187-2cb8-408d-adb9-901c4bf44b07")
 			(units
 				(unit
 					(name "A")
@@ -2090,7 +2753,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "fe573314-39b6-4056-8f2f-166baafaecdc")
+			(tstamps "87736326-b0c0-41a6-9ae7-3d549bd290b4")
 			(units
 				(unit
 					(name "A")
@@ -2144,7 +2807,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "530d48ec-5860-4ac0-9a95-f0fbbb392eca")
+			(tstamps "f3d9722a-df98-4ab7-bf73-4ba7f775e97d")
 			(units
 				(unit
 					(name "A")
@@ -2198,7 +2861,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1ac73058-dcd2-4d4b-a013-f7b7decd03ff")
+			(tstamps "f74e088d-26fc-4c21-abfb-dbae2e16f773")
 			(units
 				(unit
 					(name "A")
@@ -2252,7 +2915,549 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "47ec5e20-da26-4a44-bf4d-6b4ac5c53254")
+			(tstamps "36687ef7-ed24-4f8d-834a-a0ca640eb673")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R16")
+			(value "10k 0.1%")
+			(footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+			(fields
+				(field
+					(name "Footprint") "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "R")
+				(description "Resistor")
+			)
+			(property
+				(name "Sheetname")
+				(value "outdoor-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "outdoor-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "R res resistor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "R_*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "51e2ac42-3a46-4ee7-882a-39361b7a194c")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R17")
+			(value "10k 1%")
+			(footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+			(fields
+				(field
+					(name "Footprint") "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "R")
+				(description "Resistor")
+			)
+			(property
+				(name "Sheetname")
+				(value "outdoor-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "outdoor-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "R res resistor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "R_*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "c8ffe0cb-f581-4d66-a543-02a4277fa3bf")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R18")
+			(value "6.8k 1%")
+			(footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+			(fields
+				(field
+					(name "Footprint") "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "R")
+				(description "Resistor")
+			)
+			(property
+				(name "Sheetname")
+				(value "outdoor-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "outdoor-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "R res resistor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "R_*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "1da0f582-09db-4a23-be32-fbb45306a13c")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R19")
+			(value "18 1%")
+			(footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+			(fields
+				(field
+					(name "Footprint") "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "R")
+				(description "Resistor")
+			)
+			(property
+				(name "Sheetname")
+				(value "outdoor-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "outdoor-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "R res resistor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "R_*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "e69cac76-8a07-453a-ae49-8f55b1adc3cc")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R20")
+			(value "1k")
+			(footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+			(fields
+				(field
+					(name "Footprint") "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "R")
+				(description "Resistor")
+			)
+			(property
+				(name "Sheetname")
+				(value "outdoor-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "outdoor-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "R res resistor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "R_*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "54ee8147-434b-41f9-9114-a6362f23c1b8")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R21")
+			(value "DNP")
+			(footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+			(fields
+				(field
+					(name "Footprint") "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "R")
+				(description "Resistor")
+			)
+			(property
+				(name "Sheetname")
+				(value "outdoor-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "outdoor-carrier.kicad_sch")
+			)
+			(property
+				(name "dnp")
+			)
+			(property
+				(name "ki_keywords")
+				(value "R res resistor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "R_*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "a813a5f9-b2b0-4dae-8065-18ca195401a7")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R22")
+			(value "1k")
+			(footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+			(fields
+				(field
+					(name "Footprint") "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "R")
+				(description "Resistor")
+			)
+			(property
+				(name "Sheetname")
+				(value "outdoor-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "outdoor-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "R res resistor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "R_*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "7dd46277-f9ab-4132-8d83-a3fdadfd5963")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R23")
+			(value "DNP")
+			(footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+			(fields
+				(field
+					(name "Footprint") "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "R")
+				(description "Resistor")
+			)
+			(property
+				(name "Sheetname")
+				(value "outdoor-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "outdoor-carrier.kicad_sch")
+			)
+			(property
+				(name "dnp")
+			)
+			(property
+				(name "ki_keywords")
+				(value "R res resistor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "R_*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "9705281a-c7fa-4722-b77f-390166889755")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R24")
+			(value "1k")
+			(footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+			(fields
+				(field
+					(name "Footprint") "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "R")
+				(description "Resistor")
+			)
+			(property
+				(name "Sheetname")
+				(value "outdoor-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "outdoor-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "R res resistor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "R_*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "f532fa45-227f-4e0d-b9e6-7c18db11a1a6")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "SW1")
+			(value "SETUP")
+			(footprint "Button_Switch_THT:SW_PUSH_6mm")
+			(fields
+				(field
+					(name "Footprint") "Button_Switch_THT:SW_PUSH_6mm")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Switch")
+				(part "SW_Push")
+				(description "Push button switch, generic, two pins")
+			)
+			(property
+				(name "Sheetname")
+				(value "outdoor-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "outdoor-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "switch normally-open pushbutton push-button")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "3166f833-6c4a-46c0-b679-59ec201b43a3")
 			(units
 				(unit
 					(name "A")
@@ -2298,7 +3503,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "dacfe9bb-2636-47d1-8a03-02b16be2fe55")
+			(tstamps "c5d4cae3-c216-491f-827f-c4b8c04d3834")
 			(units
 				(unit
 					(name "A")
@@ -2428,7 +3633,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "8217e38f-d5f3-4232-90ab-3a9f1b6260ae")
+			(tstamps "16b48e6f-3907-43c6-8fa3-c9774c05b289")
 			(units
 				(unit
 					(name "A")
@@ -2480,7 +3685,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ccdea06c-b7ed-490c-90fa-26c81cb6e87d")
+			(tstamps "c05687ae-e401-4700-9b99-603e78892f08")
 			(units
 				(unit
 					(name "A")
@@ -2550,7 +3755,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1597a980-ca97-45f9-b5a6-4eb6164e9e8d")
+			(tstamps "0e663e8c-3b74-4c08-8c83-340142719b9d")
 			(units
 				(unit
 					(name "A")
@@ -2628,7 +3833,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ab10665b-6b17-41e9-acce-cf43cb481a27")
+			(tstamps "36a900e7-1852-408a-8b1f-43f1f973cf17")
 			(units
 				(unit
 					(name "A")
@@ -2694,7 +3899,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1668d6c6-a18b-4d81-949f-1119f68a3903")
+			(tstamps "d5712b78-b0d0-45b3-955d-93ed87196823")
 			(units
 				(unit
 					(name "A")
@@ -2721,10 +3926,182 @@
 				)
 			)
 		)
+		(comp
+			(ref "U7")
+			(value "Wio-SX1262")
+			(footprint "hvac_carrier:Wio_SX1262")
+			(fields
+				(field
+					(name "Footprint") "hvac_carrier:Wio_SX1262")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "hvac_carrier")
+				(part "Wio_SX1262")
+				(description "Seeed Wio-SX1262 LoRa module (SX1262 + TCXO, u.FL antenna)")
+			)
+			(property
+				(name "Sheetname")
+				(value "outdoor-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "outdoor-carrier.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "f6ed1c1a-b8e1-438a-94cd-74fe025c3bc1")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "8")
+						)
+						(pin
+							(num "7")
+						)
+						(pin
+							(num "10")
+						)
+						(pin
+							(num "9")
+						)
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "6")
+						)
+						(pin
+							(num "4")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "11")
+						)
+						(pin
+							(num "12")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "U8")
+			(value "AMS1117-3.3")
+			(footprint "Package_TO_SOT_SMD:SOT-223-3_TabPin2")
+			(fields
+				(field
+					(name "Footprint") "Package_TO_SOT_SMD:SOT-223-3_TabPin2")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Regulator_Linear")
+				(part "AMS1117-3.3")
+				(description "1A Low Dropout regulator, positive, 3.3V fixed output, SOT-223")
+			)
+			(property
+				(name "Sheetname")
+				(value "outdoor-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "outdoor-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "linear regulator ldo fixed positive")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "SOT?223*TabPin2*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "5adc0696-4c3e-4d5e-b21c-c2314b893a02")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
 	)
 	(groups)
 	(variants)
 	(libparts
+		(libpart
+			(lib "Connector_Audio")
+			(part "AudioJack3")
+			(description "Audio Jack, 3 Poles (Stereo / TRS)")
+			(footprints
+				(fp "Jack*")
+			)
+			(fields
+				(field
+					(name "Reference") "J")
+				(field
+					(name "Value") "AudioJack3")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Audio Jack, 3 Poles (Stereo / TRS)")
+			)
+			(pins
+				(pin
+					(num "R")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "S")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "T")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
 		(libpart
 			(lib "Connector_Generic")
 			(part "Conn_01x02")
@@ -3167,6 +4544,75 @@
 			)
 		)
 		(libpart
+			(lib "Regulator_Linear")
+			(part "AMS1117-3.3")
+			(description "1A Low Dropout regulator, positive, 3.3V fixed output, SOT-223")
+			(docs "http://www.advanced-monolithic.com/pdf/ds1117.pdf")
+			(footprints
+				(fp "SOT?223*TabPin2*")
+			)
+			(fields
+				(field
+					(name "Reference") "U")
+				(field
+					(name "Value") "AMS1117-3.3")
+				(field
+					(name "Footprint") "Package_TO_SOT_SMD:SOT-223-3_TabPin2")
+				(field
+					(name "Datasheet") "http://www.advanced-monolithic.com/pdf/ds1117.pdf")
+				(field
+					(name "Description") "1A Low Dropout regulator, positive, 3.3V fixed output, SOT-223")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "GND")
+					(type "power_in")
+				)
+				(pin
+					(num "2")
+					(name "VO")
+					(type "power_out")
+				)
+				(pin
+					(num "3")
+					(name "VI")
+					(type "power_in")
+				)
+			)
+		)
+		(libpart
+			(lib "Switch")
+			(part "SW_Push")
+			(description "Push button switch, generic, two pins")
+			(fields
+				(field
+					(name "Reference") "SW")
+				(field
+					(name "Value") "SW_Push")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Push button switch, generic, two pins")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
 			(lib "hvac_carrier")
 			(part "ADS1115_Module")
 			(description "ADS1115 ADC breakout on a 1x10 socket")
@@ -3446,8 +4892,92 @@
 				)
 			)
 		)
+		(libpart
+			(lib "hvac_carrier")
+			(part "Wio_SX1262")
+			(description "Seeed Wio-SX1262 LoRa module (SX1262 + TCXO, u.FL antenna)")
+			(fields
+				(field
+					(name "Reference") "U")
+				(field
+					(name "Value") "Wio-SX1262")
+				(field
+					(name "Footprint") "hvac_carrier:Wio_SX1262")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Seeed Wio-SX1262 LoRa module (SX1262 + TCXO, u.FL antenna)")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "RF_SW")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "MISO")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "MOSI")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "SCK")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "NRST")
+					(type "passive")
+				)
+				(pin
+					(num "6")
+					(name "NSS")
+					(type "passive")
+				)
+				(pin
+					(num "7")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "8")
+					(name "VCC")
+					(type "passive")
+				)
+				(pin
+					(num "9")
+					(name "ANT")
+					(type "passive")
+				)
+				(pin
+					(num "10")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "11")
+					(name "BUSY")
+					(type "passive")
+				)
+				(pin
+					(num "12")
+					(name "DIO1")
+					(type "passive")
+				)
+			)
+		)
 	)
 	(libraries
+		(library
+			(logical "Connector_Audio")
+			(uri "${KICAD10_SYMBOL_DIR}/Connector_Audio.kicad_sym")
+		)
 		(library
 			(logical "Connector_Generic")
 			(uri "${KICAD10_SYMBOL_DIR}/Connector_Generic.kicad_sym")
@@ -3463,6 +4993,14 @@
 		(library
 			(logical "Mechanical")
 			(uri "${KICAD10_SYMBOL_DIR}/Mechanical.kicad_sym")
+		)
+		(library
+			(logical "Regulator_Linear")
+			(uri "${KICAD10_SYMBOL_DIR}/Regulator_Linear.kicad_sym")
+		)
+		(library
+			(logical "Switch")
+			(uri "${KICAD10_SYMBOL_DIR}/Switch.kicad_sym")
 		)
 		(library
 			(logical "hvac_carrier")
@@ -3501,6 +5039,16 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "R16")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R17")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
 				(ref "R9")
 				(pin "1")
 				(pintype "passive")
@@ -3534,6 +5082,11 @@
 			(code "2")
 			(name "+5V")
 			(class "Rail5V")
+			(node
+				(ref "C15")
+				(pin "1")
+				(pintype "passive")
+			)
 			(node
 				(ref "J3")
 				(pin "1")
@@ -3569,9 +5122,351 @@
 				(pinfunction "OUT+_3")
 				(pintype "passive")
 			)
+			(node
+				(ref "U8")
+				(pin "3")
+				(pinfunction "VI_3")
+				(pintype "power_in")
+			)
 		)
 		(net
 			(code "3")
+			(name "/+3V3_RF")
+			(class "Default")
+			(node
+				(ref "C16")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C17")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U7")
+				(pin "8")
+				(pinfunction "VCC_8")
+				(pintype "passive")
+			)
+			(node
+				(ref "U8")
+				(pin "2")
+				(pinfunction "VO_2")
+				(pintype "power_out")
+			)
+		)
+		(net
+			(code "4")
+			(name "/CT1_ADC")
+			(class "Default")
+			(node
+				(ref "C12")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R20")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "2")
+				(pinfunction "VP_2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "5")
+			(name "/CT1_IN")
+			(class "Default")
+			(node
+				(ref "J11")
+				(pin "T")
+				(pintype "passive")
+			)
+			(node
+				(ref "R19")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R20")
+				(pin "1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "6")
+			(name "/CT2_ADC")
+			(class "Default")
+			(node
+				(ref "C13")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R22")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "3")
+				(pinfunction "VN_3")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "7")
+			(name "/CT2_IN")
+			(class "Default")
+			(node
+				(ref "J12")
+				(pin "T")
+				(pintype "passive")
+			)
+			(node
+				(ref "R21")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R22")
+				(pin "1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "8")
+			(name "/CT3_ADC")
+			(class "Default")
+			(node
+				(ref "C14")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R24")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "6")
+				(pinfunction "D32_6")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "9")
+			(name "/CT3_IN")
+			(class "Default")
+			(node
+				(ref "J13")
+				(pin "T")
+				(pintype "passive")
+			)
+			(node
+				(ref "R23")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R24")
+				(pin "1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "10")
+			(name "/CT_BIAS")
+			(class "Default")
+			(node
+				(ref "C11")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "J11")
+				(pin "S")
+				(pintype "passive")
+			)
+			(node
+				(ref "J12")
+				(pin "S")
+				(pintype "passive")
+			)
+			(node
+				(ref "J13")
+				(pin "S")
+				(pintype "passive")
+			)
+			(node
+				(ref "R17")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R18")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R19")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R21")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R23")
+				(pin "2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "11")
+			(name "/LORA_BUSY")
+			(class "Default")
+			(node
+				(ref "U1")
+				(pin "8")
+				(pinfunction "D25_8")
+				(pintype "passive")
+			)
+			(node
+				(ref "U7")
+				(pin "11")
+				(pinfunction "BUSY_11")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "12")
+			(name "/LORA_DIO1")
+			(class "Default")
+			(node
+				(ref "U1")
+				(pin "9")
+				(pinfunction "D26_9")
+				(pintype "passive")
+			)
+			(node
+				(ref "U7")
+				(pin "12")
+				(pinfunction "DIO1_12")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "13")
+			(name "/LORA_MISO")
+			(class "Default")
+			(node
+				(ref "U1")
+				(pin "21")
+				(pinfunction "D19_21")
+				(pintype "passive")
+			)
+			(node
+				(ref "U7")
+				(pin "2")
+				(pinfunction "MISO_2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "14")
+			(name "/LORA_MOSI")
+			(class "Default")
+			(node
+				(ref "U1")
+				(pin "16")
+				(pinfunction "D23_16")
+				(pintype "passive")
+			)
+			(node
+				(ref "U7")
+				(pin "3")
+				(pinfunction "MOSI_3")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "15")
+			(name "/LORA_NRST")
+			(class "Default")
+			(node
+				(ref "U1")
+				(pin "10")
+				(pinfunction "D27_10")
+				(pintype "passive")
+			)
+			(node
+				(ref "U7")
+				(pin "5")
+				(pinfunction "NRST_5")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "16")
+			(name "/LORA_NSS")
+			(class "Default")
+			(node
+				(ref "U1")
+				(pin "23")
+				(pinfunction "D5_23")
+				(pintype "passive")
+			)
+			(node
+				(ref "U7")
+				(pin "6")
+				(pinfunction "NSS_6")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "17")
+			(name "/LORA_RFSW")
+			(class "Default")
+			(node
+				(ref "U1")
+				(pin "13")
+				(pinfunction "D13_13")
+				(pintype "passive")
+			)
+			(node
+				(ref "U7")
+				(pin "1")
+				(pinfunction "RF_SW_1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "18")
+			(name "/LORA_SCK")
+			(class "Default")
+			(node
+				(ref "U1")
+				(pin "22")
+				(pinfunction "D18_22")
+				(pintype "passive")
+			)
+			(node
+				(ref "U7")
+				(pin "4")
+				(pinfunction "SCK_4")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "19")
 			(name "/MODE_OB")
 			(class "Default")
 			(node
@@ -3592,7 +5487,7 @@
 			)
 		)
 		(net
-			(code "4")
+			(code "20")
 			(name "/MODE_Y")
 			(class "Default")
 			(node
@@ -3613,7 +5508,7 @@
 			)
 		)
 		(net
-			(code "5")
+			(code "21")
 			(name "/OB_24V")
 			(class "Power24")
 			(node
@@ -3629,7 +5524,7 @@
 			)
 		)
 		(net
-			(code "6")
+			(code "22")
 			(name "/OB_OPTO")
 			(class "Opto24")
 			(node
@@ -3644,7 +5539,7 @@
 			)
 		)
 		(net
-			(code "7")
+			(code "23")
 			(name "/P_LIQ")
 			(class "Analog")
 			(node
@@ -3670,7 +5565,7 @@
 			)
 		)
 		(net
-			(code "8")
+			(code "24")
 			(name "/P_LIQ_IN")
 			(class "Analog")
 			(node
@@ -3686,7 +5581,7 @@
 			)
 		)
 		(net
-			(code "9")
+			(code "25")
 			(name "/P_TSUC")
 			(class "Analog")
 			(node
@@ -3712,7 +5607,7 @@
 			)
 		)
 		(net
-			(code "10")
+			(code "26")
 			(name "/P_TSUC_IN")
 			(class "Analog")
 			(node
@@ -3728,7 +5623,7 @@
 			)
 		)
 		(net
-			(code "11")
+			(code "27")
 			(name "/P_VAP")
 			(class "Analog")
 			(node
@@ -3754,7 +5649,7 @@
 			)
 		)
 		(net
-			(code "12")
+			(code "28")
 			(name "/P_VAP_IN")
 			(class "Analog")
 			(node
@@ -3770,7 +5665,7 @@
 			)
 		)
 		(net
-			(code "13")
+			(code "29")
 			(name "/SCL")
 			(class "Default")
 			(node
@@ -3799,7 +5694,7 @@
 			)
 		)
 		(net
-			(code "14")
+			(code "30")
 			(name "/SDA")
 			(class "Default")
 			(node
@@ -3828,9 +5723,42 @@
 			)
 		)
 		(net
-			(code "15")
+			(code "31")
+			(name "/SETUP")
+			(class "Default")
+			(node
+				(ref "SW1")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "11")
+				(pinfunction "D14_11")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "32")
 			(name "/T_DIS")
 			(class "Analog")
+			(node
+				(ref "C10")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "J10")
+				(pin "1")
+				(pinfunction "Pin_1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R16")
+				(pin "2")
+				(pintype "passive")
+			)
 			(node
 				(ref "U4")
 				(pin "10")
@@ -3839,7 +5767,7 @@
 			)
 		)
 		(net
-			(code "16")
+			(code "33")
 			(name "/T_LIQ")
 			(class "Analog")
 			(node
@@ -3866,7 +5794,7 @@
 			)
 		)
 		(net
-			(code "17")
+			(code "34")
 			(name "/T_SUC")
 			(class "Analog")
 			(node
@@ -3893,7 +5821,7 @@
 			)
 		)
 		(net
-			(code "18")
+			(code "35")
 			(name "/T_TSUC")
 			(class "Analog")
 			(node
@@ -3920,7 +5848,7 @@
 			)
 		)
 		(net
-			(code "19")
+			(code "36")
 			(name "/V5_MON")
 			(class "Analog")
 			(node
@@ -3946,7 +5874,7 @@
 			)
 		)
 		(net
-			(code "20")
+			(code "37")
 			(name "/VAC_F")
 			(class "Power24")
 			(node
@@ -3968,7 +5896,7 @@
 			)
 		)
 		(net
-			(code "21")
+			(code "38")
 			(name "/VAC_IN")
 			(class "Power24")
 			(node
@@ -3984,7 +5912,7 @@
 			)
 		)
 		(net
-			(code "22")
+			(code "39")
 			(name "/VRAW")
 			(class "Power24")
 			(node
@@ -4011,7 +5939,7 @@
 			)
 		)
 		(net
-			(code "23")
+			(code "40")
 			(name "/Y_24V")
 			(class "Power24")
 			(node
@@ -4027,7 +5955,7 @@
 			)
 		)
 		(net
-			(code "24")
+			(code "41")
 			(name "/Y_OPTO")
 			(class "Opto24")
 			(node
@@ -4042,11 +5970,51 @@
 			)
 		)
 		(net
-			(code "25")
+			(code "42")
 			(name "GND")
 			(class "Ground")
 			(node
 				(ref "C1")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C10")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C11")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C12")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C13")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C14")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C15")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C16")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C17")
 				(pin "2")
 				(pintype "passive")
 			)
@@ -4103,6 +6071,12 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "J10")
+				(pin "2")
+				(pinfunction "Pin_2_2")
+				(pintype "passive")
+			)
+			(node
 				(ref "J3")
 				(pin "3")
 				(pinfunction "Pin_3_3")
@@ -4145,6 +6119,11 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "R18")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
 				(ref "R2")
 				(pin "2")
 				(pintype "passive")
@@ -4162,6 +6141,12 @@
 			(node
 				(ref "R8")
 				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "SW1")
+				(pin "2")
+				(pinfunction "2_2")
 				(pintype "passive")
 			)
 			(node
@@ -4226,9 +6211,57 @@
 				(pin "4")
 				(pintype "passive")
 			)
+			(node
+				(ref "U7")
+				(pin "10")
+				(pinfunction "GND_10")
+				(pintype "passive")
+			)
+			(node
+				(ref "U7")
+				(pin "7")
+				(pinfunction "GND_7")
+				(pintype "passive")
+			)
+			(node
+				(ref "U8")
+				(pin "1")
+				(pinfunction "GND_1")
+				(pintype "power_in")
+			)
 		)
 		(net
-			(code "26")
+			(code "43")
+			(name "unconnected-(J11-PadR)")
+			(class "Default")
+			(node
+				(ref "J11")
+				(pin "R")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "44")
+			(name "unconnected-(J12-PadR)")
+			(class "Default")
+			(node
+				(ref "J12")
+				(pin "R")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "45")
+			(name "unconnected-(J13-PadR)")
+			(class "Default")
+			(node
+				(ref "J13")
+				(pin "R")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "46")
 			(name "unconnected-(U1-D2-Pad27)")
 			(class "Default")
 			(node
@@ -4239,7 +6272,7 @@
 			)
 		)
 		(net
-			(code "27")
+			(code "47")
 			(name "unconnected-(U1-D4-Pad26)")
 			(class "Default")
 			(node
@@ -4250,18 +6283,7 @@
 			)
 		)
 		(net
-			(code "28")
-			(name "unconnected-(U1-D5-Pad23)")
-			(class "Default")
-			(node
-				(ref "U1")
-				(pin "23")
-				(pinfunction "D5_23")
-				(pintype "passive+no_connect")
-			)
-		)
-		(net
-			(code "29")
+			(code "48")
 			(name "unconnected-(U1-D12-Pad12)")
 			(class "Default")
 			(node
@@ -4272,29 +6294,7 @@
 			)
 		)
 		(net
-			(code "30")
-			(name "unconnected-(U1-D13-Pad13)")
-			(class "Default")
-			(node
-				(ref "U1")
-				(pin "13")
-				(pinfunction "D13_13")
-				(pintype "passive+no_connect")
-			)
-		)
-		(net
-			(code "31")
-			(name "unconnected-(U1-D14-Pad11)")
-			(class "Default")
-			(node
-				(ref "U1")
-				(pin "11")
-				(pinfunction "D14_11")
-				(pintype "passive+no_connect")
-			)
-		)
-		(net
-			(code "32")
+			(code "49")
 			(name "unconnected-(U1-D15-Pad28)")
 			(class "Default")
 			(node
@@ -4305,84 +6305,7 @@
 			)
 		)
 		(net
-			(code "33")
-			(name "unconnected-(U1-D18-Pad22)")
-			(class "Default")
-			(node
-				(ref "U1")
-				(pin "22")
-				(pinfunction "D18_22")
-				(pintype "passive+no_connect")
-			)
-		)
-		(net
-			(code "34")
-			(name "unconnected-(U1-D19-Pad21)")
-			(class "Default")
-			(node
-				(ref "U1")
-				(pin "21")
-				(pinfunction "D19_21")
-				(pintype "passive+no_connect")
-			)
-		)
-		(net
-			(code "35")
-			(name "unconnected-(U1-D23-Pad16)")
-			(class "Default")
-			(node
-				(ref "U1")
-				(pin "16")
-				(pinfunction "D23_16")
-				(pintype "passive+no_connect")
-			)
-		)
-		(net
-			(code "36")
-			(name "unconnected-(U1-D25-Pad8)")
-			(class "Default")
-			(node
-				(ref "U1")
-				(pin "8")
-				(pinfunction "D25_8")
-				(pintype "passive+no_connect")
-			)
-		)
-		(net
-			(code "37")
-			(name "unconnected-(U1-D26-Pad9)")
-			(class "Default")
-			(node
-				(ref "U1")
-				(pin "9")
-				(pinfunction "D26_9")
-				(pintype "passive+no_connect")
-			)
-		)
-		(net
-			(code "38")
-			(name "unconnected-(U1-D27-Pad10)")
-			(class "Default")
-			(node
-				(ref "U1")
-				(pin "10")
-				(pinfunction "D27_10")
-				(pintype "passive+no_connect")
-			)
-		)
-		(net
-			(code "39")
-			(name "unconnected-(U1-D32-Pad6)")
-			(class "Default")
-			(node
-				(ref "U1")
-				(pin "6")
-				(pinfunction "D32_6")
-				(pintype "passive+no_connect")
-			)
-		)
-		(net
-			(code "40")
+			(code "50")
 			(name "unconnected-(U1-D33-Pad7)")
 			(class "Default")
 			(node
@@ -4393,7 +6316,7 @@
 			)
 		)
 		(net
-			(code "41")
+			(code "51")
 			(name "unconnected-(U1-EN-Pad1)")
 			(class "Default")
 			(node
@@ -4404,7 +6327,7 @@
 			)
 		)
 		(net
-			(code "42")
+			(code "52")
 			(name "unconnected-(U1-RX0-Pad19)")
 			(class "Default")
 			(node
@@ -4415,7 +6338,7 @@
 			)
 		)
 		(net
-			(code "43")
+			(code "53")
 			(name "unconnected-(U1-RX2-Pad25)")
 			(class "Default")
 			(node
@@ -4426,7 +6349,7 @@
 			)
 		)
 		(net
-			(code "44")
+			(code "54")
 			(name "unconnected-(U1-TX0-Pad18)")
 			(class "Default")
 			(node
@@ -4437,7 +6360,7 @@
 			)
 		)
 		(net
-			(code "45")
+			(code "55")
 			(name "unconnected-(U1-TX2-Pad24)")
 			(class "Default")
 			(node
@@ -4448,29 +6371,7 @@
 			)
 		)
 		(net
-			(code "46")
-			(name "unconnected-(U1-VN-Pad3)")
-			(class "Default")
-			(node
-				(ref "U1")
-				(pin "3")
-				(pinfunction "VN_3")
-				(pintype "passive+no_connect")
-			)
-		)
-		(net
-			(code "47")
-			(name "unconnected-(U1-VP-Pad2)")
-			(class "Default")
-			(node
-				(ref "U1")
-				(pin "2")
-				(pinfunction "VP_2")
-				(pintype "passive+no_connect")
-			)
-		)
-		(net
-			(code "48")
+			(code "56")
 			(name "unconnected-(U3-ALRT-Pad6)")
 			(class "Default")
 			(node
@@ -4481,7 +6382,7 @@
 			)
 		)
 		(net
-			(code "49")
+			(code "57")
 			(name "unconnected-(U4-ALRT-Pad6)")
 			(class "Default")
 			(node
@@ -4492,7 +6393,7 @@
 			)
 		)
 		(net
-			(code "50")
+			(code "58")
 			(name "unconnected-(U5-NC-Pad3)")
 			(class "Default")
 			(node
@@ -4503,7 +6404,7 @@
 			)
 		)
 		(net
-			(code "51")
+			(code "59")
 			(name "unconnected-(U5-Pad6)")
 			(class "Default")
 			(node
@@ -4513,7 +6414,7 @@
 			)
 		)
 		(net
-			(code "52")
+			(code "60")
 			(name "unconnected-(U6-NC-Pad3)")
 			(class "Default")
 			(node
@@ -4524,12 +6425,23 @@
 			)
 		)
 		(net
-			(code "53")
+			(code "61")
 			(name "unconnected-(U6-Pad6)")
 			(class "Default")
 			(node
 				(ref "U6")
 				(pin "6")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "62")
+			(name "unconnected-(U7-ANT-Pad9)")
+			(class "Default")
+			(node
+				(ref "U7")
+				(pin "9")
+				(pinfunction "ANT_9")
 				(pintype "passive+no_connect")
 			)
 		)

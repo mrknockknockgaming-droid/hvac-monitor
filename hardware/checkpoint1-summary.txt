@@ -1,33 +1,45 @@
 
-=== outdoor-carrier: 46 components, 25 nets, 0 mismatches
+=== outdoor-carrier: 70 components, 42 nets, 0 mismatches
 
 J1  24 VAC
    1 R     VAC_IN     F1.1
-   2 C     GND        32 pins
+   2 C     GND        46 pins
 
 U2  LM2596HV
    1 IN+   VRAW       C1.1, C2.1, D2.1
-   2 IN-   GND        31 pins
-   3 OUT+  +5V        5 pins
-   4 OUT-  GND        31 pins
+   2 IN-   GND        45 pins
+   3 OUT+  +5V        7 pins
+   4 OUT-  GND        45 pins
 
 U1  ESP32 DevKit
+   2 VP    CT1_ADC    C12.1, R20.2
+   3 VN    CT2_ADC    C13.1, R22.2
    4 D34   MODE_Y     R12.2, U5.5
    5 D35   MODE_OB    R14.2, U6.5
-  14 GND   GND        31 pins
-  15 VIN   +5V        5 pins
+   6 D32   CT3_ADC    C14.1, R24.2
+   8 D25   LORA_BUSY  U7.11
+   9 D26   LORA_DIO1  U7.12
+  10 D27   LORA_NRST  U7.5
+  11 D14   SETUP      SW1.1
+  13 D13   LORA_RFSW  U7.1
+  14 GND   GND        45 pins
+  15 VIN   +5V        7 pins
+  16 D23   LORA_MOSI  U7.3
   17 D22   SCL        J8.4, U3.3, U4.3
   20 D21   SDA        J8.3, U3.4, U4.4
-  29 GND   GND        31 pins
-  30 3V3   +3V3       9 pins
-  not connected: 1:EN, 2:VP, 3:VN, 6:D32, 7:D33, 8:D25, 9:D26, 10:D27, 11:D14, 12:D12, 13:D13, 16:D23, 18:TX0, 19:RX0, 21:D19, 22:D18, 23:D5, 24:TX2, 25:RX2, 26:D4, 27:D2, 28:D15
+  21 D19   LORA_MISO  U7.2
+  22 D18   LORA_SCK   U7.4
+  23 D5    LORA_NSS   U7.6
+  29 GND   GND        45 pins
+  30 3V3   +3V3       11 pins
+  not connected: 1:EN, 7:D33, 12:D12, 18:TX0, 19:RX0, 24:TX2, 25:RX2, 26:D4, 27:D2, 28:D15
 
 U3  ADS1115 0x48
-   1 VDD   +3V3       9 pins
-   2 GND   GND        31 pins
+   1 VDD   +3V3       11 pins
+   2 GND   GND        45 pins
    3 SCL   SCL        J8.4, U1.17, U4.3
    4 SDA   SDA        J8.3, U1.20, U4.4
-   5 ADDR  GND        31 pins
+   5 ADDR  GND        45 pins
    7 A0    P_LIQ      C3.1, R1.2, R2.1
    8 A1    P_VAP      C4.1, R3.2, R4.1
    9 A2    P_TSUC     C5.1, R5.2, R6.1
@@ -35,98 +47,184 @@ U3  ADS1115 0x48
   not connected: 6:ALRT
 
 U4  ADS1115 0x49
-   1 VDD   +3V3       8 pins
-   2 GND   GND        32 pins
+   1 VDD   +3V3       10 pins
+   2 GND   GND        46 pins
    3 SCL   SCL        J8.4, U1.17, U3.3
    4 SDA   SDA        J8.3, U1.20, U3.4
-   5 ADDR  +3V3       8 pins
+   5 ADDR  +3V3       10 pins
    7 A0    T_SUC      C7.1, J6.1, R9.2
    8 A1    T_LIQ      C8.1, J7.1, R10.2
    9 A2    T_TSUC     C9.1, J9.1, R15.2
-  10 A3    T_DIS      
+  10 A3    T_DIS      C10.1, J10.1, R16.2
   not connected: 6:ALRT
 
 J8  SHT30 FS400
-   1 3V3   +3V3       9 pins
-   2 GND   GND        32 pins
+   1 3V3   +3V3       11 pins
+   2 GND   GND        46 pins
    3 SDA   SDA        U1.20, U3.4, U4.4
    4 SCL   SCL        U1.17, U3.3, U4.3
 
 J3  XDB307 liquid
-   1 +5    +5V        5 pins
+   1 +5    +5V        7 pins
    2 SIG   P_LIQ_IN   R1.1
-   3 GND   GND        32 pins
+   3 GND   GND        46 pins
 
 J4  XDB307 vapor
-   1 +5    +5V        5 pins
+   1 +5    +5V        7 pins
    2 SIG   P_VAP_IN   R3.1
-   3 GND   GND        32 pins
+   3 GND   GND        46 pins
 
 J5  XDB307 t.suction
-   1 +5    +5V        5 pins
+   1 +5    +5V        7 pins
    2 SIG   P_TSUC_IN  R5.1
-   3 GND   GND        32 pins
+   3 GND   GND        46 pins
 
 J6  TH1 suction
    1 TH    T_SUC      C7.1, R9.2, U4.7
-   2 TH    GND        32 pins
+   2 TH    GND        46 pins
 
 J7  TH2 liquid
    1 TH    T_LIQ      C8.1, R10.2, U4.8
-   2 TH    GND        32 pins
+   2 TH    GND        46 pins
 
 J9  TH3 t.suction
    1 TH    T_TSUC     C9.1, R15.2, U4.9
-   2 TH    GND        32 pins
+   2 TH    GND        46 pins
+
+J10  TH4 discharge
+   1 TH    T_DIS      C10.1, R16.2, U4.10
+   2 TH    GND        46 pins
+
+J11  CT1 compressor
+   S       CT_BIAS    C11.1, J12.S, J13.S, R17.2, R18.1, R19.2, R21.2, R23.2
+   T       CT1_IN     R19.1, R20.1
+  not connected: R
+
+J12  CT2 fan
+   S       CT_BIAS    C11.1, J11.S, J13.S, R17.2, R18.1, R19.2, R21.2, R23.2
+   T       CT2_IN     R21.1, R22.1
+  not connected: R
+
+J13  CT3 HERM
+   S       CT_BIAS    C11.1, J11.S, J12.S, R17.2, R18.1, R19.2, R21.2, R23.2
+   T       CT3_IN     R23.1, R24.1
+  not connected: R
+
+U7  Wio-SX1262
+   1 RF_SW LORA_RFSW  U1.13
+   2 MISO  LORA_MISO  U1.21
+   3 MOSI  LORA_MOSI  U1.16
+   4 SCK   LORA_SCK   U1.22
+   5 NRST  LORA_NRST  U1.10
+   6 NSS   LORA_NSS   U1.23
+   7 GND   GND        45 pins
+   8 VCC   +3V3_RF    C16.1, C17.1, U8.2
+  10 GND   GND        45 pins
+  11 BUSY  LORA_BUSY  U1.8
+  12 DIO1  LORA_DIO1  U1.9
+  not connected: 9:ANT
 
 J2  Mode in 24 VAC
    1 Y     Y_24V      R11.1
    2 O/B   OB_24V     R13.1
 
-=== indoor-carrier: 29 components, 21 nets, 0 mismatches
+=== indoor-carrier: 53 components, 42 nets, 0 mismatches
 
 J1  24 VAC
    1 R     VAC_IN     F1.1
-   2 C     GND        18 pins
+   2 C     GND        35 pins
 
 U2  LM2596HV
    1 IN+   VRAW       C1.1, C2.1, D2.1
-   2 IN-   GND        17 pins
-   3 OUT+  +5V        1 pins
-   4 OUT-  GND        17 pins
+   2 IN-   GND        34 pins
+   3 OUT+  +5V        3 pins
+   4 OUT-  GND        34 pins
 
 U1  ESP32 DevKit
    2 VP    MODE_G     R7.2, U5.5
    3 VN    MODE_OB    R9.2, U6.5
    4 D34   MODE_Y     R3.2, U3.5
    5 D35   MODE_W     R5.2, U4.5
-  14 GND   GND        17 pins
-  15 VIN   +5V        1 pins
-  17 D22   SCL        J5.4
-  20 D21   SDA        J5.3
+   8 D25   LORA_BUSY  U8.11
+   9 D26   LORA_DIO1  U8.12
+  10 D27   LORA_NRST  U8.5
+  11 D14   SETUP      SW1.1
+  13 D13   LORA_RFSW  U8.1
+  14 GND   GND        34 pins
+  15 VIN   +5V        3 pins
+  16 D23   LORA_MOSI  U8.3
+  17 D22   SCL        J5.4, U7.22
+  20 D21   SDA        J5.3, U7.23
+  21 D19   LORA_MISO  U8.2
+  22 D18   LORA_SCK   U8.4
+  23 D5    LORA_NSS   U8.6
   26 D4    ONEWIRE    J3.2, J4.2, R1.2
-  29 GND   GND        17 pins
-  30 3V3   +3V3       8 pins
-  not connected: 1:EN, 6:D32, 7:D33, 8:D25, 9:D26, 10:D27, 11:D14, 12:D12, 13:D13, 16:D23, 18:TX0, 19:RX0, 21:D19, 22:D18, 23:D5, 24:TX2, 25:RX2, 27:D2, 28:D15
+  29 GND   GND        34 pins
+  30 3V3   +3V3       26 pins
+  not connected: 1:EN, 6:D32, 7:D33, 12:D12, 18:TX0, 19:RX0, 24:TX2, 25:RX2, 27:D2, 28:D15
 
 J3  DS18B20 supply air
-   1 3V3   +3V3       8 pins
+   1 3V3   +3V3       26 pins
    2 DQ    ONEWIRE    J4.2, R1.2, U1.26
-   3 GND   GND        18 pins
+   3 GND   GND        35 pins
 
 J4  DS18B20 return air
-   1 3V3   +3V3       8 pins
+   1 3V3   +3V3       26 pins
    2 DQ    ONEWIRE    J3.2, R1.2, U1.26
-   3 GND   GND        18 pins
+   3 GND   GND        35 pins
 
-J5  I2C expansion (DNP)
-   1 3V3   +3V3       8 pins
-   2 GND   GND        18 pins
-   3 SDA   SDA        U1.20
-   4 SCL   SCL        U1.17
+J5  I2C expansion
+   1 3V3   +3V3       26 pins
+   2 GND   GND        35 pins
+   3 SDA   SDA        U1.20, U7.23
+   4 SCL   SCL        U1.17, U7.22
 
 J2  Mode in 24 VAC
    1 Y     Y_24V      R2.1
    2 W     W_24V      R4.1
    3 G     G_24V      R6.1
    4 O/B   OB_24V     R8.1
+
+J6  SHT45 return
+   1 3V3   +3V3       26 pins
+   2 GND   GND        35 pins
+   3 SDA   SD0        R11.2, U7.4
+   4 SCL   SC0        R12.2, U7.5
+
+J7  SHT45 supply
+   1 3V3   +3V3       26 pins
+   2 GND   GND        35 pins
+   3 SDA   SD1        R13.2, U7.6
+   4 SCL   SC1        R14.2, U7.7
+
+J8  SDP810 return
+   1 3V3   +3V3       26 pins
+   2 GND   GND        35 pins
+   3 SDA   SD2        R15.2, U7.8
+   4 SCL   SC2        R16.2, U7.9
+
+J9  SDP810 supply
+   1 3V3   +3V3       26 pins
+   2 GND   GND        35 pins
+   3 SDA   SD3        R17.2, U7.10
+   4 SCL   SC3        R18.2, U7.11
+
+J10  SDP810 filter
+   1 3V3   +3V3       26 pins
+   2 GND   GND        35 pins
+   3 SDA   SD4        R19.2, U7.13
+   4 SCL   SC4        R20.2, U7.14
+
+U8  Wio-SX1262
+   1 RF_SW LORA_RFSW  U1.13
+   2 MISO  LORA_MISO  U1.21
+   3 MOSI  LORA_MOSI  U1.16
+   4 SCK   LORA_SCK   U1.22
+   5 NRST  LORA_NRST  U1.10
+   6 NSS   LORA_NSS   U1.23
+   7 GND   GND        34 pins
+   8 VCC   +3V3_RF    C5.1, C6.1, U9.2
+  10 GND   GND        34 pins
+  11 BUSY  LORA_BUSY  U1.8
+  12 DIO1  LORA_DIO1  U1.9
+  not connected: 9:ANT

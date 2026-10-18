@@ -155,15 +155,15 @@ def lora_section(uref, ldo, cin, cout, cdec, sw, x, y):
     return [
         part(ldo, 'Regulator_Linear:AMS1117-3.3', 'AMS1117-3.3', FP_LDO, x, y,
              {'1': 'GND', '2': '+3V3_RF', '3': '+5V'}),
-        part(cin, 'Device:C_Polarized', '10µF 16V', FP_C_EL, x + 15.24, y, {'1': '+5V', '2': 'GND'}),
-        part(cout, 'Device:C_Polarized', '22µF 10V', FP_C_EL, x + 25.4, y,
+        part(cin, 'Device:C_Polarized', '10µF 16V', FP_C_EL, x + 20.32, y, {'1': '+5V', '2': 'GND'}),
+        part(cout, 'Device:C_Polarized', '22µF 10V', FP_C_EL, x + 33.02, y,
              {'1': '+3V3_RF', '2': 'GND'}),
-        part(cdec, 'Device:C', '0.1µF', FP_C_DISC, x + 35.56, y, {'1': '+3V3_RF', '2': 'GND'}),
-        part(uref, 'hvac_carrier:Wio_SX1262', 'Wio-SX1262', FP_LORA, x + 63.5, y,
+        part(cdec, 'Device:C', '0.1µF', FP_C_DISC, x + 45.72, y, {'1': '+3V3_RF', '2': 'GND'}),
+        part(uref, 'hvac_carrier:Wio_SX1262', 'Wio-SX1262', FP_LORA, x + 76.2, y,
              {'1': 'LORA_RFSW', '2': 'LORA_MISO', '3': 'LORA_MOSI', '4': 'LORA_SCK',
               '5': 'LORA_NRST', '6': 'LORA_NSS', '7': 'GND', '8': '+3V3_RF', '9': 'NC',
               '10': 'GND', '11': 'LORA_BUSY', '12': 'LORA_DIO1'}),
-        part(sw, 'Switch:SW_Push', 'SETUP', FP_SW, x + 96.52, y, {'1': 'SETUP', '2': 'GND'}),
+        part(sw, 'Switch:SW_Push', 'SETUP', FP_SW, x + 119.38, y, {'1': 'SETUP', '2': 'GND'}),
     ]
 
 

@@ -94,8 +94,17 @@ def lib_symbol(lib_id):
             root = parse(open(os.path.join(KICAD_SYMS, lib + '.kicad_sym'), encoding='utf-8').read())[0]
             _libcache[lib] = {s[1]: s for s in find(root, 'symbol')}
         sym = _libcache[lib][name]
-        if first(sym, 'extends'):
-            raise SystemExit(f'{lib_id} uses extends; pick a flat symbol')
+        ext = first(sym, 'extends')
+        if ext:  # derived symbol (e.g. AMS1117-3.3 extends AP1117-15): flatten onto the parent
+            parent = _libcache[lib][str(ext[1])]
+            own = {p[1]: p for p in find(sym, 'property')}
+            sym = [c for c in parent if not (isinstance(c, list) and c and c[0] == 'property'
+                                             and c[1] in own)]
+            sym = sym[:2] + list(own.values()) + sym[2:]
+            # the parent's unit names carry its own name; rename them to the child's
+            pname, cname = str(parent[1]), name
+            sym = [['symbol', Str(str(c[1]).replace(pname, cname, 1))] + c[2:]
+                   if isinstance(c, list) and c and c[0] == 'symbol' else c for c in sym]
     out = list(sym)
     out[1] = Str(lib_id)
     return out
@@ -141,7 +150,9 @@ class Sheet:
             node = ['property', Str(key), Str(val), ['at', num(x + rx), num(y - ry), str(ang)]]
             if hide:
                 node.append(['hide', 'yes'])
-            node.append(FONT)
+            eff = first(props[key], 'effects') if key in props else None
+            just = first(eff, 'justify') if eff else None
+            node.append(FONT + [just] if just and rot == 0 else FONT)
             return node
 
         node = ['symbol', ['lib_id', Str(lib_id)], ['at', num(x), num(y), str(rot)], ['unit', '1'],
@@ -237,6 +248,7 @@ ZONES = {
                         ('D  Thermistors (J9/R15/C9/TH3 added: T_TSUC channel)', 20.32, 172.72),
                         ('E  Mode inputs', 20.32, 218.44), ('Mounting', 269.24, 228.6),
                         ('F  CT inputs (electrical module version 1)', 20.32, 264.16),
+                        ('F  CT_BIAS 1.34 V', 340.36, 228.6),
                         ('G  LoRa radio and SETUP button', 20.32, 302.26)],
     'indoor-carrier': [('A  Power supply', 20.32, 22.86), ('B  Controller', 289.56, 22.86),
                        ('C  1-Wire temperatures / E  Expansion', 20.32, 88.9),

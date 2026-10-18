@@ -1,0 +1,223 @@
+(footprint "Wio_SX1262"
+	(version 20241229)
+	(generator "hvac_gen")
+	(layer "F.Cu")
+	(descr "Seeed Wio-SX1262 LoRa module 11.6 x 11 mm, 12 castellated pads, u.FL (datasheet V1.0 fig. 9; pads lengthened 0.8 mm outward for hand soldering)")
+	(tags "module socket carrier")
+	(property "Reference" "REF**"
+		(at 0 0 0)
+		(layer "F.SilkS")
+		(uuid "09551469-65f4-4ae5-8f22-6c6dd26d62a2")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "Wio_SX1262"
+		(at 0 1.6 0)
+		(layer "F.Fab")
+		(uuid "7d81f76e-aff2-48cb-81b2-11b2e039151b")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "3dba84ab-8148-46a5-ac77-5a90cd43bd4e")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" "Seeed Wio-SX1262 LoRa module 11.6 x 11 mm, 12 castellated pads, u.FL (datasheet V1.0 fig. 9; pads lengthened 0.8 mm outward for hand soldering)"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "02b4627f-0f32-4b43-91f4-c74340b769dc")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr smd)
+	(pad "1" smd rect
+		(at -4.47 5.9)
+		(size 0.6 3)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "af443bdb-8438-4e15-844a-09e03e63724a")
+	)
+	(pad "2" smd rect
+		(at -3.2 5.9)
+		(size 0.6 3)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "87855592-b925-4399-97b8-8a4f80c362ec")
+	)
+	(pad "3" smd rect
+		(at -1.93 5.9)
+		(size 0.6 3)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "1f15e713-8e13-4760-a4bc-2ae86992afb4")
+	)
+	(pad "4" smd rect
+		(at -0.66 5.9)
+		(size 0.6 3)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "c8af3d8c-6030-4161-9b92-2e2d6324ab5c")
+	)
+	(pad "5" smd rect
+		(at 0.61 5.9)
+		(size 0.6 3)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "42911796-d9f4-406c-b44e-0d05cdcdef33")
+	)
+	(pad "6" smd rect
+		(at 1.88 5.9)
+		(size 0.6 3)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "623462ed-1be1-43d2-91e6-52a26b2df785")
+	)
+	(pad "7" smd rect
+		(at 3.15 5.9)
+		(size 0.6 3)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "0ab2d2dc-b734-42ed-878a-6cd8f3660b95")
+	)
+	(pad "8" smd rect
+		(at 4.42 5.9)
+		(size 0.6 3)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "a6a1982a-adba-45c1-8ffd-966eee3f6c16")
+	)
+	(pad "12" smd rect
+		(at -3.2 -5.9)
+		(size 0.6 3)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "ea1d8af8-43f1-4bb7-a612-9069d06ee8cf")
+	)
+	(pad "11" smd rect
+		(at -1.93 -5.9)
+		(size 0.6 3)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "cac28343-6700-4251-8666-14aa5033e650")
+	)
+	(pad "10" smd rect
+		(at -0.66 -5.9)
+		(size 0.6 3)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "18504d46-be2b-4ca0-b195-2867ff501e3d")
+	)
+	(pad "9" smd rect
+		(at 0.61 -5.9)
+		(size 0.6 3)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "cf292b96-c382-4500-9a70-d5c2c1f651a1")
+	)
+	(fp_rect
+		(start -5.8 -5.5)
+		(end 5.8 5.5)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "e6d1785e-8539-496e-8507-c92e72a45fe4")
+	)
+	(fp_line
+		(start -5.92 -4.9)
+		(end -5.92 4.9)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "39299641-4efb-412c-af32-0729fa18955f")
+	)
+	(fp_line
+		(start 5.92 -4.9)
+		(end 5.92 4.9)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "56bbf821-94bc-4fa7-86c4-c5aef1ab2e06")
+	)
+	(fp_circle
+		(center -4.47 8)
+		(end -4.22 8)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.SilkS")
+		(uuid "cdf9407e-0e5a-4197-95b9-4f70db122f4b")
+	)
+	(fp_text user "1"
+		(at -6.7 6.5 0)
+		(layer "F.SilkS")
+		(uuid "1b4b8aa8-f02f-4900-8548-196dda8395c8")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.12)
+			)
+		)
+	)
+	(fp_circle
+		(center 3.9 -3.7)
+		(end 5.2 -3.7)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "5132a3d8-1f9f-48b0-8ca3-cb44c2944b06")
+	)
+	(fp_text user "u.FL"
+		(at 3.9 -1.5 0)
+		(layer "F.Fab")
+		(uuid "6d0505ec-b539-43ed-afc0-7ac4b011e01d")
+		(effects
+			(font
+				(size 0.7 0.7)
+				(thickness 0.12)
+			)
+		)
+	)
+	(fp_text user "ANT →"
+		(at 8.4 -3.7 0)
+		(layer "F.SilkS")
+		(uuid "d1f9d01d-7223-4239-9e49-7e0454f9fbed")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.12)
+			)
+		)
+	)
+	(fp_rect
+		(start -6.1 -7.7)
+		(end 10.8 7.7)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "1a6c86a3-ee82-4365-a5ec-0501bab99c3e")
+	)
+)
