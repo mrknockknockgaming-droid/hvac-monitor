@@ -64,7 +64,7 @@ Jack = 3.5 mm TRS socket (CUI SJ1-3523N): tip = signal, sleeve = CT_BIAS, ring n
 |---|---|---|---|
 | U7 outdoor / U8 indoor | Seeed Wio-SX1262 LoRa module (u.FL), at the top edge with the u.FL toward the top wall | NSS GPIO5, SCK 18, MISO 19, MOSI 23, DIO1 26, NRST 27, BUSY 25, RF_SW 13 | `lora_link.cpp` defaults (`LORA_PIN_*`), only with `LORA_ENABLED 1` |
 | U8 outdoor / U9 indoor | AMS1117-3.3 for the radio only (+3V3_RF), fed from +5V | | |
-| SW1 | SETUP push button, GPIO14 to GND | | **not read by firmware 0.3.0 yet** (use INPUT_PULLUP) |
+| SW1 | SETUP push button, GPIO14 to GND | | `PIN_SETUP` 14, INPUT_PULLUP; not acted on yet (reserved for BLE setup) |
 
 - Antenna: a u.FL to SMA-bulkhead pigtail (about 10-15 cm) to the SMA hole in the box's top
   wall, then a 900 MHz whip outside the cabinet. Never transmit without the antenna connected.
