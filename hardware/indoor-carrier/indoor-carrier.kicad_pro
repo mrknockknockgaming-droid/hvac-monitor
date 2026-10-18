@@ -461,6 +461,10 @@
         "pattern": "+3V3"
       },
       {
+        "netclass": "Rail3V3",
+        "pattern": "/+3V3_RF"
+      },
+      {
         "netclass": "Analog",
         "pattern": "/P_*"
       },
@@ -471,6 +475,10 @@
       {
         "netclass": "Analog",
         "pattern": "/T_*"
+      },
+      {
+        "netclass": "Analog",
+        "pattern": "/CT*"
       }
     ]
   },

@@ -19,6 +19,9 @@ enum NetState { NET_NO_WIFI, NET_NO_MQTT, NET_OK };
 void netBegin(CmdHandler onCmd, StatusFiller onStatus);
 void netLoop();
 bool netPublishTelemetry(const String& json);
+// Telemetry on another logical node's topic (hvac/<site>/<node>/telemetry), e.g. the outdoor board's
+// CT inputs reporting as "electrical". Live only: not kept for the outage backlog.
+bool netPublishNode(const char* node, const String& json);
 void netPublishStatus();
 NetState netState();
 bool netTimeValid();          // true once NTP has set the clock

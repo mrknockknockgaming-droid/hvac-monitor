@@ -31,8 +31,14 @@ def P(x, y):
 
 # ------------------------------------------------------------------ placement
 
-POWER = {  # identical power corner on both boards
-    'U1': (2.5, 29.85, 0),     # ESP32 pin 1 (EN); D23..3V3 row at y = 4.45
+def shift(d, dx=0.0, dy=0.0):
+    return {k: (x + dx, y + dy, r) for k, (x, y, r) in d.items()}
+
+
+# Top band, identical on both boards: ESP32 (antenna off the left edge), the LoRa radio at
+# the top edge with its u.FL toward the top wall (SMA bulkhead above it), the SETUP button,
+# and the rev A power corner moved 10 mm right.
+TOP = dict(shift({
     'J1': (90.0, 8.54, 180),   # 24 VAC, plug faces the top edge
     'F1': (80.0, 15.5, 180),   # clip pads 1 at x 80/75, pads 2 at x 65/60
     'D2': (70.5, 22.5, 180),   # K at x 70.5, A at x 60.34
@@ -41,56 +47,115 @@ POWER = {  # identical power corner on both boards
     'C2': (60.0, 32.2, 0),     # right at U2 IN+
     'U2': (77.5, 45.0, 0),     # module centre
     'H4': (96.5, 3.5, 0),
-}
+}, dx=10.0), **{
+    'U1': (2.5, 29.85, 0),     # ESP32 pin 1 (EN); D23..3V3 row at y = 4.45
+    'LORA': (62.5, 6.3, 90),   # Wio-SX1262 centre; pins 1-8 on the right, u.FL at the top
+    'LORA_C': (72.0, 2.4, 0),      # 0.1 µF at the module's VCC pin
+    'LORA_COUT': (72.1, 8.2, 0),   # 22 µF on +3V3_RF
+    'LORA_LDO': (81.5, 6.3, 0),    # AMS1117 centre
+    'LORA_CIN': (87.9, 4.0, 0),    # 10 µF on its +5V input
+    'SW1': (56.5, 16.0, 0),
+})
+
+# ref names of the LoRa parts on each board (design.lora_section arguments)
+LORA_REFS = {'outdoor-carrier': dict(LORA='U7', LORA_LDO='U8', LORA_CIN='C15', LORA_COUT='C16',
+                                     LORA_C='C17'),
+             'indoor-carrier': dict(LORA='U8', LORA_LDO='U9', LORA_CIN='C4', LORA_COUT='C5',
+                                    LORA_C='C6')}
+
+
+def top(name):
+    m = LORA_REFS[name]
+    return {m.get(k, k): v for k, v in TOP.items()}
+
+
+def mux_jacks():
+    """Indoor: J6-J10 along the bottom edge, two 0805 pull-ups above each."""
+    d = {}
+    for i in range(5):
+        x = 32.3 + 14.0 * i
+        d[f'J{6 + i}'] = (x, 85.5, 0)
+        d[f'R{11 + 2 * i}'] = (x + 1.6, 75.4, 0)   # SDn pull-up
+        d[f'R{12 + 2 * i}'] = (x + 6.4, 75.4, 0)   # SCn pull-up
+    return d
+
 
 PLACE = {
-    'outdoor-carrier': dict(POWER, **{
-        'H1': (3.5, 37.0, 0), 'H2': (3.5, 96.5, 0), 'H3': (96.5, 96.5, 0),
-        'U3': (6.5, 44.5, 0), 'U4': (6.5, 65.5, 0),
+    'outdoor-carrier': dict(top('outdoor-carrier'), **{
+        'H1': (3.5, 35.5, 0), 'H2': (3.5, 106.5, 0), 'H3': (106.5, 106.5, 0),
+        # CT inputs: 3.5 mm jacks on the left edge (sockets face out), 0805 parts beside each
+        # origin x 4.5 puts the footprint's own edge line (with the nose notch) on x = 0
+        'J11': (4.5, 46.0, 270), 'J12': (4.5, 60.0, 270), 'J13': (4.5, 74.0, 270),
+        'R19': (14.5, 42.0, 0), 'R20': (14.5, 46.0, 0), 'C12': (14.5, 50.0, 0),
+        'R21': (14.5, 56.0, 0), 'R22': (14.5, 60.0, 0), 'C13': (14.5, 64.0, 0),
+        'R23': (14.5, 70.0, 0), 'R24': (14.5, 74.0, 0), 'C14': (14.5, 78.0, 0),
+        'R17': (14.5, 84.0, 0), 'R18': (14.5, 87.5, 0), 'C11': (4.5, 85.5, 0),   # CT_BIAS
+        'U3': (22.5, 41.5, 0), 'U4': (22.5, 62.5, 0),
         # filter caps at the ADS1115 inputs (rev A general note 4)
-        'C3': (17.0, 39.5, 0), 'C4': (22.6, 39.5, 0), 'C5': (28.2, 39.5, 0), 'C6': (33.8, 39.5, 0),
-        'C7': (19.0, 61.95, 0), 'C8': (24.6, 61.95, 0), 'C9': (30.2, 61.95, 0),
-        # divider column (pad 1 on top)
-        'R1': (36.5, 45.0, 270), 'R2': (36.5, 59.5, 270), 'R3': (42.1, 45.0, 270),
-        'R4': (42.1, 59.5, 270), 'R5': (47.7, 45.0, 270), 'R6': (47.7, 59.5, 270),
-        'R7': (53.3, 45.0, 270), 'R8': (53.3, 59.5, 270),
-        'R9': (36.0, 74.5, 0), 'R10': (36.0, 79.5, 0), 'R15': (36.0, 84.5, 0),
-        # mode inputs: AC side toward J2, transistor side toward the ESP32
+        'C3': (33.0, 36.5, 0), 'C4': (38.6, 36.5, 0), 'C5': (44.2, 36.5, 0), 'C6': (49.8, 36.5, 0),
+        'C7': (24.5, 58.95, 0), 'C8': (30.1, 58.95, 0), 'C9': (35.7, 58.95, 0),
+        'C10': (41.3, 58.95, 0),
+        # divider columns (pad 1 on top), right of U3
+        'R1': (51.5, 42.0, 270), 'R2': (51.5, 54.5, 270), 'R3': (55.0, 42.0, 270),
+        'R4': (55.0, 54.5, 270), 'R5': (58.5, 42.0, 270), 'R6': (58.5, 54.5, 270),
+        'R7': (62.0, 42.0, 270), 'R8': (62.0, 54.5, 270),
+        # thermistor reference resistors, right of U4
+        'R9': (51.5, 69.0, 270), 'R10': (55.0, 69.0, 270), 'R15': (58.5, 69.0, 270),
+        'R16': (62.0, 69.0, 270),
+        # JST XH sensor headers along the bottom edge (body 0.5 mm in from the edge)
+        'J3': (11.0, 105.5, 0), 'J4': (26.0, 105.5, 0), 'J5': (41.0, 105.5, 0),
+        'J6': (56.0, 105.5, 0), 'J7': (68.5, 105.5, 0), 'J9': (81.0, 105.5, 0),
+        'J10': (93.5, 105.5, 0),
+    }, **shift({
+        # mode inputs: AC side toward J2, transistor side toward the ESP32 (rev A + 10 mm)
         'U5': (74.5, 66.0, 180), 'U6': (74.5, 79.0, 180),
         'R11': (84.2, 69.6, 180), 'R13': (84.2, 82.6, 180),
         'R12': (62.0, 58.0, 270), 'R14': (62.0, 71.5, 270),
         # right edge, plugs face out
         'J2': (91.46, 64.0, 90), 'J8': (91.46, 85.72, 90),
-        # bottom edge, plugs face out
-        # JST XH sensor headers along the bottom edge (body 0.5 mm in from the edge)
-        'J3': (12.82, 95.5, 0), 'J4': (29.70, 95.5, 0), 'J5': (46.58, 95.5, 0),
-        'J6': (62.17, 95.5, 0), 'J7': (73.89, 95.5, 0), 'J9': (85.29, 95.5, 0),
-    }),
-    'indoor-carrier': dict(POWER, **{
-        'H1': (3.5, 37.0, 0), 'H2': (3.5, 76.5, 0), 'H3': (96.5, 76.5, 0),
+    }, dx=10.0)),
+    'indoor-carrier': dict(top('indoor-carrier'), **mux_jacks(), **{
+        'H1': (3.5, 35.5, 0), 'H2': (3.5, 86.5, 0), 'H3': (106.5, 86.5, 0),
+        # DS18B20 jacks on the left edge, pin 1 at the top
+        'J3': (4.5, 44.0, 270), 'J4': (4.5, 60.0, 270),
+        'J2': (10.5, 81.46, 0),            # mode inputs, bottom edge
+        'J5': (101.46, 77.0, 90),          # main-bus I2C terminal, right edge
+        'U7': (77.0, 66.0, 0), 'R10': (71.0, 60.0, 0), 'C3': (83.0, 60.0, 0),   # TCA9548A
+    }, **shift({
         'U3': (10.5, 50.0, 90), 'U4': (22.1, 50.0, 90), 'U5': (33.7, 50.0, 90), 'U6': (45.3, 50.0, 90),
         'R2': (10.5, 66.0, 90), 'R4': (22.1, 66.0, 90), 'R6': (33.7, 66.0, 90), 'R8': (45.3, 66.0, 90),
         'R3': (18.85, 40.5, 270), 'R5': (30.45, 40.5, 270), 'R7': (42.05, 40.5, 270),
         'R9': (53.7, 40.5, 270),
         'R1': (48.5, 64.5, 0),
-        'J2': (10.5, 71.46, 0), 'J3': (36.58, 75.5, 0), 'J4': (54.58, 75.5, 0), 'J5': (71.0, 71.46, 0),
-    }),
+    }, dx=4.0)),
 }
 
 TEXT = {
-    'outdoor-carrier': [('HVAC Monitor rev A', 19.0, 83.4, 1.3), ('outdoor carrier', 19.0, 85.8, 1.3)],
-    'indoor-carrier': [('HVAC Monitor rev A', 77.0, 60.5, 1.3), ('indoor carrier', 77.0, 63.0, 1.3)],
+    'outdoor-carrier': [('HVAC Monitor rev B', 34.0, 86.0, 1.3), ('outdoor carrier', 34.0, 88.4, 1.3),
+                        ('CT1 comp', 18.15, 48.0, 0.9, 90), ('CT2 fan', 18.15, 62.0, 0.9, 90),
+                        ('CT3 HERM', 18.15, 76.0, 0.9, 90)],
+    'indoor-carrier': [('HVAC Monitor rev B', 21.0, 71.0, 1.3), ('indoor carrier', 21.0, 73.4, 1.3)],
 }
-COMMON_TEXT = [('Set U2 to', 91.5, 26.5, 1.1), ('5.00 V first', 91.5, 28.3, 1.1),
-               ('USB', 49.0, 17.0, 1.2), ('← antenna', 5.0, 11.0, 1.0)]
+COMMON_TEXT = [('Set U2 to', 101.5, 26.5, 1.1), ('5.00 V first', 101.5, 28.3, 1.1),
+               ('USB', 49.0, 17.0, 1.2), ('← antenna', 5.0, 11.0, 1.0),
+               ('SETUP', 59.75, 24.0, 1.0), ('LoRa ANT ↑', 48.5, 2.6, 1.0)]
+
+DIVIDERS_BODY = {r: 'body' for r in ('R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'R9', 'R10',
+                                     'R15', 'R16')}
+# C7-C10 sit between the two ADS1115 sockets: refs just inside U3's outline (as on rev A)
+DIVIDERS_BODY.update({c: (x + 1.25, 56.4) for c, x in
+                      (('C7', 24.5), ('C8', 30.1), ('C9', 35.7), ('C10', 41.3))})
 
 # reference designator overrides: 'body' = centred on the part, 'right' = right of it,
 # or an absolute (x, y) in board mm
 REF_AT = {
-    'outdoor-carrier': {'C2': 'right', 'R11': 'body', 'R13': 'body',
-                        'C7': (20.25, 59.2), 'C8': (25.85, 59.2), 'C9': (32.0, 59.2)},
+    'outdoor-carrier': dict(DIVIDERS_BODY, **{
+        'C2': 'right', 'R11': 'body', 'R13': 'body', 'C17': (73.25, 4.65), 'C16': (76.8, 11.3), 'C15': (88.9, 8.4),
+        'J11': (18.15, 42.0, 90), 'J12': (18.15, 56.0, 90), 'J13': (18.15, 70.0, 90),
+        'C11': (4.5, 81.5)}),
     'indoor-carrier': {'C2': 'right', 'R3': 'body', 'R5': 'body', 'R7': 'body', 'R9': 'body',
-                       'U3': 'above', 'U4': 'above', 'U5': 'above', 'U6': 'above'},
+                       'U3': 'above', 'U4': 'above', 'U5': 'above', 'U6': 'above',
+                       'J3': (4.5, 39.6), 'J4': (4.5, 55.6), 'C6': (73.25, 4.65), 'C5': (76.8, 11.3), 'C4': (88.9, 8.4)},
 }
 
 # ---------------------------------------------------------------- net classes
@@ -102,8 +167,8 @@ NETCLASSES = [
     ('Opto24', 0.3, 0.3, 0.6, 0.3, ['/*_OPTO']),                             # series R to opto LED
     ('Rail5V', 1.0, 0.3, 0.9, 0.5, ['+5V']),
     ('Ground', 0.8, 0.25, 0.9, 0.5, ['GND']),
-    ('Rail3V3', 0.5, 0.2, 0.7, 0.35, ['+3V3']),
-    ('Analog', 0.3, 0.2, 0.6, 0.3, ['/P_*', '/V5_MON', '/T_*']),               # dividers, thermistors
+    ('Rail3V3', 0.5, 0.2, 0.7, 0.35, ['+3V3', '/+3V3_RF']),
+    ('Analog', 0.3, 0.2, 0.6, 0.3, ['/P_*', '/V5_MON', '/T_*', '/CT*']),       # dividers, thermistors, CTs
 ]
 ANALOG_TO_24VAC_MM = 3.0
 
@@ -178,7 +243,9 @@ def read_netlist(name):
 
 # ---------------------------------------------------------------- helpers
 
-def add_edge(board, w, h, r=2.0):
+def add_edge(board, w, h, r=2.0, left_gaps=()):
+    """Rounded rectangle; left_gaps = (y0, y1) spans of the left edge drawn by a footprint
+    (the CT jacks carry their own Edge.Cuts notch for the jack's nose)."""
     def seg(a, b):
         s = pcbnew.PCB_SHAPE(board)
         s.SetShape(pcbnew.SHAPE_T_SEGMENT)
@@ -194,7 +261,12 @@ def add_edge(board, w, h, r=2.0):
         board.Add(s)
 
     k = r * (1 - 0.70710678)
-    seg((r, 0), (w - r, 0)); seg((w, r), (w, h - r)); seg((w - r, h), (r, h)); seg((0, h - r), (0, r))
+    seg((r, 0), (w - r, 0)); seg((w, r), (w, h - r)); seg((w - r, h), (r, h))
+    y = h - r
+    for y0, y1 in sorted(left_gaps, reverse=True):
+        seg((0, y), (0, y1))
+        y = y0
+    seg((0, y), (0, r))
     arc((w - r, 0), (w - k, k), (w, r)); arc((w, h - r), (w - k, h - k), (w - r, h))
     arc((r, h), (k, h - k), (0, h - r)); arc((0, r), (k, k), (r, 0))
 
@@ -206,11 +278,13 @@ def polygon(zone, pts):
         ol.Append(FromMM(BX + x), FromMM(BY + y))
 
 
-def add_rule_area(board, pts, name, no_copper=True, no_footprints=False):
+def add_rule_area(board, pts, name, no_copper=True, no_footprints=False, layers=None):
     z = pcbnew.ZONE(board)
     z.SetIsRuleArea(True)
     z.SetZoneName(name)
-    ls = pcbnew.LSET(); ls.AddLayer(pcbnew.F_Cu); ls.AddLayer(pcbnew.B_Cu)
+    ls = pcbnew.LSET()
+    for layer in layers or (pcbnew.F_Cu, pcbnew.B_Cu):
+        ls.AddLayer(layer)
     z.SetLayerSet(ls)
     z.SetDoNotAllowTracks(no_copper)
     z.SetDoNotAllowVias(no_copper)
@@ -270,12 +344,17 @@ def place_reference(fp, ref, rot, how=None):
     if ref.startswith('H'):
         t.SetVisible(False)
         return
-    if ref in ('U1', 'U2', 'U3', 'U4') and fp.GetFPID().GetLibNickname() == 'hvac_carrier':
+    if ref.startswith('U') and fp.GetFPID().GetLibNickname() == 'hvac_carrier':
         return  # module footprints carry their own centred reference
     bb = fp.GetCourtyard(pcbnew.F_CrtYd).BBox()
     cx, cy = bb.GetCenter().x, bb.GetCenter().y
     gap = FromMM(0.75)
     t.SetTextAngleDegrees(0)
+    if isinstance(how, tuple):  # (x, y) or (x, y, angle)
+        t.SetPosition(P(*how[:2]))
+        if len(how) > 2:
+            t.SetTextAngleDegrees(how[2])
+        return
     if ref.startswith('J'):
         # on the header body, clear of the pin labels behind the pads
         p1 = fp.FindPadByNumber('1').GetPosition()
@@ -330,8 +409,11 @@ def build(name):
     board.GetDesignSettings().SetBoardThickness(FromMM(1.6))
     board.SetCopperLayerCount(2)
     tb = board.GetTitleBlock()
-    tb.SetTitle(cfg['title']); tb.SetRevision('A'); tb.SetDate('2026-09-27')
-    add_edge(board, w, h)
+    tb.SetTitle(cfg['title']); tb.SetRevision('B'); tb.SetDate('2026-10-18')
+    # CT jacks (outdoor): footprint edge line 6.5 mm either side of the jack centre
+    gaps = [(y - 6.5, y + 6.5) for ref, (x, y, rot) in PLACE[name].items()
+            if 'Jack_3.5mm' in parts.get(ref, {}).get('fp', '')]
+    add_edge(board, w, h, left_gaps=gaps)
 
     nets = {}
     for net in sorted(set(padnets.values())):
@@ -371,7 +453,9 @@ def build(name):
                 i = int(pad.GetNumber()) - 1
                 px = pcbnew.ToMM(pad.GetPosition().x) - BX
                 py = pcbnew.ToMM(pad.GetPosition().y) - BY
-                if 'JST_XH' in c['fp']:  # 2.5 mm pitch: labels turned sideways
+                if 'JST_XH' in c['fp'] and rot == 270:  # left edge: labels right of the pins
+                    silk(board, labels[i], px + 3.6, py, 0.8, just=-1)
+                elif 'JST_XH' in c['fp']:  # 2.5 mm pitch: labels turned sideways
                     silk(board, labels[i], px, py - 4.2, 0.8, rot=90)
                 elif rot == 0:    # bottom edge, plug faces down
                     silk(board, labels[i], px, py - 3.4, 1.0)
@@ -387,10 +471,15 @@ def build(name):
     # USB access: no parts beyond the DevKit's USB end
     add_rule_area(board, [(43.5, 9.0), (54.5, 9.0), (54.5, 25.0), (43.5, 25.0)], 'USB_CLEAR',
                   no_copper=False, no_footprints=True)
+    # LoRa module: no top-side tracks or vias under its body (exposed test points underneath);
+    # inset 1.3 mm on the pad sides so the pads' own connections stay legal
+    lx, ly, _ = TOP['LORA']
+    add_rule_area(board, [(lx - 4.2, ly - 5.6), (lx + 4.2, ly - 5.6), (lx + 4.2, ly + 5.6),
+                          (lx - 4.2, ly + 5.6)], 'LORA_KEEPOUT', layers=(pcbnew.F_Cu,))
     add_gnd_zones(board, nets['GND'], w, h)
 
-    for s, x, y, size in TEXT[name] + COMMON_TEXT:
-        silk(board, s, x, y, size)
+    for s, x, y, size, *rot in TEXT[name] + COMMON_TEXT:
+        silk(board, s, x, y, size, rot=rot[0] if rot else 0)
 
     out = os.path.join(HW, name, name + '.kicad_pcb')
     pcbnew.SaveBoard(out, board)

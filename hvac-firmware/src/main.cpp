@@ -79,6 +79,7 @@ void setup() {
   delay(300);
   Serial.printf("\n=== HVAC monitor | %s node | fw %s ===\n", NODE_NAME, FW_VERSION);
   pinMode(PIN_LED, OUTPUT);
+  pinMode(PIN_SETUP, INPUT_PULLUP);
   settingsBegin();
   intervalMs = setGetU("interval", 5000);
   nodeSetup();

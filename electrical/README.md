@@ -109,7 +109,8 @@ homeowner page.
 
 ## Next
 
-1. Decide whether version 1 goes on the outdoor carrier rev B or a separate add-on board.
+1. ~~Decide whether version 1 goes on the outdoor carrier rev B or a separate add-on board.~~
+   Decided 2026-10-18: on the outdoor carrier rev B (J11-J13, firmware `hvac-firmware/src/ct.cpp`).
 2. Prototype version 1: two CTs + burden resistors into the outdoor ESP32, firmware to sample
    RMS current and catch starts, publish on the `electrical` topic.
 3. Version 2 isolated board design, then a test-lab review.

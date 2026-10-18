@@ -18,6 +18,8 @@ PIN_NAMES = {
     'hvac_carrier:ESP32_DevKit_30': design.ESP32_LEFT + design.ESP32_RIGHT,
     'hvac_carrier:ADS1115_Module': ['VDD', 'GND', 'SCL', 'SDA', 'ADDR', 'ALRT', 'A0', 'A1', 'A2', 'A3'],
     'hvac_carrier:LM2596HV_Module': ['IN+', 'IN-', 'OUT+', 'OUT-'],
+    'hvac_carrier:Wio_SX1262': ['RF_SW', 'MISO', 'MOSI', 'SCK', 'NRST', 'NSS', 'GND', 'VCC', 'ANT',
+                                'GND', 'BUSY', 'DIO1'],
 }
 
 
@@ -63,22 +65,21 @@ def main():
             print('  !!', e)
         # per-connector summary: every J (and module socket) pin with the other members of its net
         for p in parts:
-            if not (p['ref'].startswith('J') or p['ref'] in ('U1', 'U2', 'U3', 'U4')
-                    and p['lib'].startswith('hvac_carrier')):
+            if not (p['ref'].startswith('J') or p['lib'].startswith('hvac_carrier')):
                 continue
             extra = ' (DNP)' if p.get('dnp') else ''
             print(f"\n{p['ref']}  {p['value']}{extra}")
             labels = p.get('pinlabels') or PIN_NAMES.get(p['lib'], [])
             nc = []
-            for pin in sorted(p['nets'], key=int):
+            for pin in sorted(p['nets'], key=lambda k: (not k.isdigit(), int(k) if k.isdigit() else k)):
                 net = pins.get((p['ref'], pin), 'NC')
                 net = 'NC' if net.startswith('unconnected-') else net.lstrip('/')
                 if net == 'NC':
-                    nc.append(f"{pin}:{labels[int(pin) - 1]}" if labels else pin)
+                    nc.append(f"{pin}:{labels[int(pin) - 1]}" if labels and pin.isdigit() else pin)
                     continue
                 others = [m for m in members.get('/' + net, members.get(net, []))
                           if not m.startswith(p['ref'] + '.')]
-                lbl = f' {labels[int(pin) - 1]}' if labels else ''
+                lbl = f' {labels[int(pin) - 1]}' if labels and pin.isdigit() else ''
                 if net in design.POWER_NETS:
                     others = [f'{len(others)} pins']
                 print(f"  {pin:>2}{lbl:<6} {net:<10} {', '.join(others)}")

@@ -181,6 +181,12 @@ bool netPublishTelemetry(const String& json) {
   return false;
 }
 
+bool netPublishNode(const char* node, const String& json) {
+  if (!mqtt.connected()) return false;
+  String topic = String("hvac/") + SITE_ID + "/" + node + "/telemetry";
+  return mqtt.publish(topic.c_str(), json.c_str());
+}
+
 size_t netBacklog() { return backlog.size(); }
 
 void netPublishStatus() {

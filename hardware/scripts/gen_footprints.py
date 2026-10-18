@@ -11,13 +11,20 @@ the three plug-in modules, from the user's measurements (2026-09-27):
   ESP32 DevKit 30-pin: two 1x15 rows 25.4 mm apart; antenna end of the board
     6 mm beyond the first pin.
 
+  Wio-SX1262 (Seeed LoRa module, IPEX/u.FL version): datasheet V1.0 figure 9. Body
+    11.6 x 11.0 mm, 12 castellated pads 0.6 wide on a 1.27 mm pitch: pins 1-8 along one
+    11.6 mm edge (pin 1 centre 1.33 mm from the corner), pins 9-12 on the opposite edge,
+    numbered counter-clockwise (pin 12 centre 2.60 mm from the corner above pin 1, pin 9
+    under the antenna end). Pin order checked against design.lora_section (figure 2).
+    The u.FL sits in the corner above pin 8 / beside pin 9 (figure 8).
+
 Carrier-side contacts are standard 2.54 mm female sockets (KiCad PinSocket pad:
 1.7 mm, 1.0 mm drill).
 """
 import os
 import uuid
 
-from sexp import Str, dump
+from sexp import Str, dump, find, first, parse
 
 HW = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(HW, 'lib', 'hvac_carrier.pretty')
@@ -64,7 +71,7 @@ def pad(num, x, y, square=False):
             ['remove_unused_layers', 'no'], u()]
 
 
-def footprint(name, descr, ref_at, val_at, items):
+def footprint(name, descr, ref_at, val_at, items, attr='through_hole'):
     return ['footprint', Str(name), ['version', '20241229'], ['generator', Str('hvac_gen')],
             ['layer', Str('F.Cu')], ['descr', Str(descr)], ['tags', Str('module socket carrier')],
             ['property', Str('Reference'), Str('REF**'), ['at', n(ref_at[0]), n(ref_at[1]), '0'],
@@ -75,7 +82,7 @@ def footprint(name, descr, ref_at, val_at, items):
              ['hide', 'yes'], u(), font()],
             ['property', Str('Description'), Str(descr), ['at', '0', '0', '0'], ['layer', Str(FAB)],
              ['hide', 'yes'], u(), font()],
-            ['attr', 'through_hole']] + items
+            ['attr', attr]] + items
 
 
 def esp32():
@@ -138,9 +145,68 @@ def lm2596():
                      (0, -2.0), (0, 2.0), items)
 
 
+def smd_pad(num, x, y, w, h):
+    return ['pad', Str(num), 'smd', 'rect', ['at', n(x), n(y)], ['size', n(w), n(h)],
+            ['layers', Str('F.Cu'), Str('F.Mask'), Str('F.Paste')], u()]
+
+
+def wio_sx1262():
+    """Origin = module centre, pins 1-8 on the bottom edge (y +5.5), 12..9 on the top edge.
+
+    Datasheet pads are 0.6 x 2.2 mm centred on the module edge; here they run 0.8 mm further
+    out (0.6 x 3.0, 1.1 mm under the module) so the castellations can be hand soldered.
+    """
+    W, H, P, PW = 11.6, 11.0, 1.27, 0.6
+    L_IN, L_OUT = 1.1, 1.9          # pad reach inside / outside the module edge
+    pl = L_IN + L_OUT
+    items = []
+    x0, y0 = -W / 2, -H / 2
+    for i in range(8):               # pins 1..8, left to right along the bottom edge
+        items.append(smd_pad(str(i + 1), x0 + 1.33 + i * P, H / 2 + (L_OUT - L_IN) / 2, PW, pl))
+    for j in range(4):               # pins 12..9, left to right along the top edge
+        items.append(smd_pad(str(12 - j), x0 + 2.60 + j * P, -H / 2 - (L_OUT - L_IN) / 2, PW, pl))
+    items.append(rect(x0, y0, -x0, -y0, FAB))
+    # silk: the side edges only (the top/bottom edges are covered by pads), plus pin-1 dot
+    items.append(line(x0 - 0.12, y0 + 0.6, x0 - 0.12, -y0 - 0.6, SILK))
+    items.append(line(-x0 + 0.12, y0 + 0.6, -x0 + 0.12, -y0 - 0.6, SILK))
+    items.append(circle(x0 + 1.33, H / 2 + L_OUT + 0.6, 0.25, SILK))
+    items.append(text('1', x0 - 0.9, H / 2 + 1.0, SILK, 0.8))
+    # u.FL receptacle (corner beside pin 9) and room for the mated plug and pigtail
+    ux, uy = 3.9, -3.7
+    items.append(circle(ux, uy, 1.3, FAB))
+    items.append(text('u.FL', ux, uy + 2.2, FAB, 0.7))
+    # courtyard: body + pads, and 5 mm past the u.FL side for the plug and cable
+    items.append(rect(x0 - 0.3, -H / 2 - L_OUT - 0.3, W / 2 + 5.0, H / 2 + L_OUT + 0.3, CRT))
+    return footprint('Wio_SX1262',
+                     'Seeed Wio-SX1262 LoRa module 11.6 x 11 mm, 12 castellated pads, u.FL '
+                     '(datasheet V1.0 fig. 9; pads lengthened 0.8 mm outward for hand soldering)',
+                     (0, 0), (0, 1.6), items, attr='smd')
+
+
+KFP = os.path.join(r'C:\Program Files', 'KiCad', '10.0', 'share', 'kicad', 'footprints')
+
+
+def jack_trimmed():
+    """KiCad's CUI SJ1-3523N jack (it carries its own Edge.Cuts nose notch) without the silk
+    that runs over the board edge, so DRC has no silk-to-edge warnings and the part still
+    matches its (project) library."""
+    src = os.path.join(KFP, 'Connector_Audio.pretty', 'Jack_3.5mm_CUI_SJ1-3523N_Horizontal.kicad_mod')
+    fp = parse(open(src, encoding='utf-8').read())[0]
+
+    def past_edge(item):
+        if item[0] not in ('fp_line', 'fp_rect', 'fp_arc') or str(first(item, 'layer')[1]) != SILK:
+            return False
+        return any(float(first(item, k)[2]) > 3.4 for k in ('start', 'end') if first(item, k))
+    out = [c for c in fp if not (isinstance(c, list) and past_edge(c))]
+    out[1] = Str('Jack_3.5mm_CUI_SJ1-3523N_Horizontal_EdgeTrim')
+    # the library marks it exclude_from_bom / pos files; the jacks are real BOM parts here
+    return [['attr', 'through_hole'] if isinstance(c, list) and c and c[0] == 'attr' else c
+            for c in out]
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
-    for fp in (esp32(), ads1115(), lm2596()):
+    for fp in (esp32(), ads1115(), lm2596(), wio_sx1262(), jack_trimmed()):
         with open(os.path.join(OUT, fp[1] + '.kicad_mod'), 'w', encoding='utf-8', newline='\n') as f:
             f.write(dump(fp) + '\n')
         print('wrote', fp[1])

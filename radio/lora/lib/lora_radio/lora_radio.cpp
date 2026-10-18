@@ -22,6 +22,10 @@ bool LoraRadio::begin(const LoraPins& p, double mhz, uint8_t sf, int8_t dbm) {
         return ok_ = false;
     }
     if (p.dio2_rf_switch) radio->setDio2AsRfSwitch(true);
+    // Wio-SX1262: DIO2 switches the internal RF switch for TX; RF_SW is driven high while receiving
+    // and low while transmitting (Seeed datasheet "high: receive", and Seeed's own Wio-SX1262 for
+    // XIAO examples). RadioLib's rxEn pin does exactly that.
+    if (p.rxen >= 0) radio->setRfSwitchPins(p.rxen, RADIOLIB_NC);
     radio->setCRC(true);
     radio->setPacketReceivedAction(on_dio1);
     radio->startReceive();

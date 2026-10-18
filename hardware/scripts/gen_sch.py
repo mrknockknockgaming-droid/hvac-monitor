@@ -74,6 +74,11 @@ def custom_symbols():
         box_symbol('LM2596HV_Module', 'U', 'LM2596HV', design.FP_BUCK,
                    'LM2596HVS buck module on four single-pin sockets',
                    [('1', 'IN+'), ('2', 'IN−')], [('3', 'OUT+'), ('4', 'OUT−')], 10.16),
+        box_symbol('Wio_SX1262', 'U', 'Wio-SX1262', design.FP_LORA,
+                   'Seeed Wio-SX1262 LoRa module (SX1262 + TCXO, u.FL antenna)',
+                   [('8', 'VCC'), ('7', 'GND'), ('10', 'GND'), ('9', 'ANT'), ('1', 'RF_SW')],
+                   [('6', 'NSS'), ('4', 'SCK'), ('3', 'MOSI'), ('2', 'MISO'), ('5', 'NRST'),
+                    ('11', 'BUSY'), ('12', 'DIO1')], 10.16),
     ]
 
 
@@ -89,8 +94,17 @@ def lib_symbol(lib_id):
             root = parse(open(os.path.join(KICAD_SYMS, lib + '.kicad_sym'), encoding='utf-8').read())[0]
             _libcache[lib] = {s[1]: s for s in find(root, 'symbol')}
         sym = _libcache[lib][name]
-        if first(sym, 'extends'):
-            raise SystemExit(f'{lib_id} uses extends; pick a flat symbol')
+        ext = first(sym, 'extends')
+        if ext:  # derived symbol (e.g. AMS1117-3.3 extends AP1117-15): flatten onto the parent
+            parent = _libcache[lib][str(ext[1])]
+            own = {p[1]: p for p in find(sym, 'property')}
+            sym = [c for c in parent if not (isinstance(c, list) and c and c[0] == 'property'
+                                             and c[1] in own)]
+            sym = sym[:2] + list(own.values()) + sym[2:]
+            # the parent's unit names carry its own name; rename them to the child's
+            pname, cname = str(parent[1]), name
+            sym = [['symbol', Str(str(c[1]).replace(pname, cname, 1))] + c[2:]
+                   if isinstance(c, list) and c and c[0] == 'symbol' else c for c in sym]
     out = list(sym)
     out[1] = Str(lib_id)
     return out
@@ -136,7 +150,9 @@ class Sheet:
             node = ['property', Str(key), Str(val), ['at', num(x + rx), num(y - ry), str(ang)]]
             if hide:
                 node.append(['hide', 'yes'])
-            node.append(FONT)
+            eff = first(props[key], 'effects') if key in props else None
+            just = first(eff, 'justify') if eff else None
+            node.append(FONT + [just] if just and rot == 0 else FONT)
             return node
 
         node = ['symbol', ['lib_id', Str(lib_id)], ['at', num(x), num(y), str(rot)], ['unit', '1'],
@@ -214,12 +230,12 @@ class Sheet:
                 self.label(net, ex, ey, a)
 
     def write(self, path, date):
-        tb = ['title_block', ['title', Str(self.title)], ['date', Str(date)], ['rev', Str('A')],
+        tb = ['title_block', ['title', Str(self.title)], ['date', Str(date)], ['rev', Str('B')],
               ['company', Str('HVAC Monitor')],
-              ['comment', '1', Str('Transcribed from docs/hvac-schematics.html rev A')],
+              ['comment', '1', Str('Rev A from docs/hvac-schematics.html; rev B additions in design.py')],
               ['comment', '2', Str('Labels with the same name are connected')]]
         doc = ['kicad_sch', ['version', '20231120'], ['generator', Str('eeschema')],
-               ['generator_version', Str('8.0')], ['uuid', self.root], ['paper', Str('A3')], tb,
+               ['generator_version', Str('8.0')], ['uuid', self.root], ['paper', Str('A2')], tb,
                ['lib_symbols'] + list(self.libs.values())] + self.items + [
               ['sheet_instances', ['path', Str('/'), ['page', Str('1')]]]]
         with open(path, 'w', encoding='utf-8', newline='\n') as f:
@@ -230,10 +246,15 @@ ZONES = {
     'outdoor-carrier': [('A  Power supply', 20.32, 22.86), ('B  Controller', 289.56, 22.86),
                         ('C  I2C devices', 20.32, 83.82), ('D  Analog inputs', 20.32, 129.54),
                         ('D  Thermistors (J9/R15/C9/TH3 added: T_TSUC channel)', 20.32, 172.72),
-                        ('E  Mode inputs', 20.32, 218.44), ('Mounting', 269.24, 228.6)],
+                        ('E  Mode inputs', 20.32, 218.44), ('Mounting', 269.24, 228.6),
+                        ('F  CT inputs (electrical module version 1)', 20.32, 264.16),
+                        ('F  CT_BIAS 1.34 V', 340.36, 228.6),
+                        ('G  LoRa radio and SETUP button', 20.32, 302.26)],
     'indoor-carrier': [('A  Power supply', 20.32, 22.86), ('B  Controller', 289.56, 22.86),
-                       ('C  1-Wire temperatures / E  Expansion (J5 DNP)', 20.32, 88.9),
-                       ('D  Mode inputs', 20.32, 142.24), ('Mounting', 269.24, 190.5)],
+                       ('C  1-Wire temperatures / E  Expansion', 20.32, 88.9),
+                       ('D  Mode inputs', 20.32, 142.24), ('Mounting', 269.24, 190.5),
+                       ('F  I2C mux: SHT45 ch 0-1, SDP810 ch 2-4', 20.32, 241.3),
+                       ('G  LoRa radio and SETUP button', 20.32, 294.64)],
 }
 
 
@@ -260,7 +281,7 @@ def write_project(name):
     return d
 
 
-def main(date='2026-09-27'):
+def main(date='2026-10-18'):
     write_lib()
     for name, cfg in design.BOARDS.items():
         d = write_project(name)

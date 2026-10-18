@@ -12,6 +12,9 @@
 #define LORA_PIN_RST 27
 #define LORA_PIN_BUSY 25
 #endif
+#ifndef LORA_PIN_RXEN           // Wio-SX1262 RF_SW (receive enable) on the rev B carriers; -1 if not wired
+#define LORA_PIN_RXEN 13
+#endif
 #ifndef LORA_TCXO_V
 #define LORA_TCXO_V 1.8
 #endif
@@ -51,6 +54,7 @@ bool loraBegin(LoraCmdHandler onCmd) {
   haveCmdCounter = lastCmdCounter != 0;
   LoraPins pins = {LORA_PIN_NSS, LORA_PIN_DIO1, LORA_PIN_RST, LORA_PIN_BUSY};
   pins.tcxo_v = LORA_TCXO_V;
+  pins.rxen = LORA_PIN_RXEN;
   const double mhz = lorafmt::channel_mhz(SITE_ID);
   if (!radio.begin(pins, mhz)) return false;
   Serial.printf("[lora] device %08x on %.1f MHz, counter from %u\n", (unsigned)LORA_DEVICE_ID, mhz, (unsigned)counter);
