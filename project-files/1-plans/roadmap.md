@@ -73,7 +73,7 @@ Phases run in order. Customer discovery and IP protection run alongside the buil
 - [ ] Buy 3 SDP810-500Pa sensors, tubing and static taps; fit taps in both plenums and on both sides of the filter, wire to mux channels 2-4, flash the indoor node and zero with the blower off
 - [x] SHT45 supply and return humidity, software side (Oct 17): indoor firmware 0.2.1 finds a TCA9548A on J5 by itself (return probe on channel 0, supply on 1); the web app shows RH, wet bulb, dew point and enthalpy, with a Humidity probes panel (swap, calibration) on Sensors & calibration
 - [ ] Buy 2 SHT45 probes and a TCA9548A, solder a terminal into the indoor board's J5, fit the probes in the return and supply, and flash the indoor node
-- [x] Update firmware and schematics to rev B (merged Oct 18): both boards get the Wio-SX1262 LoRa module and a SETUP button; outdoor adds the discharge thermistor and three clamp-on current sensor jacks (firmware 0.3.0 reads them); indoor has the sensor hub on board. Not ordered yet
+- [x] Update firmware and schematics to rev B (merged Oct 18): both boards get the Wio-SX1262 LoRa module and a SETUP button; outdoor adds the discharge thermistor and three clamp-on current sensor jacks (firmware 0.3.0 reads them); indoor has the sensor hub on board. Order files released as hardware-rev-b (Oct 18); not ordered yet
 
 ## Phase 7: Cloud stack, running locally
 
@@ -117,6 +117,7 @@ Sheet-metal cabinets and homeowner WiFi are the weak points for nodes at the con
 - [x] Define a compact telemetry format that fits LoRa airtime limits: 45-byte encrypted frames that decode to the same JSON, so the cloud needs no changes (tested reference in radio/lorafmt.py)
 - [x] Gateway buffers readings and forwards them to the cloud over WiFi (written and merged into main Oct 4, not yet run on radios: a plug-in gateway for a Heltec V3, or the thermostat as the gateway, which also feeds the outdoor temperature to the controller offline)
 - [x] LoRa firmware for the nodes (LORA\_ENABLED in config.h: readings, status and calibration commands over the radio), with the frame format and encryption ported to C++ and checked byte for byte against the Python reference; each site picks one of 8 channels from its site id; a tool makes each node's id and key
+- [x] Humidity, static pressure and current readings over LoRa (merged Oct 18, PR #61): the indoor frame carries an optional humidity and static tail, current readings get their own frame, and the gateway republishes them on the same topics; built and tested on the PC
 - [x] Keep a WiFi-direct mode for installs without a display node (kept: WiFi stays the default; LoRa is a config switch)
 - [ ] Confirm the production module's FCC grant covers 500 kHz operation (candidates with modular approval: Heltec HT-CT62, Seeed Wio-SX1262, RAK3172)
 - [ ] Decide: LoRa + gateway, WiFi only, or cellular (use the contractor interviews)
@@ -130,6 +131,7 @@ Sheet-metal cabinets and homeowner WiFi are the weak points for nodes at the con
 - [ ] Enable secure boot and flash encryption
 - [ ] Load unique device credentials at manufacturing
 - [ ] Bluetooth WiFi setup for the gateway from a phone, with QR claim codes that pair all devices
+- [x] SETUP button WiFi setup over Bluetooth on both nodes (merged Oct 18, PR #62, firmware 0.3.1): hold SETUP 3 s, then use the ESP BLE Provisioning app with the node's setup code; needs one USB flash per node (new flash layout). Builds pass; not yet tried with a phone
 - [ ] Cloud firmware updates, relayed through the gateway to the nodes
 - [ ] Local buffering during outages (nodes keep 10 minutes since firmware 0.2; longer storage and the gateway still to do)
 - [ ] Heat-rated production enclosures
