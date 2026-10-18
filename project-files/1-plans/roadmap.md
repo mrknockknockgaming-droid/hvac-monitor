@@ -92,8 +92,9 @@ Phases run in order. Customer discovery and IP protection run alongside the buil
 ## Phase 8: Go live in the cloud
 
 - [x] Production setup built and tested on the PC: HTTPS through Caddy, MQTT over TLS (port 8883) with a private CA, secure cookie, daily database backups with a tested restore, and a deployment checklist (DEPLOY.md)
-- [ ] Rent a server and register a domain
-- [ ] Deploy with DEPLOY.md (about an hour once the server and domain exist; HTTPS and the secure cookie come with it)
+- [x] Domain fullscope-app.com registered, DNS on Cloudflare (Oct 18). Hosted on the home Proxmox for now; a rented server comes before selling widely
+- [x] Live at https://app.fullscope-app.com (Oct 18, PR #64): Cloudflare Tunnel into the Proxmox container, no router ports opened, HTTPS-only sign-in cookie
+- [ ] Boards in other homes: encrypted MQTT on port 8883 (built in PR #64), router port forward, broker passwords, reflash, DNS updates if the home IP changes
 - [x] Firmware 0.2.0 written and built for both nodes: MQTT over TLS, timestamped readings with a 10-minute outage buffer, settings sent back after changes (cloud and dashboard store caught-up readings at their own time)
 - [x] Flash firmware 0.2.0 (done at install, Oct 11)
 - [ ] Test TLS, the clock sync and the outage buffer on real hardware
@@ -105,7 +106,9 @@ Phases run in order. Customer discovery and IP protection run alongside the buil
 - [x] Build alerts: a fault lasting 5 min raises an alert, "no data" after 10 min of silence, alert lists in the web app, email with a 6 h cooldown
 - [x] Alert recipients (owner and/or contractor; plain-language emails for the owner, technical for the contractor), acknowledge, and mute by alert type
 - [x] Alerts for checks that only run while the system runs (refrigerant, delta-T) stay open between cycles instead of clearing every time the compressor stops: one problem, one alert, no "back to normal" email each cycle
-- [ ] Turn on alert email (SMTP account and recipient address), and copy the server's daily backups (built) and the CA key off the server regularly
+- [x] Alert email on through Gmail, tested to the inbox (Oct 18)
+- [x] Nightly Proxmox backup of the whole container to a second disk at 2 AM, keeping 7 (first one 428 MB, Oct 18)
+- [ ] Copy backups off the Proxmox box (cloud storage or the PC), and the MQTT CA key once outside boards use it
 
 ## Decision point: 900 MHz radio architecture (before Phase 9)
 
