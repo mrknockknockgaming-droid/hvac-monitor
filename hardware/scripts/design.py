@@ -23,6 +23,8 @@ with plug-in modules):
   * Indoor: TCA9548A mux (U7, 0x70) on the board with JST-XH 4-pin jacks for the SHT45
     return/supply (ch 0/1) and SDP810 return/supply/filter (ch 2/3/4), 10k pull-ups per
     channel. J5 stays as the main-bus I2C terminal, now fitted.
+  * Layout (gen_pcb.py): both boards 110 mm wide (outdoor 110 x 110, indoor 110 x 90) for the
+    Hammond 1554R2GY; CT passives and the mux parts are 0805 hand-solder SMD.
 Additions needed to make a board (not on rev A):
   * H1-H4 M3 mounting holes.
   * Names for nets rev A leaves unnamed: VAC_IN, VAC_F, VRAW (named on rev A
@@ -49,7 +51,7 @@ FP_C_EL = 'Capacitor_THT:CP_Radial_D5.0mm_P2.00mm'
 FP_R_SMD = 'Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder'
 FP_C_SMD = 'Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder'
 FP_TSSOP24 = 'Package_SO:TSSOP-24_4.4x7.8mm_P0.65mm'
-FP_JACK35 = 'Connector_Audio:Jack_3.5mm_CUI_SJ1-3523N_Horizontal'
+FP_JACK35 = 'hvac_carrier:Jack_3.5mm_CUI_SJ1-3523N_Horizontal_EdgeTrim'  # KiCad's, edge silk trimmed
 FP_SW = 'Button_Switch_THT:SW_PUSH_6mm'
 
 
@@ -169,14 +171,15 @@ def lora_section(uref, ldo, cin, cout, cdec, sw, x, y):
 
 def ct_input(jref, rb, rs, cf, n, net, adc, burden, x, y):
     """3.5 mm jack for an SCT-013 clamp: tip = signal, sleeve = CT_BIAS. The burden sits across
-    the jack (fit it for current-output CTs, leave it off for the voltage-output ones)."""
+    the jack (fit it for current-output CTs, leave it off for the voltage-output ones).
+    0805 hand-solder parts (like the indoor mux) so three channels fit beside the jacks."""
     return [
         part(jref, 'Connector_Audio:AudioJack3', f'CT{n} {net}', FP_JACK35, x, y,
              {'S': 'CT_BIAS', 'T': f'CT{n}_IN', 'R': 'NC'}),
-        part(rb, 'Device:R', burden, FP_R_QW, x + 20.32, y, {'1': f'CT{n}_IN', '2': 'CT_BIAS'},
+        part(rb, 'Device:R', burden, FP_R_SMD, x + 20.32, y, {'1': f'CT{n}_IN', '2': 'CT_BIAS'},
              dnp=burden == 'DNP'),
-        part(rs, 'Device:R', '1k', FP_R_QW, x + 33.02, y, {'1': f'CT{n}_IN', '2': adc}),
-        part(cf, 'Device:C', '10nF', FP_C_DISC, x + 45.72, y, {'1': adc, '2': 'GND'}),
+        part(rs, 'Device:R', '1k', FP_R_SMD, x + 33.02, y, {'1': f'CT{n}_IN', '2': adc}),
+        part(cf, 'Device:C', '10nF', FP_C_SMD, x + 45.72, y, {'1': adc, '2': 'GND'}),
     ]
 
 
@@ -216,8 +219,8 @@ def outdoor():
     # the ESP32 ADC's linear range at 11 dB. SCT-013-000 (100 A : 50 mA) with 18 R puts a
     # 141 A start peak at 1.27 V; SCT-013-005 / -010 have their own burden (1 V at 5 / 10 A).
     p += [
-        part('R17', 'Device:R', '10k 1%', FP_R_QW, 345.44, 236.22, {'1': '+3V3', '2': 'CT_BIAS'}),
-        part('R18', 'Device:R', '6.8k 1%', FP_R_QW, 358.14, 236.22, {'1': 'CT_BIAS', '2': 'GND'}),
+        part('R17', 'Device:R', '10k 1%', FP_R_SMD, 345.44, 236.22, {'1': '+3V3', '2': 'CT_BIAS'}),
+        part('R18', 'Device:R', '6.8k 1%', FP_R_SMD, 358.14, 236.22, {'1': 'CT_BIAS', '2': 'GND'}),
         part('C11', 'Device:C_Polarized', '10µF 16V', FP_C_EL, 370.84, 236.22,
              {'1': 'CT_BIAS', '2': 'GND'}),
     ]
@@ -298,7 +301,7 @@ def indoor():
 
 BOARDS = {
     'outdoor-carrier': dict(parts=outdoor, title='HVAC Monitor outdoor carrier',
-                            size=(100, 100)),
+                            size=(110, 110)),
     'indoor-carrier': dict(parts=indoor, title='HVAC Monitor indoor carrier',
-                           size=(100, 80)),
+                           size=(110, 90)),
 }

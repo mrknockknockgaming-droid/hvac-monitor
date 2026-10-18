@@ -48,10 +48,57 @@ def add_preroutes(board, name):
     return len(segs)
 
 
+def fanout_ground(board):
+    """Each SMD ground pad gets a short locked track to its own via (to the bottom pour), so a
+    top-pour island cut off by routing can't strand it. Neighbouring ground pads of the same part
+    (TSSOP A0/A1) share one via through a pad-to-pad link."""
+    mm = pcbnew.FromMM
+    gnd = board.FindNet('GND')
+    done = []   # (footprint ref, via position, pad position)
+    n = 0
+    for fp in board.GetFootprints():
+        c = fp.GetPosition()
+        for pad in fp.Pads():
+            if pad.GetNetname() != 'GND' or pad.GetAttribute() != pcbnew.PAD_ATTRIB_SMD:
+                continue
+            p = pad.GetPosition()
+            near = [d for d in done if d[0] == fp.GetReference()
+                    and abs(d[2].x - p.x) + abs(d[2].y - p.y) < mm(1.5)]
+            if near:
+                end = near[0][2]
+            else:
+                # outward along the pad's long axis, away from the part's centre
+                sz = pad.GetBoundingBox()
+                horiz = sz.GetWidth() >= sz.GetHeight()
+                if horiz:
+                    sgn = 1 if p.x >= c.x else -1
+                    end = pcbnew.VECTOR2I(p.x + sgn * (sz.GetWidth() // 2 + mm(0.55)), p.y)
+                else:
+                    sgn = 1 if p.y >= c.y else -1
+                    end = pcbnew.VECTOR2I(p.x, p.y + sgn * (sz.GetHeight() // 2 + mm(0.55)))
+                v = pcbnew.PCB_VIA(board)
+                v.SetPosition(end)
+                v.SetWidth(mm(0.6)); v.SetDrill(mm(0.3))
+                v.SetNet(gnd)
+                v.SetLocked(True)
+                board.Add(v)
+                n += 1
+            t = pcbnew.PCB_TRACK(board)
+            t.SetStart(p); t.SetEnd(end)
+            t.SetWidth(mm(0.3))
+            t.SetLayer(pcbnew.F_Cu)
+            t.SetNet(gnd)
+            t.SetLocked(True)
+            board.Add(t)
+            done.append((fp.GetReference(), end, p))
+    return n
+
+
 def export(name):
     pcb, dsn, _ = paths(name)
     board = pcbnew.LoadBoard(pcb)
     print('prerouted paths:', add_preroutes(board, name))
+    print('ground fan-out vias:', fanout_ground(board))
     pcbnew.SaveBoard(pcb, board)
     board.GetDesignSettings().m_NetSettings.RecomputeEffectiveNetclasses()
     board.SynchronizeNetsAndNetClasses(True)
@@ -130,8 +177,9 @@ def import_(name):
         key = (t.Type(), t.GetNetCode(), t.GetLayer(),
                tuple(sorted([(t.GetStart().x, t.GetStart().y), (t.GetEnd().x, t.GetEnd().y)])))
         if key in seen:
-            board.Delete(t if not t.IsLocked() else seen[key])
-            if t.IsLocked():
+            locked = t.IsLocked()   # read before a Delete frees t
+            board.Delete(t if not locked else seen[key])
+            if locked:
                 seen[key] = t
         else:
             seen[key] = t
@@ -147,8 +195,127 @@ def import_(name):
             for pad in fp.Pads():
                 if pad.GetNetname() == 'GND':
                     pad.SetThermalSpokeAngleDegrees(45)
+    # SMD ground pads (TSSOP, radio castellations, 0805s) join the pours solidly
+    for pad in board.GetPads():
+        if pad.GetNetname() == 'GND' and pad.GetAttribute() == pcbnew.PAD_ATTRIB_SMD:
+            pad.SetLocalZoneConnection(pcbnew.ZONE_CONNECTION_FULL)
+    pcbnew.ZONE_FILLER(board).Fill(board.Zones())
+    print('ground stitching vias:', stitch_ground(board))
     pcbnew.ZONE_FILLER(board).Fill(board.Zones())
     pcbnew.SaveBoard(pcb, board)
+    fix_ground(name)
+
+
+def stitch_ground(board, pitch=5.0, dia=0.9, drill=0.5, offset=0.0):
+    """Tie the top and bottom GND pours together (and join pour fragments the routing cut off)
+    with vias on a grid, only where both pours are solid copper all round the via."""
+    import math
+    import gen_pcb
+    mm = pcbnew.FromMM
+    gnd = board.FindNet('GND')
+    fills, keepouts = {}, []
+    for z in board.Zones():
+        if z.GetIsRuleArea():
+            keepouts.append(z.Outline())
+        elif z.GetNetname() == 'GND':
+            fills[z.GetLayer()] = z.GetFilledPolysList(z.GetLayer())
+    if len(fills) < 2:
+        return 0
+    bb = board.GetBoardEdgesBoundingBox()
+    w, h = pcbnew.ToMM(bb.GetWidth()), pcbnew.ToMM(bb.GetHeight())
+    ring = dia / 2 + 0.25
+    holes = [(t.GetPosition(), t.GetWidth(pcbnew.F_Cu)) for t in board.GetTracks()
+             if t.Type() == pcbnew.PCB_VIA_T]
+    holes += [(p.GetPosition(), max(p.GetSize(pcbnew.F_Cu).x, p.GetSize(pcbnew.F_Cu).y))
+              for p in board.GetPads()]
+    n = 0
+    y = pitch / 2 + offset
+    while y < h:
+        x = pitch / 2 + offset
+        while x < w:
+            c = gen_pcb.P(x, y)
+            if any(math.hypot(c.x - q.x, c.y - q.y) < mm(dia / 2 + 0.6) + d / 2 for q, d in holes):
+                x += pitch
+                continue
+            pts = [c] + [gen_pcb.P(x + ring * math.cos(a * math.pi / 4), y + ring * math.sin(a * math.pi / 4))
+                         for a in range(8)]
+            if (all(f.Contains(p) for f in fills.values() for p in pts)
+                    and not any(k.Contains(p) for k in keepouts for p in pts)):
+                v = pcbnew.PCB_VIA(board)
+                v.SetPosition(c)
+                v.SetWidth(mm(dia)); v.SetDrill(mm(drill))
+                v.SetNet(gnd)
+                board.Add(v)
+                holes.append((c, mm(dia)))
+                n += 1
+            x += pitch
+        y += pitch
+    return n
+
+
+CLI = os.path.join(r'C:\Program Files', 'KiCad', '10.0', 'bin', 'kicad-cli.exe')
+
+
+def ground_problems(pcb):
+    """(ref, pad) of GND pads that DRC finds starved or not joined to a pour."""
+    import json
+    import re
+    import subprocess
+    import tempfile
+    out = os.path.join(tempfile.gettempdir(), 'hvac-drc.json')
+    subprocess.run([CLI, 'pcb', 'drc', '--format', 'json', '-o', out, pcb], capture_output=True)
+    d = json.load(open(out, encoding='utf-8'))
+    bad = set()
+    for v in d['violations'] + d['unconnected_items']:
+        if v.get('type', 'unconnected_items') not in ('starved_thermal', 'unconnected_items'):
+            continue
+        for item in v['items']:
+            m = re.match(r'(?:PTH )?[Pp]ad (\S+) \[GND\] of (\S+)', item['description'])
+            if m:
+                bad.add((m.group(2), m.group(1)))
+    return bad
+
+
+def zone_fragments(pcb):
+    import json
+    import subprocess
+    import tempfile
+    out = os.path.join(tempfile.gettempdir(), 'hvac-drc.json')
+    subprocess.run([CLI, 'pcb', 'drc', '--format', 'json', '-o', out, pcb], capture_output=True)
+    d = json.load(open(out, encoding='utf-8'))
+    return sum(1 for v in d['unconnected_items']
+               if all(i['description'].startswith('Zone') for i in v['items']))
+
+
+def fix_ground(name):
+    """THT ground pads the pours can't reach with 90 degree spokes: try 45 degree spokes, then
+    a solid connection (still hand-solderable on a 2-layer 1 oz board)."""
+    pcb = paths(name)[0]
+    # pour fragments that touch no pad: a finer, offset grid of stitching vias
+    for pitch, off in ((2.5, 1.25), (1.6, 0.4)):
+        if not zone_fragments(pcb):
+            break
+        board = pcbnew.LoadBoard(pcb)
+        print(f'extra stitching vias ({pitch} mm):', stitch_ground(board, pitch=pitch, offset=off))
+        pcbnew.ZONE_FILLER(board).Fill(board.Zones())
+        pcbnew.SaveBoard(pcb, board)
+    for step in ('spokes45', 'solid', 'check'):
+        bad = ground_problems(pcb)
+        if not bad or step == 'check':
+            print('ground pads still unresolved:', sorted(bad) or 'none')
+            return
+        board = pcbnew.LoadBoard(pcb)
+        for ref, num in sorted(bad):
+            for pad in board.FindFootprintByReference(ref).Pads():
+                if pad.GetNumber() != num:
+                    continue
+                if step == 'spokes45':
+                    pad.SetThermalSpokeAngleDegrees(45)
+                else:
+                    pad.SetLocalZoneConnection(pcbnew.ZONE_CONNECTION_FULL)
+        print(step, sorted(bad))
+        pcbnew.ZONE_FILLER(board).Fill(board.Zones())
+        pcbnew.SaveBoard(pcb, board)
 
 
 if __name__ == '__main__':

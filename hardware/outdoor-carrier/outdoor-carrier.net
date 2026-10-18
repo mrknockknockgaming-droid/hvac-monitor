@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "C:\\Users\\mrkno\\hvac-monitor\\hardware\\outdoor-carrier\\outdoor-carrier.kicad_sch")
-		(date "2026-10-17T18:25:56")
+		(date "2026-10-17T18:55:26")
 		(tool "Eeschema 10.0.6")
 		(sheet
 			(number "1")
@@ -93,7 +93,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "78311d3b-ed1f-4312-a1f3-ab2ad25dd2ac")
+			(tstamps "215730b2-4575-46cb-a5ba-00c512f7847f")
 			(units
 				(unit
 					(name "A")
@@ -147,7 +147,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "bc5bb831-2992-4aa7-af23-393afe91615b")
+			(tstamps "63f6b7ee-a5a5-4909-984c-4c56e633126d")
 			(units
 				(unit
 					(name "A")
@@ -201,7 +201,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5574a6fb-d47d-4906-b730-941ea7d62c58")
+			(tstamps "270db93b-a94d-4b41-a8d8-f12c46594be7")
 			(units
 				(unit
 					(name "A")
@@ -255,7 +255,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "9540619d-63cf-4203-9af5-516066f80754")
+			(tstamps "b5c4adb4-287e-4534-9eed-5717fcd35ca7")
 			(units
 				(unit
 					(name "A")
@@ -309,7 +309,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0c091b3b-3a08-4b52-96ef-9830c01aa9cf")
+			(tstamps "74b5e5f1-51c5-4df6-92c1-b70119c8fcfa")
 			(units
 				(unit
 					(name "A")
@@ -363,7 +363,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "57b44c94-3349-4a01-a008-61d911e7c002")
+			(tstamps "ad37c0c3-a827-4fd1-8a78-a81a3386c40c")
 			(units
 				(unit
 					(name "A")
@@ -417,7 +417,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f6fd4260-04b2-4f61-8ba5-ebaf7df82d66")
+			(tstamps "5e8ef270-a1f0-4c19-b4e1-5e930c22a751")
 			(units
 				(unit
 					(name "A")
@@ -471,7 +471,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "61d0232f-a832-4797-9c87-079c0f43062b")
+			(tstamps "4cbe9678-77f1-4fba-8fef-eb749fbfd630")
 			(units
 				(unit
 					(name "A")
@@ -525,7 +525,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "182d1bff-2ecd-41c9-9fd1-46d0a2888c46")
+			(tstamps "8dc53bbf-46d4-4fa4-bbf9-ab8fdbc56bac")
 			(units
 				(unit
 					(name "A")
@@ -579,7 +579,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "8139db61-7488-44bb-9d8d-e952e912097a")
+			(tstamps "eedfc388-9009-43f2-9515-daaca18d9790")
 			(units
 				(unit
 					(name "A")
@@ -633,7 +633,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0edf7f5d-9321-4b66-9f58-c4a7165d6a68")
+			(tstamps "bb0a36f3-ab30-4a16-8081-268d53f5901f")
 			(units
 				(unit
 					(name "A")
@@ -651,10 +651,10 @@
 		(comp
 			(ref "C12")
 			(value "10nF")
-			(footprint "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm")
+			(footprint "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder")
 			(fields
 				(field
-					(name "Footprint") "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm")
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder")
 				(field
 					(name "Datasheet")
 				)
@@ -687,7 +687,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b0ad6972-26a1-45ce-9fb5-cd989505a3e0")
+			(tstamps "81abb876-c3b6-47fb-bb61-4e58758a886e")
 			(units
 				(unit
 					(name "A")
@@ -705,10 +705,10 @@
 		(comp
 			(ref "C13")
 			(value "10nF")
-			(footprint "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm")
+			(footprint "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder")
 			(fields
 				(field
-					(name "Footprint") "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm")
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder")
 				(field
 					(name "Datasheet")
 				)
@@ -741,7 +741,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a97cf528-6028-4e2f-bb47-45e47bde02a9")
+			(tstamps "ed766ab7-f8e4-41b8-8585-6ca04e028fdb")
 			(units
 				(unit
 					(name "A")
@@ -759,10 +759,10 @@
 		(comp
 			(ref "C14")
 			(value "10nF")
-			(footprint "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm")
+			(footprint "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder")
 			(fields
 				(field
-					(name "Footprint") "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm")
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder")
 				(field
 					(name "Datasheet")
 				)
@@ -795,7 +795,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ccfd9936-7892-4a1d-a4a4-53d053163d5a")
+			(tstamps "46d3d67b-198b-429c-a030-9e21d1bc1491")
 			(units
 				(unit
 					(name "A")
@@ -849,7 +849,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1cb36f2f-ae83-4a3f-9a70-3005fc40564f")
+			(tstamps "db905155-4c98-409a-82ec-6c5b6b5fa505")
 			(units
 				(unit
 					(name "A")
@@ -903,7 +903,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "3a8b0a74-0495-4665-9964-9ac79f52c616")
+			(tstamps "2a763c8a-1bb9-4fc0-ad82-62d0b372a3bc")
 			(units
 				(unit
 					(name "A")
@@ -957,7 +957,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6fecb490-66c6-457c-a396-fe519431c777")
+			(tstamps "29ebb8e6-efe9-44fe-b4eb-bd1b7fc18573")
 			(units
 				(unit
 					(name "A")
@@ -1011,7 +1011,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1639982a-3f33-4668-9846-f1a6af3593a7")
+			(tstamps "7633a6d3-b7db-4f04-8c62-d1fa587f18d4")
 			(units
 				(unit
 					(name "A")
@@ -1065,7 +1065,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "cbde6832-57d8-464f-9fc2-ad184f46eaa9")
+			(tstamps "9923133c-4405-45cc-831f-003a0cd7b3d6")
 			(units
 				(unit
 					(name "A")
@@ -1119,7 +1119,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7581e609-0061-4b91-9a5c-6df39b054de3")
+			(tstamps "b6755cf9-d10c-4b5a-aab9-2feb3d13e501")
 			(units
 				(unit
 					(name "A")
@@ -1176,7 +1176,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "934c9103-292b-4af2-af0c-838ab31ec040")
+			(tstamps "02492283-a684-46fb-bfd2-36948868016c")
 			(units
 				(unit
 					(name "A")
@@ -1226,7 +1226,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "01d10f0e-bed0-4912-ac6b-a4081e6b704d")
+			(tstamps "7e3a6982-e8ce-473a-bda3-a6075f56b9b5")
 			(units
 				(unit
 					(name "A")
@@ -1276,7 +1276,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "772f1059-09b4-4827-889b-d75acac86cf2")
+			(tstamps "525e1491-2dfb-4419-a153-413d7f64a873")
 			(units
 				(unit
 					(name "A")
@@ -1326,7 +1326,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "dfd25211-4f7f-4c99-b3f8-61f28574d148")
+			(tstamps "77809ec0-a9a2-4664-9a53-da8a3562608b")
 			(units
 				(unit
 					(name "A")
@@ -1379,7 +1379,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1a65e9eb-7b0a-4d04-9e7e-f0fa94584b52")
+			(tstamps "3ea66c02-0fd6-4093-b06f-a41e0055d3ca")
 			(units
 				(unit
 					(name "A")
@@ -1439,7 +1439,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c2cad1be-3098-432a-b1df-a773666bfc8c")
+			(tstamps "cc0ebbf8-d246-4349-bd62-0868e1140e80")
 			(units
 				(unit
 					(name "A")
@@ -1499,7 +1499,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "950001b4-db5b-4f6a-8d70-192ea581c56d")
+			(tstamps "d80af959-3254-4ec3-bfab-279c5092c43b")
 			(units
 				(unit
 					(name "A")
@@ -1562,7 +1562,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "8c23407f-68a0-469c-9269-e07066cf43b4")
+			(tstamps "da59ab7b-61a9-4d2a-b481-0950c067218b")
 			(units
 				(unit
 					(name "A")
@@ -1625,7 +1625,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "eee2c6f4-f324-4cf2-929f-ba61d0a351ed")
+			(tstamps "83a673ef-c155-433a-9a4a-3622353e9355")
 			(units
 				(unit
 					(name "A")
@@ -1688,7 +1688,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c8888d77-35a2-4ebb-aa7a-d9f2326ddc4c")
+			(tstamps "24e58fb6-f2de-4364-99bb-19ddbcb0e8fe")
 			(units
 				(unit
 					(name "A")
@@ -1748,7 +1748,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6b44b0d6-5beb-44d4-a8cc-a1cfb4e0a035")
+			(tstamps "8c637dbd-d081-42fe-98f5-e4b9c5357af7")
 			(units
 				(unit
 					(name "A")
@@ -1808,7 +1808,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "664511a6-5dc2-42c0-92f9-713dbfdc2614")
+			(tstamps "734d3e31-929a-4c37-9c40-0f41ac25e4b2")
 			(units
 				(unit
 					(name "A")
@@ -1874,7 +1874,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "4e70a5e2-208b-43fa-81fe-3364e0d66461")
+			(tstamps "849b0dd0-eaa3-48bd-9e5d-773d9cf536af")
 			(units
 				(unit
 					(name "A")
@@ -1934,7 +1934,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "dea15844-f1c3-45c9-a398-26f9f6f912f3")
+			(tstamps "d627f66b-ab10-4354-8c89-5422e0a681ce")
 			(units
 				(unit
 					(name "A")
@@ -1952,10 +1952,10 @@
 		(comp
 			(ref "J11")
 			(value "CT1 compressor")
-			(footprint "Connector_Audio:Jack_3.5mm_CUI_SJ1-3523N_Horizontal")
+			(footprint "hvac_carrier:Jack_3.5mm_CUI_SJ1-3523N_Horizontal_EdgeTrim")
 			(fields
 				(field
-					(name "Footprint") "Connector_Audio:Jack_3.5mm_CUI_SJ1-3523N_Horizontal")
+					(name "Footprint") "hvac_carrier:Jack_3.5mm_CUI_SJ1-3523N_Horizontal_EdgeTrim")
 				(field
 					(name "Datasheet")
 				)
@@ -1988,7 +1988,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "17da0cda-b0ad-44a4-995c-dd16c6bc9abc")
+			(tstamps "8699926a-5778-4a3f-ac88-177dd49af9de")
 			(units
 				(unit
 					(name "A")
@@ -2009,10 +2009,10 @@
 		(comp
 			(ref "J12")
 			(value "CT2 fan")
-			(footprint "Connector_Audio:Jack_3.5mm_CUI_SJ1-3523N_Horizontal")
+			(footprint "hvac_carrier:Jack_3.5mm_CUI_SJ1-3523N_Horizontal_EdgeTrim")
 			(fields
 				(field
-					(name "Footprint") "Connector_Audio:Jack_3.5mm_CUI_SJ1-3523N_Horizontal")
+					(name "Footprint") "hvac_carrier:Jack_3.5mm_CUI_SJ1-3523N_Horizontal_EdgeTrim")
 				(field
 					(name "Datasheet")
 				)
@@ -2045,7 +2045,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ed2cef2f-cdd8-4e21-bef2-28e7db4dcf10")
+			(tstamps "382ad985-8515-457a-89fd-7068cd0f95a4")
 			(units
 				(unit
 					(name "A")
@@ -2066,10 +2066,10 @@
 		(comp
 			(ref "J13")
 			(value "CT3 HERM")
-			(footprint "Connector_Audio:Jack_3.5mm_CUI_SJ1-3523N_Horizontal")
+			(footprint "hvac_carrier:Jack_3.5mm_CUI_SJ1-3523N_Horizontal_EdgeTrim")
 			(fields
 				(field
-					(name "Footprint") "Connector_Audio:Jack_3.5mm_CUI_SJ1-3523N_Horizontal")
+					(name "Footprint") "hvac_carrier:Jack_3.5mm_CUI_SJ1-3523N_Horizontal_EdgeTrim")
 				(field
 					(name "Datasheet")
 				)
@@ -2102,7 +2102,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0ee74b6b-c7c2-4961-9fa6-4da00b776115")
+			(tstamps "c57fe037-874d-48af-982a-33e7d25c6849")
 			(units
 				(unit
 					(name "A")
@@ -2159,7 +2159,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "76f457f9-d7e7-4908-879d-cd0a0f3d5850")
+			(tstamps "c1e30503-ced4-4f7b-ba5a-b3bda330ea84")
 			(units
 				(unit
 					(name "A")
@@ -2213,7 +2213,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "451e7806-068a-4fe4-b17c-b711abbbff3e")
+			(tstamps "32991d7a-4087-4452-a6f4-2a91089ebe1b")
 			(units
 				(unit
 					(name "A")
@@ -2267,7 +2267,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "41644c0f-92ed-442c-b677-f3907e439917")
+			(tstamps "5ac5fba3-65e1-4e56-84ca-748ab28fb823")
 			(units
 				(unit
 					(name "A")
@@ -2321,7 +2321,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e9982de4-047e-4751-8c74-ebc00dcc7d02")
+			(tstamps "ea250ab3-ad45-444d-ab91-efd0f27a5610")
 			(units
 				(unit
 					(name "A")
@@ -2375,7 +2375,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "148881c1-01bb-469c-a6bd-a88b224440fe")
+			(tstamps "e2acc507-0c12-4d61-abd7-f941c9e54b30")
 			(units
 				(unit
 					(name "A")
@@ -2429,7 +2429,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "86a6e1e8-a573-4d1e-bb42-6b2467576686")
+			(tstamps "2cb61f9e-3614-40e2-8c75-8afc4af8bd7f")
 			(units
 				(unit
 					(name "A")
@@ -2483,7 +2483,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "cbaf6ddd-95dc-4c23-8fc4-713915ddc28d")
+			(tstamps "c3da0727-c12b-4bc9-adbe-ff2894817bd1")
 			(units
 				(unit
 					(name "A")
@@ -2537,7 +2537,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "40e38e64-f430-4fb4-92ac-9924ad27e957")
+			(tstamps "a40136b4-efa1-4c54-8c2f-430f1af8335d")
 			(units
 				(unit
 					(name "A")
@@ -2591,7 +2591,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d52b7dc3-b811-4693-a2d5-aadd94057d14")
+			(tstamps "196d205b-847a-4f34-87ff-9caef1493e4c")
 			(units
 				(unit
 					(name "A")
@@ -2645,7 +2645,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c063e3ca-a59b-41f9-9df8-82fd94dfeb54")
+			(tstamps "067d0e56-214d-490b-a361-a2dbb55ca368")
 			(units
 				(unit
 					(name "A")
@@ -2699,7 +2699,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "3a460187-2cb8-408d-adb9-901c4bf44b07")
+			(tstamps "2320246f-9ec7-4287-a94a-d3f479abae33")
 			(units
 				(unit
 					(name "A")
@@ -2753,7 +2753,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "87736326-b0c0-41a6-9ae7-3d549bd290b4")
+			(tstamps "5a9374ff-fe5e-4db3-9efb-ad7a3ed80783")
 			(units
 				(unit
 					(name "A")
@@ -2807,7 +2807,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f3d9722a-df98-4ab7-bf73-4ba7f775e97d")
+			(tstamps "609fd2df-eeb1-48ea-9626-ceabc45b37ee")
 			(units
 				(unit
 					(name "A")
@@ -2861,7 +2861,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f74e088d-26fc-4c21-abfb-dbae2e16f773")
+			(tstamps "393d0ec9-ddcd-4097-811e-5bc9d2d186ca")
 			(units
 				(unit
 					(name "A")
@@ -2915,7 +2915,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "36687ef7-ed24-4f8d-834a-a0ca640eb673")
+			(tstamps "36dfa875-7ea4-4289-8486-917e89491273")
 			(units
 				(unit
 					(name "A")
@@ -2969,7 +2969,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "51e2ac42-3a46-4ee7-882a-39361b7a194c")
+			(tstamps "8a910b33-f405-41af-abf6-abd7ad20da54")
 			(units
 				(unit
 					(name "A")
@@ -2987,10 +2987,10 @@
 		(comp
 			(ref "R17")
 			(value "10k 1%")
-			(footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+			(footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
 			(fields
 				(field
-					(name "Footprint") "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
 				(field
 					(name "Datasheet")
 				)
@@ -3023,7 +3023,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c8ffe0cb-f581-4d66-a543-02a4277fa3bf")
+			(tstamps "2d174406-dacc-4b95-9e27-2d01475666ca")
 			(units
 				(unit
 					(name "A")
@@ -3041,10 +3041,10 @@
 		(comp
 			(ref "R18")
 			(value "6.8k 1%")
-			(footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+			(footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
 			(fields
 				(field
-					(name "Footprint") "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
 				(field
 					(name "Datasheet")
 				)
@@ -3077,7 +3077,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1da0f582-09db-4a23-be32-fbb45306a13c")
+			(tstamps "dbef166f-95e0-4260-a42a-31cc98c8fabe")
 			(units
 				(unit
 					(name "A")
@@ -3095,10 +3095,10 @@
 		(comp
 			(ref "R19")
 			(value "18 1%")
-			(footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+			(footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
 			(fields
 				(field
-					(name "Footprint") "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
 				(field
 					(name "Datasheet")
 				)
@@ -3131,7 +3131,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e69cac76-8a07-453a-ae49-8f55b1adc3cc")
+			(tstamps "37803b2b-c659-4188-9dc3-d497e00dd121")
 			(units
 				(unit
 					(name "A")
@@ -3149,10 +3149,10 @@
 		(comp
 			(ref "R20")
 			(value "1k")
-			(footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+			(footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
 			(fields
 				(field
-					(name "Footprint") "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
 				(field
 					(name "Datasheet")
 				)
@@ -3185,7 +3185,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "54ee8147-434b-41f9-9114-a6362f23c1b8")
+			(tstamps "517b933f-49fc-44fa-9a12-e5ce5094c7cf")
 			(units
 				(unit
 					(name "A")
@@ -3203,10 +3203,10 @@
 		(comp
 			(ref "R21")
 			(value "DNP")
-			(footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+			(footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
 			(fields
 				(field
-					(name "Footprint") "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
 				(field
 					(name "Datasheet")
 				)
@@ -3242,7 +3242,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a813a5f9-b2b0-4dae-8065-18ca195401a7")
+			(tstamps "65f7de5c-8227-4b68-af54-42029d5c075c")
 			(units
 				(unit
 					(name "A")
@@ -3260,10 +3260,10 @@
 		(comp
 			(ref "R22")
 			(value "1k")
-			(footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+			(footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
 			(fields
 				(field
-					(name "Footprint") "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
 				(field
 					(name "Datasheet")
 				)
@@ -3296,7 +3296,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7dd46277-f9ab-4132-8d83-a3fdadfd5963")
+			(tstamps "b5a6c7dd-6a6d-4512-ae76-3a790a6e6a98")
 			(units
 				(unit
 					(name "A")
@@ -3314,10 +3314,10 @@
 		(comp
 			(ref "R23")
 			(value "DNP")
-			(footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+			(footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
 			(fields
 				(field
-					(name "Footprint") "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
 				(field
 					(name "Datasheet")
 				)
@@ -3353,7 +3353,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "9705281a-c7fa-4722-b77f-390166889755")
+			(tstamps "59a2f42f-2156-4e0b-8395-628bcc56ea6d")
 			(units
 				(unit
 					(name "A")
@@ -3371,10 +3371,10 @@
 		(comp
 			(ref "R24")
 			(value "1k")
-			(footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+			(footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
 			(fields
 				(field
-					(name "Footprint") "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
 				(field
 					(name "Datasheet")
 				)
@@ -3407,7 +3407,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f532fa45-227f-4e0d-b9e6-7c18db11a1a6")
+			(tstamps "c081f9f9-77c4-4c69-a8dd-7f5e851c3d9d")
 			(units
 				(unit
 					(name "A")
@@ -3457,7 +3457,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "3166f833-6c4a-46c0-b679-59ec201b43a3")
+			(tstamps "5136d2e6-5725-4782-87a9-2fd5cbe7d547")
 			(units
 				(unit
 					(name "A")
@@ -3503,7 +3503,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c5d4cae3-c216-491f-827f-c4b8c04d3834")
+			(tstamps "788a4d6b-9c13-4163-8e2e-2845072179d9")
 			(units
 				(unit
 					(name "A")
@@ -3633,7 +3633,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "16b48e6f-3907-43c6-8fa3-c9774c05b289")
+			(tstamps "a34acc91-d1ff-40fe-9aa2-74936c2f93d3")
 			(units
 				(unit
 					(name "A")
@@ -3685,7 +3685,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c05687ae-e401-4700-9b99-603e78892f08")
+			(tstamps "9f18ab0f-549e-412f-8b0b-5f42ebed3f55")
 			(units
 				(unit
 					(name "A")
@@ -3755,7 +3755,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0e663e8c-3b74-4c08-8c83-340142719b9d")
+			(tstamps "3f9676f0-08b2-47d7-91a4-3db4b1523b1b")
 			(units
 				(unit
 					(name "A")
@@ -3833,7 +3833,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "36a900e7-1852-408a-8b1f-43f1f973cf17")
+			(tstamps "dced32ea-3163-4f57-a511-1ba8a54b6d86")
 			(units
 				(unit
 					(name "A")
@@ -3899,7 +3899,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d5712b78-b0d0-45b3-955d-93ed87196823")
+			(tstamps "6d818298-bc4d-4eb8-88e4-67972057b652")
 			(units
 				(unit
 					(name "A")
@@ -3957,7 +3957,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f6ed1c1a-b8e1-438a-94cd-74fe025c3bc1")
+			(tstamps "116b85bf-20c6-4383-947c-30150dacafbc")
 			(units
 				(unit
 					(name "A")
@@ -4041,7 +4041,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5adc0696-4c3e-4d5e-b21c-c2314b893a02")
+			(tstamps "0f53fa8e-fe69-450c-ae23-68f4f82ac1a2")
 			(units
 				(unit
 					(name "A")
@@ -5132,7 +5132,7 @@
 		(net
 			(code "3")
 			(name "/+3V3_RF")
-			(class "Default")
+			(class "Rail3V3")
 			(node
 				(ref "C16")
 				(pin "1")
@@ -5159,7 +5159,7 @@
 		(net
 			(code "4")
 			(name "/CT1_ADC")
-			(class "Default")
+			(class "Analog")
 			(node
 				(ref "C12")
 				(pin "1")
@@ -5180,7 +5180,7 @@
 		(net
 			(code "5")
 			(name "/CT1_IN")
-			(class "Default")
+			(class "Analog")
 			(node
 				(ref "J11")
 				(pin "T")
@@ -5200,7 +5200,7 @@
 		(net
 			(code "6")
 			(name "/CT2_ADC")
-			(class "Default")
+			(class "Analog")
 			(node
 				(ref "C13")
 				(pin "1")
@@ -5221,7 +5221,7 @@
 		(net
 			(code "7")
 			(name "/CT2_IN")
-			(class "Default")
+			(class "Analog")
 			(node
 				(ref "J12")
 				(pin "T")
@@ -5241,7 +5241,7 @@
 		(net
 			(code "8")
 			(name "/CT3_ADC")
-			(class "Default")
+			(class "Analog")
 			(node
 				(ref "C14")
 				(pin "1")
@@ -5262,7 +5262,7 @@
 		(net
 			(code "9")
 			(name "/CT3_IN")
-			(class "Default")
+			(class "Analog")
 			(node
 				(ref "J13")
 				(pin "T")
@@ -5282,7 +5282,7 @@
 		(net
 			(code "10")
 			(name "/CT_BIAS")
-			(class "Default")
+			(class "Analog")
 			(node
 				(ref "C11")
 				(pin "1")
