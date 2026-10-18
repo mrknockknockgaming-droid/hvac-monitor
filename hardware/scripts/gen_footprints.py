@@ -170,7 +170,6 @@ def wio_sx1262():
     items.append(line(x0 - 0.12, y0 + 0.6, x0 - 0.12, -y0 - 0.6, SILK))
     items.append(line(-x0 + 0.12, y0 + 0.6, -x0 + 0.12, -y0 - 0.6, SILK))
     items.append(circle(x0 + 1.33, H / 2 + L_OUT + 0.6, 0.25, SILK))
-    items.append(text('1', x0 - 0.9, H / 2 + 1.0, SILK, 0.8))
     # u.FL receptacle (corner beside pin 9) and room for the mated plug and pigtail
     ux, uy = 3.9, -3.7
     items.append(circle(ux, uy, 1.3, FAB))
