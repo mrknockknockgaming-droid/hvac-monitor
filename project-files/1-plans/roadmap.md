@@ -73,7 +73,7 @@ Phases run in order. Customer discovery and IP protection run alongside the buil
 - [ ] Buy 3 SDP810-500Pa sensors, tubing and static taps; fit taps in both plenums and on both sides of the filter, wire to mux channels 2-4, flash the indoor node and zero with the blower off
 - [x] SHT45 supply and return humidity, software side (Oct 17): indoor firmware 0.2.1 finds a TCA9548A on J5 by itself (return probe on channel 0, supply on 1); the web app shows RH, wet bulb, dew point and enthalpy, with a Humidity probes panel (swap, calibration) on Sensors & calibration
 - [ ] Buy 2 SHT45 probes and a TCA9548A, solder a terminal into the indoor board's J5, fit the probes in the return and supply, and flash the indoor node
-- [x] Update firmware and schematics to rev B (merged Oct 18): both boards get the Wio-SX1262 LoRa module and a SETUP button; outdoor adds the discharge thermistor and three clamp-on current sensor jacks (firmware 0.3.0 reads them); indoor has the sensor hub on board. Not ordered yet
+- [x] Update firmware and schematics to rev B (merged Oct 18): both boards get the Wio-SX1262 LoRa module and a SETUP button; outdoor adds the discharge thermistor and three clamp-on current sensor jacks (firmware 0.3.0 reads them); indoor has the sensor hub on board. Order files released as hardware-rev-b (Oct 18); not ordered yet
 
 ## Phase 7: Cloud stack, running locally
 
