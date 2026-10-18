@@ -6,3 +6,4 @@ Caddyfile text eol=lf
 # systemd units installed into the LXC
 *.service text eol=lf
 deploy/lxc/fullscope-manage text eol=lf
+deploy/lxc/fullscope-tunnel-token text eol=lf

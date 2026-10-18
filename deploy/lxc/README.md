@@ -26,6 +26,7 @@ public server later (roadmap step 8), but it isn't needed here.
 | `install.sh` | in the container | Installs packages and the app, writes the settings file once, sets up Mosquitto and the services. Safe to re-run; data and settings are kept |
 | `fullscope-*.service` | in the container | The two systemd services (`python/` has the Python versions, used with `-Python`) |
 | `fullscope-manage` | in the container | `fullscope manage` with the container's settings, e.g. `fullscope-manage list` |
+| `fullscope-tunnel.service`, `fullscope-tunnel-token` | in the container | Cloudflare Tunnel to the web app, and the hidden prompt that saves its token (Going live, below) |
 
 ## The C# build
 
@@ -107,3 +108,35 @@ Restore a backup: `systemctl stop fullscope-ingest fullscope-api`, copy the back
 `/var/lib/fullscope/dev.db`, delete `dev.db-wal` and `dev.db-shm` next to it,
 `chown fullscope:fullscope /var/lib/fullscope/dev.db`, start both services. Proxmox backups
 (`vzdump`) of container 120 also capture everything.
+
+## Going live from home (Cloudflare Tunnel)
+
+The web app goes on the internet through a Cloudflare Tunnel: no router port is opened for it,
+your home IP stays hidden, and it works behind CGNAT. Cloudflare serves HTTPS; the tunnel carries
+it to port 8000 in the container.
+
+1. Domain on Cloudflare (nameservers moved, status Active). SSL/TLS > Overview: **Full (strict)**.
+2. Zero Trust > Networks > Tunnels > **Create a tunnel** > Cloudflared, name it e.g. `fullscope`.
+   Copy the token (the long string after `--token` / `service install`); skip installing a connector.
+   Then **Public hostname** > add: subdomain `app` (or your choice), your domain,
+   service **HTTP** `localhost:8000`.
+3. In the container (`pct enter 120`): `nano /etc/fullscope/fullscope.env`, set
+   `PUBLIC_HOST=app.example.com`, then `bash /root/fullscope-src/deploy/lxc/install.sh` and
+   `fullscope-tunnel-token` (paste the token; it isn't shown or saved in the history).
+4. Open `https://app.example.com/app/`. `APP_URL` (links in emails and invites) and
+   `COOKIE_SECURE` follow `PUBLIC_HOST`; with the cookie HTTPS-only, sign in at the https address,
+   also at home (`http://<ip>:8000` no longer keeps you signed in).
+
+The nodes in your own house keep using port 1883 on your network: nothing changes for them.
+
+**Boards in other homes** need MQTT over the internet, which the free tunnel doesn't carry:
+- a real public IP on your router (not CGNAT: the router's WAN IP must match whatismyip.com);
+- broker passwords on (Everyday commands, below) and a reflash of every node with them;
+- `MQTT_PUBLIC_HOST=mqtt.example.com` in the settings file, then re-run install.sh: it makes a
+  private CA and the broker certificate in `/etc/fullscope/tls/` and adds a TLS listener on 8883.
+  `ca.crt` goes into the firmware as `MQTT_CA_CERT`; **copy `ca.key` off the box** (without it
+  a renewed certificate means reflashing every node);
+- in Cloudflare DNS an `A` record `mqtt` to your public IP, **DNS only** (grey cloud), and the
+  router forwarding TCP 8883 to the container. Never forward 1883 or 8000.
+
+Clearing `PUBLIC_HOST` stops the tunnel; set `COOKIE_SECURE=false` and `APP_URL` back by hand.
