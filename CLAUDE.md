@@ -79,7 +79,7 @@ temperatures, superheat, subcooling and delta-T.
   - Rev B (2026-10-18, branch claude/rev-b; Tyler: "everything the final product has", still a
     hand-built carrier with plug-in modules): both boards get a Wio-SX1262 LoRa module on its own
     AMS1117-3.3 (VSPI: NSS 5, DIO1 26, NRST 27, BUSY 25, RF_SW 13) with u.FL to an SMA bulkhead,
-    and a SETUP button on GPIO14 (reserved for BLE setup, no firmware yet). Outdoor: 10k dividers
+    and a SETUP button on GPIO14 (Bluetooth WiFi setup, fw 0.3.1). Outdoor: 10k dividers
     (firmware default), J10 discharge thermistor (t_dis), three SCT-013 CT jacks J11-J13 (CT1
     compressor VP, CT2 fan VN, CT3 HERM GPIO32; CT_BIAS 1.34 V). Indoor: on-board TCA9548A with
     JST-XH 4-pin jacks for SHT45 ch 0/1 and SDP810 ch 2-4. Rev B source = design.py + generated
@@ -88,6 +88,10 @@ temperatures, superheat, subcooling and delta-T.
     rev B; `hardware/route-all.sh` repeats Freerouting until DRC is clean (results vary per run), and
     `scripts/make_fab.py` writes gerbers/zip, BOM, renders, PDFs and reports. Enclosure STLs/PNGs are
     still rev A until re-exported with OpenSCAD (commands in hardware/enclosures/README.md).
+  - SETUP button (fw 0.3.1, `src/setup_ble.cpp`): hold 3 s -> restart into BLE provisioning (WiFiProv,
+    security 1, Espressif "ESP BLE Provisioning" app, 10 min); setup code = random 8 chars in NVS
+    printed on serial at boot; the joined network is saved in NVS (wifi.ssid/pass) and overrides
+    config.h. Needs the min_spiffs partition table (1.9 MB app slots): one USB flash from 0.3.0.
   - CT inputs (fw 0.3.0, `src/ct.cpp`, maths in `include/ct_math.h`, host test in
     tools/host_tests): RMS every 2 s at 3 kHz/channel, 1.5 s compressor-start capture on the Y
     rising edge; the outdoor node publishes them as the `electrical` node every 5 s (WiFi only;

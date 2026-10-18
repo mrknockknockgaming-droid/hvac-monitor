@@ -2,7 +2,7 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 
-#define FW_VERSION "0.3.0"
+#define FW_VERSION "0.3.1"
 
 #if defined(NODE_OUTDOOR)
   #define NODE_NAME "outdoor"
@@ -16,7 +16,7 @@
 #define PIN_SDA   21
 #define PIN_SCL   22
 #define PIN_LED    2
-#define PIN_SETUP 14   // rev B SETUP button to GND (reserved for phone/BLE setup; not acted on yet)
+#define PIN_SETUP 14   // rev B SETUP button to GND: hold 3 s for Bluetooth WiFi setup (setup_ble.cpp)
 
 // Implemented by node_outdoor.cpp or node_indoor.cpp
 void nodeSetup();

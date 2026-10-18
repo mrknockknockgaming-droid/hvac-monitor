@@ -9,6 +9,8 @@ bool     setGetB(const char* key, bool def);
 void     setPutB(const char* key, bool v);
 uint32_t setGetU(const char* key, uint32_t def);
 void     setPutU(const char* key, uint32_t v);
+String   setGetS(const char* key, const char* def);
+void     setPutS(const char* key, const String& v);
 void     setClear(const char* key);
 
 // Linear calibration: value = raw * scale + offset. Keys stored as "<name>.o" / "<name>.s"

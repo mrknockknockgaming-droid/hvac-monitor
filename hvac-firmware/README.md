@@ -66,6 +66,24 @@ With an SX1262 module wired up (pins in `config.example.h`), set `LORA_ENABLED 1
 site's LoRa gateway (`radio/README.md`), which republishes everything on the usual MQTT topics.
 Readings carry no `ts` (the gateway stamps them), and over-the-air updates need WiFi.
 
+### WiFi setup with the SETUP button (0.3.1, rev B boards)
+Hold SETUP (GPIO14 to GND) for 3 s, at power-up or while running. The node restarts into setup
+mode: the LED blinks twice a second and it advertises `PROV_hvac-<node>-XXXX` over Bluetooth for
+10 minutes. In Espressif's **ESP BLE Provisioning** app (Android / iOS) pick that name, enter the
+node's **setup code** and choose the network. Once the node has joined it, it saves the network
+in flash and restarts; from then on it uses that network instead of `WIFI_SSID` / `WIFI_PASS`
+(status shows `"wifi_src":"setup"`). A wrong password is reported in the app; try again. With
+nothing saved, `config.h` is used as before.
+
+The setup code is 8 characters, made at random on first boot and kept in flash (it survives
+firmware updates; a full flash erase makes a new one). It is printed on serial at every boot
+(`[setup] hold SETUP 3 s ... (code XXXXXXXX)`): write it on the board's label. It is not
+derived from the MAC because the Bluetooth name gives the MAC away.
+
+Bluetooth makes the image about 1.7 MB, so 0.3.1 uses the `min_spiffs` partition table (two
+1.9 MB app slots, OTA kept). **A board still on the old table needs one USB flash** to switch;
+OTA from 0.3.0 can't. Builds: plain 87 %, TLS 94 %, LoRa 88 %.
+
 ## 3. Flash
 With **24 VAC disconnected**, plug the ESP32 into USB, then:
 ```
@@ -81,6 +99,7 @@ On boot the serial monitor shows which sensors were found, e.g.
 - Fast blink: no WiFi
 - Slow blink: WiFi OK, can't reach MQTT broker
 - Short flash every 3 s: all good
+- Two blinks a second: Bluetooth WiFi setup (SETUP button)
 
 ## 5. MQTT topics
 `hvac/<SITE_ID>/<node>/telemetry`, `/status` (retained, last-will), `/cmd`, `/reply`
