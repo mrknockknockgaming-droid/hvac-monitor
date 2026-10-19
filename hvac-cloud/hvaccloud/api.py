@@ -25,13 +25,14 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import func, select
 
-from . import alerts, auth, calc, display, electrical, equipment, gauge, report, service, settings, thermostat
-from .db import (Account, Alert, AlertMute, AlertPrefs, ApiKey, Command, Device, GaugeCheck, Invite, PasswordReset, ServiceInfo, ServiceVisit, Snapshot,
+from . import alerts, auth, calc, display, electrical, equipment, gauge, report, service, settings, thermostat, webpush
+from .db import (Account, Alert, AlertMute, AlertPrefs, ApiKey, Command, Device, GaugeCheck, Invite, PasswordReset, PushSubscription, ServiceInfo, ServiceVisit, Snapshot,
                  System, SystemMember, Telemetry, ThermostatConfig, User, as_utc, hash_key, init_db, make_engine,
                  session_factory, utcnow)
 from .refrigerants import FLUIDS, Tables
 
 mimetypes.add_type("font/woff", ".woff")   # Windows does not know it; StaticFiles uses mimetypes
+mimetypes.add_type("application/manifest+json", ".webmanifest")
 WEB_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "web")
 HISTORY_KEYS = ["p_low", "p_high", "sat_low", "sat_high", "t_suc", "t_liq", "sh", "sc", "oat", "t_sup", "t_ret", "dt"]
 INVITE_DAYS = 7
@@ -131,6 +132,13 @@ class CodeIn(BaseModel):
     code: str = Field(max_length=20)
 
 
+class PushIn(BaseModel):
+    """A browser's push subscription (PushSubscription.toJSON(): endpoint and keys.p256dh / keys.auth)."""
+    endpoint: str = Field(max_length=1000)
+    p256dh: str = Field(default="", max_length=200)
+    auth: str = Field(default="", max_length=100)
+
+
 class PasswordIn(BaseModel):
     current: str = Field(max_length=200)
     new: str = Field(max_length=200)
@@ -224,7 +232,7 @@ class CommandIn(BaseModel):
     cmd: dict
 
 
-def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mailer=None, send_async=True, tables=None):
+def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mailer=None, send_async=True, tables=None, push_post=None):
     if sessions is None:
         engine = make_engine()
         init_db(engine)
@@ -418,6 +426,51 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
         user.totp_secret = user.totp_on = user.totp_last_step = user.recovery_codes = None
         s.commit()
         return {"enabled": False}
+
+    # ---------- phone notifications (webpush.py) ----------
+    pusher = webpush.Pusher(sessions, **({"post": push_post} if push_post else {}))
+
+    @app.get("/api/push/key")
+    def push_key(who=Depends(principal), s=Depends(db)):
+        """This server's VAPID public key, which the browser needs to subscribe."""
+        password_user(s, who)
+        return {"public_key": webpush.vapid_keys(s, create=True)[1]}
+
+    @app.post("/api/push/subscribe")
+    def push_subscribe(body: PushIn, who=Depends(principal), s=Depends(db)):
+        user = password_user(s, who)
+        if not webpush.endpoint_ok(body.endpoint):
+            raise HTTPException(422, "That browser's push service isn't supported.")
+        try:
+            if len(webpush.unb64u(body.p256dh)) != 65 or len(webpush.unb64u(body.auth)) != 16:
+                raise ValueError
+        except (ValueError, TypeError):
+            raise HTTPException(422, "The browser sent keys that don't look right.")
+        sub = s.scalar(select(PushSubscription).where(PushSubscription.endpoint == body.endpoint))
+        if sub is None:
+            sub = PushSubscription(endpoint=body.endpoint)
+            s.add(sub)
+        sub.user_id, sub.p256dh, sub.auth = user.id, body.p256dh, body.auth
+        s.commit()
+        return {"ok": True, "devices": s.scalar(select(func.count()).select_from(PushSubscription).where(PushSubscription.user_id == user.id))}
+
+    @app.post("/api/push/unsubscribe")
+    def push_unsubscribe(body: PushIn, who=Depends(principal), s=Depends(db)):
+        user = password_user(s, who)
+        sub = s.scalar(select(PushSubscription).where(PushSubscription.endpoint == body.endpoint, PushSubscription.user_id == user.id))
+        if sub is not None:
+            s.delete(sub)
+            s.commit()
+        return {"ok": True}
+
+    @app.post("/api/push/test")
+    def push_test(who=Depends(principal), s=Depends(db)):
+        """Send a test notification to every browser this user turned notifications on in."""
+        user = password_user(s, who)
+        devices = s.scalar(select(func.count()).select_from(PushSubscription).where(PushSubscription.user_id == user.id))
+        sent = pusher.send_to_user(user.id, {"title": "Fullscope", "body": "Alert notifications are on for this device.",
+                                             "url": settings.APP_URL + "#/account", "tag": "fullscope-test"})
+        return {"sent": sent, "devices": devices}
 
     # ---------- forgotten password ----------
     def make_reset(s, user):
@@ -702,6 +755,8 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
             inv.invited_by = None
         for r in s.scalars(select(PasswordReset).where(PasswordReset.user_id == user.id)):
             s.delete(r)
+        for p in s.scalars(select(PushSubscription).where(PushSubscription.user_id == user.id)):
+            s.delete(p)
         for v in s.scalars(select(ServiceVisit).where(ServiceVisit.created_by == user.id)):
             v.created_by = None
         for c in s.scalars(select(GaugeCheck).where(GaugeCheck.created_by == user.id)):

@@ -27,6 +27,8 @@ public sealed class Db(DbContextOptions<Db> options) : DbContext(options)
     public DbSet<SystemMember> SystemMembers => Set<SystemMember>();
     public DbSet<Invite> Invites => Set<Invite>();
     public DbSet<PasswordReset> PasswordResets => Set<PasswordReset>();
+    public DbSet<PushSubscription> PushSubscriptions => Set<PushSubscription>();
+    public DbSet<ServerKey> ServerKeys => Set<ServerKey>();
     public DbSet<HvacSystem> Systems => Set<HvacSystem>();
     public DbSet<Device> Devices => Set<Device>();
     public DbSet<Telemetry> Telemetry => Set<Telemetry>();
@@ -139,6 +141,22 @@ public sealed class Db(DbContextOptions<Db> options) : DbContext(options)
             e.HasOne<Account>().WithMany().HasForeignKey(x => x.AccountId).OnDelete(DeleteBehavior.NoAction);
             e.HasOne<HvacSystem>().WithMany().HasForeignKey(x => x.SystemId).OnDelete(DeleteBehavior.NoAction);
             e.HasOne<User>().WithMany().HasForeignKey(x => x.InvitedBy).OnDelete(DeleteBehavior.NoAction);
+        });
+        b.Entity<PushSubscription>(e =>
+        {
+            e.ToTable("push_subscriptions");
+            e.HasIndex(x => x.Endpoint).IsUnique();
+            Len(e.Property(x => x.Endpoint), 1000);
+            Len(e.Property(x => x.P256dh), 200);
+            Len(e.Property(x => x.Auth), 100);
+            e.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.NoAction);
+        });
+        b.Entity<ServerKey>(e =>
+        {
+            e.ToTable("server_keys");
+            e.HasKey(x => x.Name);
+            Len(e.Property(x => x.Name), 64);
+            Len(e.Property(x => x.Value), 200);
         });
         b.Entity<PasswordReset>(e =>
         {

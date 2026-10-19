@@ -14,7 +14,7 @@ from email.message import EmailMessage
 from sqlalchemy import select
 
 from . import settings
-from .db import Account, Alert, AlertMute, AlertPrefs, ServiceInfo, Snapshot, SystemMember, User, as_utc
+from .db import Account, Alert, AlertMute, AlertPrefs, PushSubscription, ServiceInfo, Snapshot, SystemMember, User, as_utc
 
 log = logging.getLogger("alerts")
 
@@ -247,6 +247,60 @@ def emails_for(s, system, events, now, cooldown_s):
         for addr, who in to:
             subject, body = compose(system, a, kind, who)
             jobs.append((a.id if kind == "raised" else None, addr, subject, body))
+    return jobs
+
+
+def push_users(s, system):
+    """[(user id, "owner" | "contractor")] with notifications on in some browser: the system's homeowners and
+    its contractor's people, under the same switches as email (alert_prefs)."""
+    owners_on, contractor_on = wants(s, system.id)
+    out = []
+    if owners_on:
+        out += [(u, "owner") for u in s.scalars(select(SystemMember.user_id).where(SystemMember.system_id == system.id)
+                                                .order_by(SystemMember.user_id))]
+    if contractor_on:
+        out += [(u, "contractor") for u in s.scalars(select(User.id).where(User.account_id == system.account_id,
+                                                                            User.role == "contractor").order_by(User.id))]
+    subscribed = set(s.scalars(select(PushSubscription.user_id).distinct()))
+    return [(u, who) for u, who in out if u in subscribed]
+
+
+def push_message(system, a, kind, who):
+    """What the notification says: owners get plain words, contractors the technical text. `tag` makes a
+    later notification about the same problem replace the earlier one on the phone."""
+    raised = kind == "raised"
+    if who == "contractor":
+        title = f"{system.name}: {LEVEL_WORD.get(a.level, 'Alert') if raised else 'Cleared'}"
+        body, url = a.text, f"{settings.APP_URL}#/monitor/{system.id}"
+    else:
+        plain, why, todo = PLAIN.get(a.code, (a.text, "", ""))
+        title = f"{system.name}: {plain}" if raised else f"{system.name}: back to normal"
+        body, url = (todo or why or plain) if raised else plain, f"{settings.APP_URL}#/home/{system.id}"
+    return {"title": title, "body": body, "url": url, "tag": f"fullscope-{system.id}-{a.code}"}
+
+
+def pushes_for(s, system, events, now, cooldown_s):
+    """Notification jobs for these events: (alert id or None, user id, message), by the same rules as
+    emails_for, with pushed_at in place of emailed_at."""
+    if not events:
+        return []
+    to = push_users(s, system)
+    if not to:
+        return []
+    jobs = []
+    for kind, a in events:
+        if muted(s, system.id, a.code, now):
+            continue
+        if kind == "raised":
+            recent = s.scalar(select(Alert.id).where(
+                Alert.system_id == system.id, Alert.code == a.code, Alert.id != a.id,
+                Alert.pushed_at >= ts(now - cooldown_s)).limit(1))
+            if recent is not None:
+                continue
+        elif a.pushed_at is None or a.acked_at is not None:
+            continue
+        for user_id, who in to:
+            jobs.append((a.id if kind == "raised" else None, user_id, push_message(system, a, kind, who)))
     return jobs
 
 

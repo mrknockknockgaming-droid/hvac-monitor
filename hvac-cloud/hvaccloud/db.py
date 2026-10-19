@@ -81,6 +81,25 @@ class UserSession(Base):
     last_seen: Mapped[dt.datetime] = mapped_column(default=utcnow)
 
 
+class PushSubscription(Base):
+    """A browser or phone that turned alert notifications on (webpush.py)."""
+    __tablename__ = "push_subscriptions"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    endpoint: Mapped[str] = mapped_column(String(1000), unique=True)
+    p256dh: Mapped[str] = mapped_column(String(200))
+    auth: Mapped[str] = mapped_column(String(100))
+    created_at: Mapped[dt.datetime] = mapped_column(default=utcnow)
+    last_ok: Mapped[dt.datetime | None]
+
+
+class ServerKey(Base):
+    """Keys the server makes once and keeps, e.g. the Web Push VAPID pair (base64url)."""
+    __tablename__ = "server_keys"
+    name: Mapped[str] = mapped_column(String(64), primary_key=True)
+    value: Mapped[str] = mapped_column(String(200))
+
+
 class SystemMember(Base):
     """A homeowner user's access to a system."""
     __tablename__ = "system_members"
@@ -201,6 +220,7 @@ class Alert(Base):
     cleared_at: Mapped[dt.datetime | None]
     emailed_at: Mapped[dt.datetime | None]
     acked_at: Mapped[dt.datetime | None]       # someone is handling it: shown as such, no "cleared" email
+    pushed_at: Mapped[dt.datetime | None]      # sent as a phone notification (webpush.py), like emailed_at
 
 
 class Equipment(Base):

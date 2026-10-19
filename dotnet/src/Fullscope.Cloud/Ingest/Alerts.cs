@@ -9,6 +9,9 @@ namespace Fullscope.Cloud.Ingest;
 /// <summary>One email to send: (alert id or null, to, subject, body).</summary>
 public sealed record EmailJob(int? AlertId, string To, string Subject, string Body);
 
+/// <summary>A phone notification for one user's browsers; AlertId is set for raises (pushed_at).</summary>
+public sealed record PushJob(int? AlertId, int UserId, JsonObject Message);
+
 /// <summary>
 /// Alerts: diagnostic flags that persist, and the emails about them (port of hvaccloud/alerts.py).
 /// A flag opens a pending alert the first time it shows up. The alert is raised once the flag has
@@ -285,6 +288,70 @@ public static class Alerts
                 var (subject, body) = Compose(system, a, kind, who, appUrl);
                 jobs.Add(new EmailJob(kind == "raised" ? a.Id : null, addr, subject, body));
             }
+        }
+        return jobs;
+    }
+
+    /// <summary>[(user id, "owner" | "contractor")] with notifications on in some browser: the system's homeowners and
+    /// its contractor's people, under the same switches as email (alert_prefs).</summary>
+    public static List<(int UserId, string Who)> PushUsers(Db s, HvacSystem system)
+    {
+        var (ownersOn, contractorOn) = Wants(s, system.Id);
+        var outList = new List<(int, string)>();
+        if (ownersOn)
+            outList.AddRange(s.SystemMembers.Where(m => m.SystemId == system.Id).OrderBy(m => m.UserId).Select(m => m.UserId).ToList().Select(u => (u, "owner")));
+        if (contractorOn)
+            outList.AddRange(s.Users.Where(u => u.AccountId == system.AccountId && u.Role == "contractor").OrderBy(u => u.Id).Select(u => u.Id).ToList()
+                              .Select(u => (u, "contractor")));
+        var subscribed = s.PushSubscriptions.Select(p => p.UserId).Distinct().ToHashSet();
+        return outList.Where(x => subscribed.Contains(x.Item1)).ToList();
+    }
+
+    /// <summary>What the notification says: owners get plain words, contractors the technical text. The tag
+    /// makes a later notification about the same problem replace the earlier one on the phone.</summary>
+    public static JsonObject PushMessage(HvacSystem system, Alert a, string kind, string who, string appUrl)
+    {
+        bool raised = kind == "raised";
+        string title, body, url;
+        if (who == "contractor")
+        {
+            title = $"{system.Name}: {(raised ? LevelWord.GetValueOrDefault(a.Level, "Alert") : "Cleared")}";
+            body = a.Text;
+            url = $"{appUrl}#/monitor/{system.Id}";
+        }
+        else
+        {
+            var (plain, why, todo) = Plain.TryGetValue(a.Code, out var p) ? p : (a.Text, "", "");
+            title = raised ? $"{system.Name}: {plain}" : $"{system.Name}: back to normal";
+            body = raised ? (todo.Length > 0 ? todo : why.Length > 0 ? why : plain) : plain;
+            url = $"{appUrl}#/home/{system.Id}";
+        }
+        return new JsonObject { ["title"] = title, ["body"] = body, ["url"] = url, ["tag"] = $"fullscope-{system.Id}-{a.Code}" };
+    }
+
+    /// <summary>Notification jobs for these events, by the same rules as EmailsFor with pushed_at for emailed_at.</summary>
+    public static List<PushJob> PushesFor(Db s, HvacSystem system, List<(string Kind, Alert Alert)> events, double now,
+                                          double cooldownS, string appUrl)
+    {
+        if (events.Count == 0) return [];
+        var to = PushUsers(s, system);
+        if (to.Count == 0) return [];
+        var jobs = new List<PushJob>();
+        foreach (var (kind, a) in events)
+        {
+            if (Muted(s, system.Id, a.Code, now)) continue;
+            if (kind == "raised")
+            {
+                var since = Db.Ts(now - cooldownS);
+                if (s.Alerts.Any(x => x.SystemId == system.Id && x.Code == a.Code && x.Id != a.Id && x.PushedAt != null && x.PushedAt >= since))
+                    continue;
+            }
+            else if (a.PushedAt is null || a.AckedAt is not null)
+            {
+                continue;
+            }
+            foreach (var (userId, who) in to)
+                jobs.Add(new PushJob(kind == "raised" ? a.Id : null, userId, PushMessage(system, a, kind, who, appUrl)));
         }
         return jobs;
     }
