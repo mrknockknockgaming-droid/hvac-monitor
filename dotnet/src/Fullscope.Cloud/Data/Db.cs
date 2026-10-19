@@ -112,6 +112,7 @@ public sealed class Db(DbContextOptions<Db> options) : DbContext(options)
             Len(e.Property(x => x.Name), 200);
             Len(e.Property(x => x.Role), 16);
             Len(e.Property(x => x.PasswordHash), 200);
+            Len(e.Property(x => x.TotpSecret), 64);
             e.HasOne<Account>().WithMany().HasForeignKey(x => x.AccountId).OnDelete(DeleteBehavior.NoAction);
         });
         b.Entity<UserSession>(e =>

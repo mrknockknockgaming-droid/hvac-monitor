@@ -147,3 +147,84 @@ class Throttle:
     def clear(self, key):
         with self._lock:
             self._fails.pop(key, None)
+
+
+# ---------- two-factor sign-in (RFC 6238 TOTP, as authenticator apps make it) ----------
+TOTP_STEP = 30              # seconds per code
+TOTP_DIGITS = 6
+TOTP_SKEW = 1               # also accept the code just before and after, for phone clocks a little off
+RECOVERY_CODES = 8
+ISSUER = "Fullscope"
+
+
+def totp_new_secret():
+    return base64.b32encode(secrets.token_bytes(20)).decode()          # 32 characters, no padding
+
+
+def totp_code(secret, step):
+    key = base64.b32decode(secret.upper() + "=" * (-len(secret) % 8))
+    mac = hmac.new(key, step.to_bytes(8, "big"), hashlib.sha1).digest()
+    off = mac[-1] & 0x0F
+    n = int.from_bytes(mac[off:off + 4], "big") & 0x7FFFFFFF
+    return str(n % 10 ** TOTP_DIGITS).zfill(TOTP_DIGITS)
+
+
+def totp_check(secret, code, last_step=None, now=None):
+    """The time step `code` belongs to when it is right and newer than `last_step`, else None."""
+    code = "".join((code or "").split())
+    if not secret or len(code) != TOTP_DIGITS or not code.isdigit():
+        return None
+    step = int((time.time() if now is None else now) // TOTP_STEP)
+    for st in range(step - TOTP_SKEW, step + TOTP_SKEW + 1):
+        if (last_step is None or st > last_step) and hmac.compare_digest(totp_code(secret, st), code):
+            return st
+    return None
+
+
+def totp_uri(secret, email):
+    from urllib.parse import quote
+    return (f"otpauth://totp/{quote(ISSUER)}:{quote(email)}?secret={secret}&issuer={quote(ISSUER)}"
+            f"&digits={TOTP_DIGITS}&period={TOTP_STEP}")
+
+
+def new_recovery_codes():
+    """(codes to show once, their hashes to store). Each is 10 letters and digits as xxxxx-xxxxx."""
+    alphabet = "abcdefghjkmnpqrstuvwxyz23456789"
+    codes = []
+    for _ in range(RECOVERY_CODES):
+        raw = "".join(secrets.choice(alphabet) for _ in range(10))
+        codes.append(raw[:5] + "-" + raw[5:])
+    return codes, [hash_key(recovery_norm(c)) for c in codes]
+
+
+def recovery_norm(code):
+    return "".join(ch for ch in (code or "").lower() if ch.isalnum())
+
+
+def second_factor(user, code, now=None):
+    """Check a sign-in code against a user with two-factor on: an authenticator code (remembered so it
+    can't be used twice) or one of their recovery codes (crossed off). True when accepted; the caller commits."""
+    step = totp_check(user.totp_secret, code, user.totp_last_step, now)
+    if step is not None:
+        user.totp_last_step = step
+        return True
+    norm = recovery_norm(code)
+    if len(norm) != 10:
+        return False
+    import json
+    left = json.loads(user.recovery_codes or "[]")
+    h = hash_key(norm)
+    if h not in left:
+        return False
+    left.remove(h)
+    user.recovery_codes = json.dumps(left)
+    return True
+
+
+def client_ip(request):
+    """The browser's address. Behind the Cloudflare Tunnel every request arrives from this machine,
+    and cloudflared names the real one in CF-Connecting-IP."""
+    host = request.client.host if request.client else ""
+    if host in ("127.0.0.1", "::1", "localhost", "") and request.headers.get("cf-connecting-ip"):
+        return request.headers["cf-connecting-ip"].strip()
+    return host

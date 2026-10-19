@@ -120,6 +120,15 @@ class DoneIn(BaseModel):
 class LoginIn(BaseModel):
     email: str = Field(max_length=320)
     password: str = Field(max_length=200)
+    code: str | None = Field(default=None, max_length=20)     # authenticator or recovery code, when two-step is on
+
+
+class PasswordOnlyIn(BaseModel):
+    password: str = Field(max_length=200)
+
+
+class CodeIn(BaseModel):
+    code: str = Field(max_length=20)
 
 
 class PasswordIn(BaseModel):
@@ -222,6 +231,7 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
         sessions = session_factory(engine)
     publish = publisher or MqttPublisher()
     throttle = auth.Throttle()
+    ip_throttle = auth.Throttle(limit=30, window=15 * 60)        # failed sign-ins per address, any email
     reset_throttle = auth.Throttle(limit=3, window=60 * 60)      # reset emails per address per hour
     mailer = mailer or alerts.Mailer()
     pt = {"tables": tables}                                      # saturation tables, loaded on first gauge check
@@ -309,15 +319,24 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
 
     # ---------- sign-in ----------
     @app.post("/api/auth/login")
-    def login(body: LoginIn, response: Response, s=Depends(db)):
+    def login(body: LoginIn, request: Request, response: Response, s=Depends(db)):
         email = body.email.strip().lower()
-        if throttle.blocked(email):
+        ip = auth.client_ip(request)
+        if throttle.blocked(email) or ip_throttle.blocked(ip):
             raise HTTPException(429, "Too many attempts. Try again in 15 minutes.")
         user = s.scalar(select(User).where(User.email == email))
         stored = user.password_hash if user is not None and user.password_hash else auth.DUMMY_HASH
         if not auth.check_password(body.password, stored) or user is None:     # same work either way
             throttle.fail(email)
+            ip_throttle.fail(ip)
             raise HTTPException(401, "Email or password is not right.")
+        if user.totp_on is not None:
+            if not body.code:
+                return {"totp_required": True}             # the browser asks for the code and sends all three again
+            if not auth.second_factor(user, body.code):
+                throttle.fail(email)
+                ip_throttle.fail(ip)
+                raise HTTPException(401, "That code is not right. Use the newest code from your authenticator app, or a recovery code.")
         throttle.clear(email)
         user.last_login = utcnow()
         token = auth.new_session(s, user.id)
@@ -349,6 +368,56 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
         auth.end_other_sessions(s, user.id, keep=fs_session)       # anyone else signed in as this user is out
         s.commit()
         return {"ok": True}
+
+    # ---------- two-step sign-in (authenticator app) ----------
+    def password_user(s, who):
+        user = s.get(User, who.user_id) if who.user_id else None
+        if user is None:
+            raise HTTPException(400, "API keys have no password")
+        return user
+
+    @app.get("/api/auth/2fa")
+    def two_factor_state(who=Depends(principal), s=Depends(db)):
+        user = password_user(s, who)
+        on = user.totp_on is not None
+        return {"enabled": on, "recovery_left": len(json.loads(user.recovery_codes or "[]")) if on else 0}
+
+    @app.post("/api/auth/2fa/setup")
+    def two_factor_setup(body: PasswordOnlyIn, who=Depends(principal), s=Depends(db)):
+        """A new authenticator secret. It only counts once a code from it is confirmed (enable)."""
+        user = password_user(s, who)
+        if not auth.check_password(body.password, user.password_hash):
+            raise HTTPException(401, "The password is not right.")
+        if user.totp_on is not None:
+            raise HTTPException(409, "Two-step sign-in is already on.")
+        user.totp_secret = auth.totp_new_secret()
+        s.commit()
+        return {"secret": user.totp_secret, "uri": auth.totp_uri(user.totp_secret, user.email)}
+
+    @app.post("/api/auth/2fa/enable")
+    def two_factor_enable(body: CodeIn, who=Depends(principal), s=Depends(db), fs_session: str | None = Cookie(None)):
+        user = password_user(s, who)
+        if user.totp_on is not None:
+            raise HTTPException(409, "Two-step sign-in is already on.")
+        if not user.totp_secret:
+            raise HTTPException(409, "Start the setup first.")
+        step = auth.totp_check(user.totp_secret, body.code)
+        if step is None:
+            raise HTTPException(422, "That code is not right. Check that the phone's clock is set automatically and try the newest code.")
+        codes, hashes = auth.new_recovery_codes()
+        user.totp_on, user.totp_last_step, user.recovery_codes = utcnow(), step, json.dumps(hashes)
+        auth.end_other_sessions(s, user.id, keep=fs_session)       # other browsers sign in again, with a code
+        s.commit()
+        return {"enabled": True, "recovery_codes": codes}
+
+    @app.post("/api/auth/2fa/disable")
+    def two_factor_disable(body: PasswordOnlyIn, who=Depends(principal), s=Depends(db)):
+        user = password_user(s, who)
+        if not auth.check_password(body.password, user.password_hash):
+            raise HTTPException(401, "The password is not right.")
+        user.totp_secret = user.totp_on = user.totp_last_step = user.recovery_codes = None
+        s.commit()
+        return {"enabled": False}
 
     # ---------- forgotten password ----------
     def make_reset(s, user):
@@ -395,9 +464,13 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
             raise HTTPException(422, problem)
         user = s.get(User, row.user_id)
         user.password_hash = auth.hash_password(body.password)
-        user.last_login = utcnow()
         row.used_at = utcnow()
         auth.end_other_sessions(s, user.id, keep=None)              # whoever had the old password is out
+        if user.totp_on is not None:                                # the link alone doesn't sign in: the code is still needed
+            s.commit()
+            throttle.clear(user.email)
+            return {"totp_required": True, "email": user.email}
+        user.last_login = utcnow()
         token = auth.new_session(s, user.id)
         s.commit()
         throttle.clear(user.email)

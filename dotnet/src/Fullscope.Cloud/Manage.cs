@@ -23,6 +23,7 @@ namespace Fullscope.Cloud;
 ///   fullscope manage create-user you@gmail.com --name "Tyler" --account 1        (contractor; asks for a password)
 ///   fullscope manage create-user owner@example.com --role homeowner --system 1   (sees system 1 only)
 ///   fullscope manage set-password you@gmail.com
+///   fullscope manage reset-2fa you@gmail.com          (turns two-step sign-in off, for a lost phone)
 /// </summary>
 public static class Manage
 {
@@ -97,7 +98,7 @@ public static class Manage
         var cmd = argv.FirstOrDefault();
         var rest = argv.Length > 0 ? argv[1..] : [];
         string[] commands = ["init-db", "create-account", "create-key", "create-system", "list", "set-email", "backup", "prune",
-                             "create-user", "set-password", "test-email"];
+                             "create-user", "set-password", "reset-2fa", "test-email"];
         if (cmd is null or "-h" or "--help" || !commands.Contains(cmd))
         {
             Console.Error.WriteLine("usage: fullscope manage {" + string.Join(",", commands) + "} ...");
@@ -247,6 +248,16 @@ public static class Manage
                 user.PasswordHash = Passwords.Hash(password!);
                 s.SaveChanges();
                 Console.WriteLine($"password set for {user.Email}");
+                break;
+            }
+            case "reset-2fa":
+            {
+                a.Need(1, "reset-2fa <email>");
+                var email = a.Pos[0].Trim().ToLowerInvariant();
+                var user = s.Users.FirstOrDefault(u => u.Email == email) ?? throw new Exit($"no user {a.Pos[0]}");
+                Totp.TurnOff(user);
+                s.SaveChanges();
+                Console.WriteLine($"two-step sign-in is off for {user.Email}; they can turn it on again on their Account page");
                 break;
             }
             case "test-email":

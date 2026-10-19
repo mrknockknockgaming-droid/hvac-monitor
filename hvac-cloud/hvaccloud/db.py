@@ -3,7 +3,7 @@ import datetime as dt
 import hashlib
 import secrets
 
-from sqlalchemy import (JSON, Boolean, Date, DateTime, Float, ForeignKey, Integer, String, UniqueConstraint,
+from sqlalchemy import (JSON, Boolean, Date, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint,
                         create_engine, event, inspect, text)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, sessionmaker
@@ -64,6 +64,11 @@ class User(Base):
     password_hash: Mapped[str | None] = mapped_column(String(200))   # None until a password is set
     created_at: Mapped[dt.datetime] = mapped_column(default=utcnow)
     last_login: Mapped[dt.datetime | None]
+    # two-factor sign-in (auth.py): the authenticator secret is kept from setup; it counts once totp_on is set
+    totp_secret: Mapped[str | None] = mapped_column(String(64))
+    totp_on: Mapped[dt.datetime | None]
+    totp_last_step: Mapped[int | None]                               # a code works once
+    recovery_codes: Mapped[str | None] = mapped_column(Text)        # JSON list of SHA-256s, used ones removed
 
 
 class UserSession(Base):
