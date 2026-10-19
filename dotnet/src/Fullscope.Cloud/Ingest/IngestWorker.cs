@@ -13,7 +13,10 @@ public static class IngestWorker
         var log = logs.CreateLogger("ingest");
         var sessions = DbFactory.FromUrl(settings.DatabaseUrl).Init(settings.KeepDays);
         var mailer = new SmtpMailer(settings, logs.CreateLogger("alerts"));
-        var ingest = new Ingest(sessions, RefrigerantTables.Load(), settings, log) { Mailer = mailer };
+        var ingest = new Ingest(sessions, RefrigerantTables.Load(), settings, log)
+        {
+            Mailer = mailer, Pusher = new Pusher(sessions, settings, logs.CreateLogger("webpush")),
+        };
         log.LogInformation("alert email {State}", mailer.Enabled ? $"on via {mailer.Host}" : "off (set SMTP_HOST in .env)");
 
         var mqtt = new MqttConnection(settings, "hvac-cloud-ingest", logs.CreateLogger("mqtt"),

@@ -17,7 +17,7 @@ import time
 
 from sqlalchemy import select
 
-from . import airflow, alerts, calc, display, electrical, equipment, maintenance, psychro, settings, thermostat
+from . import airflow, alerts, calc, display, electrical, equipment, maintenance, psychro, settings, thermostat, webpush
 from .db import (Alert, Command, Device, Equipment, RuntimeDay, Snapshot, System, Telemetry, ThermostatConfig, as_utc,
                  init_db, make_engine, session_factory, utcnow)
 from .refrigerants import Tables
@@ -43,6 +43,7 @@ class Ingest:
         self.stale = stale
         self.hold, self.silence, self.cooldown_s = hold, silence, cooldown_s
         self.mailer = mailer          # None = no email (tests); run() passes alerts.Mailer()
+        self.pusher = None            # phone notifications (webpush.Pusher); run() sets it; None = none
         self.publish = None           # (topic, payload) -> None, retained; run() sets it; None = no display feed
         self._display_at = {}         # system_id -> when its display feed was last published
         self.latest = {}              # (system_id, node) -> (epoch, data)
@@ -85,6 +86,7 @@ class Ingest:
                 snap = self.on_telemetry(s, system, device, data, at)
                 events = alerts.sync(s, system, snap["flags"], at, self.hold, keep=alerts.unjudged(snap))
                 jobs = alerts.emails_for(s, system, events, at, self.cooldown_s)
+                pushes = alerts.pushes_for(s, system, events, at, self.cooldown_s)
                 show = self._display_due(s, system, events, now)
             elif kind == "status":
                 return self.on_status(device, data, now)
@@ -100,6 +102,7 @@ class Ingest:
                 self.publish(topic, config)
             return config
         self._email(jobs)          # after commit, so the alerts exist when emailed_at is written
+        self._push(pushes)
         if show:
             self._publish_display(*show, now)
         return snap
@@ -145,7 +148,7 @@ class Ingest:
     def sweep(self, now=None):
         """Raise (or keep open) "no data" alerts for systems whose nodes have gone quiet."""
         now = time.time() if now is None else now
-        jobs, shows = [], []
+        jobs, pushes, shows = [], [], []
         with self._lock:
             with self.sessions() as s, s.begin():
                 for system in s.scalars(select(System).order_by(System.id)):
@@ -153,11 +156,13 @@ class Ingest:
                     if flags is not None:
                         events = alerts.sync(s, system, flags, now, self.hold)
                         jobs += alerts.emails_for(s, system, events, now, self.cooldown_s)
+                        pushes += alerts.pushes_for(s, system, events, now, self.cooldown_s)
                         if events and self.publish is not None and self._thermostat_state(s, system, now) is not None:
                             shows.append((system.id, system.site_id))
             for show in shows:
                 self._publish_display(*show, now)
         self._email(jobs)
+        self._push(pushes)
 
     def _email(self, jobs):
         if jobs and self.mailer is not None:
@@ -175,6 +180,23 @@ class Ingest:
                     a = s.get(Alert, alert_id)
                     if a is not None:
                         a.emailed_at = utcnow()
+
+    def _push(self, jobs):
+        if jobs and self.pusher is not None:
+            self.spawn(self._send_pushes, jobs)
+
+    def _send_pushes(self, jobs):
+        for alert_id, user_id, message in jobs:
+            try:
+                sent = self.pusher.send_to_user(user_id, message)
+            except Exception:
+                log.exception("push to user %s failed", user_id)
+                continue
+            if sent and alert_id is not None:
+                with self.sessions() as s, s.begin():
+                    a = s.get(Alert, alert_id)
+                    if a is not None:
+                        a.pushed_at = utcnow()
 
     # ---------- message kinds ----------
     def on_telemetry(self, s, system, device, data, now):
@@ -330,6 +352,7 @@ def run():
     init_db(engine)
     mailer = alerts.Mailer()
     ingest = Ingest(session_factory(engine), mailer=mailer)
+    ingest.pusher = webpush.Pusher(ingest.sessions)
     log.info("alert email %s", f"on via {mailer.host}" if mailer.enabled else "off (set SMTP_HOST in .env)")
 
     def on_connect(client, userdata, flags, reason_code, properties=None):

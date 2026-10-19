@@ -64,12 +64,14 @@ public sealed class ApiServer
     readonly Throttle _ipThrottle = new(limit: 30, window: 15 * 60);       // failed sign-ins per address, any email
     readonly Throttle _resetThrottle = new(limit: 3, window: 60 * 60);    // reset emails per address per hour
     readonly HistoryCache? _cache;
+    readonly Pusher _pusher;
 
     /// <param name="publish">(topic, payload, retain) -> sent; MQTT commands and the thermostat's config.</param>
     public ApiServer(DbFactory sessions, Settings settings, Func<string, JsonNode, bool, bool> publish, IMailer mailer,
                      double? stale = null, bool sendAsync = true, ILogger? log = null, bool cache = true,
-                     RefrigerantTables? tables = null)
+                     RefrigerantTables? tables = null, Func<string, byte[], Dictionary<string, string>, int>? pushPost = null)
     {
+        _pusher = new Pusher(sessions, settings, log, pushPost);
         _tables = tables;
         _sessions = sessions;
         _settings = settings;
@@ -328,6 +330,10 @@ public sealed class ApiServer
         Route(app, "POST", "/api/auth/2fa/setup", TwoFactorSetup, body: true);
         Route(app, "POST", "/api/auth/2fa/enable", TwoFactorEnable, body: true);
         Route(app, "POST", "/api/auth/2fa/disable", TwoFactorDisable, body: true);
+        Route(app, "GET", "/api/push/key", PushKey);
+        Route(app, "POST", "/api/push/subscribe", PushSubscribe, body: true);
+        Route(app, "POST", "/api/push/unsubscribe", PushUnsubscribe, body: true);
+        Route(app, "POST", "/api/push/test", PushTest);
         Route(app, "POST", "/api/auth/forgot", ForgotPassword, body: true);
         Route(app, "POST", "/api/systems/{system_id}/members/{user_id}/reset-link", MemberResetLink);
         Route(app, "POST", "/api/auth/reset", ResetPassword, body: true);
@@ -520,6 +526,71 @@ public sealed class ApiServer
         Totp.TurnOff(user);
         r.S.SaveChanges();
         return new JsonObject { ["enabled"] = false };
+    }
+
+    // ---------- phone notifications (WebPush) ----------
+
+    /// <summary>This server's VAPID public key, which the browser needs to subscribe.</summary>
+    object? PushKey(Req r)
+    {
+        PasswordUser(r);
+        return new JsonObject { ["public_key"] = WebPush.VapidKeys(r.S, create: true)!.Value.Public };
+    }
+
+    static Field[] PushFields() =>
+        [Field.Str("endpoint", 1000, required: true), Field.Str("p256dh", 200), Field.Str("auth", 100)];
+
+    object? PushSubscribe(Req r)
+    {
+        var user = PasswordUser(r);
+        var b = Body(r, PushFields());
+        var endpoint = b.Str("endpoint")!;
+        if (!WebPush.EndpointOk(endpoint)) throw new ApiError(422, "That browser's push service isn't supported.");
+        string p256dh = b.Str("p256dh") ?? "", auth = b.Str("auth") ?? "";
+        try
+        {
+            if (WebPush.UnB64u(p256dh).Length != 65 || WebPush.UnB64u(auth).Length != 16) throw new FormatException();
+        }
+        catch (FormatException)
+        {
+            throw new ApiError(422, "The browser sent keys that don't look right.");
+        }
+        var sub = r.S.PushSubscriptions.FirstOrDefault(p => p.Endpoint == endpoint);
+        if (sub is null)
+        {
+            sub = new PushSubscription { Endpoint = endpoint };
+            r.S.PushSubscriptions.Add(sub);
+        }
+        sub.UserId = user.Id;
+        sub.P256dh = p256dh;
+        sub.Auth = auth;
+        r.S.SaveChanges();
+        return new JsonObject { ["ok"] = true, ["devices"] = r.S.PushSubscriptions.Count(p => p.UserId == user.Id) };
+    }
+
+    object? PushUnsubscribe(Req r)
+    {
+        var user = PasswordUser(r);
+        var endpoint = Body(r, PushFields()).Str("endpoint")!;
+        if (r.S.PushSubscriptions.FirstOrDefault(p => p.Endpoint == endpoint && p.UserId == user.Id) is PushSubscription sub)
+        {
+            r.S.PushSubscriptions.Remove(sub);
+            r.S.SaveChanges();
+        }
+        return new JsonObject { ["ok"] = true };
+    }
+
+    /// <summary>Send a test notification to every browser this user turned notifications on in.</summary>
+    object? PushTest(Req r)
+    {
+        var user = PasswordUser(r);
+        int devices = r.S.PushSubscriptions.Count(p => p.UserId == user.Id);
+        int sent = _pusher.SendToUser(user.Id, new JsonObject
+        {
+            ["title"] = "Fullscope", ["body"] = "Alert notifications are on for this device.",
+            ["url"] = _settings.AppUrl + "#/account", ["tag"] = "fullscope-test",
+        });
+        return new JsonObject { ["sent"] = sent, ["devices"] = devices };
     }
 
     /// <summary>Revoke the user's older reset links and return a new one.</summary>
@@ -927,6 +998,7 @@ public sealed class ApiServer
         Auth.EndOtherSessions(r.S, user.Id, null);
         foreach (var inv in r.S.Invites.Where(i => i.InvitedBy == user.Id).ToList()) inv.InvitedBy = null;
         foreach (var p in r.S.PasswordResets.Where(p => p.UserId == user.Id).ToList()) r.S.PasswordResets.Remove(p);
+        foreach (var p in r.S.PushSubscriptions.Where(p => p.UserId == user.Id).ToList()) r.S.PushSubscriptions.Remove(p);
         foreach (var v in r.S.ServiceVisits.Where(v => v.CreatedBy == user.Id).ToList()) v.CreatedBy = null;
         foreach (var c in r.S.GaugeChecks.Where(c => c.CreatedBy == user.Id).ToList()) c.CreatedBy = null;
         r.S.SaveChanges();                         // the references go first, then the user (no cascades)

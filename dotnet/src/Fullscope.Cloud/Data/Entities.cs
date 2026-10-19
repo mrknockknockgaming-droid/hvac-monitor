@@ -82,6 +82,25 @@ public sealed class Invite
     public DateTime? AcceptedAt { get; set; }
 }
 
+/// <summary>A browser or phone that turned alert notifications on (WebPush).</summary>
+public sealed class PushSubscription
+{
+    public int Id { get; set; }
+    public int UserId { get; set; }
+    public string Endpoint { get; set; } = "";
+    public string P256dh { get; set; } = "";
+    public string Auth { get; set; } = "";
+    public DateTime CreatedAt { get; set; } = Db.UtcNow();
+    public DateTime? LastOk { get; set; }
+}
+
+/// <summary>Keys the server makes once and keeps, e.g. the Web Push VAPID pair (base64url).</summary>
+public sealed class ServerKey
+{
+    public string Name { get; set; } = "";
+    public string Value { get; set; } = "";
+}
+
 public sealed class PasswordReset
 {
     public string TokenHash { get; set; } = "";
@@ -173,6 +192,7 @@ public sealed class Alert
     public DateTime? ClearedAt { get; set; }
     public DateTime? EmailedAt { get; set; }
     public DateTime? AckedAt { get; set; }               // someone is handling it: no "cleared" email
+    public DateTime? PushedAt { get; set; }              // sent as a phone notification (WebPush), like EmailedAt
 }
 
 /// <summary>What is installed, entered by the technician. All optional.</summary>

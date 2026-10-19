@@ -170,7 +170,7 @@ function route() {
   var rs = location.hash.match(/^#\/reset\/([\w-]+)/);
   if (rs) { stopTimers(); S.view = null; S.sys = null; return renderReset(rs[1]); }
   if (!S.me) return start();
-  if (location.hash === "#/account") { stopTimers(); S.view = null; S.sys = null; S.tfa = null; if (isTech()) pollTeam(); return renderAccount(); }
+  if (location.hash === "#/account") { stopTimers(); S.view = null; S.sys = null; S.tfa = null; S.push = null; if (isTech()) pollTeam(); return renderAccount(); }
   if (location.hash === "#/fleet") {
     if (!isTech()) { location.replace("#/"); return; }
     stopTimers(); S.view = "fleet"; S.sys = null; S.error = null;
@@ -424,9 +424,10 @@ function renderAccount() {
       '<label class="lbl" for="np2">New password again</label><input id="np2" type="password" autocomplete="new-password">' +
       '<div class="row"><button class="h-btn primary" type="submit">Change password</button></div><div class="err" role="alert" id="pe"></div></form>'
       : "<p class=\"muted\">To sign in with a password, ask for a user to be created with <span class=\"mono\">manage.py create-user</span>.</p>") +
-    "</div>" + (u ? twoStepPanel() : "") + (isTech() ? teamPanel() : "") + "</div>";
+    "</div>" + (u ? pushPanel() + twoStepPanel() : "") + (isTech() ? teamPanel() : "") + "</div>";
   bindCommon();
   bindTwoStep();
+  bindPush();
   var f = $("#pf");
   if (f) f.addEventListener("submit", function (e) {
     e.preventDefault();
@@ -1941,6 +1942,76 @@ function peoplePanel() {
     '<table class="dt"><tbody>' + rows + "</tbody></table>" +
     '<div class="invite-form"><div class="acts-cell">' + textField("f-inv-email", "", "Homeowner email", "email").replace("<input ", '<input placeholder="homeowner@example.com" ') +
     '<button class="btn" type="button" data-invite="system">Invite homeowner</button></div>' + inviteResult(S.inviteResult) + "</div></section>";
+}
+
+// ---------- account page: alert notifications on this device (Web Push; web/sw.js shows them)
+// S.push: null (checking) | {support: "ok" | "ios-home" | "none", on, perm, msg}
+function pushSupport() {
+  if ("serviceWorker" in navigator && "PushManager" in window && "Notification" in window) return "ok";
+  return /iPhone|iPad|iPod/.test(navigator.userAgent) && !navigator.standalone ? "ios-home" : "none";
+}
+function pollPush() {
+  var support = pushSupport();
+  if (support !== "ok") { S.push = { support: support }; return renderAccount(); }
+  navigator.serviceWorker.register("sw.js").then(function (reg) { return reg.pushManager.getSubscription(); }).then(function (sub) {
+    S.push = { support: "ok", on: !!sub && Notification.permission === "granted", perm: Notification.permission };
+  }).catch(function (err) { S.push = { support: "ok", on: false, perm: Notification.permission, msg: err.message }; })
+    .then(function () { if (location.hash === "#/account") renderAccount(); });
+}
+function keyBytes(b64) {
+  var s = atob((b64 + "===".slice((b64.length + 3) % 4)).replace(/-/g, "+").replace(/_/g, "/")), out = new Uint8Array(s.length);
+  for (var i = 0; i < s.length; i++) out[i] = s.charCodeAt(i);
+  return out;
+}
+function pushPanel() {
+  var p = S.push, body;
+  if (!p) body = '<p class="muted">Checking this browser…</p>';
+  else if (p.support === "ios-home") body = "<p>On iPhone, add Fullscope to your home screen first: tap the Share button, then Add to Home Screen. Open it from there and turn notifications on here.</p>";
+  else if (p.support === "none") body = "<p>This browser can't show notifications. Alerts still come by email.</p>";
+  else if (p.on) body = "<p>On for this device. Alerts for your " + (isTech() ? "systems" : "home") + " show up here as notifications, as well as by email.</p>" +
+    '<div class="row"><button class="h-btn" type="button" data-push="test">Send a test</button><button class="h-btn" type="button" data-push="off">Turn off here</button></div>';
+  else if (p.perm === "denied") body = "<p>Notifications are blocked for this site. Allow them in the browser's site settings, then reload this page.</p>";
+  else body = "<p>Get alerts on this phone or computer as notifications, as well as by email. Turn it on in each browser you use.</p>" +
+    '<div class="row"><button class="h-btn primary" type="button" data-push="on">Turn on for this device</button></div>';
+  return '<div class="h-card tfa push"><h1>Alert notifications</h1>' + body + '<div class="err" role="status" id="push-m">' + esc((p && p.msg) || "") + "</div></div>";
+}
+function bindPush() {
+  if (!$(".push")) return;
+  if (!S.push) return pollPush();
+  var done = function (msg, ok) { S.push.msg = msg; renderAccount(); var m = $("#push-m"); if (m && ok) m.style.color = "var(--ok)"; };
+  var fail = function (err) { done(err.message); };
+  $$("[data-push]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var a = b.dataset.push;
+      $$(".push button").forEach(function (x) { x.disabled = true; });
+      if (a === "on") {
+        Notification.requestPermission().then(function (perm) {     // first, while the tap still counts (Safari)
+          S.push.perm = perm;
+          if (perm !== "granted") throw new Error(perm === "denied" ? "Notifications are blocked for this site. Allow them in the browser's site settings." : "Notifications weren't allowed.");
+          return Promise.all([api("/api/push/key"), navigator.serviceWorker.ready]);
+        }).then(function (r) {
+          var reg = r[1];
+          return reg.pushManager.getSubscription().then(function (old) { return old && old.unsubscribe(); }).then(function () {
+            return reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(r[0].public_key) });
+          });
+        }).then(function (sub) {
+          var j = sub.toJSON();
+          return api("/api/push/subscribe", { method: "POST", body: { endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth } });
+        }).then(function () { S.push.on = true; done("Turned on. Send a test to check it.", true); }).catch(fail);
+      } else if (a === "off") {
+        navigator.serviceWorker.ready.then(function (reg) { return reg.pushManager.getSubscription(); }).then(function (sub) {
+          if (!sub) return null;
+          var ep = sub.endpoint;
+          return sub.unsubscribe().then(function () { return api("/api/push/unsubscribe", { method: "POST", body: { endpoint: ep } }); });
+        }).then(function () { S.push.on = false; done("Turned off for this device."); }).catch(fail);
+      } else if (a === "test") {
+        api("/api/push/test", { method: "POST" }).then(function (r) {
+          done(r.sent ? "Sent. It should show up in a few seconds." + (r.devices > 1 ? " (" + r.sent + " of your " + r.devices + " devices.)" : "")
+            : "It couldn't be delivered. Turn it off and on again here.", r.sent > 0);
+        }).catch(fail);
+      }
+    });
+  });
 }
 
 // ---------- account page: two-step sign-in with an authenticator app

@@ -149,6 +149,11 @@ temperatures, superheat, subcooling and delta-T.
     cookie until `code` is sent; a reset link doesn't skip it. `manage.py reset-2fa <email>` turns it off for a lost
     phone. Failed sign-ins are also limited to 30 per address per 15 min (CF-Connecting-IP when behind the tunnel).
     QR codes come from web/vendor/qrcode.js (qrcode-generator 1.4.4, MIT).
+  - Alert notifications (2026-10-19, Account page, `hvaccloud/webpush.py` + C# `Ingest/WebPush.cs`): Web Push with
+    VAPID (pair made once in `server_keys`, shared by both versions) and RFC 8291 aes128gcm (tested on the RFC's own
+    example). `push_subscriptions` per browser (endpoints only on known push services); alerts.pushes_for follows
+    emails_for (same switches, mutes, 6 h cooldown via alerts.pushed_at). web/sw.js shows them; manifest.webmanifest +
+    icons/ make it installable. iPhone needs Add to Home Screen first (iOS 16.4+). Python needs `cryptography`.
   - Equipment page (`equipment` table, `hvaccloud/equipment.py`): nameplate SC target ± tol
     replaces calc's generic sc_low/sc_high for TXV/EEV in cooling, applied in ingest AFTER
     calc.compute (calc.py and the dashboard stay identical). Elevation sets atm_psia.

@@ -46,6 +46,9 @@ public sealed class Ingest
     /// <summary>Email; null = none (tests).</summary>
     public IMailer? Mailer { get; set; }
 
+    /// <summary>Phone notifications; null = none (tests).</summary>
+    public Pusher? Pusher { get; set; }
+
     /// <summary>(topic, payload) -> publish retained; null = no display feed or thermostat config.</summary>
     public Action<string, JsonNode>? Publish { get; set; }
 
@@ -103,6 +106,7 @@ public sealed class Ingest
 
         JsonObject? snap = null, config = null;
         List<EmailJob> jobs = [];
+        List<PushJob> pushes = [];
         (int, string)? show = null;
         string configTopic = "";
         using (var s = _sessions.Open())
@@ -127,6 +131,7 @@ public sealed class Ingest
                 snap = OnTelemetry(s, system, device, data, at);
                 var events = Alerts.Sync(s, system, J.Flags(snap), at, _hold, Alerts.Unjudged(snap));
                 jobs = Alerts.EmailsFor(s, system, events, at, _cooldownS, _appUrl);
+                pushes = Alerts.PushesFor(s, system, events, at, _cooldownS, _appUrl);
                 show = DisplayDue(s, system, events.Count > 0, now);
                 done = false;
             }
@@ -155,6 +160,7 @@ public sealed class Ingest
             return config;
         }
         Email(jobs);                 // after commit, so the alerts exist when emailed_at is written
+        Push(pushes);
         if (show is (int id, string siteId)) PublishDisplay(id, siteId, now);
         return snap;
     }
@@ -213,6 +219,7 @@ public sealed class Ingest
     {
         double t = now ?? Time.Now();
         var jobs = new List<EmailJob>();
+        var pushes = new List<PushJob>();
         var shows = new List<(int, string)>();
         lock (Lock)
         {
@@ -225,6 +232,7 @@ public sealed class Ingest
                     if (flags is null) continue;
                     var events = Alerts.Sync(s, system, flags, t, _hold);
                     jobs.AddRange(Alerts.EmailsFor(s, system, events, t, _cooldownS, _appUrl));
+                    pushes.AddRange(Alerts.PushesFor(s, system, events, t, _cooldownS, _appUrl));
                     if (events.Count > 0 && Publish is not null && ThermostatState(s, system, t) is not null)
                         shows.Add((system.Id, system.SiteId));
                 }
@@ -234,6 +242,38 @@ public sealed class Ingest
             foreach (var (id, site) in shows) PublishDisplay(id, site, t);
         }
         Email(jobs);
+        Push(pushes);
+    }
+
+    void Push(List<PushJob> jobs)
+    {
+        if (jobs.Count > 0 && Pusher is not null) Spawn(() => SendPushes(jobs));
+    }
+
+    void SendPushes(List<PushJob> jobs)
+    {
+        foreach (var job in jobs)
+        {
+            int sent;
+            try
+            {
+                sent = Pusher!.SendToUser(job.UserId, job.Message);
+            }
+            catch (Exception e)
+            {
+                _log.LogError(e, "push to user {User} failed", job.UserId);
+                continue;
+            }
+            if (sent > 0 && job.AlertId is int id)
+            {
+                using var s = _sessions.Open();
+                if (s.Alerts.Find(id) is Alert a)
+                {
+                    a.PushedAt = Db.UtcNow();
+                    s.SaveChanges();
+                }
+            }
+        }
     }
 
     void Email(List<EmailJob> jobs)
