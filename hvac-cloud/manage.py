@@ -13,6 +13,7 @@
   python manage.py create-user owner@example.com --role homeowner --system 1   (sees system 1 only)
   python manage.py set-password you@gmail.com
   python manage.py reset-2fa you@gmail.com          (turns two-step sign-in off, for a lost phone)
+  python manage.py check                             (is everything working? nodes, readings, alerts, email, backups)
 """
 import argparse
 import getpass
@@ -20,7 +21,7 @@ import sys
 
 from sqlalchemy import select
 
-from hvaccloud import auth, maintenance
+from hvaccloud import auth, check, maintenance
 from hvaccloud.alerts import Mailer
 from hvaccloud.db import (Account, ApiKey, Device, System, SystemMember, User, init_db, make_engine,
                           session_factory)
@@ -59,6 +60,7 @@ def main(argv=None):
     u.add_argument("--no-password", action="store_true", help="don't ask now; set it later with set-password")
     pw = sub.add_parser("set-password", help="set or reset a user's password")
     pw.add_argument("email")
+    sub.add_parser("check", help="report whether nodes, readings, alerts, commands, email and backups are all working")
     tf = sub.add_parser("reset-2fa", help="turn two-step sign-in off for a user who lost their phone and recovery codes")
     tf.add_argument("email")
     e = sub.add_parser("test-email", help="send a test alert email to an account (checks the SMTP_* settings)")
@@ -73,6 +75,12 @@ def main(argv=None):
     if args.cmd == "prune":
         print(maintenance.prune(session_factory(engine)))
         return
+    if args.cmd == "check":
+        with session_factory(engine)() as s:
+            found = check.run(s, email_on=Mailer().enabled)
+        for level, text in found:
+            print(f"{level:<5}{text}")
+        sys.exit(1 if any(level == "FAIL" for level, _ in found) else 0)
     password = None
     if args.cmd == "set-password" or (args.cmd == "create-user" and not args.no_password):
         password = ask_password()
