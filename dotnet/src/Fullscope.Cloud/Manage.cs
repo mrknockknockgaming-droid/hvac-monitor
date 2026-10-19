@@ -24,6 +24,7 @@ namespace Fullscope.Cloud;
 ///   fullscope manage create-user owner@example.com --role homeowner --system 1   (sees system 1 only)
 ///   fullscope manage set-password you@gmail.com
 ///   fullscope manage reset-2fa you@gmail.com          (turns two-step sign-in off, for a lost phone)
+///   fullscope manage check                             (is everything working? nodes, readings, alerts, email, backups)
 /// </summary>
 public static class Manage
 {
@@ -98,7 +99,7 @@ public static class Manage
         var cmd = argv.FirstOrDefault();
         var rest = argv.Length > 0 ? argv[1..] : [];
         string[] commands = ["init-db", "create-account", "create-key", "create-system", "list", "set-email", "backup", "prune",
-                             "create-user", "set-password", "reset-2fa", "test-email"];
+                             "create-user", "set-password", "reset-2fa", "test-email", "check"];
         if (cmd is null or "-h" or "--help" || !commands.Contains(cmd))
         {
             Console.Error.WriteLine("usage: fullscope manage {" + string.Join(",", commands) + "} ...");
@@ -121,6 +122,14 @@ public static class Manage
             var st = Maintenance.Prune(sessions, settings.FullDetailDays, settings.KeepDays, log: log);
             Console.WriteLine($"{{'snapshots_removed': {st.SnapshotsRemoved}, 'telemetry_removed': {st.TelemetryRemoved}, 'expired': {st.Expired}}}");
             return 0;
+        }
+        if (cmd == "check")
+        {
+            a.Need(0, "check");
+            using var cs = sessions.Open();
+            var found = Check.Run(cs, settings, emailOn: new SmtpMailer(settings, log).Enabled);
+            foreach (var (level, text) in found) Console.WriteLine($"{level,-5}{text}");
+            return found.Any(f => f.Level == "FAIL") ? 1 : 0;
         }
         string? password = null;
         if (cmd == "set-password" || (cmd == "create-user" && !a.Flag("--no-password")))

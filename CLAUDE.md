@@ -154,6 +154,9 @@ temperatures, superheat, subcooling and delta-T.
     example). `push_subscriptions` per browser (endpoints only on known push services); alerts.pushes_for follows
     emails_for (same switches, mutes, 6 h cooldown via alerts.pushed_at). web/sw.js shows them; manifest.webmanifest +
     icons/ make it installable. iPhone needs Add to Home Screen first (iOS 16.4+). Python needs `cryptography`.
+  - `manage.py check` / `fullscope-manage check` (hvaccloud/check.py, C# Check.cs): OK/WARN/FAIL lines for each node's
+    last message, fresh readings and history, a compressor call in 7 days, open alerts and how the last one went out,
+    the last remote command's reply, email, notifications, two-step, nightly backup, HTTPS cookie; exit 1 on any FAIL.
   - Equipment page (`equipment` table, `hvaccloud/equipment.py`): nameplate SC target ± tol
     replaces calc's generic sc_low/sc_high for TXV/EEV in cooling, applied in ingest AFTER
     calc.compute (calc.py and the dashboard stay identical). Elevation sets atm_psia.
