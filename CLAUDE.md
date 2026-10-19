@@ -144,6 +144,11 @@ temperatures, superheat, subcooling and delta-T.
     cookie requests need `X-Requested-With`, 8 failures lock an email 15 min. API keys still
     act as a contractor. Create users with `manage.py create-user` / `set-password` (hidden
     password prompt: the user types it, never put a password on the command line).
+    Two-step sign-in (2026-10-19, Account page): authenticator-app TOTP (auth.totp_* / C# Totp.cs, users.totp_*),
+    8 single-use recovery codes (SHA-256 in users.recovery_codes); login answers {"totp_required": true} without a
+    cookie until `code` is sent; a reset link doesn't skip it. `manage.py reset-2fa <email>` turns it off for a lost
+    phone. Failed sign-ins are also limited to 30 per address per 15 min (CF-Connecting-IP when behind the tunnel).
+    QR codes come from web/vendor/qrcode.js (qrcode-generator 1.4.4, MIT).
   - Equipment page (`equipment` table, `hvaccloud/equipment.py`): nameplate SC target ± tol
     replaces calc's generic sc_low/sc_high for TXV/EEV in cooling, applied in ingest AFTER
     calc.compute (calc.py and the dashboard stay identical). Elevation sets atm_psia.

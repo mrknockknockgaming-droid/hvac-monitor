@@ -12,6 +12,7 @@
   python manage.py create-user you@gmail.com --name "Tyler" --account 1        (contractor; asks for a password)
   python manage.py create-user owner@example.com --role homeowner --system 1   (sees system 1 only)
   python manage.py set-password you@gmail.com
+  python manage.py reset-2fa you@gmail.com          (turns two-step sign-in off, for a lost phone)
 """
 import argparse
 import getpass
@@ -58,6 +59,8 @@ def main(argv=None):
     u.add_argument("--no-password", action="store_true", help="don't ask now; set it later with set-password")
     pw = sub.add_parser("set-password", help="set or reset a user's password")
     pw.add_argument("email")
+    tf = sub.add_parser("reset-2fa", help="turn two-step sign-in off for a user who lost their phone and recovery codes")
+    tf.add_argument("email")
     e = sub.add_parser("test-email", help="send a test alert email to an account (checks the SMTP_* settings)")
     e.add_argument("account_id", type=int)
     args = ap.parse_args(argv)
@@ -142,6 +145,12 @@ def main(argv=None):
                 sys.exit(f"no user {args.email}")
             user.password_hash = auth.hash_password(password)
             print(f"password set for {user.email}")
+        elif args.cmd == "reset-2fa":
+            user = s.scalar(select(User).where(User.email == args.email.strip().lower()))
+            if user is None:
+                sys.exit(f"no user {args.email}")
+            user.totp_secret = user.totp_on = user.totp_last_step = user.recovery_codes = None
+            print(f"two-step sign-in is off for {user.email}; they can turn it on again on their Account page")
         elif args.cmd == "test-email":
             acct = s.get(Account, args.account_id)
             if acct is None:

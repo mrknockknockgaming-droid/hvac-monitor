@@ -61,6 +61,7 @@ public sealed class ApiServer
     readonly bool _sendAsync;
     readonly ILogger _log;
     readonly Throttle _throttle = new();
+    readonly Throttle _ipThrottle = new(limit: 30, window: 15 * 60);       // failed sign-ins per address, any email
     readonly Throttle _resetThrottle = new(limit: 3, window: 60 * 60);    // reset emails per address per hour
     readonly HistoryCache? _cache;
 
@@ -323,6 +324,10 @@ public sealed class ApiServer
         Route(app, "POST", "/api/auth/logout", Logout);
         Route(app, "GET", "/api/auth/me", r => MeView(r.S, r.Who));
         Route(app, "POST", "/api/auth/password", ChangePassword, body: true);
+        Route(app, "GET", "/api/auth/2fa", TwoFactorState);
+        Route(app, "POST", "/api/auth/2fa/setup", TwoFactorSetup, body: true);
+        Route(app, "POST", "/api/auth/2fa/enable", TwoFactorEnable, body: true);
+        Route(app, "POST", "/api/auth/2fa/disable", TwoFactorDisable, body: true);
         Route(app, "POST", "/api/auth/forgot", ForgotPassword, body: true);
         Route(app, "POST", "/api/systems/{system_id}/members/{user_id}/reset-link", MemberResetLink);
         Route(app, "POST", "/api/auth/reset", ResetPassword, body: true);
@@ -404,15 +409,28 @@ public sealed class ApiServer
 
     object? Login(Req r)
     {
-        var b = Body(r, Field.Str("email", 320, required: true), Field.Str("password", 200, required: true));
+        var b = Body(r, Field.Str("email", 320, required: true), Field.Str("password", 200, required: true), Field.Str("code", 20));
         var email = b.Str("email")!.Trim().ToLowerInvariant();
-        if (_throttle.Blocked(email)) throw new ApiError(429, "Too many attempts. Try again in 15 minutes.");
+        var ip = ClientIp(r.Http);
+        if (_throttle.Blocked(email) || _ipThrottle.Blocked(ip)) throw new ApiError(429, "Too many attempts. Try again in 15 minutes.");
         var user = r.S.Users.FirstOrDefault(u => u.Email == email);
         var stored = user is not null && !string.IsNullOrEmpty(user.PasswordHash) ? user.PasswordHash : Passwords.Dummy;
         if (!Passwords.Check(b.Str("password")!, stored) || user is null)     // same work either way
         {
             _throttle.Fail(email);
+            _ipThrottle.Fail(ip);
             throw new ApiError(401, "Email or password is not right.");
+        }
+        if (user.TotpOn is not null)
+        {
+            var code = b.Str("code");
+            if (string.IsNullOrEmpty(code)) return new JsonObject { ["totp_required"] = true };   // the browser asks for the code and sends all three again
+            if (!Totp.SecondFactor(user, code))
+            {
+                _throttle.Fail(email);
+                _ipThrottle.Fail(ip);
+                throw new ApiError(401, "That code is not right. Use the newest code from your authenticator app, or a recovery code.");
+            }
         }
         _throttle.Clear(email);
         user.LastLogin = Db.UtcNow();
@@ -441,6 +459,67 @@ public sealed class ApiServer
         Auth.EndOtherSessions(r.S, user.Id, r.Cookie);              // anyone else signed in as this user is out
         r.S.SaveChanges();
         return new JsonObject { ["ok"] = true };
+    }
+
+    /// <summary>The browser's address. Behind the Cloudflare Tunnel every request arrives from this machine,
+    /// and cloudflared names the real one in CF-Connecting-IP.</summary>
+    internal static string ClientIp(HttpContext http)
+    {
+        var addr = http.Connection.RemoteIpAddress;
+        var cf = http.Request.Headers["CF-Connecting-IP"].ToString().Trim();
+        if ((addr is null || System.Net.IPAddress.IsLoopback(addr)) && cf.Length > 0) return cf;
+        return addr?.ToString() ?? "";
+    }
+
+    // ---------- two-step sign-in (authenticator app) ----------
+
+    static User PasswordUser(Req r) =>
+        (r.Who.UserId is int uid ? r.S.Users.Find(uid) : null) ?? throw new ApiError(400, "API keys have no password");
+
+    object? TwoFactorState(Req r)
+    {
+        var user = PasswordUser(r);
+        bool on = user.TotpOn is not null;
+        return new JsonObject { ["enabled"] = on, ["recovery_left"] = on ? Totp.RecoveryLeft(user).Count : 0 };
+    }
+
+    /// <summary>A new authenticator secret. It only counts once a code from it is confirmed (enable).</summary>
+    object? TwoFactorSetup(Req r)
+    {
+        var user = PasswordUser(r);
+        var b = Body(r, Field.Str("password", 200, required: true));
+        if (!Passwords.Check(b.Str("password")!, user.PasswordHash)) throw new ApiError(401, "The password is not right.");
+        if (user.TotpOn is not null) throw new ApiError(409, "Two-step sign-in is already on.");
+        user.TotpSecret = Totp.NewSecret();
+        r.S.SaveChanges();
+        return new JsonObject { ["secret"] = user.TotpSecret, ["uri"] = Totp.Uri(user.TotpSecret, user.Email) };
+    }
+
+    object? TwoFactorEnable(Req r)
+    {
+        var user = PasswordUser(r);
+        var b = Body(r, Field.Str("code", 20, required: true));
+        if (user.TotpOn is not null) throw new ApiError(409, "Two-step sign-in is already on.");
+        if (string.IsNullOrEmpty(user.TotpSecret)) throw new ApiError(409, "Start the setup first.");
+        if (Totp.Check(user.TotpSecret, b.Str("code")) is not int step)
+            throw new ApiError(422, "That code is not right. Check that the phone's clock is set automatically and try the newest code.");
+        var (codes, hashes) = Totp.NewRecoveryCodes();
+        user.TotpOn = Db.UtcNow();
+        user.TotpLastStep = step;
+        user.RecoveryCodes = Py.Dumps(new JsonArray([.. hashes.Select(h => (JsonNode)JsonValue.Create(h)!)]));
+        Auth.EndOtherSessions(r.S, user.Id, r.Cookie);              // other browsers sign in again, with a code
+        r.S.SaveChanges();
+        return new JsonObject { ["enabled"] = true, ["recovery_codes"] = new JsonArray([.. codes.Select(c => (JsonNode)JsonValue.Create(c)!)]) };
+    }
+
+    object? TwoFactorDisable(Req r)
+    {
+        var user = PasswordUser(r);
+        var b = Body(r, Field.Str("password", 200, required: true));
+        if (!Passwords.Check(b.Str("password")!, user.PasswordHash)) throw new ApiError(401, "The password is not right.");
+        Totp.TurnOff(user);
+        r.S.SaveChanges();
+        return new JsonObject { ["enabled"] = false };
     }
 
     /// <summary>Revoke the user's older reset links and return a new one.</summary>
@@ -491,9 +570,15 @@ public sealed class ApiServer
         if (Passwords.Problem(b.Str("password")!) is string problem) throw new ApiError(422, problem);
         var user = r.S.Users.Find(row.UserId)!;
         user.PasswordHash = Passwords.Hash(b.Str("password")!);
-        user.LastLogin = Db.UtcNow();
         row.UsedAt = Db.UtcNow();
         Auth.EndOtherSessions(r.S, user.Id, null);                  // whoever had the old password is out
+        if (user.TotpOn is not null)                                // the link alone doesn't sign in: the code is still needed
+        {
+            r.S.SaveChanges();
+            _throttle.Clear(user.Email);
+            return new JsonObject { ["totp_required"] = true, ["email"] = user.Email };
+        }
+        user.LastLogin = Db.UtcNow();
         var token = Auth.NewSession(r.S, user.Id, _settings.SessionDays);
         r.S.SaveChanges();
         _throttle.Clear(user.Email);

@@ -45,6 +45,11 @@ public sealed class User
     public string? PasswordHash { get; set; }           // null until a password is set
     public DateTime CreatedAt { get; set; } = Db.UtcNow();
     public DateTime? LastLogin { get; set; }
+    // two-step sign-in (Totp): the authenticator secret is kept from setup; it counts once TotpOn is set
+    public string? TotpSecret { get; set; }
+    public DateTime? TotpOn { get; set; }
+    public int? TotpLastStep { get; set; }              // a code works once
+    public string? RecoveryCodes { get; set; }           // JSON list of SHA-256s, used ones removed
 }
 
 /// <summary>A signed-in browser. Only a SHA-256 of the cookie token is stored.</summary>

@@ -170,7 +170,7 @@ function route() {
   var rs = location.hash.match(/^#\/reset\/([\w-]+)/);
   if (rs) { stopTimers(); S.view = null; S.sys = null; return renderReset(rs[1]); }
   if (!S.me) return start();
-  if (location.hash === "#/account") { stopTimers(); S.view = null; S.sys = null; if (isTech()) pollTeam(); return renderAccount(); }
+  if (location.hash === "#/account") { stopTimers(); S.view = null; S.sys = null; S.tfa = null; if (isTech()) pollTeam(); return renderAccount(); }
   if (location.hash === "#/fleet") {
     if (!isTech()) { location.replace("#/"); return; }
     stopTimers(); S.view = "fleet"; S.sys = null; S.error = null;
@@ -298,6 +298,7 @@ function signOut(msg) {
 function renderLogin() {
   root.className = "fs home";
   if (S.loginMode === "forgot") return renderForgot();
+  if (S.totp && S.loginMode !== "key") return renderCode();
   var byKey = S.loginMode === "key";
   root.innerHTML =
     '<header class="h-top">' + LOGO + TAGLINE + "</header>" +
@@ -326,12 +327,40 @@ function renderLogin() {
     if (!em || !pw) return;
     btn.disabled = true;
     api("/api/auth/login", { method: "POST", body: { email: em, password: pw }, keep401: true }).then(function (me) {
-      S.me = me; S.error = null; S.systems = null;
-      if (!returnAfterSignIn()) route();
+      if (me.totp_required) { S.totp = { email: em, pw: pw }; S.error = null; return renderCode(); }
+      signedIn(me);
     }).catch(function (err) { S.error = err.message; renderLogin(); $("#em").value = em; $("#pw").focus(); });
   });
   var first = $("#k") || $("#em");
   if (first) first.focus();
+}
+function signedIn(me) {
+  S.me = me; S.error = null; S.systems = null; S.totp = null;
+  if (!returnAfterSignIn()) route();
+}
+
+// ---------------------------------------------------------------- two-step sign-in: the code from the authenticator app
+function renderCode() {
+  var t = S.totp;
+  root.innerHTML =
+    '<header class="h-top">' + LOGO + TAGLINE + "</header>" +
+    '<div class="login"><div class="h-card"><h1>Enter your code</h1><p>Open your authenticator app and type the 6-digit code it shows for Fullscope (' + esc(t.email) + ").</p>" +
+    '<form id="cf"><label class="lbl" for="code">Code</label><input id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="11" aria-label="Code">' +
+    '<div class="row"><button class="h-btn primary" type="submit">Sign in</button></div>' +
+    '<div class="err" role="alert">' + esc(S.error || "") + "</div></form>" +
+    '<p class="alt">Lost your phone? Type one of your recovery codes instead. · <a class="muted" href="#" id="back">Back</a></p></div></div>';
+  $("#back").addEventListener("click", function (e) { e.preventDefault(); S.totp = null; S.error = null; renderLogin(); });
+  $("#cf").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var code = $("#code").value.trim();
+    if (!code) return;
+    $("#cf button").disabled = true;
+    api("/api/auth/login", { method: "POST", body: { email: t.email, password: t.pw, code: code }, keep401: true }).then(function (me) {
+      if (me.totp_required) throw new Error("Enter the code.");
+      signedIn(me);
+    }).catch(function (err) { S.error = err.message; renderCode(); });
+  });
+  $("#code").focus();
 }
 
 // ---------------------------------------------------------------- forgotten password
@@ -368,7 +397,13 @@ function renderReset(token) {
     e.preventDefault();
     if ($("#rp").value !== $("#rp2").value) { $("#re").textContent = "The passwords don't match."; return; }
     $("#rf button").disabled = true;
-    api("/api/auth/reset", { method: "POST", body: { token: token, password: $("#rp").value }, keep401: true }).then(function (me) {
+    var pw = $("#rp").value;
+    api("/api/auth/reset", { method: "POST", body: { token: token, password: pw }, keep401: true }).then(function (me) {
+      if (me.totp_required) {        // two-step is on: the new password still needs the authenticator code
+        S.totp = { email: me.email, pw: pw }; S.error = null; S.loginMode = "password"; S.key = null; save("fs_key", null);
+        location.hash = "#/";
+        return;
+      }
       S.me = me; S.key = null; save("fs_key", null); S.systems = null; S.loginMode = "password";
       location.hash = me.role === "contractor" ? "#/fleet" : "#/";
     }).catch(function (err) { $("#rf button").disabled = false; $("#re").textContent = err.message; });
@@ -389,8 +424,9 @@ function renderAccount() {
       '<label class="lbl" for="np2">New password again</label><input id="np2" type="password" autocomplete="new-password">' +
       '<div class="row"><button class="h-btn primary" type="submit">Change password</button></div><div class="err" role="alert" id="pe"></div></form>'
       : "<p class=\"muted\">To sign in with a password, ask for a user to be created with <span class=\"mono\">manage.py create-user</span>.</p>") +
-    "</div>" + (isTech() ? teamPanel() : "") + "</div>";
+    "</div>" + (u ? twoStepPanel() : "") + (isTech() ? teamPanel() : "") + "</div>";
   bindCommon();
+  bindTwoStep();
   var f = $("#pf");
   if (f) f.addEventListener("submit", function (e) {
     e.preventDefault();
@@ -1905,6 +1941,75 @@ function peoplePanel() {
     '<table class="dt"><tbody>' + rows + "</tbody></table>" +
     '<div class="invite-form"><div class="acts-cell">' + textField("f-inv-email", "", "Homeowner email", "email").replace("<input ", '<input placeholder="homeowner@example.com" ') +
     '<button class="btn" type="button" data-invite="system">Invite homeowner</button></div>' + inviteResult(S.inviteResult) + "</div></section>";
+}
+
+// ---------- account page: two-step sign-in with an authenticator app
+// S.tfa: null (loading) | {enabled, recovery_left} from the server, plus the setup in progress:
+// secret/uri after the password is confirmed, codes once it is on (shown once).
+function pollTwoStep() {
+  api("/api/auth/2fa").then(function (d) { S.tfa = d; if (location.hash === "#/account") renderAccount(); }).catch(function () {});
+}
+function twoStepPanel() {
+  var t = S.tfa, body;
+  if (!t) body = '<p class="muted">Loading…</p>';
+  else if (t.codes) {
+    body = "<p>Two-step sign-in is on. Save these recovery codes somewhere safe, like a password manager or a printout. " +
+      "Each one works once if you lose your phone. You won't see them again.</p>" +
+      '<pre class="mono tfa-codes">' + t.codes.map(esc).join("\n") + "</pre>" +
+      '<div class="row"><button class="h-btn" type="button" data-tfa="copy">Copy codes</button><button class="h-btn primary" type="button" data-tfa="done">I saved them</button></div>';
+  } else if (t.enabled) {
+    body = "<p>On. Signing in asks for a code from your authenticator app. Recovery codes left: " + t.recovery_left + ".</p>" +
+      '<form id="tfa-off"><label class="lbl" for="tfa-pw">Password, to turn it off</label><input id="tfa-pw" type="password" autocomplete="current-password">' +
+      '<div class="row"><button class="h-btn" type="submit">Turn off two-step sign-in</button></div><div class="err" role="alert" id="tfa-e"></div></form>';
+  } else if (t.uri) {
+    var qr = "";
+    try { var q = qrcode(0, "M"); q.addData(t.uri); q.make(); qr = '<div class="tfa-qr">' + q.createSvgTag({ cellSize: 4, margin: 3, scalable: true }) + "</div>"; } catch (e) {}
+    body = "<p>Scan this with an authenticator app (Google Authenticator, Microsoft Authenticator, 1Password and others). " +
+      'On this phone? <a class="muted" href="' + esc(t.uri) + '">Open it in the app</a>, or type the key by hand.</p>' + qr +
+      '<p class="mono tfa-key">' + esc(t.secret.replace(/(.{4})/g, "$1 ").trim()) + "</p>" +
+      '<form id="tfa-on"><label class="lbl" for="tfa-code">The 6-digit code the app shows</label><input id="tfa-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6">' +
+      '<div class="row"><button class="h-btn primary" type="submit">Turn on</button><button class="h-btn" type="button" data-tfa="cancel">Cancel</button></div><div class="err" role="alert" id="tfa-e"></div></form>';
+  } else {
+    body = "<p>Off. With it on, signing in also needs a code from an app on your phone, so a stolen password isn't enough.</p>" +
+      '<form id="tfa-start"><label class="lbl" for="tfa-pw">Password</label><input id="tfa-pw" type="password" autocomplete="current-password">' +
+      '<div class="row"><button class="h-btn primary" type="submit">Set up two-step sign-in</button></div><div class="err" role="alert" id="tfa-e"></div></form>';
+  }
+  return '<div class="h-card tfa"><h1>Two-step sign-in</h1>' + body + "</div>";
+}
+function bindTwoStep() {
+  if (!$(".tfa")) return;
+  if (!S.tfa) return pollTwoStep();
+  var fail = function (err) { var e = $("#tfa-e"); if (e) e.textContent = err.message; $$(".tfa button").forEach(function (b) { b.disabled = false; }); };
+  var busy = function () { $$(".tfa button").forEach(function (b) { b.disabled = true; }); };
+  var start = $("#tfa-start"), on = $("#tfa-on"), off = $("#tfa-off");
+  if (start) start.addEventListener("submit", function (e) {
+    e.preventDefault(); busy();
+    api("/api/auth/2fa/setup", { method: "POST", body: { password: $("#tfa-pw").value }, keep401: true }).then(function (r) {
+      S.tfa = { enabled: false, recovery_left: 0, secret: r.secret, uri: r.uri }; renderAccount(); $("#tfa-code").focus();
+    }).catch(fail);
+  });
+  if (on) on.addEventListener("submit", function (e) {
+    e.preventDefault(); busy();
+    api("/api/auth/2fa/enable", { method: "POST", body: { code: $("#tfa-code").value.trim() } }).then(function (r) {
+      S.tfa = { enabled: true, recovery_left: r.recovery_codes.length, codes: r.recovery_codes }; renderAccount();
+    }).catch(fail);
+  });
+  if (off) off.addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (!confirm("Turn off two-step sign-in? Your password alone will sign in again.")) return;
+    busy();
+    api("/api/auth/2fa/disable", { method: "POST", body: { password: $("#tfa-pw").value }, keep401: true }).then(function () {
+      S.tfa = null; pollTwoStep();
+    }).catch(fail);
+  });
+  $$("[data-tfa]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var a = b.dataset.tfa;
+      if (a === "copy") {
+        try { navigator.clipboard.writeText(S.tfa.codes.join("\n")).then(function () { b.textContent = "Copied"; }); } catch (err) {}
+      } else if (a === "done" || a === "cancel") { S.tfa = null; pollTwoStep(); }
+    });
+  });
 }
 
 // ---------- account page: the contractor's team
