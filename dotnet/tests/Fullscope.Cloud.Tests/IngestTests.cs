@@ -160,6 +160,31 @@ public class IngestTests
     }
 
     [Fact]
+    public void ResentReadingsAreIgnored()
+    {
+        var db = new Seeded();
+        var i = new Ingest.Ingest(db.Sessions, Seeded.Tables);
+        const double now = T0;
+        JsonNode? Send(string node, JsonObject b, double at, double t) => Msg(i, "home", node, "telemetry", b.With("ts", at), t);
+        for (int k = 0; k < 4; k++)
+        {
+            var at = now - 60 + k * 5;
+            Send("indoor", Readings.CoolIn(), at, at);
+            Send("outdoor", Readings.CoolOut(), at, at);                // same moment as indoor: stored 1 ms later
+        }
+        for (int k = 0; k < 4; k++)                                     // the node reconnects and sends them all again
+        {
+            var at = now - 60 + k * 5;
+            Assert.Null(Send("indoor", Readings.CoolIn(), at, now));
+            Assert.Null(Send("outdoor", Readings.CoolOut(), at, now));
+        }
+        Assert.NotNull(Send("outdoor", Readings.CoolOut().With("rssi", -70), now - 60, now));   // same time, other contents
+        using var s = db.Sessions.Open();
+        Assert.Equal(9, s.Telemetry.Count());
+        Assert.Equal(9, s.Snapshots.Count());
+    }
+
+    [Fact]
     public void ALateReadingDoesNotMoveLastSeenBack()
     {
         var db = new Seeded();

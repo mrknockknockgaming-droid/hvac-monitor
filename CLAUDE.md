@@ -92,6 +92,9 @@ temperatures, superheat, subcooling and delta-T.
     security 1, Espressif "ESP BLE Provisioning" app, 10 min); setup code = random 8 chars in NVS
     printed on serial at boot; the joined network is saved in NVS (wifi.ssid/pass) and overrides
     config.h. Needs the min_spiffs partition table (1.9 MB app slots): one USB flash from 0.3.0.
+  - Resend (fw 0.3.2, `include/send_queue.h`): the node subscribes to its own telemetry topic; readings the broker
+    never echoed back (a link that died quietly, seen on Tyler's outdoor node 2026-10-19) are resent first on the
+    next connection. Ingest.repeat / C# Ingest.Repeat drop an exact repeat (same node, ts and contents).
   - CT inputs (fw 0.3.0, `src/ct.cpp`, maths in `include/ct_math.h`, host test in
     tools/host_tests): RMS every 2 s at 3 kHz/channel, 1.5 s compressor-start capture on the Y
     rising edge; the outdoor node publishes them as the `electrical` node every 5 s (over LoRa

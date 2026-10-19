@@ -6,7 +6,7 @@
 #include <WiFiClientSecure.h>
 #include <PubSubClient.h>
 #include <ArduinoOTA.h>
-#include <deque>
+#include "send_queue.h"
 #include <sys/time.h>
 
 // Older config.h files don't have these: plain MQTT, as before.
@@ -35,13 +35,22 @@ static const uint32_t MQTT_RETRY_MS     = 5000;
 static const uint32_t WIFI_REBOOT_MS    = 5UL * 60UL * 1000UL;  // reboot after 5 min without WiFi
 static const uint32_t TLS_CLOCK_WAIT_MS = 15000;                // TLS needs the date; give NTP this long
 
-// Readings taken while the broker can't be reached, sent oldest first once it can.
-static const size_t   BACKLOG_MAX   = 120;                      // 10 min at the default 5 s
-static const size_t   BACKLOG_BURST = 10;                       // per loop, so commands still get through
-static std::deque<String> backlog;
-static uint32_t dropped = 0;
+// Readings taken while the broker can't be reached, sent oldest first once it can, and readings sent
+// but not yet echoed back by the broker (see send_queue.h).
+static const size_t   BACKLOG_MAX     = 120;                    // 10 min at the default 5 s
+static const size_t   UNCONFIRMED_MAX = 60;                     // 5 min: longer than any keepalive timeout
+static const size_t   BACKLOG_BURST   = 10;                     // per loop, so commands still get through
+static SendQueue<String> backlog(BACKLOG_MAX, UNCONFIRMED_MAX);
+static bool everConnected = false;
 
 static void onMqttMessage(char* topic, byte* payload, unsigned int len) {
+  if (tTele == topic) {                       // our own reading, back from the broker: it arrived
+    String echo;
+    echo.reserve(len);
+    for (unsigned int i = 0; i < len; i++) echo += (char)payload[i];
+    backlog.echoed(echo);
+    return;
+  }
   JsonDocument cmd, reply;
   DeserializationError err = deserializeJson(cmd, payload, len);
   if (err) {
@@ -89,8 +98,12 @@ static void mqttConnect() {
   else
     ok = mqtt.connect(clientId.c_str(), nullptr, nullptr, tStatus.c_str(), 1, true, will.c_str());
   if (ok) {
-    Serial.printf("[mqtt] connected%s, %u readings to catch up\n", MQTT_TLS ? " (TLS)" : "", (unsigned)backlog.size());
+    size_t resend = everConnected ? backlog.requeue() : 0;   // sent on the old connection, never echoed
+    everConnected = true;
+    Serial.printf("[mqtt] connected%s, %u readings to catch up (%u resent)\n", MQTT_TLS ? " (TLS)" : "",
+                  (unsigned)backlog.size(), (unsigned)resend);
     mqtt.subscribe(tCmd.c_str(), 1);
+    mqtt.subscribe(tTele.c_str(), 0);
     netPublishStatus();
   } else {
     Serial.printf("[mqtt] connect failed, state %d\n", mqtt.state());
@@ -104,7 +117,8 @@ static void mqttConnect() {
 static void flushBacklog() {
   for (size_t n = 0; n < BACKLOG_BURST && !backlog.empty() && mqtt.connected(); n++) {
     if (!mqtt.publish(tTele.c_str(), backlog.front().c_str())) return;   // try again next loop
-    backlog.pop_front();
+    backlog.sent(backlog.front());
+    backlog.pop();
   }
 }
 
@@ -177,11 +191,13 @@ void netLoop() {
 }
 
 bool netPublishTelemetry(const String& json) {
-  if (mqtt.connected() && backlog.empty() && mqtt.publish(tTele.c_str(), json.c_str())) return true;
-  // Keep it for later, but only with a timestamp: without one the cloud can't place it in time.
-  if (!netTimeValid()) return false;
-  if (backlog.size() >= BACKLOG_MAX) { backlog.pop_front(); dropped++; }
-  backlog.push_back(json);
+  // Only readings with a timestamp are kept or resent: without one the cloud can't place it in time.
+  bool keep = netTimeValid();
+  if (mqtt.connected() && backlog.empty() && mqtt.publish(tTele.c_str(), json.c_str())) {
+    if (keep) backlog.sent(json);
+    return true;
+  }
+  if (keep) backlog.keep(json);
   return false;
 }
 
@@ -205,7 +221,7 @@ void netPublishStatus() {
   doc["wifi_src"] = wifiFromSetup ? "setup" : "config";
   doc["tls"] = (bool)MQTT_TLS;
   doc["backlog"] = backlog.size();
-  doc["dropped"] = dropped;
+  doc["dropped"] = backlog.dropped();
   if (statusFiller) statusFiller(doc);
   String out;
   serializeJson(doc, out);

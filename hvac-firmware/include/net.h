@@ -8,7 +8,9 @@
 //   hvac/<site>/<node>/cmd         commands in (JSON)
 //   hvac/<site>/<node>/reply       command results (JSON)
 // Telemetry carries "ts" (UTC epoch seconds) once NTP has set the clock; readings taken while
-// the broker can't be reached are kept (up to 10 min) and sent oldest first on reconnect.
+// the broker can't be reached are kept (up to 10 min) and sent oldest first on reconnect. The node
+// also listens to its own telemetry topic: a reading the broker never echoed back (the link died
+// without the node noticing yet) is sent again on the next connection.
 // config.h: MQTT_TLS 1 + MQTT_CA_CERT for the server (port 8883); 0 for the PC broker.
 
 typedef void (*CmdHandler)(JsonDocument& cmd, JsonDocument& reply);

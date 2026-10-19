@@ -60,6 +60,15 @@ clock by NTP after WiFi connects and waits up to 15 s for it before the first TL
   show up at once; status now includes `interval_ms`.
 - No more `nvs_get_blob ... NOT_FOUND` lines at boot for settings that were never saved.
 
+### What 0.3.2 changed
+- A WiFi link can die quietly: the node keeps "sending" into a dead connection for 30-60 s until
+  the MQTT keepalive notices, and those readings used to be lost. The node now also listens to its
+  own telemetry topic; a reading the broker never echoed back is sent again, first, on the next
+  connection (up to 60 readings; logic in `include/send_queue.h`, host test in
+  `tools/host_tests/send_queue_test.cpp`). The cloud ignores an exact repeat of a reading it
+  already has (same node, same `ts`, same contents). The retired PC dashboard doesn't, so it may
+  show the odd duplicate.
+
 ### LoRa instead of WiFi (optional)
 With an SX1262 module wired up (pins in `config.example.h`), set `LORA_ENABLED 1` and the node's
 `LORA_DEVICE_ID` / `LORA_KEY` from `radio/tools/new_device.py`. The node then talks only to the
