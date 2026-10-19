@@ -121,6 +121,8 @@ public sealed class Ingest
             var device = DeviceFor(s, system, node);
             JsonNode? result = null;
             bool done = true;
+            if (kind == "telemetry" && Repeat(s, device, data, now))
+                return null;
             if (kind == "telemetry" && node == Thermostat.Node)
                 result = OnThermostat(s, device, data, ReadingTime(data, now));
             else if (kind == "telemetry" && node == Electrical.Node)
@@ -192,6 +194,16 @@ public sealed class Ingest
 
     /// <summary>When a reading was taken: the node's own "ts" (firmware 0.2+, UTC seconds) if it is
     /// plausible, so readings kept during an outage land where they belong; else arrival time.</summary>
+    /// <summary>A reading we already have: the node sends again what the broker never echoed back after a
+    /// connection died quietly (firmware 0.3.2+), and some of it may have arrived after all.</summary>
+    public static bool Repeat(Db s, Device device, JsonObject data, double now)
+    {
+        double at = ReadingTime(data, now);      // stored a few ms later if that moment was taken (OnTelemetry)
+        DateTime from = Db.Ts(at), to = Db.Ts(at + 0.01);
+        return s.Telemetry.Where(t => t.DeviceId == device.Id && t.Time >= from && t.Time < to).Select(t => t.Data)
+                .AsEnumerable().Any(d => JsonNode.DeepEquals(Db.Parse(d), data));
+    }
+
     public static double ReadingTime(JsonObject data, double now)
     {
         if (J.Num(J.Get(data, "ts")) is Num v && now - TsMaxAgeS <= v.V && v.V <= now + TsMaxAheadS)

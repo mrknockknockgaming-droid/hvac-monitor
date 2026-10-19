@@ -77,6 +77,8 @@ class Ingest:
                     log.info("ignoring site %r: no system registered for it", site)
                 return None
             device = self._device(s, system, node)
+            if kind == "telemetry" and self.repeat(s, device, data, now):
+                return None
             if kind == "telemetry" and node == thermostat.NODE:
                 return self.on_thermostat(device, s, data, self.reading_time(data, now))
             if kind == "telemetry" and node == electrical.NODE:
@@ -124,6 +126,14 @@ class Ingest:
             self.publish(f"hvac/{site}/{thermostat.NODE}/display", feed)
         except Exception:
             log.exception("display feed for %s failed", site)
+
+    @classmethod
+    def repeat(cls, s, device, data, now):
+        """A reading we already have: the node sends again what the broker never echoed back after a
+        connection died quietly (firmware 0.3.2+), and some of it may have arrived after all."""
+        at = cls.reading_time(data, now)          # stored a few ms later if that moment was taken (on_telemetry)
+        return any(d == data for d in s.scalars(select(Telemetry.data).where(
+            Telemetry.device_id == device.id, Telemetry.time >= ts(at), Telemetry.time < ts(at + 0.01))))
 
     @staticmethod
     def reading_time(data, now):

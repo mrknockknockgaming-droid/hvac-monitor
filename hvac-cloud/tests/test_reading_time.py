@@ -54,3 +54,20 @@ def test_a_late_reading_does_not_move_last_seen_back(sessions, seeded, tables):
     send(i, "outdoor", COOL_OUT, NOW - 200, NOW + 1)              # an old one arriving late
     with sessions() as s:
         assert as_utc(s.scalar(select(Device.last_seen))).timestamp() == NOW
+
+
+def test_resent_readings_are_ignored(sessions, seeded, tables):
+    """Firmware 0.3.2 resends what the broker never echoed back; some of it had arrived after all."""
+    i = Ingest(sessions, tables)
+    for k in range(4):
+        at = NOW - 60 + k * 5
+        send(i, "indoor", COOL_IN, at, at)
+        send(i, "outdoor", COOL_OUT, at, at)                      # same moment as indoor: stored 1 ms later
+    for k in range(4):                                            # the node reconnects and sends them all again
+        at = NOW - 60 + k * 5
+        assert send(i, "indoor", COOL_IN, at, NOW) is None
+        assert send(i, "outdoor", COOL_OUT, at, NOW) is None
+    assert send(i, "outdoor", {**COOL_OUT, "rssi": -70}, NOW - 60, NOW) is not None   # same time, other contents
+    with sessions() as s:
+        assert len(list(s.scalars(select(Telemetry.time)))) == 9
+    assert len(snap_times(sessions)) == 9
