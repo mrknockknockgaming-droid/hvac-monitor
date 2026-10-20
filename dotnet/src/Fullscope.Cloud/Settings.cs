@@ -37,6 +37,7 @@ public sealed record Settings
     public int WarrantyMonths { get; init; } = 12;            // Fullscope boards, from the day a kit is claimed
     public int InvoiceDays { get; init; } = 30;               // invoices are due this many days after sending
     public string InvoiceNote { get; init; } = "";            // how to pay, printed on every invoice
+    public int QuoteDays { get; init; } = 30;                 // a sent quote can be accepted for this many days
 
     /// <summary>Settings for this process: the environment, then the .env file.</summary>
     public static Settings Load(string? home = null)
@@ -76,6 +77,7 @@ public sealed record Settings
             WarrantyMonths = I("WARRANTY_MONTHS", "12"),
             InvoiceDays = I("INVOICE_DAYS", "30"),
             InvoiceNote = Get("INVOICE_NOTE", ""),
+            QuoteDays = I("QUOTE_DAYS", "30"),
         };
         return settings with { OrderEmail = Get("ORDER_EMAIL", "") is { Length: > 0 } to ? to : settings.SmtpFrom };
     }

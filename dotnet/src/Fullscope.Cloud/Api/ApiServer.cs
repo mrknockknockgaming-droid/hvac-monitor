@@ -394,6 +394,7 @@ public sealed partial class ApiServer
         OfficeRoutes(app);
         KitRoutes(app);
         BillingRoutes(app);
+        QuoteRoutes(app);
         Route(app, "GET", "/api/fleet", Fleet);
         Route(app, "GET", "/api/refrigerants", _ => new JsonArray(RefrigerantTables.Fluids.Select(f => (JsonNode?)f).ToArray()));
         Route(app, "GET", "/api/systems", r =>

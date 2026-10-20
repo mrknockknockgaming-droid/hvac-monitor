@@ -14,7 +14,7 @@ from fastapi import Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 
-from . import auth, billing, settings
+from . import auth, billing, quotes, settings
 from .db import (Account, Customer, Device, Invite, Order, Snapshot, System, SystemMember, Ticket, TicketMessage, User, as_utc,
                  utcnow)
 
@@ -205,7 +205,7 @@ def mount(app, db, principal, clean_email, send_mail, make_invite, invite_view, 
         inbox = dict(s.execute(select(Ticket.status, func.count()).group_by(Ticket.status)).all())
         cust = dict(s.execute(select(Customer.status, func.count()).group_by(Customer.status)).all())
         return {"inbox": {k: inbox.get(k, 0) for k in STATUSES}, "customers": {k: cust.get(k, 0) for k in CUSTOMER_STATUSES},
-                "invoices": billing.summary(s)}
+                "invoices": billing.summary(s), "quotes": quotes.summary(s)}
 
     @app.get("/api/office/inbox")
     def inbox(status: Literal["open", "closed", "all"] = "open", kind: Literal["order", "contact", "support", "all"] = "all",
@@ -318,6 +318,7 @@ def mount(app, db, principal, clean_email, send_mail, make_invite, invite_view, 
         tickets = s.scalars(select(Ticket).where(Ticket.customer_id == c.id).order_by(Ticket.updated_at.desc(), Ticket.id.desc()))
         out["tickets"] = [ticket_row(s, t, {c.id: c}) for t in tickets]
         out["invoices"] = billing.customer_invoices(s, c)
+        out["quotes"] = quotes.customer_quotes(s, c)
         return out
 
     def apply_customer(c, body):

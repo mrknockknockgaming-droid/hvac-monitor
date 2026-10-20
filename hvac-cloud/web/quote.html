@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
+<title>Fullscope quote</title>
+<link rel="icon" href="icons/icon-192.png">
+<meta name="theme-color" content="#0d1013">
+<link rel="stylesheet" href="fullscope.css">
+<script>
+  try { var t = localStorage.getItem("fs_theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<style>
+/* A quote the customer opens from the link in Fullscope's email (quotes.py): read it, then accept or decline. */
+.q-page{max-width:760px;margin:0 auto;padding:16px 16px 64px;display:grid;gap:12px}
+.q-sheet{background:#fff;color:#111;border:1px solid var(--line-strong);border-radius:3px;padding:22px 24px;display:grid;gap:16px;font-size:14px;line-height:20px}
+.q-sheet .ih{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.q-sheet .ih>div{display:flex;flex-direction:column;gap:2px}
+.q-sheet .ih .r{text-align:right}
+.q-sheet i{font:700 15px/18px var(--font-sans);font-style:normal;letter-spacing:.2em}
+.q-sheet .ih b{font-size:18px;line-height:22px}
+.q-sheet .ib{display:flex;flex-direction:column;gap:1px}
+.q-sheet .small{font-size:12px;color:#555}
+.q-sheet table{width:100%;border-collapse:collapse}
+.q-sheet th{font-size:12px;font-weight:500;color:#555;text-align:left;border-bottom:1px solid #999;padding:4px 6px}
+.q-sheet td{border-bottom:1px solid #ddd;padding:6px;vertical-align:top}
+.q-sheet .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.q-sheet tfoot td{border-bottom:0;font-weight:700;padding-top:8px}
+.q-sheet .note{margin:0;white-space:pre-wrap}
+.q-answer{padding:18px;display:grid;gap:10px}
+.q-answer h2{margin:0;padding:0;font-size:18px;line-height:24px;font-weight:600}
+.q-answer p{margin:0;color:var(--ink-muted);font-size:14px}
+.q-answer a{color:var(--ink);text-underline-offset:2px}
+.q-answer label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--ink-muted)}
+.q-answer input,.q-answer textarea{width:100%;padding:8px 10px;border:1px solid var(--line-strong);border-radius:2px;background:var(--surface-2);font:inherit;font-size:15px;color:var(--ink)}
+.q-answer textarea{min-height:70px;resize:vertical}
+.q-answer .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.q-answer .err{color:var(--fault);font-size:13px;min-height:18px}
+.q-answer .done{display:flex;gap:10px;align-items:center}
+.q-link{background:none;border:0;padding:0;color:var(--ink-muted);text-decoration:underline;text-underline-offset:2px;cursor:pointer;font:inherit;font-size:14px}
+@media (max-width:560px){.q-sheet{padding:16px}.q-sheet .ih .r{text-align:left}.q-sheet th.unit,.q-sheet td.unit{display:none}}
+@media print{html,body{background:#fff}.top,.q-answer,.theme-t{display:none}.q-page{padding:0}.q-sheet{border:0}}
+</style>
+</head>
+<body class="fs">
+<header class="top"><div class="top-row"><span class="brand logo"><img src="fullscope-wordmark.webp" alt="Fullscope"></span>
+  <div class="ident"><b>Quote</b><span id="sub">Loading…</span></div></div></header>
+<main class="q-page" id="root"><div class="h-card q-answer"><p>Loading your quote…</p></div></main>
+<button class="btn theme-t fs" type="button" id="theme">Light / dark</button>
+<script>
+(function () {
+"use strict";
+var root = document.getElementById("root");
+var token = (location.hash.match(/^#\/quote\/([A-Za-z0-9_-]+)$/) || [])[1] || "";
+var Q = null, declining = false, busy = false;
+
+document.getElementById("theme").addEventListener("click", function () {
+  var r = document.documentElement;
+  r.dataset.theme = r.dataset.theme === "light" ? "dark" : "light";
+  try { localStorage.setItem("fs_theme", r.dataset.theme); } catch (e) {}
+});
+
+function esc(s) { return String(s === null || s === undefined ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+function money(c) { var a = Math.abs(c); return (c < 0 ? "-" : "") + "$" + Math.floor(a / 100).toLocaleString("en-US") + "." + ("0" + (a % 100)).slice(-2); }
+function day(iso) {
+  if (!iso) return "";
+  var p = iso.slice(0, 10).split("-");
+  return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString([], { month: "long", day: "numeric", year: "numeric" });
+}
+function post(path, body) {
+  return fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then(function (r) {
+    return r.json().catch(function () { return {}; }).then(function (b) {
+      if (!r.ok) throw new Error(typeof b.detail === "string" ? b.detail : "Something went wrong (" + r.status + "). Try again in a minute.");
+      return b;
+    });
+  });
+}
+
+function sheet(q) {
+  var t = q.to;
+  var lines = q.lines.map(function (x) {
+    return "<tr><td>" + esc(x.description) + '</td><td class="num">' + x.qty + '</td><td class="num unit">' + money(x.unit_cents) + '</td><td class="num">' + money(x.amount_cents) + "</td></tr>";
+  }).join("");
+  return '<div class="q-sheet"><div class="ih"><div><i>FULLSCOPE</i>' + (q.from_email ? '<span class="small">' + esc(q.from_email) + "</span>" : "") + "</div>" +
+    '<div class="r"><b>Quote ' + esc(q.number) + "</b>" + (q.issued ? '<span class="small">Date ' + esc(day(q.issued)) + "</span>" : "") +
+    (q.valid_until ? '<span class="small">Valid until ' + esc(day(q.valid_until)) + "</span>" : "") + "</div></div>" +
+    '<div class="ib"><span class="small">For</span><b>' + esc(t.company) + "</b>" + [t.contact, t.address].filter(Boolean).map(function (v) { return "<span>" + esc(v) + "</span>"; }).join("") + "</div>" +
+    '<table><thead><tr><th>Description</th><th class="num">Qty</th><th class="num unit">Unit</th><th class="num">Amount</th></tr></thead><tbody>' + lines + "</tbody>" +
+    '<tfoot><tr><td colspan="2">Total</td><td class="num unit"></td><td class="num">' + money(q.total_cents) + "</td></tr></tfoot></table>" +
+    (q.notes ? '<p class="note">' + esc(q.notes) + "</p>" : "") + "</div>";
+}
+
+function answerBox(q) {
+  var ask = q.from_email ? ' Questions? Email <a href="mailto:' + esc(q.from_email) + '">' + esc(q.from_email) + "</a>." : "";
+  if (q.status === "accepted") return '<div class="h-card q-answer"><div class="done"><span class="st ok">Accepted</span><h2>Thank you' + (q.answered_name ? ", " + esc(q.answered_name.split(" ")[0]) : "") + "</h2></div>" +
+    "<p>You accepted this quote on " + esc(day(q.answered_at)) + ". Fullscope will be in touch about the next steps." + ask + "</p></div>";
+  if (q.status === "declined") return '<div class="h-card q-answer"><div class="done"><span class="st caution">Declined</span><h2>Thanks for letting us know</h2></div>' +
+    "<p>You declined this quote on " + esc(day(q.answered_at)) + ". If anything changes, just reply to the email it came in." + ask + "</p></div>";
+  if (q.expired) return '<div class="h-card q-answer"><h2>This quote has expired</h2><p>It was valid until ' + esc(day(q.valid_until)) + ". Ask Fullscope for a new one." + ask + "</p></div>";
+  if (declining) return '<form class="h-card q-answer" id="decline"><h2>Decline this quote</h2><p>A short reason helps us, but it\'s optional.</p>' +
+    '<label for="reason">Reason<textarea id="reason" maxlength="1000"></textarea></label>' +
+    '<div class="row"><button class="h-btn primary" type="submit"' + (busy ? " disabled" : "") + '>Decline the quote</button><button class="q-link" type="button" id="back">Go back</button></div><div class="err" id="err" role="status"></div></form>';
+  return '<form class="h-card q-answer" id="accept"><h2>Accept this quote</h2><p>Type your name and press Accept. Fullscope gets a note right away.' + ask + "</p>" +
+    '<label for="name">Your name<input id="name" maxlength="120" autocomplete="name" required></label>' +
+    '<div class="row"><button class="h-btn primary" type="submit"' + (busy ? " disabled" : "") + ">Accept " + esc(money(q.total_cents)) + '</button><button class="q-link" type="button" id="no">Decline instead</button></div>' +
+    '<div class="err" id="err" role="status"></div></form>';
+}
+
+function render() {
+  document.getElementById("sub").textContent = Q.number + " · " + Q.to.company;
+  document.title = "Fullscope quote " + Q.number;
+  root.innerHTML = sheet(Q) + answerBox(Q);
+  var acc = document.getElementById("accept");
+  if (acc) acc.addEventListener("submit", function (e) { e.preventDefault(); answer(true, { name: document.getElementById("name").value }); });
+  var dec = document.getElementById("decline");
+  if (dec) dec.addEventListener("submit", function (e) { e.preventDefault(); answer(false, { reason: document.getElementById("reason").value }); });
+  var no = document.getElementById("no");
+  if (no) no.addEventListener("click", function () { declining = true; render(); });
+  var back = document.getElementById("back");
+  if (back) back.addEventListener("click", function () { declining = false; render(); });
+}
+
+function answer(accept, extra) {
+  if (accept && !extra.name.trim()) { document.getElementById("err").textContent = "Type your name to accept."; return; }
+  busy = true;
+  var btn = document.querySelector(".q-answer button[type=submit]"); if (btn) btn.disabled = true;
+  var body = { token: token, accept: accept };
+  Object.keys(extra).forEach(function (k) { body[k] = extra[k]; });
+  post("/api/quote/answer", body).then(function (q) { busy = false; Q = q; render(); window.scrollTo(0, document.body.scrollHeight); })
+    .catch(function (e) {
+      busy = false;
+      if (btn) btn.disabled = false;
+      var err = document.getElementById("err"); if (err) err.textContent = e.message;
+    });
+}
+
+function fail(msg) {
+  document.getElementById("sub").textContent = "Not available";
+  root.innerHTML = '<div class="h-card q-answer"><h2>We couldn\'t open this quote</h2><p>' + esc(msg) + "</p></div>";
+}
+
+if (!token) fail("The link is missing part of its address. Open it again from the email, or ask Fullscope to send it again.");
+else post("/api/quote/view", { token: token }).then(function (q) { Q = q; render(); }).catch(function (e) { fail(e.message); });
+})();
+</script>
+</body>
+</html>

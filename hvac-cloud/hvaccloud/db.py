@@ -257,6 +257,37 @@ class InvoiceLine(Base):
     system_id: Mapped[int | None] = mapped_column(ForeignKey("systems.id"))   # a system's monthly price
 
 
+class Quote(Base):
+    """A price offer to a customer (quotes.py), emailed with a link they open to accept or decline.
+    Its number is Q-(1000 + id). Only a SHA-256 of the link token is stored; sending again makes a new link."""
+    __tablename__ = "quotes"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    customer_id: Mapped[int] = mapped_column(ForeignKey("customers.id"))
+    created_at: Mapped[dt.datetime] = mapped_column(default=utcnow)
+    status: Mapped[str] = mapped_column(String(16), default="draft")      # draft, sent, accepted, declined, void
+    issued: Mapped[dt.date | None] = mapped_column(Date)                  # set when first sent
+    valid_until: Mapped[dt.date | None] = mapped_column(Date)
+    sent_at: Mapped[dt.datetime | None]
+    emailed: Mapped[bool | None]
+    token_hash: Mapped[str | None] = mapped_column(String(64), unique=True)
+    viewed_at: Mapped[dt.datetime | None]                                 # first opened by the customer
+    answered_at: Mapped[dt.datetime | None]
+    answered_name: Mapped[str | None] = mapped_column(String(120))        # typed by the customer when accepting
+    answered_ip: Mapped[str | None] = mapped_column(String(64))
+    decline_reason: Mapped[str | None] = mapped_column(String(1000))
+    invoice_id: Mapped[int | None] = mapped_column(ForeignKey("invoices.id"))   # made from it once accepted
+    notes: Mapped[str | None] = mapped_column(String(2000))               # shown on the quote
+
+
+class QuoteLine(Base):
+    __tablename__ = "quote_lines"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    quote_id: Mapped[int] = mapped_column(ForeignKey("quotes.id"))
+    description: Mapped[str] = mapped_column(String(200))
+    qty: Mapped[int] = mapped_column(default=1)
+    unit_cents: Mapped[int]
+
+
 class Invite(Base):
     """A link that lets someone create their sign-in: a homeowner for one system, or a contractor
     teammate on an account. Only a SHA-256 of the link token is stored."""
