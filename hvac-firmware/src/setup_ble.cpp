@@ -119,8 +119,9 @@ void setupBleLoop() {}
 #endif
 
 bool setupBleWifi(String& ssid, String& pass) {
-  ssid = setGetS(K_SSID, "");
-  if (!ssid.length()) return false;
+  String saved = setGetS(K_SSID, "");
+  if (!saved.length()) return false;       // nothing saved: leave config.h's network in place
+  ssid = saved;
   pass = setGetS(K_PASS, "");
   return true;
 }
