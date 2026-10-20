@@ -1,6 +1,7 @@
 /* Fullscope Office (office.html): the business side for Fullscope's own staff. Inbox (order requests,
    website contact messages, contractors' support requests), Customers (contractor companies and
-   their accounts) and Devices (kits, boards, QR labels and warranty claims). Signs in through the web app (/app/); the server allows staff only. */
+   their accounts), Devices (kits, boards, QR labels and warranty claims) and Flash (writes firmware to a
+   pair of boards over USB from Chrome or Edge, saves the kit code on them and registers the kit).  Signs in through the web app (/app/); the server allows staff only. */
 (function () {
 "use strict";
 
@@ -79,6 +80,9 @@ function route() {
     if (S.kit && S.kit.loading) loadKit(S.kit.id);
     loadKits();
     if (!S.customers) loadCustomers();           // for shipping a kit to a customer
+  } else if (h === "#/flash") {
+    S.view = "flash";
+    if (!S.kits) loadKits();                     // to make up a kit code nobody has
   } else {
     location.replace("#/inbox");
     return;
@@ -147,7 +151,7 @@ function header() {
   return '<header class="top"><div class="top-row">' + LOGO + '<div class="ident"><b>Fullscope Office</b><span>' + esc(who) + "</span></div>" +
     '<div class="top-fields"><div class="tf"><span>Customers</span><b>' + ((cu.active || 0) + " active · " + (cu.lead || 0) + (cu.lead === 1 ? " lead" : " leads")) + "</b></div>" +
     '<div class="tf alerts"><span>Inbox</span><div class="row">' + (counts.join("") || st("ok", "All answered")) + "</div></div></div></div>" +
-    '<nav class="nav" aria-label="Sections">' + nav("inbox", "Inbox", waiting) + nav("customers", "Customers") + nav("devices", "Devices") +
+    '<nav class="nav" aria-label="Sections">' + nav("inbox", "Inbox", waiting) + nav("customers", "Customers") + nav("devices", "Devices") + nav("flash", "Flash") +
     '<span class="spacer"></span><div class="tools"><a class="btn" href="/app/" style="text-decoration:none">Open the app</a>' +
     '<button class="btn" type="button" data-signout>Sign out</button></div></nav></header>' +
     (S.error ? '<div class="stale-banner">Can\'t reach the server: ' + esc(S.error) + "</div>" : "");
@@ -161,7 +165,7 @@ function render() {
   var key = S.view + ":" + (S.ticket && S.ticket.id) + ":" + (S.customer && S.customer.id) + ":" + (S.kit && S.kit.id), keep = {};
   if (key === S.formKey && !S.reset) $$("input[id^='f-'], textarea[id^='f-']").forEach(function (i) { keep[i.id] = i.value; });
   S.formKey = key; S.reset = false;
-  root.innerHTML = header() + '<main class="page">' + (S.view === "inbox" ? inboxPage() : S.view === "customers" ? customersPage() : devicesPage()) + "</main>";
+  root.innerHTML = header() + '<main class="page">' + (S.view === "inbox" ? inboxPage() : S.view === "customers" ? customersPage() : S.view === "flash" ? flashPage() : devicesPage()) + "</main>";
   Object.keys(keep).forEach(function (k) { var i = document.getElementById(k); if (i) i.value = keep[k]; });
   var f = focusId && document.getElementById(focusId);
   if (f) { f.focus(); try { f.setSelectionRange(sel[0], sel[1]); } catch (e) {} }
@@ -403,6 +407,209 @@ function kitAction(path, method, body, tag, done) {
   }).catch(function (e) { S.msg = ["err", e.message, tag]; render(); });
 }
 
+// ---------------------------------------------------------------- flash: firmware + kit code onto a pair of boards
+// Over USB with Web Serial (Chrome or Edge on a computer). esptool-js writes the factory image (one file at
+// 0x0, made by the firmware build: <env>-<version>-factory.bin) and reads the board's MAC, which is its
+// serial here. Then the page talks to the running firmware on the same port: {"cmd":"identity"} and
+// {"cmd":"provision"} (firmware 0.4.0+) save the kit code as the board's site and the broker it reports to.
+var ESPTOOL = "vendor/esptool-js-0.5.7.js";
+var ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
+var F = { code: null, hw: "B", erase: true, files: {}, boards: { outdoor: {}, indoor: {} }, log: [], busy: null };
+function load(k, d) { try { var v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } }
+function newKitCode() {
+  var taken = (S.kits || []).map(function (k) { return k.code; }), code;
+  do {
+    code = "FS-";
+    var r = new Uint32Array(5); crypto.getRandomValues(r);
+    for (var i = 0; i < 5; i++) code += ALPHABET[r[i] % ALPHABET.length];
+  } while (taken.indexOf(code) >= 0);
+  return code;
+}
+function flog(line) {
+  F.log.push(line);
+  if (F.log.length > 400) F.log.splice(0, F.log.length - 400);
+  var el = $("#flog");
+  if (el) { el.textContent = F.log.join("\n"); el.scrollTop = el.scrollHeight; }
+}
+function flashPage() {
+  if (!F.code) F.code = newKitCode();
+  var serial = !!navigator.serial;
+  function fileRow(kind) {
+    var f = F.files[kind];
+    return '<label for="f-file-' + kind + '">' + KINDNAME[kind] + ' firmware (factory .bin)<input id="f-file-' + kind + '" type="file" accept=".bin">' +
+      '<span class="faint" style="font-size:11.5px">' + (f ? esc(f.name) + " · " + Math.round(f.size / 1024) + " kB" : "From the firmware build: .pio/build/" + kind + "/" + kind + "-&lt;version&gt;-factory.bin") + "</span></label>";
+  }
+  function boardRow(kind) {
+    var b = F.boards[kind], state = b.error ? st("fault", "Failed") : b.done ? st("ok", "Ready") : b.step ? st("advisory", b.step) : st("offline", "Not done");
+    return "<tr><td>" + KINDNAME[kind] + "</td><td>" + state + (b.error ? '<span class="who">' + esc(b.error) + "</span>" : "") +
+      (b.progress !== undefined && !b.done && !b.error ? '<div class="of-bar"><i id="bar-' + kind + '" style="width:' + b.progress + '%"></i></div>' : "") + "</td>" +
+      '<td class="mono">' + esc(b.mac || "—") + (b.fw ? '<span class="who">fw ' + esc(b.fw) + "</span>" : "") + "</td>" +
+      '<td class="num"><button class="btn primary" type="button" data-flash="' + kind + '"' + (F.busy || !serial ? " disabled" : "") + ">Flash</button> " +
+      '<button class="btn" type="button" data-provision="' + kind + '"' + (F.busy || !serial ? " disabled" : "") + ' title="Board already has firmware 0.4.0 or newer">Only save the kit code</button></td></tr>';
+  }
+  var ready = ["outdoor", "indoor"].filter(function (k) { return F.boards[k].done; });
+  return '<div class="of-split"><section class="panel" aria-label="Flash a kit"><div class="ph"><h2>Flash a kit</h2><span class="sub">Firmware and kit code onto an outdoor and an indoor board over USB</span></div>' +
+    '<div class="of-body">' + (serial ? "" : '<div class="stale-banner" style="margin:0">Flashing needs Chrome or Edge on a computer (Web Serial). Everything else in Office works here.</div>') +
+    '<form class="of-form" id="flash-form" onsubmit="return false"><div class="two">' + field("fcode", "Kit code (goes on both boards)", F.code) + field("fhw", "Hardware revision", F.hw) + "</div>" +
+    '<div class="two">' + fileRow("outdoor") + fileRow("indoor") + "</div>" +
+    '<div class="two">' + field("mhost", "Broker the boards report to", load("fs_flash_host", "")) + field("mport", "Port (8883 needs a build with MQTT_TLS 1)", load("fs_flash_port", "1883"), "number") + "</div>" +
+    '<div class="two">' + field("muser", "Broker user (empty if none)", load("fs_flash_user", "")) + field("mpass", "Broker password", "", "password") + "</div>" +
+    '<label style="flex-direction:row;align-items:center;gap:8px"><input id="f-erase" type="checkbox" style="width:auto"' + (F.erase ? " checked" : "") + '> Erase the whole board first (new boards; clears saved calibration and WiFi)</label></form>' +
+    '<p class="muted" style="margin:0;font-size:12px">Unplug 24 VAC from a board before connecting USB. Plug in one board, press Flash and pick its port. If it won\'t connect, hold BOOT while it starts.</p></div>' +
+    '<table class="dt"><thead><tr><th>Board</th><th>Status</th><th>Serial (MAC)</th><th></th></tr></thead><tbody>' + boardRow("outdoor") + boardRow("indoor") + "</tbody></table>" +
+    '<div class="of-body"><div class="acts" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn primary" type="button" data-add-flashed' + (ready.length && !F.busy ? "" : " disabled") + ">Add kit and print label</button>" +
+    '<button class="btn" type="button" data-new-flash' + (F.busy ? " disabled" : "") + ">Start another kit</button>" + msgFor("flash") + "</div></div></section>" +
+    '<section class="panel" aria-label="Log"><div class="ph"><h2>Log</h2><span class="sub">What the boards said</span></div><pre class="of-log" id="flog">' + esc(F.log.join("\n") || "Nothing yet.") + "</pre></section></div>";
+}
+function flashSettings() {
+  var v = function (id) { var e = $("#f-" + id); return e ? e.value.trim() : ""; };
+  var code = v("fcode").toUpperCase(), host = v("mhost"), port = +v("mport") || 1883, user = v("muser");
+  if (!/^FS-[A-Z0-9]{3,10}$/.test(code)) throw new Error("A kit code looks like FS-7K3QX.");
+  if (!host) throw new Error("Enter the broker the boards report to.");
+  try { localStorage.setItem("fs_flash_host", host); localStorage.setItem("fs_flash_port", String(port)); localStorage.setItem("fs_flash_user", user); } catch (e) {}
+  F.code = code; F.hw = v("fhw");
+  return { site: code.toLowerCase(), mqtt_host: host, mqtt_port: port, mqtt_user: user, mqtt_pass: v("mpass") };
+}
+// Lines from the running firmware on an open port; send(obj) writes one JSON command.
+function serialLink(port) {
+  var reader = port.readable.getReader(), writer = port.writable.getWriter(), dec = new TextDecoder(), buf = "", waiters = [], closed = false;
+  (function pump() {
+    reader.read().then(function (r) {
+      if (r.done) return;
+      buf += dec.decode(r.value, { stream: true });
+      var i;
+      while ((i = buf.indexOf("\n")) >= 0) {
+        var line = buf.slice(0, i).replace(/\r$/, ""); buf = buf.slice(i + 1);
+        if (line.indexOf("[reply] ") === 0) {
+          var rep; try { rep = JSON.parse(line.slice(8)); } catch (e) { rep = null; }
+          waiters = waiters.filter(function (w) { if (rep && rep.cmd === w.cmd) { w.resolve(rep); return false; } return true; });
+        }
+        if (line && line.charAt(0) !== "{") flog(line);         // skip the readings, keep the boot messages
+      }
+      pump();
+    }).catch(function () {});
+  })();
+  return {
+    ask: function (cmd, ms) {
+      return new Promise(function (resolve, reject) {
+        var w = { cmd: cmd.cmd, resolve: resolve };
+        waiters.push(w);
+        writer.write(new TextEncoder().encode(JSON.stringify(cmd) + "\n")).catch(reject);
+        setTimeout(function () { waiters = waiters.filter(function (x) { return x !== w; }); reject(new Error("timeout")); }, ms || 2000);
+      });
+    },
+    close: function () {
+      if (closed) return Promise.resolve(); closed = true;
+      return reader.cancel().catch(function () {}).then(function () { reader.releaseLock(); writer.releaseLock(); return port.close(); }).catch(function () {});
+    }
+  };
+}
+function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+// Ask until the firmware answers: right after a flash or reset it is still booting.
+function askUntil(link, cmd, ms) {
+  var end = Date.now() + ms;
+  function attempt() {
+    return link.ask(cmd, 1500).catch(function (e) { if (Date.now() > end) throw new Error("The board didn't answer. Is it running firmware 0.4.0 or newer?"); return sleep(500).then(attempt); });
+  }
+  return attempt();
+}
+function setStep(kind, step, progress) {
+  var b = F.boards[kind]; b.step = step; b.progress = progress;
+  var bar = $("#bar-" + kind);
+  if (bar && progress !== undefined && step === b.shown) { bar.style.width = progress + "%"; return; }
+  b.shown = step; render();
+}
+function readFile(file) {
+  return new Promise(function (resolve, reject) {
+    var r = new FileReader();
+    r.onload = function () { resolve(new Uint8Array(r.result)); };
+    r.onerror = function () { reject(new Error("Couldn't read " + file.name)); };
+    r.readAsArrayBuffer(file);
+  });
+}
+function runBoard(kind, flash) {
+  var b = F.boards[kind], prov, port, link;
+  S.msg = null;
+  try { prov = flashSettings(); } catch (e) { S.msg = ["err", e.message, "flash"]; return render(); }
+  var file = F.files[kind];
+  if (flash && !file) { S.msg = ["err", "Pick the " + kind + " firmware file first.", "flash"]; return render(); }
+  F.boards[kind] = b = {};
+  F.busy = kind;
+  flog("--- " + KINDNAME[kind] + " board, kit " + F.code + " ---");
+  navigator.serial.requestPort().then(function (p) {
+    port = p;
+    if (!flash) return null;
+    return readFile(file).then(function (img) {
+      if (img.length < 0x10000 || img[0x1000] !== 0xE9) throw new Error(file.name + " isn't a factory image (it should start with the bootloader). Use <env>-<version>-factory.bin.");
+      setStep(kind, "Connecting", 0);
+      return import("./" + ESPTOOL).then(function (esp) {
+        var transport = new esp.Transport(port, false);
+        var term = { clean: function () {}, writeLine: function (t) { flog(t); }, write: function (t) { flog(t); } };
+        var loader = new esp.ESPLoader({ transport: transport, baudrate: 460800, romBaudrate: 115200, terminal: term });
+        var bin = "", i;
+        for (i = 0; i < img.length; i += 0x8000) bin += String.fromCharCode.apply(null, img.subarray(i, i + 0x8000));
+        return loader.main().then(function (chip) {
+          flog("Chip: " + chip);
+          return loader.chip.readMac(loader);
+        }).then(function (mac) {
+          b.mac = mac.toUpperCase();
+          setStep(kind, F.erase ? "Erasing" : "Writing", 0);
+          return loader.writeFlash({ fileArray: [{ data: bin, address: 0 }], flashSize: "keep", flashMode: "keep", flashFreq: "keep",
+            eraseAll: F.erase, compress: true, reportProgress: function (_, done, total) { setStep(kind, "Writing", Math.round(100 * done / total)); } });
+        }).then(function () { return loader.after("hard_reset"); })
+          .then(function () { return transport.disconnect(); });
+      });
+    });
+  }).then(function () {
+    setStep(kind, "Saving kit code");
+    return port.open({ baudRate: 115200 }).then(function () {
+      return port.setSignals({ dataTerminalReady: false, requestToSend: false }).catch(function () {});   // run, not bootloader
+    }).then(function () {
+      link = serialLink(port);
+      return askUntil(link, { cmd: "identity" }, 20000);
+    }).then(function (id) {
+      if (id.node && id.node !== kind) throw new Error("This board runs the " + id.node + " firmware.");
+      b.mac = (id.mac || b.mac || "").toUpperCase(); b.fw = id.fw;
+      return link.ask(Object.assign({ cmd: "provision" }, prov), 3000);
+    }).then(function (rep) {
+      if (!rep.ok) throw new Error(rep.error || "The board refused the kit code.");
+      flog("Saved kit " + F.code + ", broker " + prov.mqtt_host + ":" + prov.mqtt_port + ". Restarting the board.");
+      return link.ask({ cmd: "reboot" }, 1500).catch(function () {});
+    });
+  }).then(function () {
+    b.done = true; b.step = null;
+  }).catch(function (e) {
+    if (e && e.name === "NotFoundError") { F.boards[kind] = {}; return; }       // closed the port picker
+    b.error = (e && e.message) || String(e); flog("Error: " + b.error);
+  }).then(function () {
+    F.busy = null;
+    return (link ? link.close() : port && port.readable ? port.close() : null);
+  }).catch(function () {}).then(render);
+  render();
+}
+function addFlashedKit() {
+  var boards = ["outdoor", "indoor"].filter(function (k) { return F.boards[k].done; })
+    .map(function (k) { return { kind: k, serial: F.boards[k].mac, fw: F.boards[k].fw || null }; });
+  api("/api/office/kits", { method: "POST", body: { code: F.code, hw_rev: F.hw || null, boards: boards } }).then(function (d) {
+    F.boards = { outdoor: {}, indoor: {} }; F.code = null; F.log = [];
+    S.kit = d; S.msg = ["ok", "Kit added. Print its label.", "kit"]; loadKits(); location.hash = "#/devices/" + d.id;
+  }).catch(function (e) { S.msg = ["err", e.message, "flash"]; render(); });
+}
+function bindFlash() {
+  ["outdoor", "indoor"].forEach(function (kind) {
+    var inp = $("#f-file-" + kind);
+    if (inp) inp.addEventListener("change", function () { if (inp.files[0]) { F.files[kind] = inp.files[0]; S.reset = false; render(); } });
+  });
+  var er = $("#f-erase");
+  if (er) er.addEventListener("change", function () { F.erase = er.checked; });
+  $$("[data-flash]").forEach(function (b) { b.addEventListener("click", function () { runBoard(b.dataset.flash, true); }); });
+  $$("[data-provision]").forEach(function (b) { b.addEventListener("click", function () { runBoard(b.dataset.provision, false); }); });
+  var add = $("[data-add-flashed]");
+  if (add) add.addEventListener("click", function () { try { flashSettings(); } catch (e) { S.msg = ["err", e.message, "flash"]; return render(); } addFlashedKit(); });
+  var nf = $("[data-new-flash]");
+  if (nf) nf.addEventListener("click", function () { F.boards = { outdoor: {}, indoor: {} }; F.code = null; F.log = []; S.msg = null; S.reset = true; render(); });
+}
+
 // ---------------------------------------------------------------- actions
 function bind() {
   $$("[data-signout]").forEach(function (b) {
@@ -418,6 +625,7 @@ function bind() {
   $$("[data-customer]").forEach(function (tr) { tr.addEventListener("click", function () { location.hash = "#/customers/" + tr.dataset.customer; }); });
   $$("[data-kit]").forEach(function (tr) { tr.addEventListener("click", function () { location.hash = "#/devices/" + tr.dataset.kit; }); });
   bindDevices();
+  bindFlash();
   var t = S.ticket;
   var stSel = $("#f-status");
   if (stSel) stSel.addEventListener("change", function () { patchTicket({ status: stSel.value }); });

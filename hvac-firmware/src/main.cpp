@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "config.h"
+#include "identity.h"
 #include "lora_link.h"
 #include "net.h"
 #include "settings.h"
@@ -50,12 +51,46 @@ static void handleCommandInner(JsonDocument& cmd, JsonDocument& reply) {
     intervalMs = ms;
     setPutU("interval", ms);
     reply["ok"] = true; reply["ms"] = ms;
+  } else if (!strcmp(c, "identity")) {
+    idFill(reply);
   } else if (!strcmp(c, "status")) {
     publishStatus();
     reply["ok"] = true;
   } else if (!nodeHandleCmd(cmd, reply)) {
     reply["ok"] = false;
     reply["error"] = "unknown command";
+  }
+}
+
+// Commands over USB serial too: one JSON object per line, answered with "[reply] {...}". This is how
+// Fullscope Office's flasher reads the board and saves its kit ("provision", USB only: changing the
+// site over MQTT would cut the board off from its own system).
+static String serialLine;
+static void serialCommands() {
+  while (Serial.available()) {
+    char ch = (char)Serial.read();
+    if (ch == '\r') continue;
+    if (ch != '\n') {
+      if (serialLine.length() < 600) serialLine += ch;
+      continue;
+    }
+    String line = serialLine;
+    serialLine = "";
+    line.trim();
+    if (!line.startsWith("{")) continue;
+    JsonDocument cmd, reply;
+    DeserializationError err = deserializeJson(cmd, line);
+    if (err) {
+      reply["ok"] = false;
+      reply["error"] = String("bad JSON: ") + err.c_str();
+    } else {
+      reply["cmd"] = cmd["cmd"];
+      if (!strcmp(cmd["cmd"] | "", "provision")) idProvision(cmd, reply);
+      else handleCommand(cmd, reply);
+    }
+    String out;
+    serializeJson(reply, out);
+    Serial.printf("[reply] %s\n", out.c_str());
   }
 }
 
@@ -82,6 +117,8 @@ void setup() {
   pinMode(PIN_LED, OUTPUT);
   pinMode(PIN_SETUP, INPUT_PULLUP);
   settingsBegin();
+  identityBegin();
+  Serial.printf("[id] mac %s\n", WiFi.macAddress().c_str());
   setupBleBegin();                   // SETUP held 3 s (or asked before a restart): Bluetooth WiFi setup
   intervalMs = setGetU("interval", 5000);
   nodeSetup();
@@ -96,6 +133,7 @@ void setup() {
 
 void loop() {
   setupBleLoop();
+  serialCommands();
   if (LORA_ENABLED) loraLoop(); else netLoop();
   if (LORA_ENABLED && millis() - lastLoraStatus >= LORA_STATUS_MS) {
     lastLoraStatus = millis();
