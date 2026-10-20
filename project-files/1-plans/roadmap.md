@@ -105,6 +105,7 @@ Phases run in order. Customer discovery and IP protection run alongside the buil
 - [x] Two-step sign-in with an authenticator app and 8 recovery codes, plus a limit of 30 failed sign-ins per address per 15 min (Oct 19, PR #67); built in instead of a managed provider. Turn it on from the Account page
 - [x] `fullscope-manage check`: one command that lists OK / WARN / FAIL for nodes, readings, alerts, email, notifications, two-step, backups and the HTTPS cookie (Oct 19, PR #69)
 - [x] Separate pages by access level (Oct 20, PR #76): admins get the Fleet page, the team list and teammate invites, technicians get only the system pages (Monitor, Equipment, Sensors & calibration, Service history), and homeowners get only their home page; the server checks each level, and each account's first contractor is its admin
+- [x] Invite a homeowner from the Account page as well, picking the system (Oct 20, PR #79)
 - [x] Build alerts: a fault lasting 5 min raises an alert, "no data" after 10 min of silence, alert lists in the web app, email with a 6 h cooldown
 - [x] Alert recipients (owner and/or contractor; plain-language emails for the owner, technical for the contractor), acknowledge, and mute by alert type
 - [x] Alerts for checks that only run while the system runs (refrigerant, delta-T) stay open between cycles instead of clearing every time the compressor stops: one problem, one alert, no "back to normal" email each cycle
@@ -180,11 +181,12 @@ Sheet-metal cabinets and homeowner WiFi are the weak points for nodes at the con
 - [ ] FCC Part 15 testing; UL/ETL for the electrical module
 - [ ] Multi-contractor accounts and subscription billing
 - [x] Fullscope Office, the business pages for Fullscope staff (merged Oct 20, PR #80 and #81): one inbox for order requests, website contact messages and contractors' support requests (reply by email or add internal notes); customers with "Create account and invite"; devices with kits, boards, QR labels and warranty claims
+- [x] Public landing page at https://app.fullscope-app.com/ for contractors (deployed Oct 20, PR #78): how it works, example alert, features, Pricing ("Pricing Upon Request" until set in web/pricing.json) and an Order form; order requests are saved and emailed, no payment taken (`fullscope-manage orders` lists them)
 - [ ] Billing in Fullscope Office: manual invoices first (Tyler's choice, Oct 20), no payment provider yet
 - [x] Push notifications to phones and browsers (Oct 19, PR #68): turn them on from the Account page; on iPhone, Add to Home Screen first (iOS 16.4+). Same switches, mutes and 6 h cooldown as alert email
 - [ ] Install guides and support docs
 - [ ] Volume sourcing direct from manufacturers
-- [ ] Final pricing: hardware plus subscription
+- [ ] Final pricing: hardware plus subscription (then fill in web/pricing.json for the landing page)
 
 ## Parallel tracks (start now)
 
