@@ -53,6 +53,31 @@
 .lp .diag dl{display:grid;grid-template-columns:160px 1fr;margin:0;padding:6px 14px 10px}
 .lp .diag dt{color:var(--ink-muted);font-size:13px;padding:6px 0}
 .lp .diag dd{margin:0;font-size:13px;padding:6px 0;color:var(--ink)}
+.lp .nav{display:flex;align-items:center;gap:18px}
+.lp .nav a.link{text-decoration:none;font-size:13px;color:var(--ink-muted)}
+.lp .nav a.link:hover{color:var(--ink)}
+/* pricing: two plans side by side, split by a hairline */
+.lp .plans{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:3px;background:var(--surface);margin-top:24px}
+.lp .plan{padding:20px 22px}
+.lp .plan+.plan{border-left:1px solid var(--line)}
+.lp .plan .price{font-size:34px;line-height:42px;font-weight:700;margin:6px 0 2px}
+.lp .plan .price.ask{font-size:22px;line-height:42px;color:var(--ink-muted)}
+.lp .plan .per{font-size:13px;color:var(--ink-faint);display:block;margin-bottom:14px}
+.lp .plan ul{margin:0;padding:0;list-style:none;border-top:1px solid var(--line)}
+.lp .plan li{padding:8px 0;border-bottom:1px solid var(--line);font-size:14px;color:var(--ink-muted)}
+.lp .plan li:last-child{border-bottom:0}
+/* order form */
+.lp form{max-width:640px;margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:14px 16px}
+.lp form label{display:flex;flex-direction:column;gap:5px;font-size:13px;color:var(--ink-muted)}
+.lp form .wide{grid-column:1 / -1}
+.lp form input,.lp form textarea{background:var(--surface-2);border:1px solid var(--line-strong);border-radius:2px;padding:8px 10px;font:inherit;font-size:15px;color:var(--ink);width:100%}
+.lp form textarea{min-height:88px;resize:vertical}
+.lp form .opt{color:var(--ink-faint)}
+.lp form .trap{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.lp form .btn{font-size:14px;padding:9px 20px;justify-self:start}
+.lp .estimate{font-size:14px;color:var(--ink-muted)}
+.lp .msg{font-size:14px;margin:0}
+.lp .msg.ok{color:var(--ok)}.lp .msg.err{color:var(--fault)}
 .lp footer{border-top:1px solid var(--line);padding:24px 0 40px;font-size:13px;color:var(--ink-faint)}
 .lp footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 @media (max-width:760px){
@@ -67,6 +92,10 @@
   .lp .row{grid-template-columns:1fr;gap:4px}
   .lp .diag dl{grid-template-columns:1fr}
   .lp .diag dt{padding-bottom:0}
+  .lp .plans{grid-template-columns:1fr}
+  .lp .plan+.plan{border-left:0;border-top:1px solid var(--line)}
+  .lp form{grid-template-columns:1fr}
+  .lp .nav{gap:12px}
 }
 </style>
 </head>
@@ -75,7 +104,11 @@
   <header class="top">
     <div class="top-row wrap">
       <a class="brand logo" href="/" aria-label="Fullscope home"><img src="/app/fullscope-wordmark.webp" alt="Fullscope"></a>
-      <a class="btn signin" href="/app/">Sign in</a>
+      <nav class="nav">
+        <a class="link" href="#pricing">Pricing</a>
+        <a class="link" href="#order">Order</a>
+        <a class="btn signin" href="/app/">Sign in</a>
+      </nav>
     </div>
   </header>
 
@@ -86,8 +119,8 @@
         <h1>Hear about the problem before the no-cool call.</h1>
         <p>Fullscope watches the refrigerant and air side of every split system you service, around the clock. When something drifts, your team gets an alert with the readings behind it, while there is still time to schedule the visit.</p>
         <div class="cta">
-          <a class="btn primary" href="/app/">Sign in to Fullscope</a>
-          <a class="btn" href="#how">How it works</a>
+          <a class="btn primary" href="#order">Order Fullscope</a>
+          <a class="btn" href="#pricing">See pricing</a>
         </div>
         <div class="strip" aria-label="Example readings">
           <div><span class="lbl">Superheat <span class="src calc">calc</span></span><span class="n">12.4<small>°F</small></span><span class="cap">Target 10 ± 5 °F</span></div>
@@ -140,6 +173,56 @@
       </div>
     </section>
 
+    <section id="pricing">
+      <div class="wrap">
+        <h2>Pricing</h2>
+        <p>One sensor kit for each system you monitor, plus a monthly subscription for that system.</p>
+        <div class="plans">
+          <div class="plan">
+            <h3>Sensor kit</h3>
+            <div class="price ask" data-price="kit">Price on request</div>
+            <span class="per">One time, per system</span>
+            <ul>
+              <li>Outdoor node for the condenser and indoor node for the air handler</li>
+              <li>Pressure transducers, line and air temperature sensors</li>
+              <li>Weatherproof enclosures and mounting plates</li>
+              <li>Runs on the equipment's 24 VAC</li>
+            </ul>
+          </div>
+          <div class="plan">
+            <h3>Monitoring</h3>
+            <div class="price ask" data-price="monitoring">Price on request</div>
+            <span class="per">Per system, per month</span>
+            <ul>
+              <li>Live readings, trends and calculated values</li>
+              <li>Alerts by email and phone notification</li>
+              <li>Fleet, technician and homeowner views</li>
+              <li>Service history, gauge checks and nightly backups</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="order">
+      <div class="wrap">
+        <h2>Order</h2>
+        <p>Tell us how many systems you want to monitor. We'll email you to confirm the order and arrange payment. Nothing is charged on this page.</p>
+        <form id="order-form" novalidate>
+          <label>Company<input name="company" autocomplete="organization" maxlength="200" required></label>
+          <label>Your name<input name="name" autocomplete="name" maxlength="200" required></label>
+          <label>Email<input name="email" type="email" autocomplete="email" maxlength="320" required></label>
+          <label><span>Phone <span class="opt">(optional)</span></span><input name="phone" type="tel" autocomplete="tel" maxlength="40"></label>
+          <label>Number of systems<input name="systems" type="number" min="1" max="1000" value="1" inputmode="numeric" required></label>
+          <div class="estimate" id="estimate" hidden></div>
+          <label class="wide"><span>Notes <span class="opt">(optional)</span></span><textarea name="notes" maxlength="2000" placeholder="Equipment types, where you're located, when you'd like to start"></textarea></label>
+          <label class="trap" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>
+          <button class="btn primary wide" type="submit">Send order request</button>
+          <p class="msg wide" id="order-msg" role="status" hidden></p>
+        </form>
+      </div>
+    </section>
+
     <section>
       <div class="wrap">
         <h2>Already using Fullscope?</h2>
@@ -156,6 +239,57 @@
     </div>
   </footer>
 </div>
-<script>document.getElementById("yr").textContent = new Date().getFullYear();</script>
+<script>
+document.getElementById("yr").textContent = new Date().getFullYear();
+
+// Prices live in pricing.json so they can change without touching this page.
+var prices = {};
+function money(n) {
+  return "$" + Number(n).toLocaleString("en-US", { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 });
+}
+function estimate() {
+  var el = document.getElementById("estimate"), n = parseInt(document.querySelector("[name=systems]").value, 10);
+  if (prices.kit == null || prices.monitoring == null || !(n >= 1)) { el.hidden = true; return; }
+  el.hidden = false;
+  el.textContent = "Estimate: " + money(prices.kit * n) + " for kits, then " + money(prices.monitoring * n) + " per month.";
+}
+fetch("/app/pricing.json", { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : {}; }).then(function (p) {
+  prices = p || {};
+  document.querySelectorAll("[data-price]").forEach(function (el) {
+    var v = prices[el.dataset.price];
+    if (v == null) return;
+    el.textContent = money(v);
+    el.classList.remove("ask");
+  });
+  estimate();
+}).catch(function () {});
+document.querySelector("[name=systems]").addEventListener("input", estimate);
+
+document.getElementById("order-form").addEventListener("submit", function (e) {
+  e.preventDefault();
+  var f = e.target, msg = document.getElementById("order-msg"), btn = f.querySelector("button");
+  function show(text, ok) { msg.hidden = false; msg.className = "msg wide " + (ok ? "ok" : "err"); msg.textContent = text; }
+  var data = {};
+  ["company", "name", "email", "phone", "notes", "website"].forEach(function (k) { data[k] = f.elements[k].value.trim(); });
+  data.systems = parseInt(f.elements.systems.value, 10);
+  if (!data.company || !data.name || !data.email) return show("Please fill in your company, name and email.", false);
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(data.email)) return show("That doesn't look like an email address.", false);
+  if (!(data.systems >= 1 && data.systems <= 1000)) return show("Enter how many systems, from 1 to 1000.", false);
+  btn.disabled = true;
+  fetch("/api/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
+    .then(function (r) { return r.json().catch(function () { return {}; }).then(function (b) { return { ok: r.ok, body: b }; }); })
+    .then(function (res) {
+      if (res.ok) {
+        f.querySelectorAll("input, textarea").forEach(function (el) { if (el.name !== "systems") el.value = ""; });
+        show("Thanks, your order request was sent. We'll email you to confirm it.", true);
+      } else {
+        var d = res.body && res.body.detail;
+        show(typeof d === "string" ? d : "Something in the form isn't right. Check the fields and try again.", false);
+      }
+    })
+    .catch(function () { show("Couldn't send the request. Check your connection and try again.", false); })
+    .then(function () { btn.disabled = false; });
+});
+</script>
 </body>
 </html>

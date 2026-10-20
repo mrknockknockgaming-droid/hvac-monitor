@@ -63,6 +63,7 @@ public sealed class ApiServer
     readonly Throttle _throttle = new();
     readonly Throttle _ipThrottle = new(limit: 30, window: 15 * 60);       // failed sign-ins per address, any email
     readonly Throttle _resetThrottle = new(limit: 3, window: 60 * 60);    // reset emails per address per hour
+    readonly Throttle _orderThrottle = new(limit: 5, window: 60 * 60);    // landing-page order requests per address per hour
     readonly HistoryCache? _cache;
     readonly Pusher _pusher;
 
@@ -347,6 +348,7 @@ public sealed class ApiServer
         Route(app, "POST", "/api/push/subscribe", PushSubscribe, body: true);
         Route(app, "POST", "/api/push/unsubscribe", PushUnsubscribe, body: true);
         Route(app, "POST", "/api/push/test", PushTest);
+        Route(app, "POST", "/api/orders", PlaceOrder, body: true);
         Route(app, "POST", "/api/auth/forgot", ForgotPassword, body: true);
         Route(app, "POST", "/api/systems/{system_id}/members/{user_id}/reset-link", MemberResetLink);
         Route(app, "POST", "/api/auth/reset", ResetPassword, body: true);
@@ -618,6 +620,37 @@ public sealed class ApiServer
     }
 
     /// <summary>Email a reset link. The answer never says whether the email has a sign-in.</summary>
+    /// <summary>Order request from the landing page: saved, and emailed to ORDER_EMAIL. No payment is taken.</summary>
+    object? PlaceOrder(Req r)
+    {
+        var b = Body(r, Field.Str("company", 200, required: true, minLength: 1), Field.Str("name", 200, required: true, minLength: 1),
+                     Field.Str("email", 320, required: true), Field.Str("phone", 40), Field.Int("systems", ge: 1, le: 1000, nullable: false),
+                     Field.Str("notes", 2000), Field.Str("website", 200));
+        if (!string.IsNullOrEmpty(b.Str("website"))) return new JsonObject { ["ok"] = true };   // a bot filled in the hidden field
+        var ip = ClientIp(r.Http);
+        if (_orderThrottle.Blocked(ip)) throw new ApiError(429, "Too many orders from this address. Try again in an hour.");
+        var email = CleanEmail(b.Str("email")!);
+        string company = b.Str("company")!.Trim(), name = b.Str("name")!.Trim();
+        if (company.Length == 0 || name.Length == 0) throw new ApiError(422, "Company and name are required.");
+        int systems = b.Int("systems") ?? throw new ApiError(422, "How many systems?");
+        _orderThrottle.Fail(ip);
+        var order = new Order
+        {
+            Company = company, Name = name, Email = email, Systems = systems,
+            Phone = b.Str("phone")?.Trim() is { Length: > 0 } phone ? phone : null,
+            Notes = b.Str("notes")?.Trim() is { Length: > 0 } notes ? notes : null,
+        };
+        r.S.Orders.Add(order);
+        r.S.SaveChanges();
+        if (_settings.OrderEmail.Length > 0)
+            SendInvite(_settings.OrderEmail, $"[Fullscope] Order request from {company}",
+                       $"New order request #{order.Id} from the Fullscope website.\n\n" +
+                       $"Company: {company}\nName: {name}\nEmail: {email}\nPhone: {order.Phone ?? "-"}\n" +
+                       $"Systems: {order.Systems}\n\nNotes:\n{order.Notes ?? "-"}\n\n" +
+                       $"No payment was taken. Reply to {email} to confirm the order.");
+        return new JsonObject { ["ok"] = true, ["id"] = order.Id };
+    }
+
     object? ForgotPassword(Req r)
     {
         var b = Body(r, Field.Str("email", 320, required: true));

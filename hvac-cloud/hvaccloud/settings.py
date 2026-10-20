@@ -49,3 +49,4 @@ SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))             # 587 = STARTTLS
 SMTP_USER = os.environ.get("SMTP_USER", "")
 SMTP_PASS = os.environ.get("SMTP_PASS", "")
 SMTP_FROM = os.environ.get("SMTP_FROM", "") or SMTP_USER
+ORDER_EMAIL = os.environ.get("ORDER_EMAIL", "") or SMTP_FROM          # where landing-page order requests go

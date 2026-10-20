@@ -14,6 +14,7 @@
   python manage.py set-admin you@gmail.com          (fleet page + team; --off makes them a technician again)
   python manage.py set-password you@gmail.com
   python manage.py reset-2fa you@gmail.com          (turns two-step sign-in off, for a lost phone)
+  python manage.py orders                            (order requests from the landing page, newest first)
   python manage.py check                             (is everything working? nodes, readings, alerts, email, backups)
 """
 import argparse
@@ -24,8 +25,8 @@ from sqlalchemy import select
 
 from hvaccloud import auth, check, maintenance
 from hvaccloud.alerts import Mailer
-from hvaccloud.db import (Account, ApiKey, Device, System, SystemMember, User, ensure_admins, init_db, make_engine,
-                          session_factory)
+from hvaccloud.db import (Account, ApiKey, Device, Order, System, SystemMember, User, ensure_admins, init_db,
+                          make_engine, session_factory)
 from hvaccloud.refrigerants import FLUIDS
 
 
@@ -65,6 +66,7 @@ def main(argv=None):
     ad.add_argument("--off", action="store_true", help="make them a technician again")
     pw = sub.add_parser("set-password", help="set or reset a user's password")
     pw.add_argument("email")
+    sub.add_parser("orders", help="list order requests from the landing page, newest first")
     sub.add_parser("check", help="report whether nodes, readings, alerts, commands, email and backups are all working")
     tf = sub.add_parser("reset-2fa", help="turn two-step sign-in off for a user who lost their phone and recovery codes")
     tf.add_argument("email")
@@ -177,6 +179,15 @@ def main(argv=None):
                 sys.exit(f"no user {args.email}")
             user.totp_secret = user.totp_on = user.totp_last_step = user.recovery_codes = None
             print(f"two-step sign-in is off for {user.email}; they can turn it on again on their Account page")
+        elif args.cmd == "orders":
+            rows = s.scalars(select(Order).order_by(Order.id.desc())).all()
+            if not rows:
+                print("no order requests yet")
+            for o in rows:
+                print(f"#{o.id} {o.created_at:%Y-%m-%d %H:%M} UTC  {o.company}: {o.systems} system(s)  "
+                      f"{o.name} <{o.email}> {o.phone or ''}".rstrip())
+                if o.notes:
+                    print(f"    {o.notes}")
         elif args.cmd == "test-email":
             acct = s.get(Account, args.account_id)
             if acct is None:

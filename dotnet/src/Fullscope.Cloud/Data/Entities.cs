@@ -70,6 +70,19 @@ public sealed class SystemMember
     public int UserId { get; set; }
 }
 
+/// <summary>An order request from the public landing page. No payment is taken; the owner follows up.</summary>
+public sealed class Order
+{
+    public int Id { get; set; }
+    public DateTime CreatedAt { get; set; } = Db.UtcNow();
+    public string Company { get; set; } = "";
+    public string Name { get; set; } = "";
+    public string Email { get; set; } = "";
+    public string? Phone { get; set; }
+    public int Systems { get; set; }
+    public string? Notes { get; set; }
+}
+
 public sealed class Invite
 {
     public int Id { get; set; }

@@ -100,7 +100,7 @@ public static class Manage
         var cmd = argv.FirstOrDefault();
         var rest = argv.Length > 0 ? argv[1..] : [];
         string[] commands = ["init-db", "create-account", "create-key", "create-system", "list", "set-email", "backup", "prune",
-                             "create-user", "set-admin", "set-password", "reset-2fa", "test-email", "check"];
+                             "create-user", "set-admin", "set-password", "reset-2fa", "test-email", "orders", "check"];
         if (cmd is null or "-h" or "--help" || !commands.Contains(cmd))
         {
             Console.Error.WriteLine("usage: fullscope manage {" + string.Join(",", commands) + "} ...");
@@ -285,6 +285,19 @@ public static class Manage
                 Totp.TurnOff(user);
                 s.SaveChanges();
                 Console.WriteLine($"two-step sign-in is off for {user.Email}; they can turn it on again on their Account page");
+                break;
+            }
+            case "orders":
+            {
+                a.Need(0, "orders");
+                var rows = s.Orders.OrderByDescending(o => o.Id).ToList();
+                if (rows.Count == 0) Console.WriteLine("no order requests yet");
+                foreach (var o in rows)
+                {
+                    Console.WriteLine($"#{o.Id} {o.CreatedAt.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)} UTC  {o.Company}: {o.Systems} system(s)  " +
+                                      $"{o.Name} <{o.Email}> {o.Phone ?? ""}".TrimEnd());
+                    if (o.Notes is not null) Console.WriteLine($"    {o.Notes}");
+                }
                 break;
             }
             case "test-email":

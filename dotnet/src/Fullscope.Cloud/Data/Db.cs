@@ -26,6 +26,7 @@ public sealed class Db(DbContextOptions<Db> options) : DbContext(options)
     public DbSet<UserSession> UserSessions => Set<UserSession>();
     public DbSet<SystemMember> SystemMembers => Set<SystemMember>();
     public DbSet<Invite> Invites => Set<Invite>();
+    public DbSet<Order> Orders => Set<Order>();
     public DbSet<PasswordReset> PasswordResets => Set<PasswordReset>();
     public DbSet<PushSubscription> PushSubscriptions => Set<PushSubscription>();
     public DbSet<ServerKey> ServerKeys => Set<ServerKey>();
@@ -130,6 +131,15 @@ public sealed class Db(DbContextOptions<Db> options) : DbContext(options)
             e.HasKey(x => new { x.SystemId, x.UserId });
             e.HasOne<HvacSystem>().WithMany().HasForeignKey(x => x.SystemId).OnDelete(DeleteBehavior.NoAction);
             e.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.NoAction);
+        });
+        b.Entity<Order>(e =>
+        {
+            e.ToTable("orders");
+            Len(e.Property(x => x.Company), 200);
+            Len(e.Property(x => x.Name), 200);
+            Len(e.Property(x => x.Email), 320);
+            Len(e.Property(x => x.Phone), 40);
+            Len(e.Property(x => x.Notes), 2000);
         });
         b.Entity<Invite>(e =>
         {
