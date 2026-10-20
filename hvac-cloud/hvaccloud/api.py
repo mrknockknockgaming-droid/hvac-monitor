@@ -20,13 +20,13 @@ import threading
 from typing import Literal
 
 from fastapi import Cookie, Depends, FastAPI, Header, HTTPException, Query, Request, Response
-from fastapi.responses import PlainTextResponse, RedirectResponse
+from fastapi.responses import FileResponse, PlainTextResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import func, select
 
 from . import alerts, auth, calc, display, electrical, equipment, gauge, report, service, settings, thermostat, webpush
-from .db import (Account, Alert, AlertMute, AlertPrefs, ApiKey, Command, Device, GaugeCheck, Invite, PasswordReset, PushSubscription, ServiceInfo, ServiceVisit, Snapshot,
+from .db import (Account, Alert, AlertMute, AlertPrefs, ApiKey, Command, Device, GaugeCheck, Invite, Order, PasswordReset, PushSubscription, ServiceInfo, ServiceVisit, Snapshot,
                  System, SystemMember, Telemetry, ThermostatConfig, User, as_utc, hash_key, init_db, make_engine,
                  session_factory, utcnow)
 from .refrigerants import FLUIDS, Tables
@@ -188,6 +188,16 @@ class ForgotIn(BaseModel):
     email: str = Field(max_length=320)
 
 
+class OrderIn(BaseModel):
+    company: str = Field(min_length=1, max_length=200)
+    name: str = Field(min_length=1, max_length=200)
+    email: str = Field(max_length=320)
+    phone: str | None = Field(None, max_length=40)
+    systems: int = Field(ge=1, le=1000)
+    notes: str | None = Field(None, max_length=2000)
+    website: str | None = Field(None, max_length=200)          # hidden on the form: only bots fill it in
+
+
 class ResetIn(TokenIn):
     password: str = Field(max_length=200)
 
@@ -249,6 +259,7 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
     throttle = auth.Throttle()
     ip_throttle = auth.Throttle(limit=30, window=15 * 60)        # failed sign-ins per address, any email
     reset_throttle = auth.Throttle(limit=3, window=60 * 60)      # reset emails per address per hour
+    order_throttle = auth.Throttle(limit=5, window=60 * 60)      # landing-page order requests per address per hour
     mailer = mailer or alerts.Mailer()
     pt = {"tables": tables}                                      # saturation tables, loaded on first gauge check
 
@@ -337,7 +348,36 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
 
     @app.get("/", include_in_schema=False)
     def root():
+        """Public landing page (web/welcome.html); straight to the web app if it isn't there."""
+        page = os.path.join(WEB_DIR, "welcome.html")
+        if os.path.isfile(page):
+            return FileResponse(page, headers={"Cache-Control": "no-cache"})
         return RedirectResponse("/app/")
+
+    @app.post("/api/orders")
+    def place_order(body: OrderIn, request: Request, s=Depends(db)):
+        """Order request from the landing page: saved, and emailed to ORDER_EMAIL. No payment is taken."""
+        if body.website:                                          # a bot filled in the hidden field
+            return {"ok": True}
+        ip = auth.client_ip(request)
+        if order_throttle.blocked(ip):
+            raise HTTPException(429, "Too many orders from this address. Try again in an hour.")
+        email = clean_email(body.email)
+        company, name = body.company.strip(), body.name.strip()
+        if not company or not name:
+            raise HTTPException(422, "Company and name are required.")
+        order_throttle.fail(ip)
+        order = Order(company=company, name=name, email=email, phone=(body.phone or "").strip() or None,
+                      systems=body.systems, notes=(body.notes or "").strip() or None)
+        s.add(order)
+        s.commit()
+        if settings.ORDER_EMAIL:
+            send_invite(settings.ORDER_EMAIL, f"[Fullscope] Order request from {company}",
+                        f"New order request #{order.id} from the Fullscope website.\n\n"
+                        f"Company: {company}\nName: {name}\nEmail: {email}\nPhone: {order.phone or '-'}\n"
+                        f"Systems: {order.systems}\n\nNotes:\n{order.notes or '-'}\n\n"
+                        f"No payment was taken. Reply to {email} to confirm the order.")
+        return {"ok": True, "id": order.id}
 
     # ---------- sign-in ----------
     @app.post("/api/auth/login")

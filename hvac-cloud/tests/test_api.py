@@ -104,8 +104,8 @@ def test_summary_counts_runtime_and_cycles(sessions, seeded, tables):
 
 def test_web_app_is_served(world):
     c = world["client"]
-    r = c.get("/", follow_redirects=False)
-    assert r.status_code in (302, 307) and r.headers["location"] == "/app/"
+    r = c.get("/", follow_redirects=False)                       # public landing page
+    assert r.status_code == 200 and 'href="/app/"' in r.text and r.headers["cache-control"] == "no-cache"
     page = c.get("/app/")
     assert page.status_code == 200 and "app.js" in page.text
     assert c.get("/app/app.js").status_code == 200 and c.get("/app/fullscope.css").status_code == 200

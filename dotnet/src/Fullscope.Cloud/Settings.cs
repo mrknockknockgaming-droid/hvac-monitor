@@ -32,6 +32,7 @@ public sealed record Settings
     public string SmtpUser { get; init; } = "";
     public string SmtpPass { get; init; } = "";
     public string SmtpFrom { get; init; } = "";
+    public string OrderEmail { get; init; } = "";             // where landing-page order requests go (default SmtpFrom)
     public string WebDir { get; init; } = "";
 
     /// <summary>Settings for this process: the environment, then the .env file.</summary>
@@ -44,7 +45,7 @@ public sealed record Settings
         double D(string key, string dflt) => double.Parse(Get(key, dflt), CultureInfo.InvariantCulture);
         int I(string key, string dflt) => int.Parse(Get(key, dflt), CultureInfo.InvariantCulture);
         var user = Get("SMTP_USER", "");
-        return new Settings
+        var settings = new Settings
         {
             Home = home,
             DatabaseUrl = Get("DATABASE_URL", "sqlite:///" + Path.Combine(home, "dev.db").Replace('\\', '/')),
@@ -70,6 +71,7 @@ public sealed record Settings
             SmtpFrom = Get("SMTP_FROM", "") is { Length: > 0 } from ? from : user,
             WebDir = Get("FULLSCOPE_WEB_DIR", Path.Combine(home, "web")),
         };
+        return settings with { OrderEmail = Get("ORDER_EMAIL", "") is { Length: > 0 } to ? to : settings.SmtpFrom };
     }
 
     /// <summary>KEY=value lines; # comments; quotes around values are dropped.</summary>

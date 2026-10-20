@@ -109,6 +109,19 @@ class SystemMember(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
 
 
+class Order(Base):
+    """An order request from the public landing page. No payment is taken; the owner follows up."""
+    __tablename__ = "orders"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    created_at: Mapped[dt.datetime] = mapped_column(default=utcnow)
+    company: Mapped[str] = mapped_column(String(200))
+    name: Mapped[str] = mapped_column(String(200))
+    email: Mapped[str] = mapped_column(String(320))
+    phone: Mapped[str | None] = mapped_column(String(40))
+    systems: Mapped[int]
+    notes: Mapped[str | None] = mapped_column(String(2000))
+
+
 class Invite(Base):
     """A link that lets someone create their sign-in: a homeowner for one system, or a contractor
     teammate on an account. Only a SHA-256 of the link token is stored."""
