@@ -14,7 +14,7 @@ from fastapi import Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 
-from . import auth, settings
+from . import auth, billing, settings
 from .db import (Account, Customer, Device, Invite, Order, Snapshot, System, SystemMember, Ticket, TicketMessage, User, as_utc,
                  utcnow)
 
@@ -59,6 +59,8 @@ class CustomerIn(BaseModel):
     address: str | None = Field(None, max_length=500)
     status: Literal["lead", "active", "paused", "closed"] | None = None
     notes: str | None = Field(None, max_length=4000)
+    kit_cents: int | None = Field(None, ge=0, le=billing.MAX_CENTS)        # None = the list price
+    monthly_cents: int | None = Field(None, ge=0, le=billing.MAX_CENTS)
 
 
 class AccountIn(BaseModel):
@@ -202,7 +204,8 @@ def mount(app, db, principal, clean_email, send_mail, make_invite, invite_view, 
         """Counts for the Office header."""
         inbox = dict(s.execute(select(Ticket.status, func.count()).group_by(Ticket.status)).all())
         cust = dict(s.execute(select(Customer.status, func.count()).group_by(Customer.status)).all())
-        return {"inbox": {k: inbox.get(k, 0) for k in STATUSES}, "customers": {k: cust.get(k, 0) for k in CUSTOMER_STATUSES}}
+        return {"inbox": {k: inbox.get(k, 0) for k in STATUSES}, "customers": {k: cust.get(k, 0) for k in CUSTOMER_STATUSES},
+                "invoices": billing.summary(s)}
 
     @app.get("/api/office/inbox")
     def inbox(status: Literal["open", "closed", "all"] = "open", kind: Literal["order", "contact", "support", "all"] = "all",
@@ -293,7 +296,7 @@ def mount(app, db, principal, clean_email, send_mail, make_invite, invite_view, 
 
     def customer_detail(s, c):
         out = {**customer_row(s, c), "address": c.address, "notes": c.notes, "account": None, "people": [], "invites": [],
-               "systems_list": []}
+               "systems_list": [], "kit_cents": c.kit_cents, "monthly_cents": c.monthly_cents, "list_prices": billing.list_prices()}
         now = utcnow()
         if c.account_id:
             acct = s.get(Account, c.account_id)
@@ -314,6 +317,7 @@ def mount(app, db, principal, clean_email, send_mail, make_invite, invite_view, 
                                             "homeowners": homeowners})
         tickets = s.scalars(select(Ticket).where(Ticket.customer_id == c.id).order_by(Ticket.updated_at.desc(), Ticket.id.desc()))
         out["tickets"] = [ticket_row(s, t, {c.id: c}) for t in tickets]
+        out["invoices"] = billing.customer_invoices(s, c)
         return out
 
     def apply_customer(c, body):
@@ -330,6 +334,9 @@ def mount(app, db, principal, clean_email, send_mail, make_invite, invite_view, 
             c.email = clean_email(body.email) if _clean(body.email) else None
         if "status" in fields and body.status is not None:
             c.status = body.status
+        for k in ("kit_cents", "monthly_cents"):
+            if k in fields:
+                setattr(c, k, getattr(body, k))
 
     @app.get("/api/office/customers")
     def customers(who=Depends(staff_only), s=Depends(db)):

@@ -70,7 +70,8 @@ public partial class ApiReplayTests
         var oldZone = Time.LocalZone;
         Time.LocalZone = TimeZoneInfo.Utc;
         var rec = new Recorder();
-        var settings = new Settings { AppUrl = (string)replay["app_url"]!, OrderEmail = (string?)replay["order_email"] ?? "", SessionDays = 30, WebDir = "" };
+        var settings = new Settings { AppUrl = (string)replay["app_url"]!, OrderEmail = (string?)replay["order_email"] ?? "",
+            InvoiceNote = (string?)replay["invoice_note"] ?? "", SessionDays = 30, WebDir = "" };
         var api = new ApiServer(sessions, settings, rec.Publish, rec, stale: 30, sendAsync: false, cache: false);
         var builder = WebApplication.CreateSlimBuilder();
         builder.WebHost.UseTestServer();

@@ -33,6 +33,8 @@ public sealed class Db(DbContextOptions<Db> options) : DbContext(options)
     public DbSet<Kit> Kits => Set<Kit>();
     public DbSet<Board> Boards => Set<Board>();
     public DbSet<WarrantyClaim> WarrantyClaims => Set<WarrantyClaim>();
+    public DbSet<Invoice> Invoices => Set<Invoice>();
+    public DbSet<InvoiceLine> InvoiceLines => Set<InvoiceLine>();
     public DbSet<PasswordReset> PasswordResets => Set<PasswordReset>();
     public DbSet<PushSubscription> PushSubscriptions => Set<PushSubscription>();
     public DbSet<ServerKey> ServerKeys => Set<ServerKey>();
@@ -217,6 +219,23 @@ public sealed class Db(DbContextOptions<Db> options) : DbContext(options)
             Len(e.Property(x => x.Resolution), 2000);
             e.HasOne<Board>().WithMany().HasForeignKey(x => x.BoardId).OnDelete(DeleteBehavior.NoAction);
             e.HasOne<Board>().WithMany().HasForeignKey(x => x.ReplacementId).OnDelete(DeleteBehavior.NoAction);
+        });
+        b.Entity<Invoice>(e =>
+        {
+            e.ToTable("invoices");
+            Len(e.Property(x => x.Status), 16);
+            Len(e.Property(x => x.Period), 7);
+            Len(e.Property(x => x.PaidNote), 200);
+            Len(e.Property(x => x.Notes), 2000);
+            e.HasOne<Customer>().WithMany().HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.NoAction);
+        });
+        b.Entity<InvoiceLine>(e =>
+        {
+            e.ToTable("invoice_lines");
+            Len(e.Property(x => x.Description), 200);
+            e.HasOne<Invoice>().WithMany().HasForeignKey(x => x.InvoiceId).OnDelete(DeleteBehavior.NoAction);
+            e.HasOne<Kit>().WithMany().HasForeignKey(x => x.KitId).OnDelete(DeleteBehavior.NoAction);
+            e.HasOne<HvacSystem>().WithMany().HasForeignKey(x => x.SystemId).OnDelete(DeleteBehavior.NoAction);
         });
         b.Entity<Invite>(e =>
         {

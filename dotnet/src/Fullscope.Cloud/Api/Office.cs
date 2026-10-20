@@ -191,7 +191,7 @@ public sealed partial class ApiServer
         foreach (var k in TicketStatuses) i[k] = inbox.GetValueOrDefault(k);
         var c = new JsonObject();
         foreach (var k in CustomerStatuses) c[k] = cust.GetValueOrDefault(k);
-        return new JsonObject { ["inbox"] = i, ["customers"] = c };
+        return new JsonObject { ["inbox"] = i, ["customers"] = c, ["invoices"] = InvoiceSummary(r.S) };
     }
 
     /// <summary>Tickets, most recently active first. "open" = everything not closed.</summary>
@@ -334,6 +334,10 @@ public sealed partial class ApiServer
         o["systems_list"] = systems;
         var tickets = s.Tickets.Where(t => t.CustomerId == c.Id).OrderByDescending(t => t.UpdatedAt).ThenByDescending(t => t.Id).ToList();
         o["tickets"] = new JsonArray(tickets.Select(t => (JsonNode?)TicketRow(s, t, new() { [c.Id] = c })).ToArray());
+        o["kit_cents"] = c.KitCents;
+        o["monthly_cents"] = c.MonthlyCents;
+        o["list_prices"] = ListPricesView();
+        o["invoices"] = CustomerInvoices(s, c);
         return o;
     }
 
@@ -341,6 +345,7 @@ public sealed partial class ApiServer
     [
         Field.Str("company", 200, minLength: 1), Field.Str("contact", 200), Field.Str("email", 320), Field.Str("phone", 40),
         Field.Str("address", 500), Field.Choice("status", CustomerStatuses), Field.Str("notes", 4000),
+        Field.Int("kit_cents", ge: 0, le: MaxCents), Field.Int("monthly_cents", ge: 0, le: MaxCents),
     ];
 
     static void ApplyCustomer(Customer c, Model b)
@@ -357,6 +362,8 @@ public sealed partial class ApiServer
         if (b.IsSet("notes")) c.Notes = Clean(b.Str("notes"));
         if (b.IsSet("email")) c.Email = Clean(b.Str("email")) is null ? null : CleanEmail(b.Str("email")!);
         if (b.IsSet("status") && b.Str("status") is string st) c.Status = st;
+        if (b.IsSet("kit_cents")) c.KitCents = b.Int("kit_cents");
+        if (b.IsSet("monthly_cents")) c.MonthlyCents = b.Int("monthly_cents");
     }
 
     object? ListCustomers(Req r)

@@ -97,6 +97,8 @@ public sealed class Customer
     public string Status { get; set; } = "lead";        // lead, active, paused, closed
     public string? Notes { get; set; }
     public int? AccountId { get; set; }
+    public int? KitCents { get; set; }                  // this customer's prices; null = the list price
+    public int? MonthlyCents { get; set; }              // (web/pricing.json)
 }
 
 /// <summary>One conversation in the Office inbox: an order request, a website contact message or a
@@ -186,6 +188,34 @@ public sealed class WarrantyClaim
     public int? ReplacementId { get; set; }
     public string? Resolution { get; set; }
     public DateTime? ClosedAt { get; set; }
+}
+
+/// <summary>A bill to a customer (Api/Billing.cs), sent by email and marked paid by hand. Its number is 1000 + Id.</summary>
+public sealed class Invoice
+{
+    public int Id { get; set; }
+    public int CustomerId { get; set; }
+    public DateTime CreatedAt { get; set; } = Db.UtcNow();
+    public string Status { get; set; } = "draft";       // draft, sent, paid, void
+    public string? Period { get; set; }                 // 2026-10 for a monthly bill
+    public DateOnly? Issued { get; set; }               // set when first sent
+    public DateOnly? Due { get; set; }
+    public DateTime? SentAt { get; set; }
+    public bool? Emailed { get; set; }
+    public DateOnly? PaidOn { get; set; }
+    public string? PaidNote { get; set; }               // check number, transfer reference
+    public string? Notes { get; set; }                  // printed on the invoice
+}
+
+public sealed class InvoiceLine
+{
+    public int Id { get; set; }
+    public int InvoiceId { get; set; }
+    public string Description { get; set; } = "";
+    public int Qty { get; set; } = 1;
+    public int UnitCents { get; set; }
+    public int? KitId { get; set; }                     // a kit's one-time price
+    public int? SystemId { get; set; }                  // a system's monthly price
 }
 
 public sealed class Invite

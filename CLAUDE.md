@@ -188,7 +188,13 @@ temperatures, superheat, subcooling and delta-T.
     0x0 and reads the MAC (= board serial), then sends {"cmd":"identity"} and {"cmd":"provision", site, mqtt_*} over serial;
     "Add kit and print label" registers the kit. Firmware 0.4.0 (`src/identity.cpp`): site + broker in NVS override config.h
     (TLS stays a build setting); JSON commands also work over USB serial, answered "[reply] {...}"; provision is serial-only.
-    Plan for the rest (browser flashing, billing): Claude Doc "Fullscope Office plan".
+    Billing (2026-10-20, `hvaccloud/billing.py`, C# `Api/Billing.cs`, Billing tab): manual invoices, no card payments. `invoices` +
+    `invoice_lines` (whole cents; number = 1000 + id). Prices: web/pricing.json list prices (dollars), customers.kit_cents /
+    monthly_cents override. "Draft invoices for the month" (POST /api/office/invoices/run) = one draft per active customer: a line
+    per kit shipped to them and not on a non-void invoice, a line per system on their account (full month, no pro-rating).
+    draft -> sent (emailed, or marked sent when printed) -> paid (date + reference), or void; drafts can be deleted.
+    INVOICE_NOTE (how to pay, printed on every invoice) and INVOICE_DAYS (30) in .env / fullscope.env.
+    Plan: Claude Doc "Fullscope Office plan".
   - Invites (`invites` table, token hashed, 7 days, single use) for homeowners (per system,
     Sensors & calibration page) and contractor teammates (Account page); links use APP_URL.
     Admins land on `#/fleet` (GET /api/fleet, admins only, worst first: alerts.LEVEL mirrors the

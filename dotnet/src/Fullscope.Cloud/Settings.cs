@@ -35,6 +35,8 @@ public sealed record Settings
     public string OrderEmail { get; init; } = "";             // where landing-page order requests go (default SmtpFrom)
     public string WebDir { get; init; } = "";
     public int WarrantyMonths { get; init; } = 12;            // Fullscope boards, from the day a kit is claimed
+    public int InvoiceDays { get; init; } = 30;               // invoices are due this many days after sending
+    public string InvoiceNote { get; init; } = "";            // how to pay, printed on every invoice
 
     /// <summary>Settings for this process: the environment, then the .env file.</summary>
     public static Settings Load(string? home = null)
@@ -72,6 +74,8 @@ public sealed record Settings
             SmtpFrom = Get("SMTP_FROM", "") is { Length: > 0 } from ? from : user,
             WebDir = Get("FULLSCOPE_WEB_DIR", Path.Combine(home, "web")),
             WarrantyMonths = I("WARRANTY_MONTHS", "12"),
+            InvoiceDays = I("INVOICE_DAYS", "30"),
+            InvoiceNote = Get("INVOICE_NOTE", ""),
         };
         return settings with { OrderEmail = Get("ORDER_EMAIL", "") is { Length: > 0 } to ? to : settings.SmtpFrom };
     }
