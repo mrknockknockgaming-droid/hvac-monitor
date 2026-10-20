@@ -43,7 +43,7 @@ KEY2 = "hvk_account-two-test-key-0000000000000000000"
 APP_URL = "http://localhost:8000/app/"
 ORDER_EMAIL = "sales@fullscope.example"          # gets a copy of each new order and Office inbox ticket
 XRW = {"X-Requested-With": "fullscope"}
-TOKEN = re.compile(r"#/(invite|reset)/([A-Za-z0-9_-]+)")
+TOKEN = re.compile(r"#/(invite|reset|claim)/([A-Za-z0-9_-]+)")
 
 
 def make_seed(path):
@@ -488,6 +488,74 @@ def main():
     call("tech", "GET", "/api/office/customers")
     call("tech", "GET", "/api/office/customers/99999")
     call("tech", "GET", "/api/office/summary")
+
+    # ---- Fullscope Office: kits, boards, warranty; the contractor's QR claim ----
+    kit = {"code": "fs-r7k3q", "hw_rev": "B", "notes": "Replay kit",
+           "boards": [{"kind": "outdoor", "serial": "aa-bb-cc-dd-ee-01", "fw": "0.3.2"}, {"kind": "indoor", "serial": "AABBCCDDEE02"}]}
+    call("office", "GET", "/api/office/kits")
+    call("boss", "POST", "/api/office/kits", kit)
+    call("tech", "GET", "/api/office/kits")
+    call("tech", "POST", "/api/office/kits", kit)
+    kit1_tok = tok()
+    call("tech", "POST", "/api/office/kits", kit)
+    call("tech", "POST", "/api/office/kits", {**kit, "code": "FS-ZZZZ"})
+    call("tech", "POST", "/api/office/kits", {"code": "kit-1", "boards": [{"kind": "indoor", "serial": "AABBCCDDEE03"}]})
+    call("tech", "POST", "/api/office/kits", {"code": "FS-OTHER", "boards": [{"kind": "indoor", "serial": "AABBCCDDEE03"}]})
+    call("tech", "POST", "/api/office/kits", {"code": "FS-TWO", "boards": [{"kind": "indoor", "serial": "AABBCCDDEE03"},
+                                                                          {"kind": "indoor", "serial": "AABBCCDDEE04"}]})
+    call("tech", "POST", "/api/office/kits", {"code": "FS-BAD", "boards": [{"kind": "indoor", "serial": "nope"}]})
+    call("tech", "POST", "/api/office/kits", {"code": "FS-NONE", "boards": []})
+    call("tech", "POST", "/api/office/kits", {"code": "FS-KIND", "boards": [{"kind": "attic", "serial": "AABBCCDDEE03"}]})
+    call("tech", "POST", "/api/office/kits", {"code": "FS-S2X9", "hw_rev": "B", "boards": [{"kind": "outdoor", "serial": "AA:BB:CC:DD:EE:05"},
+                                                                                        {"kind": "indoor", "serial": "AA:BB:CC:DD:EE:06"}]})
+    kit2_tok = tok()
+    with sessions() as s:
+        k1, k2 = (s.scalar(select(text("id")).select_from(text("kits")).where(text(f"code = '{c}'"))) for c in ("FS-R7K3Q", "FS-S2X9"))
+    call("tech", "GET", "/api/office/kits")
+    call("tech", "GET", f"/api/office/kits/{k1}")
+    call("tech", "GET", "/api/office/kits/99999")
+    call("tech", "PATCH", f"/api/office/kits/{k2}", {"customer_id": cid, "shipped": True})
+    call("tech", "PATCH", f"/api/office/kits/{k2}", {"customer_id": 99999})
+    call("tech", "PATCH", f"/api/office/kits/{k1}", {"shipped": True, "notes": " Boxed "})
+    call("tech", "PATCH", f"/api/office/kits/{k1}", {"shipped": False})
+    call("tech", "GET", "/api/office/boards?q=ee:0")
+    call("tech", "GET", "/api/office/boards?q=EE05")
+    call("owner", "POST", "/api/claim/lookup", {"code": kit1_tok})
+    call("office", "POST", "/api/claim/lookup", {"code": "FS-R7K3Q-WRONG"})
+    call("office", "POST", "/api/claim/lookup", {"code": kit2_tok})               # shipped to Sun Valley
+    call("office", "POST", "/api/claim", {"code": kit2_tok, "system_name": "Not ours"})
+    call("office", "POST", "/api/claim/lookup", {"code": kit1_tok})
+    call("office", "POST", "/api/claim", {"code": kit1_tok, "system_name": " "})
+    call("office", "POST", "/api/claim", {"code": kit1_tok, "system_name": "Lee home", "homeowner_email": "boss@other.example"})
+    call("office", "POST", "/api/claim", {"code": kit1_tok, "system_name": "Lee home", "address": "9 Saguaro Dr, Mesa AZ",
+                                        "homeowner_email": " Lee@Home.example "})
+    call("office", "POST", "/api/claim/lookup", {"code": kit1_tok})
+    call("boss", "POST", "/api/claim/lookup", {"code": kit1_tok})
+    call("office", "POST", "/api/claim", {"code": kit1_tok, "system_name": "Again"})
+    call("tech", "GET", "/api/systems")
+    call("tech", "GET", f"/api/office/kits/{k1}")
+    call("tech", "POST", f"/api/office/kits/{k1}/new-code")
+    with sessions() as s:
+        b1, b2 = s.scalars(select(text("id")).select_from(text("boards")).where(text(f"kit_id = {k1}")).order_by(text("id"))).all()
+    call("tech", "POST", f"/api/office/boards/{b1}/claims", {"problem": "Suction sensor reads open"})
+    call("tech", "POST", f"/api/office/boards/{b2}/claims", {"problem": "  "})
+    call("tech", "POST", "/api/office/boards/99999/claims", {"problem": "x"})
+    with sessions() as s:
+        wc = s.scalar(select(text("max(id)")).select_from(text("warranty_claims")))
+    call("tech", "PATCH", f"/api/office/claims/{wc}", {"status": "replaced"})
+    call("tech", "PATCH", f"/api/office/claims/{wc}", {"status": "replaced", "replacement_serial": "AA:BB:CC:DD:EE:05"})
+    call("tech", "PATCH", f"/api/office/claims/{wc}", {"status": "lost"})
+    call("tech", "PATCH", f"/api/office/claims/{wc}", {"status": "replaced", "replacement_serial": "aabbccddee99",
+                                                      "resolution": "Sent a new outdoor board"})
+    call("tech", "POST", f"/api/office/boards/{b2}/claims", {"problem": "Loose terminal"})
+    call("tech", "PATCH", f"/api/office/claims/{wc + 1}", {"status": "repaired", "resolution": "Tightened"})
+    call("tech", "PATCH", "/api/office/claims/99999", {"status": "denied"})
+    call("tech", "GET", f"/api/office/kits/{k1}")
+    call("tech", "POST", f"/api/office/kits/{k1}/release")
+    call("tech", "POST", f"/api/office/kits/{k1}/release")
+    call("tech", "POST", f"/api/office/kits/{k2}/new-code")
+    call("tech", "GET", "/api/office/kits")
+    call("tech", "GET", "/api/systems")
 
     # ---- password guessing ----
     for _ in range(8):

@@ -1,6 +1,6 @@
 /* Fullscope Office (office.html): the business side for Fullscope's own staff. Inbox (order requests,
-   website contact messages, contractors' support requests) and Customers (contractor companies and
-   their accounts). Signs in through the web app (/app/); the server allows staff only. */
+   website contact messages, contractors' support requests), Customers (contractor companies and
+   their accounts) and Devices (kits, boards, QR labels and warranty claims). Signs in through the web app (/app/); the server allows staff only. */
 (function () {
 "use strict";
 
@@ -16,7 +16,7 @@ $("#theme").addEventListener("click", function () {
 });
 
 var S = { me: null, summary: null, view: null, status: "open", kind: "all", tickets: null, ticket: null,
-          customers: null, customer: null, draft: "", msg: null, busy: false, error: null };
+          customers: null, customer: null, kits: null, kit: null, find: "", draft: "", msg: null, busy: false, error: null };
 
 function api(path, opts) {
   opts = opts || {};
@@ -50,6 +50,10 @@ function when(t) {
 var LOGO = '<a class="brand logo" href="/app/" title="Fullscope web app"><img src="fullscope-wordmark.webp" alt="Fullscope"></a>';
 var STATUS = { "new": ["caution", "New"], open: ["advisory", "Open"], waiting: ["offline", "Waiting on customer"], closed: ["ok", "Closed"] };
 var KIND = { order: "Order", contact: "Contact", support: "Support" };
+var KSTATUS = { stock: ["offline", "In stock"], shipped: ["advisory", "Shipped"], installed: ["ok", "Installed"] };
+var BSTATUS = { stock: ["offline", "In stock"], shipped: ["advisory", "Shipped"], installed: ["ok", "Installed"], rma: ["caution", "RMA"], retired: ["offline", "Retired"] };
+var WSTATUS = { open: ["caution", "Open"], replaced: ["ok", "Replaced"], repaired: ["ok", "Repaired"], denied: ["offline", "Denied"] };
+var KINDNAME = { outdoor: "Outdoor", indoor: "Indoor" };
 var CSTATUS = { lead: ["advisory", "Lead"], active: ["ok", "Active"], paused: ["caution", "Paused"], closed: ["offline", "Closed"] };
 
 // ---------------------------------------------------------------- routing
@@ -69,6 +73,12 @@ function route() {
     S.customer = m[1] === "new" ? { id: "new" } : m[1] ? { id: +m[1], loading: true } : null;
     if (S.customer && S.customer.loading) loadCustomer(S.customer.id);
     loadCustomers();
+  } else if ((m = h.match(/^#\/devices(?:\/(\d+|new))?$/))) {
+    S.view = "devices";
+    S.kit = m[1] === "new" ? { id: "new" } : m[1] ? (S.kit && S.kit.id === +m[1] && !S.kit.error ? S.kit : { id: +m[1], loading: true }) : null;
+    if (S.kit && S.kit.loading) loadKit(S.kit.id);
+    loadKits();
+    if (!S.customers) loadCustomers();           // for shipping a kit to a customer
   } else {
     location.replace("#/inbox");
     return;
@@ -82,6 +92,7 @@ function start() {
   api("/api/auth/me").then(function (me) {
     S.me = me;
     if (!me.staff) return renderGate();
+    loadSummary();
     route();
     setInterval(function () { if (!document.hidden) { loadSummary(); if (S.view === "inbox") loadInbox(); } }, 30000);
   }).catch(function (e) { if (e.message !== "401") { root.innerHTML = '<div class="of-gate"><div class="empty">Can\'t reach the server: ' + esc(e.message) + "</div></div>"; } });
@@ -107,6 +118,14 @@ function loadCustomers() {
   api("/api/office/customers").then(function (d) { S.customers = d; render(); })
     .catch(function (e) { if (e.message !== "401") { S.error = e.message; render(); } });
 }
+function loadKits() {
+  api("/api/office/kits").then(function (d) { S.kits = d; render(); })
+    .catch(function (e) { if (e.message !== "401") { S.error = e.message; render(); } });
+}
+function loadKit(id) {
+  api("/api/office/kits/" + id).then(function (d) { if (S.kit && S.kit.id === id) { S.kit = d; render(); } })
+    .catch(function (e) { if (S.kit && S.kit.id === id) { S.kit = { id: id, error: e.message }; render(); } });
+}
 function loadCustomer(id) {
   api("/api/office/customers/" + id).then(function (d) { if (S.customer && S.customer.id === id) { S.customer = d; render(); } })
     .catch(function (e) { if (S.customer && S.customer.id === id) { S.customer = { id: id, error: e.message }; render(); } });
@@ -128,7 +147,7 @@ function header() {
   return '<header class="top"><div class="top-row">' + LOGO + '<div class="ident"><b>Fullscope Office</b><span>' + esc(who) + "</span></div>" +
     '<div class="top-fields"><div class="tf"><span>Customers</span><b>' + ((cu.active || 0) + " active · " + (cu.lead || 0) + (cu.lead === 1 ? " lead" : " leads")) + "</b></div>" +
     '<div class="tf alerts"><span>Inbox</span><div class="row">' + (counts.join("") || st("ok", "All answered")) + "</div></div></div></div>" +
-    '<nav class="nav" aria-label="Sections">' + nav("inbox", "Inbox", waiting) + nav("customers", "Customers") +
+    '<nav class="nav" aria-label="Sections">' + nav("inbox", "Inbox", waiting) + nav("customers", "Customers") + nav("devices", "Devices") +
     '<span class="spacer"></span><div class="tools"><a class="btn" href="/app/" style="text-decoration:none">Open the app</a>' +
     '<button class="btn" type="button" data-signout>Sign out</button></div></nav></header>' +
     (S.error ? '<div class="stale-banner">Can\'t reach the server: ' + esc(S.error) + "</div>" : "");
@@ -139,10 +158,10 @@ function render() {
   var y = window.scrollY, act = document.activeElement, focusId = act && act.id && root.contains(act) ? act.id : null;
   var sel = focusId && [act.selectionStart, act.selectionEnd];
   // what is being typed survives the re-render, unless another page or item opened or it was just saved
-  var key = S.view + ":" + (S.ticket && S.ticket.id) + ":" + (S.customer && S.customer.id), keep = {};
+  var key = S.view + ":" + (S.ticket && S.ticket.id) + ":" + (S.customer && S.customer.id) + ":" + (S.kit && S.kit.id), keep = {};
   if (key === S.formKey && !S.reset) $$("input[id^='f-'], textarea[id^='f-']").forEach(function (i) { keep[i.id] = i.value; });
   S.formKey = key; S.reset = false;
-  root.innerHTML = header() + '<main class="page">' + (S.view === "inbox" ? inboxPage() : customersPage()) + "</main>";
+  root.innerHTML = header() + '<main class="page">' + (S.view === "inbox" ? inboxPage() : S.view === "customers" ? customersPage() : devicesPage()) + "</main>";
   Object.keys(keep).forEach(function (k) { var i = document.getElementById(k); if (i) i.value = keep[k]; });
   var f = focusId && document.getElementById(focusId);
   if (f) { f.focus(); try { f.setSelectionRange(sel[0], sel[1]); } catch (e) {} }
@@ -274,6 +293,116 @@ function customerPanel() {
     '<div class="sh3">Tickets</div><table class="dt of-list"><tbody>' + (tickets || '<tr><td class="faint">None</td></tr>') + "</tbody></table></section>";
 }
 
+// ---------------------------------------------------------------- devices: kits, boards, QR labels, warranty
+function kitMatches(k, q) {
+  if (!q) return true;
+  q = q.toLowerCase();
+  var hex = q.replace(/[\s:.-]/g, "");
+  return k.code.toLowerCase().indexOf(q) >= 0 || (k.customer && k.customer.company.toLowerCase().indexOf(q) >= 0) ||
+    (k.system && k.system.name.toLowerCase().indexOf(q) >= 0) ||
+    (hex.length >= 2 && k.boards.some(function (b) { return b.serial.replace(/:/g, "").toLowerCase().indexOf(hex) >= 0; }));
+}
+function devicesPage() {
+  var list = S.kits, cur = S.kit && S.kit.id;
+  var shown = (list || []).filter(function (k) { return kitMatches(k, S.find); });
+  var rows = !list ? '<tr><td colspan="4" class="faint">Loading…</td></tr>'
+    : !list.length ? '<tr><td colspan="4" class="faint">No kits yet. Add one after flashing a pair of boards.</td></tr>'
+    : !shown.length ? '<tr><td colspan="4" class="faint">No kit matches.</td></tr>'
+    : shown.map(function (k) {
+      var s = KSTATUS[k.status] || ["offline", k.status];
+      return '<tr data-kit="' + k.id + '"' + (k.id === cur ? ' aria-current="true"' : "") + '><td><span class="subj mono">' + esc(k.code) + '</span><span class="who mono">' +
+        k.boards.map(function (b) { return esc(b.serial); }).join(" · ") + "</span></td><td>" + st(s[0], s[1]) + "</td>" +
+        "<td>" + (k.customer ? esc(k.customer.company) : '<span class="faint">—</span>') + "</td>" +
+        "<td>" + (k.system ? esc(k.system.name) + '<span class="who">' + esc(k.system.address || "") + "</span>" : '<span class="faint">—</span>') + "</td></tr>";
+    }).join("");
+  return '<div class="of-split' + (cur ? " has-sel" : "") + '"><section class="panel" aria-label="Kits"><div class="ph"><h2>Kits</h2><span class="sub">One QR label per kit</span>' +
+    '<div class="right"><input class="of-find" id="f-find" type="search" placeholder="Code, serial, customer" value="' + esc(S.find) + '" aria-label="Find a kit">' +
+    '<a class="btn" href="#/devices/new" style="text-decoration:none">New kit</a></div></div>' +
+    '<table class="dt of-list"><thead><tr><th>Kit</th><th>Status</th><th>Customer</th><th>Installed at</th></tr></thead><tbody>' + rows + "</tbody></table></section>" +
+    kitPanel() + "</div>";
+}
+function kitForm() {
+  function board(kind) {
+    return '<div class="two">' + field(kind + "-serial", KINDNAME[kind] + " board serial (MAC)", "") + field(kind + "-fw", KINDNAME[kind] + " firmware", "") + "</div>";
+  }
+  return '<section class="panel"><div class="ph"><h2>New kit</h2><span class="sub">Register a flashed pair of boards and print its label</span></div><div class="of-body">' +
+    '<form class="of-form" id="kit-form"><div class="two">' + field("code", "Kit code (leave empty to make one up)", "") + field("hwrev", "Hardware revision", "B") + "</div>" +
+    board("outdoor") + board("indoor") +
+    '<label for="f-knotes">Notes<textarea id="f-knotes" maxlength="1000"></textarea></label>' +
+    '<p class="muted" style="margin:0;font-size:12px">Until firmware 0.4.0, flash both boards with SITE_ID set to the kit code in lower case (config.h). The serial is the MAC the board prints at boot.</p>' +
+    '<div class="acts"><button class="btn primary" type="submit">Add kit</button>' + (S.msg && S.msg[2] === "kit" ? '<span class="msg ' + S.msg[0] + '">' + esc(S.msg[1]) + "</span>" : "") + "</div></form></div></section>";
+}
+function qrSvg(text) {
+  try { var q = qrcode(0, "M"); q.addData(text); q.make(); return q.createSvgTag({ cellSize: 4, margin: 0, scalable: true }); } catch (e) { return ""; }
+}
+function kitLabel(k) {
+  var claim = k.claim_url.split("#/claim/")[1] || "";
+  return '<div class="of-label" id="label"><div class="lq">' + qrSvg(k.claim_url) + '</div><div class="lt"><i>FULLSCOPE</i>' +
+    '<b class="mono">' + esc(k.code) + "</b><span>Contractor: scan to add this system to your account.</span>" +
+    '<span class="mono small">' + k.boards.map(function (b) { return esc((KINDNAME[b.kind] || b.kind).charAt(0)) + " " + esc(b.serial); }).join("<br>") + "</span>" +
+    '<span class="mono small">Code ' + esc(claim) + "</span></div></div>";
+}
+function msgFor(tag) { return S.msg && S.msg[2] === tag ? '<span class="msg ' + S.msg[0] + '">' + esc(S.msg[1]) + "</span>" : ""; }
+function kitPanel() {
+  var k = S.kit;
+  if (!k) return '<section class="panel"><div class="empty">Pick a kit to print its label, ship it or open a warranty claim.</div></section>';
+  if (k.id === "new") return kitForm();
+  if (k.loading) return '<section class="panel"><div class="empty">Loading…</div></section>';
+  if (k.error) return '<section class="panel"><div class="empty">' + esc(k.error) + "</div></section>";
+  var s = KSTATUS[k.status] || ["offline", k.status], claimed = !!k.claimed_at;
+  var custSel = '<select class="sel" id="f-kcust" aria-label="Customer"' + (claimed ? " disabled" : "") + '><option value="0">No customer</option>' + (S.customers || []).map(function (c) {
+    return '<option value="' + c.id + '"' + (k.customer && k.customer.id === c.id ? " selected" : "") + ">" + esc(c.company) + "</option>";
+  }).join("") + "</select>";
+  var meta = [["Customer", claimed ? (k.customer ? '<a href="#/customers/' + k.customer.id + '">' + esc(k.customer.company) + "</a>" : "—") : custSel],
+    ["Shipped", k.shipped_at ? esc(when(k.shipped_at)) : '<span class="faint">Not yet</span>'],
+    ["Reports as", '<span class="mono">' + esc(k.site_id) + "</span>"],
+    ["Hardware", esc(k.hw_rev || "—")]];
+  if (claimed) {
+    meta.push(["Set up", esc(when(k.claimed_at)) + (k.claimed_by ? " by " + esc(k.claimed_by) : "")]);
+    meta.push(["System", k.system ? esc(k.system.name) + (k.system.address ? '<span class="who">' + esc(k.system.address) + "</span>" : "") : "—"]);
+  }
+  var boards = k.boards.map(function (b) {
+    var bs = BSTATUS[b.status] || ["offline", b.status], w = b.warranty;
+    var warranty = !w.start ? '<span class="faint">Starts at setup</span>' : (w.active ? st("ok", "Until " + w.ends) : st("offline", "Ended " + w.ends));
+    var seen = b.seen ? esc(when(b.seen.last_seen)) + '<span class="who">fw ' + esc(b.seen.fw || "?") + (b.seen.rssi !== null && b.seen.rssi !== undefined ? " · " + b.seen.rssi + " dBm" : "") + "</span>" : '<span class="faint">Never</span>';
+    return "<tr><td>" + esc(KINDNAME[b.kind] || b.kind) + '<span class="who mono">' + esc(b.serial) + "</span></td><td>" + st(bs[0], bs[1]) + "</td><td>" + warranty + "</td><td>" + seen + "</td>" +
+      '<td class="num">' + (b.status === "rma" ? "" : '<button class="btn" type="button" data-claim-board="' + b.id + '">Warranty claim</button>') + "</td></tr>";
+  }).join("");
+  var opening = S.claimBoard && k.boards.some(function (b) { return b.id === S.claimBoard; });
+  var openForm = opening ? '<form class="of-form" id="wc-form"><label for="f-problem">What\'s wrong with the ' + esc(KINDNAME[k.boards.filter(function (b) { return b.id === S.claimBoard; })[0].kind].toLowerCase()) + " board?" +
+    '<textarea id="f-problem" maxlength="2000" placeholder="For example: suction transducer reads open circuit"></textarea></label>' +
+    '<div class="acts"><button class="btn primary" type="submit">Open claim</button><button class="btn" type="button" data-cancel-claim>Cancel</button>' + msgFor("wc") + "</div></form>" : "";
+  var claims = k.claims.map(function (c) {
+    var cs = WSTATUS[c.status] || ["offline", c.status];
+    var settle = c.status !== "open" ? "" : '<form class="of-form" data-settle="' + c.id + '"><div class="two"><label>Outcome<select class="sel" name="status">' +
+      '<option value="replaced">Replaced the board</option><option value="repaired">Repaired it</option><option value="denied">Denied</option></select></label>' +
+      '<label>Replacement serial<input name="serial" placeholder="Only when replaced"></label></div>' +
+      '<label>Resolution<input name="resolution" maxlength="2000"></label><div class="acts"><button class="btn" type="submit">Close claim</button>' + msgFor("settle" + c.id) + "</div></form>";
+    return '<div class="of-msg"><div class="mh">' + st(cs[0], cs[1]) + "<b>" + esc(KINDNAME[c.board.kind] || c.board.kind) + ' <span class="mono">' + esc(c.board.serial) + "</span></b><span>" + esc(when(c.opened_at)) + "</span></div>" +
+      '<div class="mb">' + esc(c.problem) + (c.resolution ? '\n<span class="faint">' + esc(c.resolution) + "</span>" : "") +
+      (c.replacement ? '\n<span class="faint">Replaced by <span class="mono">' + esc(c.replacement.serial) + "</span></span>" : "") + "</div>" +
+      (settle ? '<div class="mb">' + settle + "</div>" : "") + "</div>";
+  }).join("");
+  return '<section class="panel" aria-label="Kit"><div class="ph"><h2 class="mono">' + esc(k.code) + "</h2>" + st(s[0], s[1]) +
+    '<div class="right">' + (claimed ? '<button class="btn" type="button" data-release>Release</button>'
+      : '<button class="btn" type="button" data-ship="' + (k.shipped_at ? "0" : "1") + '">' + (k.shipped_at ? "Mark not shipped" : "Mark shipped") + "</button>") + "</div></div>" +
+    '<div class="of-body">' + (claimed ? "" : kitLabel(k) + '<div class="acts" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" type="button" data-print>Print label</button>' +
+      '<button class="btn" type="button" data-new-code>New QR code</button><span class="faint" style="font-size:12px;align-self:center">A new code stops the old label working.</span></div>') +
+    '<div class="of-meta">' + meta.map(function (x) { return "<div><span>" + x[0] + "</span>" + x[1] + "</div>"; }).join("") + "</div>" + msgFor("kit") + "</div>" +
+    '<div class="sh3">Boards</div><table class="dt"><thead><tr><th>Board</th><th>Status</th><th>Warranty</th><th>Last heard</th><th></th></tr></thead><tbody>' + boards + "</tbody></table>" +
+    (openForm ? '<div class="of-body">' + openForm + "</div>" : "") +
+    '<div class="sh3">Warranty claims</div><div class="of-body">' + (claims || '<span class="faint">None</span>') + "</div>" +
+    '<div class="sh3">Notes</div><div class="of-body"><form class="of-form" id="kn-form"><textarea id="f-kitnotes" maxlength="1000">' + esc(k.notes || "") + "</textarea>" +
+    '<div class="acts"><button class="btn" type="submit">Save notes</button>' + msgFor("notes") + "</div></form></div></section>";
+}
+function kitAction(path, method, body, tag, done) {
+  var id = S.kit.id;
+  return api("/api/office/kits/" + id + path, { method: method, body: body }).then(function (d) {
+    if (S.kit && S.kit.id === id) S.kit = d;
+    S.msg = done ? ["ok", done, tag] : null; S.reset = true; loadKits(); render();
+  }).catch(function (e) { S.msg = ["err", e.message, tag]; render(); });
+}
+
 // ---------------------------------------------------------------- actions
 function bind() {
   $$("[data-signout]").forEach(function (b) {
@@ -287,6 +416,8 @@ function bind() {
   $$("[data-ticket]").forEach(function (tr) { tr.addEventListener("click", function () { location.hash = "#/inbox/" + tr.dataset.ticket; }); });
   $$("[data-open-ticket]").forEach(function (tr) { tr.addEventListener("click", function () { location.hash = "#/inbox/" + tr.dataset.openTicket; }); });
   $$("[data-customer]").forEach(function (tr) { tr.addEventListener("click", function () { location.hash = "#/customers/" + tr.dataset.customer; }); });
+  $$("[data-kit]").forEach(function (tr) { tr.addEventListener("click", function () { location.hash = "#/devices/" + tr.dataset.kit; }); });
+  bindDevices();
   var t = S.ticket;
   var stSel = $("#f-status");
   if (stSel) stSel.addEventListener("change", function () { patchTicket({ status: stSel.value }); });
@@ -334,6 +465,60 @@ function bind() {
       S.msg = ["ok", d.invite.emailed ? "Account created. Invite emailed to " + d.invite.email + "." : "Account created. Email is off, so send this link yourself: " + d.invite.url, "acct"];
       loadCustomers(); render();
     }).catch(function (err) { btn.disabled = false; S.msg = ["err", err.message, "acct"]; render(); });
+  });
+}
+function bindDevices() {
+  var find = $("#f-find");
+  if (find) find.addEventListener("input", function () { S.find = find.value; render(); });
+  var kf = $("#kit-form");
+  if (kf) kf.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var boards = ["outdoor", "indoor"].map(function (kind) {
+      return { kind: kind, serial: $("#f-" + kind + "-serial").value.trim(), fw: $("#f-" + kind + "-fw").value.trim() || null };
+    }).filter(function (b) { return b.serial; });
+    if (!boards.length) { S.msg = ["err", "Enter at least one board serial.", "kit"]; return render(); }
+    var body = { code: $("#f-code").value.trim() || null, hw_rev: $("#f-hwrev").value.trim() || null, notes: $("#f-knotes").value, boards: boards };
+    $("button", kf).disabled = true;
+    api("/api/office/kits", { method: "POST", body: body }).then(function (d) {
+      S.kit = d; S.msg = ["ok", "Kit added. Print its label.", "kit"]; S.reset = true; loadKits(); location.hash = "#/devices/" + d.id;
+    }).catch(function (err) { S.msg = ["err", err.message, "kit"]; render(); });
+  });
+  var k = S.kit;
+  if (!k || !k.code) return;
+  var cust = $("#f-kcust");
+  if (cust) cust.addEventListener("change", function () { kitAction("", "PATCH", { customer_id: +cust.value }, "kit"); });
+  var ship = $("[data-ship]");
+  if (ship) ship.addEventListener("click", function () { kitAction("", "PATCH", { shipped: ship.dataset.ship === "1" }, "kit"); });
+  var nc = $("[data-new-code]");
+  if (nc) nc.addEventListener("click", function () { kitAction("/new-code", "POST", null, "kit", "New code made. Print a new label."); });
+  var rel = $("[data-release]");
+  if (rel) rel.addEventListener("click", function () {
+    if (!confirm("Release " + k.code + "? The contractor keeps the system they made, but it stops getting this kit's readings, and the kit can be set up again with a new label.")) return;
+    kitAction("/release", "POST", null, "kit", "Released. Print a new label before it ships again.");
+  });
+  var pr = $("[data-print]");
+  if (pr) pr.addEventListener("click", function () { window.print(); });
+  var nf = $("#kn-form");
+  if (nf) nf.addEventListener("submit", function (e) { e.preventDefault(); kitAction("", "PATCH", { notes: $("#f-kitnotes").value }, "notes", "Saved."); });
+  $$("[data-claim-board]").forEach(function (b) { b.addEventListener("click", function () { S.claimBoard = +b.dataset.claimBoard; S.msg = null; render(); var p = $("#f-problem"); if (p) p.focus(); }); });
+  var cc = $("[data-cancel-claim]");
+  if (cc) cc.addEventListener("click", function () { S.claimBoard = null; render(); });
+  var wc = $("#wc-form");
+  if (wc) wc.addEventListener("submit", function (e) {
+    e.preventDefault();
+    api("/api/office/boards/" + S.claimBoard + "/claims", { method: "POST", body: { problem: $("#f-problem").value } }).then(function () {
+      S.claimBoard = null; S.msg = null; S.reset = true; loadKit(k.id);
+    }).catch(function (err) { S.msg = ["err", err.message, "wc"]; render(); });
+  });
+  $$("[data-settle]").forEach(function (f) {
+    f.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var id = +f.dataset.settle, status = f.elements.status.value;
+      var body = { status: status, resolution: f.elements.resolution.value || null };
+      if (status === "replaced") body.replacement_serial = f.elements.serial.value;
+      api("/api/office/claims/" + id, { method: "PATCH", body: body }).then(function () { S.msg = null; loadKit(k.id); loadKits(); })
+        .catch(function (err) { S.msg = ["err", err.message, "settle" + id]; render(); });
+    });
   });
 }
 function patchTicket(body) {

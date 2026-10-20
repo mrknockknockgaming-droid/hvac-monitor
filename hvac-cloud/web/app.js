@@ -180,6 +180,8 @@ function route() {
   if (rs) { stopTimers(); S.view = null; S.sys = null; return renderReset(rs[1]); }
   if (!S.me) return start();
   if (location.hash === "#/account") { stopTimers(); S.view = null; S.sys = null; S.tfa = null; S.push = null; if (isAdmin()) pollTeam(); return renderAccount(); }
+  var cl = location.hash.match(/^#\/claim\/([\w-]+)/);
+  if (cl) { stopTimers(); S.view = null; S.sys = null; return renderClaim(cl[1]); }
   if (location.hash === "#/help") {
     if (!isTech()) { location.replace("#/"); return; }     // homeowners ask their contractor
     if (!S.systems) return loadSystems();
@@ -2261,6 +2263,60 @@ function renderHelp() {
       $("#hs").value = ""; $("#hm").value = ""; $("#hsys").value = "";
       S.helpMsg = "Sent. We'll answer by email."; pollHelp();
     }).catch(function (err) { $("#hf button").disabled = false; $("#hmsg").textContent = err.message; });
+  });
+}
+
+// ---------- a contractor scans the QR code on a Fullscope box: #/claim/<kit code>-<claim code>
+function renderClaim(code) {
+  root.className = "fs";
+  var acct = (S.me && S.me.account) || {};
+  var frame = function (body) {
+    root.innerHTML = '<header class="top"><div class="top-row">' + LOGO + '<div class="ident"><b>' + esc(acct.name || "Fullscope") + "</b><span>Set up a Fullscope</span></div></div>" +
+      '<nav class="nav" aria-label="Sections">' + (isAdmin() ? '<a href="#/fleet">Fleet</a>' : "") + '<a aria-current="page">Set up</a><span class="spacer"></span><div class="tools">' + extraTools() +
+      '<a class="btn" href="#/account" style="text-decoration:none">Account</a><button class="btn" type="button" data-signout>Sign out</button></div></nav></header>' +
+      '<main class="page help-page">' + body + "</main>";
+    bindCommon();
+  };
+  var boardRows = function (k) {
+    return '<table class="dt"><thead><tr><th>Monitor</th><th>Serial</th></tr></thead><tbody>' + k.boards.map(function (b) {
+      return "<tr><td>" + (b.kind === "outdoor" ? "Outdoor unit" : b.kind === "indoor" ? "Indoor unit" : esc(b.kind)) + '</td><td class="mono">' + esc(b.serial) + "</td></tr>";
+    }).join("") + "</tbody></table>";
+  };
+  if (!isTech()) return frame('<section class="panel"><div class="ph"><h2>Set up a Fullscope</h2></div><div class="empty">Your heating and cooling contractor sets up the monitors. Ask them to scan this code.</div></section>');
+  frame('<section class="panel"><div class="empty">Looking up the kit…</div></section>');
+  api("/api/claim/lookup", { method: "POST", body: { code: code } }).then(function (k) {
+    var head = '<div class="ph"><h2>Kit <span class="mono">' + esc(k.kit) + "</span></h2>";
+    if (k.status === "yours") {
+      return frame('<section class="panel">' + head + st("ok", "Set up") + '</div><div class="help-form"><p style="margin:0">This kit is already set up on your account' + (k.system ? " as <b>" + esc(k.system.name) + "</b>" : "") + ".</p>" +
+        (k.system ? '<div class="row"><a class="btn primary" href="#/monitor/' + k.system.id + '" style="text-decoration:none">Open the monitor</a></div>' : "") + "</div>" + boardRows(k) + "</section>");
+    }
+    if (k.status !== "available") {
+      return frame('<section class="panel">' + head + st("caution", "Already set up") + '</div><div class="help-form"><p style="margin:0">This kit is set up on another account. If it was shipped to you, ask Fullscope to release it.</p>' +
+        '<div class="row"><a class="btn" href="#/help" style="text-decoration:none">Ask Fullscope</a></div></div></section>');
+    }
+    frame('<section class="panel">' + head + '<span class="sub">Two monitors, ready to install</span></div>' + boardRows(k) +
+      '<form class="help-form" id="cf"><label for="cn">System name</label><input id="cn" maxlength="200" placeholder="For example: Garcia home, upstairs">' +
+      '<label for="ca">Address</label><input id="ca" maxlength="500" placeholder="Where it is installed">' +
+      '<label for="ce">Homeowner\'s email (optional)</label><input id="ce" type="email" maxlength="320" placeholder="They get a link to their read-only view">' +
+      '<div class="row"><button class="btn primary" type="submit">Add to my account</button><span class="msg" id="cmsg"></span></div></form></section>');
+    $("#cf").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var body = { code: code, system_name: $("#cn").value.trim(), address: $("#ca").value.trim() || null, homeowner_email: $("#ce").value.trim() || null };
+      if (!body.system_name) { $("#cmsg").textContent = "Name the system first."; return; }
+      $("#cf button").disabled = true;
+      api("/api/claim", { method: "POST", body: body }).then(function (d) {
+        S.systems = null;                                        // the new system shows up everywhere
+        var inv = d.invite;
+        frame('<section class="panel"><div class="ph"><h2>' + esc(d.system.name) + "</h2>" + st("ok", "Added") + "</div>" +
+          '<div class="help-form"><p style="margin:0">The monitors report as <span class="mono">' + esc(d.system.site_id) + "</span>. Power them up at the equipment and they show up within a minute.</p>" +
+          (inv ? "<p style=\"margin:0\">" + (inv.status === "added" ? esc(inv.email) + " can now see this system." : inv.emailed ? "We emailed " + esc(inv.email) + " a link to their view."
+            : "Email is off, so send " + esc(inv.email) + ' this link yourself: <span class="mono">' + esc(inv.url) + "</span>") + "</p>" : "") +
+          '<div class="row"><a class="btn primary" href="#/monitor/' + d.system.id + '" style="text-decoration:none">Open the monitor</a></div></div></section>');
+      }).catch(function (err) { $("#cf button").disabled = false; $("#cmsg").textContent = err.message; });
+    });
+  }).catch(function (e) {
+    if (e.message === "401") return;
+    frame('<section class="panel"><div class="ph"><h2>Set up a Fullscope</h2></div><div class="empty">' + esc(e.message) + "</div></section>");
   });
 }
 
