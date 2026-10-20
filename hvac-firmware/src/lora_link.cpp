@@ -1,4 +1,5 @@
 #include "lora_link.h"
+#include "identity.h"
 
 #if LORA_ENABLED
 #include "common.h"
@@ -55,7 +56,7 @@ bool loraBegin(LoraCmdHandler onCmd) {
   LoraPins pins = {LORA_PIN_NSS, LORA_PIN_DIO1, LORA_PIN_RST, LORA_PIN_BUSY};
   pins.tcxo_v = LORA_TCXO_V;
   pins.rxen = LORA_PIN_RXEN;
-  const double mhz = lorafmt::channel_mhz(SITE_ID);
+  const double mhz = lorafmt::channel_mhz(idSite());
   if (!radio.begin(pins, mhz)) return false;
   Serial.printf("[lora] device %08x on %.1f MHz, counter from %u\n", (unsigned)LORA_DEVICE_ID, mhz, (unsigned)counter);
   return true;

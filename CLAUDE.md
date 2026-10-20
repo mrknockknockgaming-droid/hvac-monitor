@@ -183,7 +183,11 @@ temperatures, superheat, subcooling and delta-T.
     account, board warranty starts (WARRANTY_MONTHS, default 12) and the homeowner is invited. A kit shipped to a customer with an
     account can only be claimed by that account. Staff: ship to customer, new QR code, release a mistaken claim (old system's
     site_id gets `-old<id>`), warranty claims (`warranty_claims`; "replaced" moves the kit slot and warranty to the new board).
-    Until firmware 0.4.0, set SITE_ID in config.h to the kit code when flashing.
+    Flash tab (office.js, Chrome/Edge over HTTPS: Web Serial): esptool-js (web/vendor/esptool-js-0.5.7.js, Apache-2.0) writes
+    the factory image `.pio/build/<env>/<env>-<ver>-factory.bin` (made by hvac-firmware/tools/factory_bin.py on USB builds) at
+    0x0 and reads the MAC (= board serial), then sends {"cmd":"identity"} and {"cmd":"provision", site, mqtt_*} over serial;
+    "Add kit and print label" registers the kit. Firmware 0.4.0 (`src/identity.cpp`): site + broker in NVS override config.h
+    (TLS stays a build setting); JSON commands also work over USB serial, answered "[reply] {...}"; provision is serial-only.
     Plan for the rest (browser flashing, billing): Claude Doc "Fullscope Office plan".
   - Invites (`invites` table, token hashed, 7 days, single use) for homeowners (per system,
     Sensors & calibration page) and contractor teammates (Account page); links use APP_URL.

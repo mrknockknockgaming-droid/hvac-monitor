@@ -5,7 +5,8 @@
 #define WIFI_SSID   "YourNetwork"
 #define WIFI_PASS   "YourPassword"
 
-// The MQTT broker.
+// The MQTT broker. Since firmware 0.4.0 these and SITE_ID are only defaults: Fullscope Office's Flash page
+// saves a kit's site and broker on the board over USB ({"cmd":"provision"}), and those win.
 // Bench / PC broker: its IP, port 1883, MQTT_TLS 0.
 #define MQTT_HOST   "192.168.1.50"
 #define MQTT_PORT   1883

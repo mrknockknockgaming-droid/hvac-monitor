@@ -1,6 +1,7 @@
 #include "net.h"
 #include "common.h"
 #include "config.h"
+#include "identity.h"
 #include "setup_ble.h"
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
@@ -93,8 +94,8 @@ static void mqttConnect() {
 #endif
   String will = "{\"online\":false}";
   bool ok;
-  if (strlen(MQTT_USER) > 0)
-    ok = mqtt.connect(clientId.c_str(), MQTT_USER, MQTT_PASS, tStatus.c_str(), 1, true, will.c_str());
+  if (strlen(idMqttUser()) > 0)
+    ok = mqtt.connect(clientId.c_str(), idMqttUser(), idMqttPass(), tStatus.c_str(), 1, true, will.c_str());
   else
     ok = mqtt.connect(clientId.c_str(), nullptr, nullptr, tStatus.c_str(), 1, true, will.c_str());
   if (ok) {
@@ -125,7 +126,7 @@ static void flushBacklog() {
 void netBegin(CmdHandler onCmd, StatusFiller onStatus) {
   cmdHandler = onCmd;
   statusFiller = onStatus;
-  String base = String("hvac/") + SITE_ID + "/" + NODE_NAME + "/";
+  String base = String("hvac/") + idSite() + "/" + NODE_NAME + "/";
   tTele = base + "telemetry"; tStatus = base + "status";
   tCmd  = base + "cmd";       tReply  = base + "reply";
   clientId = String("hvac-") + NODE_NAME + "-" + String((uint32_t)ESP.getEfuseMac(), HEX);
@@ -147,12 +148,12 @@ void netBegin(CmdHandler onCmd, StatusFiller onStatus) {
   netClient.setCACert(MQTT_CA_CERT);
   netClient.setHandshakeTimeout(15);
 #endif
-  mqtt.setServer(MQTT_HOST, MQTT_PORT);
+  mqtt.setServer(idMqttHost(), idMqttPort());
   mqtt.setCallback(onMqttMessage);
   mqtt.setBufferSize(1024);
   mqtt.setKeepAlive(30);
   mqtt.setSocketTimeout(10);
-  Serial.printf("[net] connecting to %s (%s); broker %s:%d%s\n", wifiSsid.c_str(), wifiFromSetup ? "from setup" : "config.h", MQTT_HOST, MQTT_PORT, MQTT_TLS ? " (TLS)" : "");
+  Serial.printf("[net] connecting to %s (%s); broker %s:%d%s\n", wifiSsid.c_str(), wifiFromSetup ? "from setup" : "config.h", idMqttHost(), idMqttPort(), MQTT_TLS ? " (TLS)" : "");
 }
 
 void netLoop() {
@@ -208,7 +209,7 @@ bool netPublishTelemetry(const String& json) {
 
 bool netPublishNode(const char* node, const String& json) {
   if (!mqtt.connected()) return false;
-  String topic = String("hvac/") + SITE_ID + "/" + node + "/telemetry";
+  String topic = String("hvac/") + idSite() + "/" + node + "/telemetry";
   return mqtt.publish(topic.c_str(), json.c_str());
 }
 
@@ -225,6 +226,7 @@ void netPublishStatus() {
   doc["rssi"] = WiFi.RSSI();
   doc["wifi_src"] = wifiFromSetup ? "setup" : "config";
   doc["tls"] = (bool)MQTT_TLS;
+  doc["site"] = idSite();
   doc["backlog"] = backlog.size();
   doc["dropped"] = backlog.dropped();
   if (statusFiller) statusFiller(doc);
