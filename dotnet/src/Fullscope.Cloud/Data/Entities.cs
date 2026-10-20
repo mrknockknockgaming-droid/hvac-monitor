@@ -34,7 +34,8 @@ public sealed class ApiKey
 }
 
 /// <summary>A person who signs in: a contractor (account_id, sees the account's systems) or a
-/// homeowner (system_members, sees those systems).</summary>
+/// homeowner (system_members, sees those systems). A contractor with Admin set runs the account
+/// (fleet page, teammates); the others are technicians.</summary>
 public sealed class User
 {
     public int Id { get; set; }
@@ -45,6 +46,7 @@ public sealed class User
     public string? PasswordHash { get; set; }           // null until a password is set
     public DateTime CreatedAt { get; set; } = Db.UtcNow();
     public DateTime? LastLogin { get; set; }
+    public bool? Admin { get; set; }                    // contractors only (Schema.EnsureAdmins)
     // two-step sign-in (Totp): the authenticator secret is kept from setup; it counts once TotpOn is set
     public string? TotpSecret { get; set; }
     public DateTime? TotpOn { get; set; }
@@ -80,6 +82,7 @@ public sealed class Invite
     public DateTime CreatedAt { get; set; } = Db.UtcNow();
     public DateTime ExpiresAt { get; set; }
     public DateTime? AcceptedAt { get; set; }
+    public bool? Admin { get; set; }                    // a teammate who joins as an admin
 }
 
 /// <summary>A browser or phone that turned alert notifications on (WebPush).</summary>

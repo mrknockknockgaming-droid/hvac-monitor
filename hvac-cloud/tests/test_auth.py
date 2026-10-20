@@ -110,7 +110,7 @@ def test_change_password(sessions, people):
 def test_api_key_still_works_and_needs_no_extra_header(sessions, seeded, people):
     c = client(sessions)
     h = {"X-API-Key": seeded["key1"]}
-    assert c.get("/api/auth/me", headers=h).json() == {"role": "contractor", "via": "key", "user": None,
+    assert c.get("/api/auth/me", headers=h).json() == {"role": "contractor", "level": "admin", "via": "key", "user": None,
                                                        "account": {"id": 1, "name": "Tyler"}}
     r = c.post(f"/api/systems/{people['home']}/commands", headers=h, json={"node": "outdoor", "cmd": {"cmd": "status"}})
     assert r.status_code != 403

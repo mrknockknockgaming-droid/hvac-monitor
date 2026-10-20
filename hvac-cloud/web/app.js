@@ -49,7 +49,16 @@ function api(path, opts) {
       return opts.raw ? r : r.json();
     });
 }
+// Access levels (the server checks each one too): admins run the account (fleet page, team, plus the
+// technician pages), technicians get the technician pages, homeowners only their home page.
 function isTech() { return S.me && S.me.role === "contractor"; }
+function isAdmin() { return isTech() && S.me.level === "admin"; }
+function levelWord(me) { return me.role !== "contractor" ? "Homeowner" : me.level === "admin" ? "Admin" : "Technician"; }
+function landing() {
+  if (isAdmin()) return "#/fleet";
+  if (!S.systems || !S.systems.length) return "#/";
+  return (isTech() ? "#/monitor/" : "#/home/") + S.systems[0].id;
+}
 
 // ---------------------------------------------------------------- formatting
 function esc(s) { return String(s === null || s === undefined ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
@@ -170,9 +179,9 @@ function route() {
   var rs = location.hash.match(/^#\/reset\/([\w-]+)/);
   if (rs) { stopTimers(); S.view = null; S.sys = null; return renderReset(rs[1]); }
   if (!S.me) return start();
-  if (location.hash === "#/account") { stopTimers(); S.view = null; S.sys = null; S.tfa = null; S.push = null; if (isTech()) pollTeam(); return renderAccount(); }
+  if (location.hash === "#/account") { stopTimers(); S.view = null; S.sys = null; S.tfa = null; S.push = null; if (isAdmin()) pollTeam(); return renderAccount(); }
   if (location.hash === "#/fleet") {
-    if (!isTech()) { location.replace("#/"); return; }
+    if (!isAdmin()) { location.replace("#/"); return; }   // the fleet page is for the account's admins
     stopTimers(); S.view = "fleet"; S.sys = null; S.error = null;
     pollFleet(); S.timers.push(setInterval(pollFleet, 15000));
     return renderFleet();
@@ -180,13 +189,14 @@ function route() {
   var m = location.hash.match(/^#\/(home|monitor|setup|equipment|service)\/(\d+)/);
   if (!S.systems) return loadSystems();
   if (!m) {
-    if (!S.systems.length && !isTech()) return renderNoSystems();
-    location.replace(isTech() ? "#/fleet" : "#/home/" + S.systems[0].id);   // contractors land on their fleet
+    if (!S.systems.length && !isAdmin()) return renderNoSystems();
+    location.replace(landing());   // admins land on the fleet, technicians on a system's Monitor, homeowners at home
     return;
   }
   var id = +m[2], sys = S.systems.filter(function (x) { return x.id === id; })[0];
-  if (!sys) { location.replace("#/home/" + S.systems[0].id); return; }
+  if (!sys) { location.replace(landing()); return; }
   if (m[1] !== "home" && !isTech()) { location.replace("#/home/" + id); return; }   // technician pages are for contractors
+  if (m[1] === "home" && isTech()) { location.replace("#/monitor/" + id); return; }  // the home page is the homeowner's
   var changed = !S.sys || S.sys.id !== id;
   S.view = m[1];
   S.sys = sys;
@@ -405,7 +415,7 @@ function renderReset(token) {
         return;
       }
       S.me = me; S.key = null; save("fs_key", null); S.systems = null; S.loginMode = "password";
-      location.hash = me.role === "contractor" ? "#/fleet" : "#/";
+      location.hash = "#/";
     }).catch(function (err) { $("#rf button").disabled = false; $("#re").textContent = err.message; });
   });
 }
@@ -413,18 +423,18 @@ function renderReset(token) {
 // ---------------------------------------------------------------- account (change password)
 function renderAccount() {
   root.className = "fs home";
-  var me = S.me, u = me.user, back = isTech() ? "#/fleet" : S.systems && S.systems.length ? "#/home/" + S.systems[0].id : "#/";
+  var me = S.me, u = me.user, back = landing();
   var who = u ? esc(u.name || u.email) + ' <span class="muted">· ' + esc(u.email) + "</span>" : "Signed in with an API key" + (me.account ? " for " + esc(me.account.name) : "");
   root.innerHTML =
     '<header class="h-top">' + LOGO + TAGLINE + '<div class="upd"><a class="muted" href="' + back + '" style="font-size:12px">← Back</a>' +
     '<a class="muted" href="#" data-signout style="font-size:12px">Sign out</a></div></header>' +
-    '<div class="login"><div class="h-card"><h1>Your account</h1><p>' + who + "<br>" + (me.role === "contractor" ? "Contractor" : "Homeowner") + "</p>" +
+    '<div class="login"><div class="h-card"><h1>Your account</h1><p>' + who + "<br>" + levelWord(me) + "</p>" +
     (u ? '<form id="pf"><label class="lbl" for="cur">Current password</label><input id="cur" type="password" autocomplete="current-password">' +
       '<label class="lbl" for="np">New password (at least 10 characters)</label><input id="np" type="password" autocomplete="new-password">' +
       '<label class="lbl" for="np2">New password again</label><input id="np2" type="password" autocomplete="new-password">' +
       '<div class="row"><button class="h-btn primary" type="submit">Change password</button></div><div class="err" role="alert" id="pe"></div></form>'
       : "<p class=\"muted\">To sign in with a password, ask for a user to be created with <span class=\"mono\">manage.py create-user</span>.</p>") +
-    "</div>" + (u ? pushPanel() + twoStepPanel() : "") + (isTech() ? teamPanel() : "") + "</div>";
+    "</div>" + (u ? pushPanel() + twoStepPanel() : "") + (isAdmin() ? teamPanel() : "") + "</div>";
   bindCommon();
   bindTwoStep();
   bindPush();
@@ -442,7 +452,8 @@ function renderAccount() {
 function renderNoSystems() {
   root.className = "fs home";
   root.innerHTML = '<div class="login"><div class="h-card"><h1>No systems yet</h1>' +
-    (isTech() ? "<p>Create one with <span class=\"mono\">manage.py create-system</span>, then reload.</p>"
+    (isAdmin() ? "<p>Create one with <span class=\"mono\">manage.py create-system</span>, then reload.</p>"
+      : isTech() ? "<p>Your account has no systems yet. Ask your admin to add one.</p>"
       : "<p>No system is linked to your sign-in yet. Your contractor can add it.</p>") +
     '<div class="row"><button class="h-btn" type="button" id="so">Sign out</button></div></div></div>';
   $("#so").addEventListener("click", function () { signOut(); });
@@ -502,7 +513,6 @@ function renderHome() {
     '<div class="upd">' + (fresh ? '<span class="live">LIVE</span>' : st("offline", "Offline")) +
     "<span>" + (L && L.time ? "Updated " + ampm(L.time) : "") + "</span>" +
     systemPicker("home") +
-    (isTech() ? '<a class="muted" href="#/monitor/' + S.sys.id + '" style="font-size:12px">Details for your technician →</a>' : "") +
     '<a class="muted" href="#/account" style="font-size:12px">Account</a>' +
     '<a class="muted" href="#" data-signout style="font-size:12px">Sign out</a></div></header>' +
     '<main class="h-wrap">' +
@@ -910,8 +920,7 @@ function techHeader(page) {
     num(sm.runtime_hours, "h", 1) + ' <span class="muted" style="font-weight:400">24 h</span></b></div>' +
     '<a class="tf alerts" href="' + diagHref + '"' + (page === "monitor" ? ' data-jump="diagnostics"' : "") + ' style="text-decoration:none;color:inherit"><span>Diagnostics</span><div class="row">' + diagSum + "</div></a>" +
     "</div></div>" +
-    '<nav class="nav" aria-label="Sections"><a href="#/fleet">Fleet</a>' + navLink("monitor", "Monitor", page) + navLink("equipment", "Equipment", page) + navLink("setup", "Sensors &amp; calibration", page) + navLink("service", "Service history", page) +
-    '<a href="#/home/' + S.sys.id + '">Homeowner view</a>' +
+    '<nav class="nav" aria-label="Sections">' + (isAdmin() ? '<a href="#/fleet">Fleet</a>' : "") + navLink("monitor", "Monitor", page) + navLink("equipment", "Equipment", page) + navLink("setup", "Sensors &amp; calibration", page) + navLink("service", "Service history", page) +
     '<span class="spacer"></span><div class="tools">' +
     (fresh ? '<span class="live">LIVE · 5 s</span>' : st("offline", "Offline")) + systemPicker(page) +
     (page === "monitor" ? '<button class="btn" type="button" data-export>Export CSV</button>' : "") + '<a class="btn" href="#/account" style="text-decoration:none">Account</a><button class="btn" type="button" data-signout>Sign out</button></div></nav></header>' +
@@ -1894,7 +1903,7 @@ function renderInvite(token) {
       if ($("#ap").value !== $("#ap2").value) { $("#ae").textContent = "The passwords don't match."; return; }
       $("#af button").disabled = true;
       api("/api/invites/accept", { method: "POST", body: { token: token, name: $("#an").value, password: $("#ap").value }, keep401: true })
-        .then(function (me) { S.me = me; S.key = null; save("fs_key", null); S.systems = null; location.hash = me.role === "contractor" ? "#/fleet" : "#/"; })
+        .then(function (me) { S.me = me; S.key = null; save("fs_key", null); S.systems = null; location.hash = "#/"; })
         .catch(function (err) { $("#af button").disabled = false; $("#ae").textContent = err.message; });
     });
   }).catch(function (err) {
@@ -1914,17 +1923,19 @@ function inviteResult(r) {
     '<div class="acts-cell"><input class="mono" readonly value="' + esc(r.url) + '" aria-label="Invite link" id="inv-link"><button class="btn" type="button" data-copy-invite>Copy link</button></div>' +
     '<span class="faint">Works once, for 7 days.</span></div>';
 }
-function personRows(list, removeAttr, resetAttr) {
+function personRows(list, removeAttr, resetAttr, adminAttr) {
   var self = S.me && S.me.user && S.me.user.id;
   return list.map(function (u) {
     var reset = resetAttr ? '<button class="btn" type="button" ' + resetAttr + '="' + u.user_id + '">Reset link</button>' : "";
-    return "<tr><th>" + esc(u.name || u.email) + (u.name ? ' <span class="faint">' + esc(u.email) + "</span>" : "") + (u.user_id === self ? ' <span class="faint">(you)</span>' : "") + '</th><td class="faint">' +
-      (u.last_login ? "Last signed in " + esc(when(u.last_login)) : "Never signed in") + "</td><td><div class=\"acts-cell\">" + reset + (removeAttr && u.user_id !== self ? '<button class="btn" type="button" ' + removeAttr + '="' + u.user_id + '">Remove</button>' : "") + "</div></td></tr>";
+    var level = adminAttr ? ' <span class="faint">· ' + (u.admin ? "Admin" : "Technician") + "</span>" : "";
+    var flip = adminAttr && u.user_id !== self ? '<button class="btn" type="button" ' + adminAttr + '="' + (u.admin ? "off" : "on") + '" data-user="' + u.user_id + '">' + (u.admin ? "Make technician" : "Make admin") + "</button>" : "";
+    return "<tr><th>" + esc(u.name || u.email) + (u.name ? ' <span class="faint">' + esc(u.email) + "</span>" : "") + (u.user_id === self ? ' <span class="faint">(you)</span>' : "") + level + '</th><td class="faint">' +
+      (u.last_login ? "Last signed in " + esc(when(u.last_login)) : "Never signed in") + "</td><td><div class=\"acts-cell\">" + reset + flip + (removeAttr && u.user_id !== self ? '<button class="btn" type="button" ' + removeAttr + '="' + u.user_id + '">Remove</button>' : "") + "</div></td></tr>";
   }).join("");
 }
 function inviteRows(list) {
   return list.map(function (i) {
-    return "<tr><th>" + esc(i.email) + ' <span class="faint">invited</span></th><td class="faint">' + (i.expired ? "Expired" : "Link valid until " + esc(when(i.expires_at))) +
+    return "<tr><th>" + esc(i.email) + ' <span class="faint">invited' + (i.admin ? " as an admin" : "") + '</span></th><td class="faint">' + (i.expired ? "Expired" : "Link valid until " + esc(when(i.expires_at))) +
       '</td><td><button class="btn" type="button" data-revoke-invite="' + i.id + '">' + (i.expired ? "Remove" : "Revoke") + "</button></td></tr>";
   }).join("");
 }
@@ -2089,16 +2100,17 @@ function pollTeam() {
 }
 function teamPanel() {
   var p = S.team;
-  var rows = !p ? '<tr><td colspan="3" class="faint">Loading…</td></tr>' : personRows(p.users, "data-remove-teammate") + inviteRows(p.invites);
-  return '<div class="h-card team"><h2>Your team</h2><div class="h-sub">Everyone here sees all of ' + esc((S.me.account || {}).name || "the account") + "'s systems</div>" +
+  var rows = !p ? '<tr><td colspan="3" class="faint">Loading…</td></tr>' : personRows(p.users, "data-remove-teammate", null, "data-set-admin") + inviteRows(p.invites);
+  return '<div class="h-card team"><h2>Your team</h2><div class="h-sub">Technicians open every one of ' + esc((S.me.account || {}).name || "the account") + "'s systems. Admins also get the fleet page and this team list.</div>" +
     '<table class="dt"><tbody>' + rows + "</tbody></table>" +
     '<div class="invite-form"><div class="acts-cell"><label class="field wide"><input id="f-team-email" type="email" placeholder="colleague@example.com" aria-label="Colleague email"></label>' +
+    '<select class="sel" id="f-team-level" aria-label="Invite as"><option value="tech">as a technician</option><option value="admin">as an admin</option></select>' +
     '<button class="btn" type="button" data-invite="team">Invite colleague</button></div>' + inviteResult(S.teamResult) + "</div></div>";
 }
 
 // ---------- shared click handling for invites
 root.addEventListener("click", function (e) {
-  var t = e.target.closest && e.target.closest("[data-invite],[data-remove-member],[data-reset-member],[data-remove-teammate],[data-revoke-invite],[data-copy-invite]");
+  var t = e.target.closest && e.target.closest("[data-invite],[data-remove-member],[data-reset-member],[data-remove-teammate],[data-set-admin],[data-revoke-invite],[data-copy-invite]");
   if (!t) return;
   if (t.hasAttribute("data-copy-invite")) {
     var inp = $("#inv-link", t.parentNode);
@@ -2113,7 +2125,9 @@ root.addEventListener("click", function (e) {
     if (!email) { field.focus(); return; }
     t.disabled = true;
     var path = t.dataset.invite === "team" ? "/api/account/invites" : "/api/systems/" + S.sys.id + "/invites";
-    api(path, { method: "POST", body: { email: email } }).then(function (r) {
+    var body = { email: email };
+    if (t.dataset.invite === "team") body.admin = $("#f-team-level").value === "admin";
+    api(path, { method: "POST", body: body }).then(function (r) {
       if (team) S.teamResult = r; else { S.inviteResult = r; delete S.form["f-inv-email"]; }
       field.value = ""; after();
     }).catch(function (err) {
@@ -2131,6 +2145,8 @@ root.addEventListener("click", function (e) {
   } else if (t.dataset.removeTeammate) {
     if (!confirm("Remove this colleague? Their sign-in is deleted and they are signed out everywhere.")) return;
     api("/api/account/users/" + t.dataset.removeTeammate, { method: "DELETE" }).then(after).catch(function (err) { alert(err.message); });
+  } else if (t.dataset.setAdmin) {
+    api("/api/account/users/" + t.dataset.user, { method: "PATCH", body: { admin: t.dataset.setAdmin === "on" } }).then(after).catch(function (err) { alert(err.message); });
   } else if (t.dataset.revokeInvite) {
     api("/api/invites/" + t.dataset.revokeInvite, { method: "DELETE" }).then(after).catch(function (err) { alert(err.message); });
   }

@@ -11,6 +11,7 @@
   python manage.py test-email 1                      (needs SMTP_* in .env)
   python manage.py create-user you@gmail.com --name "Tyler" --account 1        (contractor; asks for a password)
   python manage.py create-user owner@example.com --role homeowner --system 1   (sees system 1 only)
+  python manage.py set-admin you@gmail.com          (fleet page + team; --off makes them a technician again)
   python manage.py set-password you@gmail.com
   python manage.py reset-2fa you@gmail.com          (turns two-step sign-in off, for a lost phone)
   python manage.py check                             (is everything working? nodes, readings, alerts, email, backups)
@@ -23,7 +24,7 @@ from sqlalchemy import select
 
 from hvaccloud import auth, check, maintenance
 from hvaccloud.alerts import Mailer
-from hvaccloud.db import (Account, ApiKey, Device, System, SystemMember, User, init_db, make_engine,
+from hvaccloud.db import (Account, ApiKey, Device, System, SystemMember, User, ensure_admins, init_db, make_engine,
                           session_factory)
 from hvaccloud.refrigerants import FLUIDS
 
@@ -56,8 +57,12 @@ def main(argv=None):
     u.add_argument("--name")
     u.add_argument("--role", choices=["contractor", "homeowner"], default="contractor")
     u.add_argument("--account", type=int, help="contractor's account id")
+    u.add_argument("--admin", action="store_true", help="contractor who runs the account (fleet page, team)")
     u.add_argument("--system", type=int, action="append", default=[], help="homeowner's system id (repeatable)")
     u.add_argument("--no-password", action="store_true", help="don't ask now; set it later with set-password")
+    ad = sub.add_parser("set-admin", help="let a contractor see the fleet page and manage the team")
+    ad.add_argument("email")
+    ad.add_argument("--off", action="store_true", help="make them a technician again")
     pw = sub.add_parser("set-password", help="set or reset a user's password")
     pw.add_argument("email")
     sub.add_parser("check", help="report whether nodes, readings, alerts, commands, email and backups are all working")
@@ -120,7 +125,8 @@ def main(argv=None):
             for user in s.scalars(select(User).order_by(User.id)):
                 where = (f"account {user.account_id}" if user.role == "contractor" else "systems " + ", ".join(
                     str(m.system_id) for m in s.scalars(select(SystemMember).where(SystemMember.user_id == user.id))))
-                print(f"user {user.id}: {user.email} ({user.role}, {where})" + ("" if user.password_hash else " - no password"))
+                role = "admin" if user.role == "contractor" and user.admin else user.role
+                print(f"user {user.id}: {user.email} ({role}, {where})" + ("" if user.password_hash else " - no password"))
         elif args.cmd == "set-email":
             acct = s.get(Account, args.account_id)
             if acct is None:
@@ -141,12 +147,24 @@ def main(argv=None):
                     sys.exit(f"no system {sid}")
             user = User(email=email, name=args.name, role=args.role,
                         account_id=args.account if args.role == "contractor" else None,
-                        password_hash=auth.hash_password(password) if password else None)
+                        password_hash=auth.hash_password(password) if password else None,
+                        admin=True if args.admin and args.role == "contractor" else None)
             s.add(user)
             s.flush()
             for sid in args.system:
                 s.add(SystemMember(system_id=sid, user_id=user.id))
-            print(f"user {user.id}: {email} ({args.role})" + ("" if password else " - no password yet"))
+            ensure_admins(s)                          # an account's first contractor is its admin
+            role = "admin" if user.admin else args.role
+            print(f"user {user.id}: {email} ({role})" + ("" if password else " - no password yet"))
+        elif args.cmd == "set-admin":
+            user = s.scalar(select(User).where(User.email == args.email.strip().lower()))
+            if user is None or user.role != "contractor":
+                sys.exit(f"no contractor {args.email}")
+            if args.off and user.admin and s.scalar(select(User.id).where(
+                    User.role == "contractor", User.account_id == user.account_id, User.admin.is_(True), User.id != user.id)) is None:
+                sys.exit("the account needs at least one admin: make someone else an admin first")
+            user.admin = None if args.off else True
+            print(f"{user.email} is now {'a technician' if args.off else 'an admin'}")
         elif args.cmd == "set-password":
             user = s.scalar(select(User).where(User.email == args.email.strip().lower()))
             if user is None:

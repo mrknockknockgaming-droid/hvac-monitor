@@ -118,7 +118,7 @@ the display feed from `hvaccloud/display.py`. Ingest publishes the feed retained
   link is emailed when SMTP is set up and always shown to copy. An email that already has a
   homeowner sign-in is given access straight away. Links use `APP_URL`, so they only work on
   this PC until the site has a public address.
-- **Fleet** (`#/fleet`, contractors' landing page): every system on the account, most in need of
+- **Fleet** (`#/fleet`, admins' landing page; technicians land on their first system's Monitor): every system on the account, most in need of
   attention first (service needed, offline, check soon, good to know, maintenance due), with
   current issues and open alerts, node health, filter and tune-up. Refreshes every 15 s.
 
@@ -126,8 +126,15 @@ the display feed from `hvaccloud/display.py`. Ingest publishes the feed retained
 .venv\Scripts\python.exe manage.py create-user you@example.com --name "Tyler" --account 1
 .venv\Scripts\python.exe manage.py create-user owner@example.com --role homeowner --system 1
 .venv\Scripts\python.exe manage.py set-password you@example.com
+.venv\Scripts\python.exe manage.py set-admin you@example.com
 ```
-Both commands ask for the password at a hidden prompt (typed twice, at least 10 characters).
+Both create-user and set-password ask for the password at a hidden prompt (typed twice, at least 10 characters).
+
+Three access levels, each checked by the server: **admins** (contractors who run the account: fleet page,
+team list and invites, plus the technician pages), **technicians** (the other contractors: Monitor,
+Equipment, Sensors & calibration and Service history for the account's systems) and **homeowners**
+(their own home page). Each account's first contractor is its admin; `set-admin --off` or the
+Account page's "Make technician" changes it, and an account always keeps one admin.
 
 ## Web app
 

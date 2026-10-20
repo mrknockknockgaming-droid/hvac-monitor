@@ -31,7 +31,7 @@ class FakeMailer:
 def world(sessions, seeded):
     with sessions() as s, s.begin():
         home = s.scalar(select(System).where(System.site_id == "home"))
-        s.add(User(email="tech@example.com", role="contractor", account_id=home.account_id, password_hash=auth.hash_password(PW)))
+        s.add(User(email="tech@example.com", role="contractor", account_id=home.account_id, admin=True, password_hash=auth.hash_password(PW)))
         sid, other = home.id, s.scalar(select(System.id).where(System.site_id == "other"))
     mailer = FakeMailer()
     c = TestClient(create_app(sessions, publisher=lambda *a: True, mailer=mailer, send_async=False))

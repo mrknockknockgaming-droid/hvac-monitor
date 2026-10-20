@@ -18,7 +18,8 @@ def app(sessions, seeded):
     with sessions() as s, s.begin():
         acct = s.scalar(select(System).where(System.site_id == "home")).account_id
         for email in ("tech@example.com", "helper@example.com"):
-            s.add(User(email=email, role="contractor", account_id=acct, password_hash=auth.hash_password(PW)))
+            s.add(User(email=email, role="contractor", account_id=acct, password_hash=auth.hash_password(PW),
+                       admin=True if email == "tech@example.com" else None))
     return create_app(sessions, publisher=lambda *a: True)
 
 

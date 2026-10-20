@@ -172,6 +172,14 @@ class InviteIn(BaseModel):
     email: str = Field(max_length=320)
 
 
+class TeammateIn(InviteIn):
+    admin: bool = False         # joins as an admin (fleet page, team) instead of a technician
+
+
+class AdminIn(BaseModel):
+    admin: bool
+
+
 class TokenIn(BaseModel):
     token: str = Field(max_length=100)
 
@@ -264,14 +272,14 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
                 raise HTTPException(401, "invalid API key")
             key.last_used = utcnow()
             s.commit()
-            return auth.Principal(role="contractor", account_id=key.account_id, via="key")
+            return auth.Principal(role="contractor", account_id=key.account_id, via="key", admin=True)
         user_id = auth.session_user_id(s, fs_session)
         user = s.get(User, user_id) if user_id else None
         if user is None:
             raise HTTPException(401, "sign in required")
         if request.method not in ("GET", "HEAD") and not request.headers.get(auth.CSRF_HEADER):
             raise HTTPException(403, f"missing {auth.CSRF_HEADER} header")
-        return auth.Principal(role=user.role, account_id=user.account_id, user_id=user.id)
+        return auth.Principal.for_user(user)
 
     def visible_systems(s, who):
         if who.is_tech:
@@ -290,10 +298,16 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
             raise HTTPException(403, "for your contractor only")
         return system
 
+    def admin_only(who=Depends(principal)):
+        """The account's own pages: fleet overview and teammates."""
+        if not who.is_admin:
+            raise HTTPException(403, "for your account's admins only")
+        return who
+
     def me_view(s, who):
         user = s.get(User, who.user_id) if who.user_id else None
         acct = s.get(Account, who.account_id) if who.account_id else None
-        return {"role": who.role, "via": who.via,
+        return {"role": who.role, "level": who.level, "via": who.via,
                 "user": {"id": user.id, "email": user.email, "name": user.name} if user else None,
                 "account": {"id": acct.id, "name": acct.name} if acct else None}
 
@@ -350,7 +364,7 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
         token = auth.new_session(s, user.id)
         s.commit()
         set_cookie(response, token)
-        return me_view(s, auth.Principal(role=user.role, account_id=user.account_id, user_id=user.id))
+        return me_view(s, auth.Principal.for_user(user))
 
     @app.post("/api/auth/logout")
     def logout(response: Response, s=Depends(db), fs_session: str | None = Cookie(None)):
@@ -528,7 +542,7 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
         s.commit()
         throttle.clear(user.email)
         set_cookie(response, token)
-        return me_view(s, auth.Principal(role=user.role, account_id=user.account_id, user_id=user.id))
+        return me_view(s, auth.Principal.for_user(user))
 
     # ---------- equipment ----------
     @app.get("/api/systems/{system_id}/equipment")
@@ -661,7 +675,7 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
             return True
         return mailer.send(email, subject, body)
 
-    def make_invite(s, who, email, role, account_id=None, system_id=None):
+    def make_invite(s, who, email, role, account_id=None, system_id=None, admin=None):
         """New invite (older pending ones for the same person and place are revoked). Returns the link."""
         q = select(Invite).where(Invite.email == email, Invite.accepted_at.is_(None), Invite.role == role)
         q = q.where(Invite.system_id == system_id) if system_id else q.where(Invite.account_id == account_id)
@@ -669,13 +683,13 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
             s.delete(old)
         token = secrets.token_urlsafe(24)
         inv = Invite(token_hash=hash_key(token), email=email, role=role, account_id=account_id, system_id=system_id,
-                     invited_by=who.user_id, expires_at=utcnow() + dt.timedelta(days=INVITE_DAYS))
+                     invited_by=who.user_id, expires_at=utcnow() + dt.timedelta(days=INVITE_DAYS), admin=admin or None)
         s.add(inv)
         s.commit()
         return inv, f"{settings.APP_URL}#/invite/{token}"
 
     def invite_view(inv):
-        return {"id": inv.id, "email": inv.email, "role": inv.role, "expires_at": _iso(inv.expires_at),
+        return {"id": inv.id, "email": inv.email, "role": inv.role, "admin": bool(inv.admin), "expires_at": _iso(inv.expires_at),
                 "expired": as_utc(inv.expires_at) <= utcnow()}
 
     @app.post("/api/systems/{system_id}/invites")
@@ -718,14 +732,12 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
         return {"ok": True}
 
     @app.post("/api/account/invites")
-    def invite_teammate(body: InviteIn, who=Depends(principal), s=Depends(db)):
-        """Invite a contractor colleague to this account."""
-        if not who.is_tech:
-            raise HTTPException(403, "for your contractor only")
+    def invite_teammate(body: TeammateIn, who=Depends(admin_only), s=Depends(db)):
+        """Invite a contractor colleague to this account, as a technician or an admin."""
         email = clean_email(body.email)
         if s.scalar(select(User).where(User.email == email)):
             raise HTTPException(409, "That email already has a sign-in.")
-        inv, url = make_invite(s, who, email, "contractor", account_id=who.account_id)
+        inv, url = make_invite(s, who, email, "contractor", account_id=who.account_id, admin=body.admin)
         acct = s.get(Account, who.account_id)
         emailed = send_invite(email, f"Join {acct.name if acct else 'your team'} on Fullscope",
                               f"You've been invited to {acct.name if acct else 'a contractor account'} on Fullscope.\n\n"
@@ -733,20 +745,19 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
         return {"status": "invited", "email": email, "url": url, "emailed": emailed, "expires_at": _iso(inv.expires_at)}
 
     @app.get("/api/account/people")
-    def account_people(who=Depends(principal), s=Depends(db)):
-        if not who.is_tech:
-            raise HTTPException(403, "for your contractor only")
+    def account_people(who=Depends(admin_only), s=Depends(db)):
         users = s.scalars(select(User).where(User.account_id == who.account_id).order_by(User.email))
         invites = s.scalars(select(Invite).where(Invite.account_id == who.account_id, Invite.role == "contractor",
                                                  Invite.accepted_at.is_(None)).order_by(Invite.created_at.desc()))
-        return {"users": [{"user_id": u.id, "email": u.email, "name": u.name, "last_login": _iso(u.last_login)} for u in users],
+        return {"users": [{"user_id": u.id, "email": u.email, "name": u.name, "admin": bool(u.admin),
+                           "last_login": _iso(u.last_login)} for u in users],
                 "invites": [invite_view(i) for i in invites]}
 
     @app.delete("/api/account/users/{user_id}")
-    def remove_teammate(user_id: int, who=Depends(principal), s=Depends(db)):
+    def remove_teammate(user_id: int, who=Depends(admin_only), s=Depends(db)):
         """Take a colleague off the account: their sign-in is deleted and they are signed out."""
         user = s.get(User, user_id)
-        if not who.is_tech or user is None or user.role != "contractor" or user.account_id != who.account_id:
+        if user is None or user.role != "contractor" or user.account_id != who.account_id:
             raise HTTPException(404, "no such teammate")
         if user.id == who.user_id:
             raise HTTPException(409, "You can't remove yourself.")
@@ -765,13 +776,30 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
         s.commit()
         return {"ok": True}
 
+    @app.patch("/api/account/users/{user_id}")
+    def set_admin(user_id: int, body: AdminIn, who=Depends(admin_only), s=Depends(db)):
+        """Make a colleague an admin, or a technician again. The account always keeps one admin."""
+        user = s.get(User, user_id)
+        if user is None or user.role != "contractor" or user.account_id != who.account_id:
+            raise HTTPException(404, "no such teammate")
+        if not body.admin and user.admin:
+            admins = s.scalar(select(func.count()).select_from(User).where(
+                User.role == "contractor", User.account_id == who.account_id, User.admin.is_(True)))
+            if admins <= 1:
+                raise HTTPException(409, "The account needs at least one admin. Make someone else an admin first.")
+        user.admin = body.admin or None
+        s.commit()
+        return {"user_id": user.id, "admin": bool(user.admin)}
+
     @app.delete("/api/invites/{invite_id}")
     def revoke_invite(invite_id: int, who=Depends(principal), s=Depends(db)):
         inv = s.get(Invite, invite_id)
         owner = None
         if inv is not None:
             owner = inv.account_id if inv.system_id is None else s.get(System, inv.system_id).account_id
-        if inv is None or not who.is_tech or owner != who.account_id:
+        # homeowner links belong to the technician pages; teammate links to the admins
+        allowed = who.is_admin if inv is not None and inv.system_id is None else who.is_tech
+        if inv is None or not allowed or owner != who.account_id:
             raise HTTPException(404, "no such invite")
         s.delete(inv)
         s.commit()
@@ -806,7 +834,8 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
             raise HTTPException(422, problem)
         account_id = inv.account_id if inv.role == "contractor" else None
         user = User(email=inv.email, name=(body.name or "").strip() or None, role=inv.role, account_id=account_id,
-                    password_hash=auth.hash_password(body.password), last_login=utcnow())
+                    password_hash=auth.hash_password(body.password), last_login=utcnow(),
+                    admin=True if inv.role == "contractor" and inv.admin else None)
         s.add(user)
         s.flush()
         if inv.system_id:
@@ -815,14 +844,12 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
         token_cookie = auth.new_session(s, user.id)
         s.commit()
         set_cookie(response, token_cookie)
-        return me_view(s, auth.Principal(role=user.role, account_id=user.account_id, user_id=user.id))
+        return me_view(s, auth.Principal.for_user(user))
 
     # ---------- contractor fleet ----------
     @app.get("/api/fleet")
-    def fleet(who=Depends(principal), s=Depends(db)):
-        """Every system the contractor services, most in need of attention first."""
-        if not who.is_tech:
-            raise HTTPException(403, "for your contractor only")
+    def fleet(who=Depends(admin_only), s=Depends(db)):
+        """Every system the contractor services, most in need of attention first (admins' page)."""
         now, today = utcnow(), dt.date.today()
         out = []
         for system in s.scalars(visible_systems(s, who).order_by(System.name)):

@@ -35,6 +35,7 @@ public static class Schema
                     Exec(conn, Regex.Replace(stmt, "^CREATE (UNIQUE )?INDEX ", "CREATE $1INDEX IF NOT EXISTS ", RegexOptions.IgnoreCase));
             }
             AddMissingColumns(db, conn);
+            EnsureAdmins(db);
             if (!db.IsSqlite)
             {
                 Exec(conn, "CREATE EXTENSION IF NOT EXISTS timescaledb");
@@ -49,6 +50,18 @@ public static class Schema
         {
             db.Database.CloseConnection();
         }
+    }
+
+    /// <summary>Every account keeps at least one admin: when it has none (a database from before admins
+    /// existed, or the last admin was removed), its first contractor becomes one (db.ensure_admins).</summary>
+    public static void EnsureAdmins(Db s)
+    {
+        foreach (var accountId in s.Users.Where(u => u.Role == "contractor").Select(u => u.AccountId).Distinct().ToList())
+        {
+            var team = s.Users.Where(u => u.Role == "contractor" && u.AccountId == accountId).OrderBy(u => u.Id).ToList();
+            if (team.Count > 0 && !team.Any(u => u.Admin == true)) team[0].Admin = true;
+        }
+        s.SaveChanges();
     }
 
     static HashSet<string> ExistingTables(Db db, DbConnection conn) => Query(conn,
