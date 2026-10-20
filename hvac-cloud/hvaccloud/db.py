@@ -66,6 +66,7 @@ class User(Base):
     created_at: Mapped[dt.datetime] = mapped_column(default=utcnow)
     last_login: Mapped[dt.datetime | None]
     admin: Mapped[bool | None]                                       # contractors only (ensure_admins)
+    staff: Mapped[bool | None]                                       # Fullscope's own people: the Office pages (ensure_staff)
     # two-factor sign-in (auth.py): the authenticator secret is kept from setup; it counts once totp_on is set
     totp_secret: Mapped[str | None] = mapped_column(String(64))
     totp_on: Mapped[dt.datetime | None]
@@ -120,6 +121,63 @@ class Order(Base):
     phone: Mapped[str | None] = mapped_column(String(40))
     systems: Mapped[int]
     notes: Mapped[str | None] = mapped_column(String(2000))
+
+
+class Customer(Base):
+    """A contractor company Fullscope sells to (Office pages). account_id links it to its sign-in account."""
+    __tablename__ = "customers"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    created_at: Mapped[dt.datetime] = mapped_column(default=utcnow)
+    company: Mapped[str] = mapped_column(String(200))
+    contact: Mapped[str | None] = mapped_column(String(200))
+    email: Mapped[str | None] = mapped_column(String(320))
+    phone: Mapped[str | None] = mapped_column(String(40))
+    address: Mapped[str | None] = mapped_column(String(500))
+    status: Mapped[str] = mapped_column(String(16), default="lead")      # lead, active, paused, closed
+    notes: Mapped[str | None] = mapped_column(String(4000))
+    account_id: Mapped[int | None] = mapped_column(ForeignKey("accounts.id"))
+
+
+class Ticket(Base):
+    """One conversation in the Office inbox: an order request, a website contact message or a
+    contractor's support request from the app."""
+    __tablename__ = "tickets"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    created_at: Mapped[dt.datetime] = mapped_column(default=utcnow)
+    updated_at: Mapped[dt.datetime] = mapped_column(default=utcnow)
+    kind: Mapped[str] = mapped_column(String(16))                         # order, contact, support
+    status: Mapped[str] = mapped_column(String(16), default="new")       # new, open, waiting, closed
+    subject: Mapped[str] = mapped_column(String(200))
+    name: Mapped[str | None] = mapped_column(String(200))
+    email: Mapped[str] = mapped_column(String(320))
+    phone: Mapped[str | None] = mapped_column(String(40))
+    company: Mapped[str | None] = mapped_column(String(200))
+    body: Mapped[str | None] = mapped_column(String(4000))
+    order_id: Mapped[int | None] = mapped_column(ForeignKey("orders.id"))
+    customer_id: Mapped[int | None] = mapped_column(ForeignKey("customers.id"))
+    account_id: Mapped[int | None] = mapped_column(ForeignKey("accounts.id"))
+    system_id: Mapped[int | None] = mapped_column(ForeignKey("systems.id"))
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+
+
+class TicketMessage(Base):
+    """A reply emailed to the sender, or an internal note, on a ticket."""
+    __tablename__ = "ticket_messages"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    ticket_id: Mapped[int] = mapped_column(ForeignKey("tickets.id"))
+    created_at: Mapped[dt.datetime] = mapped_column(default=utcnow)
+    kind: Mapped[str] = mapped_column(String(8))                          # reply, note
+    body: Mapped[str] = mapped_column(String(4000))
+    author_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+    emailed: Mapped[bool | None]
+
+
+def order_ticket(order):
+    """The inbox ticket for a landing-page order request."""
+    n = order.systems
+    return Ticket(kind="order", status="new", subject=f"Order request for {n} system{'' if n == 1 else 's'}",
+                  name=order.name, email=order.email, phone=order.phone, company=order.company, body=order.notes,
+                  order_id=order.id, created_at=order.created_at, updated_at=order.created_at)
 
 
 class Invite(Base):
@@ -371,6 +429,8 @@ def init_db(engine):
     add_missing_columns(engine)
     with session_factory(engine)() as s:
         ensure_admins(s)
+        ensure_staff(s)
+        ensure_order_tickets(s)
         s.commit()
     if engine.dialect.name == "postgresql":
         with engine.begin() as c:
@@ -406,6 +466,25 @@ def ensure_admins(s):
         team = s.scalars(select(User).where(User.role == "contractor", User.account_id == account_id).order_by(User.id)).all()
         if team and not any(u.admin for u in team):
             team[0].admin = True
+    s.flush()
+
+
+def ensure_staff(s):
+    """Someone can always open the Office pages: when nobody is staff, the first contractor admin
+    (the owner's own sign-in on a new server) becomes staff."""
+    if s.scalar(select(User.id).where(User.staff.is_(True))) is None:
+        first = s.scalar(select(User).where(User.role == "contractor", User.admin.is_(True)).order_by(User.id))
+        if first is not None:
+            first.staff = True
+    s.flush()
+
+
+def ensure_order_tickets(s):
+    """Order requests saved before the Office inbox existed get their inbox ticket."""
+    have = set(s.scalars(select(Ticket.order_id).where(Ticket.order_id.is_not(None))))
+    for order in s.scalars(select(Order).order_by(Order.id)):
+        if order.id not in have:
+            s.add(order_ticket(order))
     s.flush()
 
 

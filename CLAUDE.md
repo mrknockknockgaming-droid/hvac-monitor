@@ -170,6 +170,14 @@ temperatures, superheat, subcooling and delta-T.
   - Equipment page (`equipment` table, `hvaccloud/equipment.py`): nameplate SC target ± tol
     replaces calc's generic sc_low/sc_high for TXV/EEV in cooling, applied in ingest AFTER
     calc.compute (calc.py and the dashboard stay identical). Elevation sets atm_psia.
+  - Fullscope Office (2026-10-20, `web/office.html` + `office.js`, `hvaccloud/office.py`, C# `Api/Office.cs`): the business
+    side for Fullscope's own staff (users.staff; db.ensure_staff / Schema.EnsureStaff makes the first contractor admin staff
+    when nobody is; `manage.py set-staff <email> [--off]`). Inbox = `tickets` (+ `ticket_messages`: reply = emailed to the
+    sender, note = internal): landing-page orders (db.order_ticket, older orders backfilled at startup), the landing page's
+    Contact form (POST /api/contact, honeypot, 5/IP/hour) and contractors' Help page (#/help, POST/GET /api/support).
+    New tickets are emailed to ORDER_EMAIL. Customers (`customers`, linked to an account): "Make customer" from a ticket,
+    "Create account and invite" makes the Account and invites its first admin. Staff see Office in the app header.
+    Plan for the rest (devices/warranty + QR claim, browser flashing, billing): Claude Doc "Fullscope Office plan".
   - Invites (`invites` table, token hashed, 7 days, single use) for homeowners (per system,
     Sensors & calibration page) and contractor teammates (Account page); links use APP_URL.
     Admins land on `#/fleet` (GET /api/fleet, admins only, worst first: alerts.LEVEL mirrors the

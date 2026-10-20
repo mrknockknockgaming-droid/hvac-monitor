@@ -180,6 +180,13 @@ function route() {
   if (rs) { stopTimers(); S.view = null; S.sys = null; return renderReset(rs[1]); }
   if (!S.me) return start();
   if (location.hash === "#/account") { stopTimers(); S.view = null; S.sys = null; S.tfa = null; S.push = null; if (isAdmin()) pollTeam(); return renderAccount(); }
+  if (location.hash === "#/help") {
+    if (!isTech()) { location.replace("#/"); return; }     // homeowners ask their contractor
+    if (!S.systems) return loadSystems();
+    stopTimers(); S.view = "help"; S.sys = null; S.helpMsg = null;
+    pollHelp();
+    return renderHelp();
+  }
   if (location.hash === "#/fleet") {
     if (!isAdmin()) { location.replace("#/"); return; }   // the fleet page is for the account's admins
     stopTimers(); S.view = "fleet"; S.sys = null; S.error = null;
@@ -462,6 +469,7 @@ function renderNoSystems() {
 // ---------------------------------------------------------------- render dispatch (keeps scroll + open details)
 function render() {
   if (S.view === "fleet") return renderFleet();
+  if (S.view === "help") return renderHelp();
   if (!S.view || !S.sys) return;
   var open = $$("details[open]").map(function (d) { return d.id; });
   var y = window.scrollY;
@@ -923,8 +931,13 @@ function techHeader(page) {
     '<nav class="nav" aria-label="Sections">' + (isAdmin() ? '<a href="#/fleet">Fleet</a>' : "") + navLink("monitor", "Monitor", page) + navLink("equipment", "Equipment", page) + navLink("setup", "Sensors &amp; calibration", page) + navLink("service", "Service history", page) +
     '<span class="spacer"></span><div class="tools">' +
     (fresh ? '<span class="live">LIVE · 5 s</span>' : st("offline", "Offline")) + systemPicker(page) +
-    (page === "monitor" ? '<button class="btn" type="button" data-export>Export CSV</button>' : "") + '<a class="btn" href="#/account" style="text-decoration:none">Account</a><button class="btn" type="button" data-signout>Sign out</button></div></nav></header>' +
+    (page === "monitor" ? '<button class="btn" type="button" data-export>Export CSV</button>' : "") + extraTools() + '<a class="btn" href="#/account" style="text-decoration:none">Account</a><button class="btn" type="button" data-signout>Sign out</button></div></nav></header>' +
     (S.error ? '<div class="stale-banner">Can\'t reach the server: ' + esc(S.error) + "</div>" : !fresh && L ? '<div class="stale-banner">No readings for ' + ago((Date.now() - new Date(L.time).getTime()) / 1000) + ". Values below are the last ones received.</div>" : ""));
+}
+// Help (contractors ask Fullscope) and, for Fullscope's own staff, the Office pages (office.html).
+function extraTools() {
+  return (isTech() ? '<a class="btn" href="#/help" style="text-decoration:none">Help</a>' : "") +
+    (S.me && S.me.staff ? '<a class="btn" href="office.html" style="text-decoration:none">Office</a>' : "");
 }
 function navLink(page, label, cur) {
   return page === cur ? '<a aria-current="page">' + label + "</a>" : '<a href="#/' + page + "/" + S.sys.id + '">' + label + "</a>";
@@ -2178,13 +2191,54 @@ function renderFleet() {
   root.innerHTML =
     '<header class="top"><div class="top-row">' + LOGO + '<div class="ident"><b>' + esc(acct.name || "Your systems") + "</b><span>" + (list ? list.length + " system" + (list.length === 1 ? "" : "s") : "") + "</span></div>" +
     '<div class="top-fields"><div class="tf alerts"><span>Needs attention</span><div class="row">' + summary + "</div></div></div></div>" +
-    '<nav class="nav" aria-label="Sections"><a aria-current="page">Fleet</a><span class="spacer"></span><div class="tools">' +
+    '<nav class="nav" aria-label="Sections"><a aria-current="page">Fleet</a><span class="spacer"></span><div class="tools">' + extraTools() +
     '<a class="btn" href="#/account" style="text-decoration:none">Account</a><button class="btn" type="button" data-signout>Sign out</button></div></nav></header>' +
     (S.error ? '<div class="stale-banner">Can\'t reach the server: ' + esc(S.error) + "</div>" : "") +
     '<main class="page"><section class="panel" aria-label="Systems"><div class="ph"><h2>Systems</h2><span class="sub">Most in need of attention first · updates every 15 s · click a row to open it</span></div>' +
     '<table class="dt diag fleet"><thead><tr><th>Status</th><th>System</th><th>Now</th><th>Issues</th><th>Nodes</th><th>Filter</th><th>Tune-up</th></tr></thead><tbody>' + rows + "</tbody></table></section></main>";
   bindCommon();
   $$("[data-open-system]").forEach(function (tr) { tr.addEventListener("click", function () { location.hash = "#/monitor/" + tr.dataset.openSystem; }); });
+}
+
+// ---------- contractors ask Fullscope for help: #/help
+function pollHelp() {
+  api("/api/support").then(function (d) { S.help = d; if (S.view === "help") renderHelp(); }).catch(function (e) { if (e.message !== "401") { S.error = e.message; renderHelp(); } });
+}
+function renderHelp() {
+  root.className = "fs";
+  var list = S.help, acct = (S.me && S.me.account) || {};
+  var draft = { subject: ($("#hs") || {}).value || "", message: ($("#hm") || {}).value || "", sys: ($("#hsys") || {}).value || "" };
+  var items = !list ? '<div class="empty">Loading…</div>' : !list.length ? '<div class="empty">No requests yet.</div>' : list.map(function (t) {
+    return '<details class="help-item" id="help-' + t.id + '"><summary>' + (t.status === "closed" ? st("ok", "Closed") : t.replies.length ? st("advisory", "Answered") : st("caution", "Waiting for Fullscope")) +
+      " <b>" + esc(t.subject) + '</b> <span class="faint">#' + t.id + " · " + esc(when(t.created_at)) + (t.name ? " · " + esc(t.name) : "") + "</span></summary>" +
+      '<div class="help-msg">' + esc(t.body) + "</div>" +
+      t.replies.map(function (r) { return '<div class="help-msg reply"><span class="faint">Fullscope · ' + esc(when(r.at)) + "</span><br>" + esc(r.body) + "</div>"; }).join("") + "</details>";
+  }).join("");
+  var opts = '<option value="">No particular system</option>' + (S.systems || []).map(function (x) { return '<option value="' + x.id + '">' + esc(x.name) + "</option>"; }).join("");
+  root.innerHTML =
+    '<header class="top"><div class="top-row">' + LOGO + '<div class="ident"><b>' + esc(acct.name || "Fullscope") + "</b><span>Help from Fullscope</span></div></div>" +
+    '<nav class="nav" aria-label="Sections">' + (isAdmin() ? '<a href="#/fleet">Fleet</a>' : "") + (S.systems && S.systems.length ? '<a href="#/monitor/' + S.systems[0].id + '">Monitor</a>' : "") +
+    '<a aria-current="page">Help</a><span class="spacer"></span><div class="tools">' + (S.me && S.me.staff ? '<a class="btn" href="office.html" style="text-decoration:none">Office</a>' : "") +
+    '<a class="btn" href="#/account" style="text-decoration:none">Account</a><button class="btn" type="button" data-signout>Sign out</button></div></nav></header>' +
+    (S.error ? '<div class="stale-banner">Can\'t reach the server: ' + esc(S.error) + "</div>" : "") +
+    '<main class="page help-page"><section class="panel"><div class="ph"><h2>Ask Fullscope</h2><span class="sub">Questions about the monitors, the app or your account. We answer by email to ' + esc((S.me.user && S.me.user.email) || "your account email") + ".</span></div>" +
+    '<form class="help-form" id="hf"><label for="hs">Subject</label><input id="hs" maxlength="200" placeholder="For example: indoor monitor offline since Tuesday">' +
+    '<label for="hsys">System</label><select class="sel" id="hsys">' + opts + "</select>" +
+    '<label for="hm">What\'s going on?</label><textarea id="hm" maxlength="4000"></textarea>' +
+    '<div class="row"><button class="btn primary" type="submit">Send to Fullscope</button><span class="msg" id="hmsg">' + (S.helpMsg ? esc(S.helpMsg) : "") + "</span></div></form></section>" +
+    '<section class="panel"><div class="ph"><h2>Your account\'s requests</h2><span class="sub">Newest first</span></div>' + items + "</section></main>";
+  $("#hs").value = draft.subject; $("#hm").value = draft.message; if (draft.sys) $("#hsys").value = draft.sys;
+  bindCommon();
+  $("#hf").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var body = { subject: $("#hs").value.trim(), message: $("#hm").value.trim(), system_id: $("#hsys").value ? +$("#hsys").value : null };
+    if (!body.subject || !body.message) { $("#hmsg").textContent = "Please fill in a subject and what's going on."; return; }
+    $("#hf button").disabled = true;
+    api("/api/support", { method: "POST", body: body }).then(function () {
+      $("#hs").value = ""; $("#hm").value = ""; $("#hsys").value = "";
+      S.helpMsg = "Sent. We'll answer by email."; pollHelp();
+    }).catch(function (err) { $("#hf button").disabled = false; $("#hmsg").textContent = err.message; });
+  });
 }
 
 // ---------------------------------------------------------------- CSV export

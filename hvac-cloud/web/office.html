@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fullscope Office</title>
+<link rel="icon" href="icons/icon-192.png">
+<meta name="theme-color" content="#0d1013">
+<link rel="stylesheet" href="fullscope.css">
+<script>
+  try { var t = localStorage.getItem("fs_theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<style>
+/* Office: the business pages (inbox, customers). Same tokens and parts as the technician view. */
+.of-split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:12px;align-items:start}
+.of-list tbody tr{cursor:pointer}
+.of-list tbody tr:hover>*{background:var(--surface-2)}
+.of-list tbody tr[aria-current="true"]>*{background:var(--surface-2);box-shadow:inset 0 -1px 0 var(--line)}
+.of-list tbody tr[aria-current="true"]>td:first-child{box-shadow:inset 2px 0 0 var(--focus)}
+.of-list .subj{font-weight:600}
+.of-list .who{display:block;font-size:11.5px;color:var(--ink-muted)}
+.of-list td{vertical-align:top}
+.of-body{padding:10px 12px;display:grid;gap:12px}
+.of-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));border:1px solid var(--line);border-radius:3px}
+.of-meta>div{padding:6px 10px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-width:0;overflow-wrap:anywhere}
+.of-meta span{display:block;font-size:11px;color:var(--ink-muted)}
+.of-meta a,.of-list a{color:var(--ink);text-decoration-color:var(--line-strong);text-underline-offset:2px}
+.of-msg{border:1px solid var(--line);border-radius:3px}
+.of-msg .mh{display:flex;gap:8px;align-items:center;padding:5px 10px;border-bottom:1px solid var(--line);font-size:12px;color:var(--ink-muted);background:var(--surface-2)}
+.of-msg .mh b{color:var(--ink);font-weight:600}
+.of-msg .mb{padding:8px 10px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13.5px;line-height:19px}
+.of-msg.note{border-style:dashed}
+.of-msg.note .mh{background:transparent}
+.of-form{display:grid;gap:8px}
+.of-form label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--ink-muted)}
+.of-form input,.of-form textarea,.of-form select{background:var(--surface-2);border:1px solid var(--line-strong);border-radius:2px;padding:6px 8px;font:inherit;font-size:13px;color:var(--ink);width:100%}
+.of-form textarea{min-height:90px;resize:vertical}
+.of-form .two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.of-form .acts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.of-form .msg{font-size:12px}
+.of-form .msg.err{color:var(--fault)}.of-form .msg.ok{color:var(--ok)}
+.btn.primary:hover{opacity:.9;background:var(--ink)}
+.of-count{font:500 10px/14px var(--font-mono);background:var(--surface-3);border-radius:2px;padding:0 4px;margin-left:6px;color:var(--ink)}
+.of-gate{max-width:460px;margin:12vh auto 0;padding:0 16px}
+@media (max-width:1000px){.of-split{grid-template-columns:minmax(0,1fr)}.of-split.has-sel>section:last-child{order:-1}.of-form .two{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="root" class="fs"></div>
+<button class="btn theme-t fs" type="button" id="theme">Light / dark</button>
+<script src="office.js"></script>
+</body>
+</html>

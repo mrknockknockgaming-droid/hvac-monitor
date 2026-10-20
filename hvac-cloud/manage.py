@@ -12,6 +12,7 @@
   python manage.py create-user you@gmail.com --name "Tyler" --account 1        (contractor; asks for a password)
   python manage.py create-user owner@example.com --role homeowner --system 1   (sees system 1 only)
   python manage.py set-admin you@gmail.com          (fleet page + team; --off makes them a technician again)
+  python manage.py set-staff you@gmail.com          (Fullscope Office: inbox, customers; --off removes it)
   python manage.py set-password you@gmail.com
   python manage.py reset-2fa you@gmail.com          (turns two-step sign-in off, for a lost phone)
   python manage.py orders                            (order requests from the landing page, newest first)
@@ -64,6 +65,9 @@ def main(argv=None):
     ad = sub.add_parser("set-admin", help="let a contractor see the fleet page and manage the team")
     ad.add_argument("email")
     ad.add_argument("--off", action="store_true", help="make them a technician again")
+    sf = sub.add_parser("set-staff", help="let a user open Fullscope Office (the business pages)")
+    sf.add_argument("email")
+    sf.add_argument("--off", action="store_true", help="take Office access away")
     pw = sub.add_parser("set-password", help="set or reset a user's password")
     pw.add_argument("email")
     sub.add_parser("orders", help="list order requests from the landing page, newest first")
@@ -167,6 +171,14 @@ def main(argv=None):
                 sys.exit("the account needs at least one admin: make someone else an admin first")
             user.admin = None if args.off else True
             print(f"{user.email} is now {'a technician' if args.off else 'an admin'}")
+        elif args.cmd == "set-staff":
+            user = s.scalar(select(User).where(User.email == args.email.strip().lower()))
+            if user is None:
+                sys.exit(f"no user {args.email}")
+            if args.off and user.staff and s.scalar(select(User.id).where(User.staff.is_(True), User.id != user.id)) is None:
+                sys.exit("someone must keep Office access: make someone else staff first")
+            user.staff = None if args.off else True
+            print(f"{user.email} {'can no longer open' if args.off else 'can now open'} Fullscope Office")
         elif args.cmd == "set-password":
             user = s.scalar(select(User).where(User.email == args.email.strip().lower()))
             if user is None:

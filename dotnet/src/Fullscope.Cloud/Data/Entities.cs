@@ -47,6 +47,7 @@ public sealed class User
     public DateTime CreatedAt { get; set; } = Db.UtcNow();
     public DateTime? LastLogin { get; set; }
     public bool? Admin { get; set; }                    // contractors only (Schema.EnsureAdmins)
+    public bool? Staff { get; set; }                    // Fullscope's own people: the Office pages (Schema.EnsureStaff)
     // two-step sign-in (Totp): the authenticator secret is kept from setup; it counts once TotpOn is set
     public string? TotpSecret { get; set; }
     public DateTime? TotpOn { get; set; }
@@ -81,6 +82,63 @@ public sealed class Order
     public string? Phone { get; set; }
     public int Systems { get; set; }
     public string? Notes { get; set; }
+}
+
+/// <summary>A contractor company Fullscope sells to (Office pages). AccountId links it to its sign-in account.</summary>
+public sealed class Customer
+{
+    public int Id { get; set; }
+    public DateTime CreatedAt { get; set; } = Db.UtcNow();
+    public string Company { get; set; } = "";
+    public string? Contact { get; set; }
+    public string? Email { get; set; }
+    public string? Phone { get; set; }
+    public string? Address { get; set; }
+    public string Status { get; set; } = "lead";        // lead, active, paused, closed
+    public string? Notes { get; set; }
+    public int? AccountId { get; set; }
+}
+
+/// <summary>One conversation in the Office inbox: an order request, a website contact message or a
+/// contractor's support request from the app.</summary>
+public sealed class Ticket
+{
+    public int Id { get; set; }
+    public DateTime CreatedAt { get; set; } = Db.UtcNow();
+    public DateTime UpdatedAt { get; set; } = Db.UtcNow();
+    public string Kind { get; set; } = "";               // order, contact, support
+    public string Status { get; set; } = "new";          // new, open, waiting, closed
+    public string Subject { get; set; } = "";
+    public string? Name { get; set; }
+    public string Email { get; set; } = "";
+    public string? Phone { get; set; }
+    public string? Company { get; set; }
+    public string? Body { get; set; }
+    public int? OrderId { get; set; }
+    public int? CustomerId { get; set; }
+    public int? AccountId { get; set; }
+    public int? SystemId { get; set; }
+    public int? UserId { get; set; }
+
+    /// <summary>The inbox ticket for a landing-page order request (db.order_ticket).</summary>
+    public static Ticket ForOrder(Order o) => new()
+    {
+        Kind = "order", Status = "new", Subject = $"Order request for {o.Systems} system{(o.Systems == 1 ? "" : "s")}",
+        Name = o.Name, Email = o.Email, Phone = o.Phone, Company = o.Company, Body = o.Notes, OrderId = o.Id,
+        CreatedAt = o.CreatedAt, UpdatedAt = o.CreatedAt,
+    };
+}
+
+/// <summary>A reply emailed to the sender, or an internal note, on a ticket.</summary>
+public sealed class TicketMessage
+{
+    public int Id { get; set; }
+    public int TicketId { get; set; }
+    public DateTime CreatedAt { get; set; } = Db.UtcNow();
+    public string Kind { get; set; } = "";               // reply, note
+    public string Body { get; set; } = "";
+    public int? AuthorId { get; set; }
+    public bool? Emailed { get; set; }
 }
 
 public sealed class Invite

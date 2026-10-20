@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Fullscope.Cloud.Api;
 
 /// <summary>Who is making a request: a signed-in user, or an account API key (acts as an admin contractor).</summary>
-public sealed record Principal(string Role, int? AccountId, int? UserId = null, string Via = "session", bool Admin = false)
+public sealed record Principal(string Role, int? AccountId, int? UserId = null, string Via = "session", bool Admin = false, bool Staff = false)
 {
     public bool IsTech => Role == "contractor";
 
@@ -16,7 +16,7 @@ public sealed record Principal(string Role, int? AccountId, int? UserId = null, 
     /// "technician" (the technician pages only) or "homeowner" (their home page only).</summary>
     public string Level => IsAdmin ? "admin" : IsTech ? "technician" : "homeowner";
 
-    public static Principal ForUser(User user) => new(user.Role, user.AccountId, user.Id, Admin: user.Admin == true);
+    public static Principal ForUser(User user) => new(user.Role, user.AccountId, user.Id, Admin: user.Admin == true, Staff: user.Staff == true);
 }
 
 /// <summary>
