@@ -182,7 +182,7 @@ Sheet-metal cabinets and homeowner WiFi are the weak points for nodes at the con
 - [ ] Multi-contractor accounts and subscription billing
 - [x] Fullscope Office, the business pages for Fullscope staff (merged Oct 20, PR #80 and #81): one inbox for order requests, website contact messages and contractors' support requests (reply by email or add internal notes); customers with "Create account and invite"; devices with kits, boards, QR labels and warranty claims
 - [x] Public landing page at https://app.fullscope-app.com/ for contractors (deployed Oct 20, PR #78): how it works, example alert, features, Pricing ("Pricing Upon Request" until set in web/pricing.json) and an Order form; order requests are saved and emailed, no payment taken (`fullscope-manage orders` lists them)
-- [ ] Billing in Fullscope Office: manual invoices first (Tyler's choice, Oct 20), no payment provider yet
+- [x] Billing in Fullscope Office: manual invoices (monthly drafts per customer, email or print, paid/void), no payment provider yet (PR #86, Oct 20)
 - [x] Push notifications to phones and browsers (Oct 19, PR #68): turn them on from the Account page; on iPhone, Add to Home Screen first (iOS 16.4+). Same switches, mutes and 6 h cooldown as alert email
 - [ ] Install guides and support docs
 - [ ] Volume sourcing direct from manufacturers
