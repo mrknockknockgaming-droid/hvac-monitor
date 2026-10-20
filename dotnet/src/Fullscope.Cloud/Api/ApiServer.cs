@@ -392,6 +392,7 @@ public sealed partial class ApiServer
 
         // systems
         OfficeRoutes(app);
+        KitRoutes(app);
         Route(app, "GET", "/api/fleet", Fleet);
         Route(app, "GET", "/api/refrigerants", _ => new JsonArray(RefrigerantTables.Fluids.Select(f => (JsonNode?)f).ToArray()));
         Route(app, "GET", "/api/systems", r =>
@@ -965,22 +966,26 @@ public sealed partial class ApiServer
     object? InviteHomeowner(Req r)
     {
         var system = TechSystem(r);
-        var who = r.Who;
         var b = Body(r, Field.Str("email", 320, required: true));
-        var email = CleanEmail(b.Str("email")!);
-        var user = r.S.Users.FirstOrDefault(u => u.Email == email);
+        return HomeownerAccess(r.S, r.Who, system, CleanEmail(b.Str("email")!));
+    }
+
+    /// <summary>An existing homeowner sign-in is added to the system at once; anyone else gets an invite link.</summary>
+    JsonObject HomeownerAccess(Db s, Principal who, HvacSystem system, string email)
+    {
+        var user = s.Users.FirstOrDefault(u => u.Email == email);
         if (user is not null)
         {
             if (user.Role != "homeowner") throw new ApiError(409, "That email already has a contractor sign-in.");
-            if (r.S.SystemMembers.Find(system.Id, user.Id) is null)
+            if (s.SystemMembers.Find(system.Id, user.Id) is null)
             {
-                r.S.SystemMembers.Add(new SystemMember { SystemId = system.Id, UserId = user.Id });
-                r.S.SaveChanges();
+                s.SystemMembers.Add(new SystemMember { SystemId = system.Id, UserId = user.Id });
+                s.SaveChanges();
             }
             return new JsonObject { ["status"] = "added", ["email"] = email };
         }
-        var (inv, url) = MakeInvite(r.S, who, email, "homeowner", systemId: system.Id);
-        var acct = r.S.Accounts.Find(system.AccountId);
+        var (inv, url) = MakeInvite(s, who, email, "homeowner", systemId: system.Id);
+        var acct = s.Accounts.Find(system.AccountId);
         bool emailed = SendInvite(email, $"Your Fullscope access for {system.Name}",
             $"{acct?.Name ?? "Your contractor"} has given you access to {system.Name} on Fullscope, " +
             "which watches how your heating and cooling are running.\n\n" +

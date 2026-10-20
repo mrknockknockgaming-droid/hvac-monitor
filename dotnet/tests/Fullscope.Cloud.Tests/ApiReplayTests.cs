@@ -42,7 +42,7 @@ public partial class ApiReplayTests
 
     static string Vector(string name) => Path.Combine(AppContext.BaseDirectory, "vectors", name);
 
-    [GeneratedRegex(@"#/(invite|reset)/([A-Za-z0-9_-]+)")]
+    [GeneratedRegex(@"#/(invite|reset|claim)/([A-Za-z0-9_-]+)")]
     private static partial Regex Token();
 
     [GeneratedRegex(@"\{(tok\d+)\}")]

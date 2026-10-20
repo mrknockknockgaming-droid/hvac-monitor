@@ -177,7 +177,14 @@ temperatures, superheat, subcooling and delta-T.
     Contact form (POST /api/contact, honeypot, 5/IP/hour) and contractors' Help page (#/help, POST/GET /api/support).
     New tickets are emailed to ORDER_EMAIL. Customers (`customers`, linked to an account): "Make customer" from a ticket,
     "Create account and invite" makes the Account and invites its first admin. Staff see Office in the app header.
-    Plan for the rest (devices/warranty + QR claim, browser flashing, billing): Claude Doc "Fullscope Office plan".
+    Devices (`hvaccloud/kits.py`, C# `Api/Kits.cs`): a kit (`kits`) is an outdoor + indoor board (`boards`, serial = MAC)
+    flashed with the same code (FS-7K3QX); site_id = code in lower case. The box label's QR is `{APP_URL}#/claim/<code>-<claim code>`;
+    a contractor scans it, signs in and names the system (app `#/claim/...`, `POST /api/claim`): the system is created on their
+    account, board warranty starts (WARRANTY_MONTHS, default 12) and the homeowner is invited. A kit shipped to a customer with an
+    account can only be claimed by that account. Staff: ship to customer, new QR code, release a mistaken claim (old system's
+    site_id gets `-old<id>`), warranty claims (`warranty_claims`; "replaced" moves the kit slot and warranty to the new board).
+    Until firmware 0.4.0, set SITE_ID in config.h to the kit code when flashing.
+    Plan for the rest (browser flashing, billing): Claude Doc "Fullscope Office plan".
   - Invites (`invites` table, token hashed, 7 days, single use) for homeowners (per system,
     Sensors & calibration page) and contractor teammates (Account page); links use APP_URL.
     Admins land on `#/fleet` (GET /api/fleet, admins only, worst first: alerts.LEVEL mirrors the

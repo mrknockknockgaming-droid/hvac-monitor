@@ -56,7 +56,7 @@ The other generators work the same way:
 - `tools/make_snapshot_vectors.py` covers the full snapshot pipeline (equipment, electrical, thermostat) and thermostat settings.
 - `tools/make_ingest_replay.py` feeds 10,449 MQTT messages for three systems through the Python ingest and records every
   result, email and publish plus the final database. The C# replay test must match all of it.
-- `tools/make_api_replay.py` sends 320 requests (every endpoint, as contractor, homeowner, API key and signed out,
+- `tools/make_api_replay.py` sends 372 requests (every endpoint, as contractor, homeowner, API key and signed out,
   including errors) to the Python API on the database that replay left, with the clock frozen per request, and
   records status, body, cookie, emails and MQTT publishes (`api_replay.json`, seed in `api_seed.db.gz`). Needs
   `fastapi`, `httpx` and `freezegun` in the venv.

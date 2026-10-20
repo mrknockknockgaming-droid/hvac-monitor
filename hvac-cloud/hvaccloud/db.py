@@ -180,6 +180,53 @@ def order_ticket(order):
                   order_id=order.id, created_at=order.created_at, updated_at=order.created_at)
 
 
+class Kit(Base):
+    """One shipped Fullscope: an outdoor and an indoor board flashed with the same kit code, which becomes
+    the system's site_id when a contractor claims it with the QR code on the box (kits.py)."""
+    __tablename__ = "kits"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    code: Mapped[str] = mapped_column(String(16), unique=True)            # FS-7K3QX; site_id = code.lower()
+    claim_code: Mapped[str] = mapped_column(String(16))                   # on the label only; staff can make a new one
+    created_at: Mapped[dt.datetime] = mapped_column(default=utcnow)
+    hw_rev: Mapped[str | None] = mapped_column(String(16))
+    notes: Mapped[str | None] = mapped_column(String(1000))
+    customer_id: Mapped[int | None] = mapped_column(ForeignKey("customers.id"))
+    shipped_at: Mapped[dt.datetime | None]
+    claimed_at: Mapped[dt.datetime | None]
+    claimed_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+    account_id: Mapped[int | None] = mapped_column(ForeignKey("accounts.id"))
+    system_id: Mapped[int | None] = mapped_column(ForeignKey("systems.id"))
+
+
+class Board(Base):
+    """A Fullscope board by its serial (the ESP32's MAC), with its warranty."""
+    __tablename__ = "boards"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    serial: Mapped[str] = mapped_column(String(17), unique=True)          # AA:BB:CC:DD:EE:FF
+    kind: Mapped[str] = mapped_column(String(16))                         # outdoor, indoor
+    hw_rev: Mapped[str | None] = mapped_column(String(16))
+    fw: Mapped[str | None] = mapped_column(String(32))                    # as flashed
+    kit_id: Mapped[int | None] = mapped_column(ForeignKey("kits.id"))
+    created_at: Mapped[dt.datetime] = mapped_column(default=utcnow)
+    status: Mapped[str] = mapped_column(String(16), default="stock")      # stock, shipped, installed, rma, retired
+    warranty_start: Mapped[dt.date | None] = mapped_column(Date)
+    warranty_months: Mapped[int | None]
+    notes: Mapped[str | None] = mapped_column(String(1000))
+
+
+class WarrantyClaim(Base):
+    """A board sent back or replaced under warranty."""
+    __tablename__ = "warranty_claims"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    board_id: Mapped[int] = mapped_column(ForeignKey("boards.id"))
+    opened_at: Mapped[dt.datetime] = mapped_column(default=utcnow)
+    problem: Mapped[str] = mapped_column(String(2000))
+    status: Mapped[str] = mapped_column(String(16), default="open")       # open, replaced, repaired, denied
+    replacement_id: Mapped[int | None] = mapped_column(ForeignKey("boards.id"))
+    resolution: Mapped[str | None] = mapped_column(String(2000))
+    closed_at: Mapped[dt.datetime | None]
+
+
 class Invite(Base):
     """A link that lets someone create their sign-in: a homeowner for one system, or a contractor
     teammate on an account. Only a SHA-256 of the link token is stored."""
@@ -222,6 +269,7 @@ class System(Base):
     heat_pump: Mapped[bool] = mapped_column(Boolean, default=True)
     ob_energized: Mapped[str] = mapped_column(String(4), default="cool")   # "cool" = O, "heat" = B
     atm_psia: Mapped[float] = mapped_column(Float, default=14.7)
+    address: Mapped[str | None] = mapped_column(String(500))          # where it is installed (set when a kit is claimed)
     run_started_at: Mapped[dt.datetime | None]
     created_at: Mapped[dt.datetime] = mapped_column(default=utcnow)
     account: Mapped[Account] = relationship(back_populates="systems")

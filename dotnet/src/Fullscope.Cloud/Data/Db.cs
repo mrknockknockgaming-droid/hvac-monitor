@@ -30,6 +30,9 @@ public sealed class Db(DbContextOptions<Db> options) : DbContext(options)
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<Ticket> Tickets => Set<Ticket>();
     public DbSet<TicketMessage> TicketMessages => Set<TicketMessage>();
+    public DbSet<Kit> Kits => Set<Kit>();
+    public DbSet<Board> Boards => Set<Board>();
+    public DbSet<WarrantyClaim> WarrantyClaims => Set<WarrantyClaim>();
     public DbSet<PasswordReset> PasswordResets => Set<PasswordReset>();
     public DbSet<PushSubscription> PushSubscriptions => Set<PushSubscription>();
     public DbSet<ServerKey> ServerKeys => Set<ServerKey>();
@@ -181,6 +184,40 @@ public sealed class Db(DbContextOptions<Db> options) : DbContext(options)
             e.HasOne<Ticket>().WithMany().HasForeignKey(x => x.TicketId).OnDelete(DeleteBehavior.NoAction);
             e.HasOne<User>().WithMany().HasForeignKey(x => x.AuthorId).OnDelete(DeleteBehavior.NoAction);
         });
+        b.Entity<Kit>(e =>
+        {
+            e.ToTable("kits");
+            e.HasIndex(x => x.Code).IsUnique();
+            Len(e.Property(x => x.Code), 16);
+            Len(e.Property(x => x.ClaimCode), 16);
+            Len(e.Property(x => x.HwRev), 16);
+            Len(e.Property(x => x.Notes), 1000);
+            e.HasOne<Customer>().WithMany().HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.NoAction);
+            e.HasOne<User>().WithMany().HasForeignKey(x => x.ClaimedBy).OnDelete(DeleteBehavior.NoAction);
+            e.HasOne<Account>().WithMany().HasForeignKey(x => x.AccountId).OnDelete(DeleteBehavior.NoAction);
+            e.HasOne<HvacSystem>().WithMany().HasForeignKey(x => x.SystemId).OnDelete(DeleteBehavior.NoAction);
+        });
+        b.Entity<Board>(e =>
+        {
+            e.ToTable("boards");
+            e.HasIndex(x => x.Serial).IsUnique();
+            Len(e.Property(x => x.Serial), 17);
+            Len(e.Property(x => x.Kind), 16);
+            Len(e.Property(x => x.HwRev), 16);
+            Len(e.Property(x => x.Fw), 32);
+            Len(e.Property(x => x.Status), 16);
+            Len(e.Property(x => x.Notes), 1000);
+            e.HasOne<Kit>().WithMany().HasForeignKey(x => x.KitId).OnDelete(DeleteBehavior.NoAction);
+        });
+        b.Entity<WarrantyClaim>(e =>
+        {
+            e.ToTable("warranty_claims");
+            Len(e.Property(x => x.Problem), 2000);
+            Len(e.Property(x => x.Status), 16);
+            Len(e.Property(x => x.Resolution), 2000);
+            e.HasOne<Board>().WithMany().HasForeignKey(x => x.BoardId).OnDelete(DeleteBehavior.NoAction);
+            e.HasOne<Board>().WithMany().HasForeignKey(x => x.ReplacementId).OnDelete(DeleteBehavior.NoAction);
+        });
         b.Entity<Invite>(e =>
         {
             e.ToTable("invites");
@@ -223,6 +260,7 @@ public sealed class Db(DbContextOptions<Db> options) : DbContext(options)
             Len(e.Property(x => x.SiteId), 64);
             Len(e.Property(x => x.Refrigerant), 20);
             Len(e.Property(x => x.ObEnergized), 4);
+            Len(e.Property(x => x.Address), 500);
             if (sqlite) e.Property(x => x.AtmPsia).HasColumnType("FLOAT");
             e.HasOne<Account>().WithMany().HasForeignKey(x => x.AccountId).OnDelete(DeleteBehavior.NoAction);
         });

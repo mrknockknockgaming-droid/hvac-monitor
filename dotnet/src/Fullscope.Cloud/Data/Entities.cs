@@ -141,6 +141,53 @@ public sealed class TicketMessage
     public bool? Emailed { get; set; }
 }
 
+/// <summary>One shipped Fullscope: an outdoor and an indoor board flashed with the same kit code, which becomes
+/// the system's site_id when a contractor claims it with the QR code on the box (Api/Kits.cs).</summary>
+public sealed class Kit
+{
+    public int Id { get; set; }
+    public string Code { get; set; } = "";              // FS-7K3QX; site_id = code in lower case
+    public string ClaimCode { get; set; } = "";         // on the label only; staff can make a new one
+    public DateTime CreatedAt { get; set; } = Db.UtcNow();
+    public string? HwRev { get; set; }
+    public string? Notes { get; set; }
+    public int? CustomerId { get; set; }
+    public DateTime? ShippedAt { get; set; }
+    public DateTime? ClaimedAt { get; set; }
+    public int? ClaimedBy { get; set; }
+    public int? AccountId { get; set; }
+    public int? SystemId { get; set; }
+}
+
+/// <summary>A Fullscope board by its serial (the ESP32's MAC), with its warranty.</summary>
+public sealed class Board
+{
+    public int Id { get; set; }
+    public string Serial { get; set; } = "";            // AA:BB:CC:DD:EE:FF
+    public string Kind { get; set; } = "";              // outdoor, indoor
+    public string? HwRev { get; set; }
+    public string? Fw { get; set; }                     // as flashed
+    public int? KitId { get; set; }
+    public DateTime CreatedAt { get; set; } = Db.UtcNow();
+    public string Status { get; set; } = "stock";       // stock, shipped, installed, rma, retired
+    public DateOnly? WarrantyStart { get; set; }
+    public int? WarrantyMonths { get; set; }
+    public string? Notes { get; set; }
+}
+
+/// <summary>A board sent back or replaced under warranty.</summary>
+public sealed class WarrantyClaim
+{
+    public int Id { get; set; }
+    public int BoardId { get; set; }
+    public DateTime OpenedAt { get; set; } = Db.UtcNow();
+    public string Problem { get; set; } = "";
+    public string Status { get; set; } = "open";        // open, replaced, repaired, denied
+    public int? ReplacementId { get; set; }
+    public string? Resolution { get; set; }
+    public DateTime? ClosedAt { get; set; }
+}
+
 public sealed class Invite
 {
     public int Id { get; set; }
@@ -195,6 +242,7 @@ public sealed class HvacSystem
     public bool HeatPump { get; set; } = true;
     public string ObEnergized { get; set; } = "cool";   // "cool" = O, "heat" = B
     public double AtmPsia { get; set; } = 14.7;
+    public string? Address { get; set; }                // where it is installed (set when a kit is claimed)
     public DateTime? RunStartedAt { get; set; }
     public DateTime CreatedAt { get; set; } = Db.UtcNow();
 

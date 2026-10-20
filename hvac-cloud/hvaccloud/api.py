@@ -25,7 +25,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import func, select
 
-from . import alerts, auth, calc, display, electrical, equipment, gauge, office, report, service, settings, thermostat, webpush
+from . import alerts, auth, calc, display, electrical, equipment, gauge, kits, office, report, service, settings, thermostat, webpush
 from .db import (Account, Alert, AlertMute, AlertPrefs, ApiKey, Command, Device, GaugeCheck, Invite, Order, PasswordReset, PushSubscription, ServiceInfo, ServiceVisit, Snapshot,
                  System, SystemMember, Telemetry, ThermostatConfig, User, as_utc, hash_key, init_db, make_engine,
                  order_ticket, session_factory, utcnow)
@@ -737,7 +737,9 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
     @app.post("/api/systems/{system_id}/invites")
     def invite_homeowner(body: InviteIn, system=Depends(tech_system), who=Depends(principal), s=Depends(db)):
         """Give a homeowner access: an existing homeowner sign-in is added at once, anyone else gets a link."""
-        email = clean_email(body.email)
+        return homeowner_access(s, who, system, clean_email(body.email))
+
+    def homeowner_access(s, who, system, email):
         user = s.scalar(select(User).where(User.email == email))
         if user is not None:
             if user.role != "homeowner":
@@ -889,6 +891,7 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
         return me_view(s, auth.Principal.for_user(user))
 
     office.mount(app, db, principal, clean_email, send_invite, make_invite, invite_view, stale, INVITE_DAYS)
+    kits.mount(app, db, principal, clean_email, homeowner_access)
 
     # ---------- contractor fleet ----------
     @app.get("/api/fleet")
