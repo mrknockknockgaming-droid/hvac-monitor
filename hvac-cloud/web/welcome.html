@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fullscope: continuous HVAC diagnostics for contractors</title>
+<meta name="description" content="Fullscope watches the refrigerant and air side of every split system you service and warns your team before it turns into a no-cool call.">
+<link rel="icon" href="/app/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/app/icons/icon-180.png">
+<meta name="theme-color" content="#0d1013">
+<!-- Public landing page served at the site root. Tokens and the D-DIN fonts come from the web app's stylesheet. -->
+<link rel="stylesheet" href="/app/fullscope.css">
+<script>
+  try { var t = localStorage.getItem("fs_theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<style>
+.lp{min-height:100vh;font-size:15px;line-height:22px}
+.lp a{color:inherit}
+.lp .wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+.lp .top-row{justify-content:space-between;align-items:center}
+.lp .top .brand.logo{border-right:0}
+.lp .signin{display:inline-block;text-decoration:none;font-size:13px;padding:5px 14px}
+.lp .primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.lp .primary:hover{background:var(--ink-muted);border-color:var(--ink-muted)}
+.lp .tag{color:var(--ink-muted)}
+.lp h1{font-weight:700;font-size:40px;line-height:46px;margin:0 0 16px;max-width:760px;letter-spacing:-.01em}
+.lp h2{font-weight:700;font-size:24px;line-height:30px;margin:0 0 8px}
+.lp h3{font-weight:700;font-size:16px;line-height:22px;margin:0 0 6px}
+.lp p{margin:0 0 12px;color:var(--ink-muted);max-width:680px}
+.lp section{border-top:1px solid var(--line);padding:48px 0}
+.lp .hero{border-top:0;padding:64px 0 40px}
+.lp .hero p{font-size:17px;line-height:26px}
+.lp .cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
+.lp .cta .btn{text-decoration:none;font-size:14px;padding:8px 18px}
+/* example reading strip: same shape as the Monitor summary strip */
+.lp .strip{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:3px;background:var(--surface);margin-top:40px}
+.lp .strip>div{padding:12px 14px;border-right:1px solid var(--line);border-top:2px solid transparent}
+.lp .strip>div:last-child{border-right:0}
+.lp .strip .lbl{font-size:12px;color:var(--ink-muted);display:flex;gap:6px;align-items:center}
+.lp .strip .n{font-size:26px;line-height:34px;display:block}
+.lp .strip .cap{font-size:12px;color:var(--ink-faint)}
+.lp .strip .warn{border-top-color:var(--caution);background:var(--caution-soft)}
+.lp .note{font-size:12px;color:var(--ink-faint);margin-top:8px}
+.lp .cols{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid var(--line);margin-top:24px}
+.lp .cols>div{padding:20px 20px 4px 0;border-right:1px solid var(--line);margin-right:20px}
+.lp .cols>div:last-child{border-right:0;margin-right:0}
+.lp .num{font-size:12px;color:var(--ink-faint);display:block;margin-bottom:4px}
+.lp .rows{border-top:1px solid var(--line);margin-top:24px}
+.lp .row{display:grid;grid-template-columns:220px 1fr;gap:24px;padding:14px 0;border-bottom:1px solid var(--line)}
+.lp .row p{margin:0}
+.lp .diag{border:1px solid var(--line);border-radius:3px;background:var(--surface);margin-top:24px;max-width:720px}
+.lp .diag .d-head{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.lp .diag dl{display:grid;grid-template-columns:160px 1fr;margin:0;padding:6px 14px 10px}
+.lp .diag dt{color:var(--ink-muted);font-size:13px;padding:6px 0}
+.lp .diag dd{margin:0;font-size:13px;padding:6px 0;color:var(--ink)}
+.lp footer{border-top:1px solid var(--line);padding:24px 0 40px;font-size:13px;color:var(--ink-faint)}
+.lp footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+@media (max-width:760px){
+  .lp h1{font-size:30px;line-height:36px}
+  .lp .hero{padding:40px 0 28px}
+  .lp .strip{grid-template-columns:repeat(2,1fr)}
+  .lp .strip>div:nth-child(2){border-right:0}
+  .lp .strip>div:nth-child(-n+2){border-bottom:1px solid var(--line)}
+  .lp .cols{grid-template-columns:1fr}
+  .lp .cols>div{border-right:0;margin-right:0;border-bottom:1px solid var(--line);padding:16px 0 4px}
+  .lp .cols>div:last-child{border-bottom:0}
+  .lp .row{grid-template-columns:1fr;gap:4px}
+  .lp .diag dl{grid-template-columns:1fr}
+  .lp .diag dt{padding-bottom:0}
+}
+</style>
+</head>
+<body>
+<div class="fs lp">
+  <header class="top">
+    <div class="top-row wrap">
+      <a class="brand logo" href="/" aria-label="Fullscope home"><img src="/app/fullscope-wordmark.webp" alt="Fullscope"></a>
+      <a class="btn signin" href="/app/">Sign in</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="caps tag">Continuous diagnostics for HVAC contractors</div>
+        <h1>Hear about the problem before the no-cool call.</h1>
+        <p>Fullscope watches the refrigerant and air side of every split system you service, around the clock. When something drifts, your team gets an alert with the readings behind it, while there is still time to schedule the visit.</p>
+        <div class="cta">
+          <a class="btn primary" href="/app/">Sign in to Fullscope</a>
+          <a class="btn" href="#how">How it works</a>
+        </div>
+        <div class="strip" aria-label="Example readings">
+          <div><span class="lbl">Superheat <span class="src calc">calc</span></span><span class="n">12.4<small>°F</small></span><span class="cap">Target 10 ± 5 °F</span></div>
+          <div class="warn"><span class="lbl">Subcooling <span class="src calc">calc</span></span><span class="n">4.1<small>°F</small></span><span class="st caution">Below target</span></div>
+          <div><span class="lbl">Delta-T <span class="src calc">calc</span></span><span class="n">19.2<small>°F</small></span><span class="st ok">Normal</span></div>
+          <div><span class="lbl">Outdoor air <span class="src">meas</span></span><span class="n">108.0<small>°F</small></span><span class="cap">Compressor on 34 min</span></div>
+        </div>
+        <div class="note">Example readings for illustration.</div>
+      </div>
+    </section>
+
+    <section id="how">
+      <div class="wrap">
+        <h2>How it works</h2>
+        <p>Two small sensor boards go on the system, one at the condenser and one at the air handler. They run on the equipment's own 24 VAC, so there are no batteries to replace.</p>
+        <div class="cols">
+          <div><span class="num">1</span><h3>Measure</h3><p>Liquid and vapor pressure, line temperatures, supply and return air, outdoor air, and the thermostat calls, every few seconds.</p></div>
+          <div><span class="num">2</span><h3>Calculate</h3><p>Fullscope works out saturation temperatures, superheat, subcooling and delta-T, and compares them with targets from the equipment's nameplate.</p></div>
+          <div><span class="num">3</span><h3>Alert</h3><p>A fault that holds for several minutes raises an alert by email and phone notification, with the evidence attached. It clears itself when the readings recover.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2>Every alert shows its evidence</h2>
+        <p>Raw measurements stay visible next to every calculated value, and diagnostics say what they saw and what it could mean. Nothing is hidden behind a score.</p>
+        <div class="diag" aria-label="Example alert">
+          <div class="d-head"><span class="st caution">Possible low refrigerant charge</span><span class="faint">Held 22 min</span></div>
+          <dl>
+            <dt>What triggered it</dt><dd>Subcooling below target during steady cooling</dd>
+            <dt>Current vs expected</dt><dd>4.1 °F against a 10 ± 3 °F nameplate target</dd>
+            <dt>Possible causes</dt><dd>Low charge, restriction at the metering device, sensor placement</dd>
+          </dl>
+        </div>
+        <div class="note">Example alert for illustration.</div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2>Built for the way a service company works</h2>
+        <div class="rows">
+          <div class="row"><h3>Fleet view</h3><p>Every monitored system on one page, worst first, so the office knows where to send a truck.</p></div>
+          <div class="row"><h3>Technician view</h3><p>Live refrigerant and air-side tables, trends, sensor calibration and gauge checks, plus service history for each system.</p></div>
+          <div class="row"><h3>Homeowner view</h3><p>A read-only page in plain words: how the system is doing, when the filter and tune-up are due, and a button to request service from you.</p></div>
+          <div class="row"><h3>Team access</h3><p>Admins invite technicians and homeowners. Sign-in supports an authenticator app and recovery codes.</p></div>
+          <div class="row"><h3>Monitoring only</h3><p>Fullscope watches and reports. It never changes how the equipment runs.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2>Already using Fullscope?</h2>
+        <p>Technicians, admins and homeowners all sign in at the same place.</p>
+        <div class="cta"><a class="btn primary" href="/app/">Sign in</a></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>© <span id="yr">2026</span> Fullscope</span>
+      <a href="/app/">Sign in</a>
+    </div>
+  </footer>
+</div>
+<script>document.getElementById("yr").textContent = new Date().getFullYear();</script>
+</body>
+</html>

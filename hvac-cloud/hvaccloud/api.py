@@ -20,7 +20,7 @@ import threading
 from typing import Literal
 
 from fastapi import Cookie, Depends, FastAPI, Header, HTTPException, Query, Request, Response
-from fastapi.responses import PlainTextResponse, RedirectResponse
+from fastapi.responses import FileResponse, PlainTextResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import func, select
@@ -337,6 +337,10 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
 
     @app.get("/", include_in_schema=False)
     def root():
+        """Public landing page (web/welcome.html); straight to the web app if it isn't there."""
+        page = os.path.join(WEB_DIR, "welcome.html")
+        if os.path.isfile(page):
+            return FileResponse(page, headers={"Cache-Control": "no-cache"})
         return RedirectResponse("/app/")
 
     # ---------- sign-in ----------

@@ -134,7 +134,14 @@ public sealed class ApiServer
                 OnPrepareResponse = c => c.Context.Response.Headers.CacheControl = "no-cache",
             });
         }
-        app.MapGet("/", () => Results.Redirect("/app/", permanent: false, preserveMethod: true));
+        // public landing page (web/welcome.html); straight to the web app if it isn't there
+        app.MapGet("/", (HttpContext ctx) =>
+        {
+            string page = Path.GetFullPath(Path.Combine(_settings.WebDir, "welcome.html"));
+            if (!File.Exists(page)) return Results.Redirect("/app/", permanent: false, preserveMethod: true);
+            ctx.Response.Headers.CacheControl = "no-cache";
+            return Results.File(page, "text/html; charset=utf-8");
+        });
         Routes(app);
     }
 
