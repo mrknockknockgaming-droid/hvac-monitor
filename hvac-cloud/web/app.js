@@ -434,7 +434,7 @@ function renderAccount() {
       '<label class="lbl" for="np2">New password again</label><input id="np2" type="password" autocomplete="new-password">' +
       '<div class="row"><button class="h-btn primary" type="submit">Change password</button></div><div class="err" role="alert" id="pe"></div></form>'
       : "<p class=\"muted\">To sign in with a password, ask for a user to be created with <span class=\"mono\">manage.py create-user</span>.</p>") +
-    "</div>" + (u ? pushPanel() + twoStepPanel() : "") + (isAdmin() ? teamPanel() : "") + "</div>";
+    "</div>" + (u ? pushPanel() + twoStepPanel() : "") + (isTech() ? ownerPanel() : "") + (isAdmin() ? teamPanel() : "") + "</div>";
   bindCommon();
   bindTwoStep();
   bindPush();
@@ -2108,6 +2108,22 @@ function teamPanel() {
     '<button class="btn" type="button" data-invite="team">Invite colleague</button></div>' + inviteResult(S.teamResult) + "</div></div>";
 }
 
+// ---------- account page: invite a homeowner to one of the account's systems (same invite as Homeowner access)
+function ownerPanel() {
+  var list = S.systems || [];
+  if (!list.length) return "";
+  if (!list.some(function (x) { return String(x.id) === String(S.ownerSys); })) S.ownerSys = list[0].id;
+  var opts = list.map(function (x) {
+    return '<option value="' + x.id + '"' + (String(x.id) === String(S.ownerSys) ? " selected" : "") + ">" + esc(x.name) + "</option>";
+  }).join("");
+  return '<div class="h-card team"><h2>Homeowners</h2><div class="h-sub">Invite a homeowner to one system. They see the homeowner page for that system only. ' +
+    "To see or remove who has access, open the system's Sensors &amp; calibration page.</div>" +
+    '<div class="invite-form"><div class="acts-cell"><select class="sel" id="f-owner-sys" aria-label="System">' + opts + "</select>" +
+    '<label class="field wide"><input id="f-owner-email" type="email" placeholder="homeowner@example.com" aria-label="Homeowner email"></label>' +
+    '<button class="btn" type="button" data-invite="owner">Invite homeowner</button></div>' + inviteResult(S.ownerResult) + "</div></div>";
+}
+root.addEventListener("change", function (e) { if (e.target.id === "f-owner-sys") { S.ownerSys = e.target.value; S.ownerResult = null; } });
+
 // ---------- shared click handling for invites
 root.addEventListener("click", function (e) {
   var t = e.target.closest && e.target.closest("[data-invite],[data-remove-member],[data-reset-member],[data-remove-teammate],[data-set-admin],[data-revoke-invite],[data-copy-invite]");
@@ -2120,7 +2136,14 @@ root.addEventListener("click", function (e) {
   }
   var team = location.hash === "#/account";
   var after = function () { if (team) pollTeam(); else pollPeople(); };
-  if (t.dataset.invite) {
+  if (t.dataset.invite === "owner") {
+    var oField = $("#f-owner-email"), oEmail = oField.value.trim(), sysId = $("#f-owner-sys").value;
+    if (!oEmail) { oField.focus(); return; }
+    t.disabled = true;
+    api("/api/systems/" + sysId + "/invites", { method: "POST", body: { email: oEmail } })
+      .then(function (r) { S.ownerResult = r; }).catch(function (err) { S.ownerResult = { error: err.message }; })
+      .then(renderAccount);
+  } else if (t.dataset.invite) {
     var field = $(t.dataset.invite === "team" ? "#f-team-email" : "#f-inv-email"), email = field.value.trim();
     if (!email) { field.focus(); return; }
     t.disabled = true;
