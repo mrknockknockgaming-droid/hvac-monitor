@@ -25,7 +25,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import func, select
 
-from . import alerts, auth, calc, display, electrical, equipment, gauge, kits, office, report, service, settings, thermostat, webpush
+from . import alerts, auth, billing, calc, display, electrical, equipment, gauge, kits, office, report, service, settings, thermostat, webpush
 from .db import (Account, Alert, AlertMute, AlertPrefs, ApiKey, Command, Device, GaugeCheck, Invite, Order, PasswordReset, PushSubscription, ServiceInfo, ServiceVisit, Snapshot,
                  System, SystemMember, Telemetry, ThermostatConfig, User, as_utc, hash_key, init_db, make_engine,
                  order_ticket, session_factory, utcnow)
@@ -892,6 +892,7 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
 
     office.mount(app, db, principal, clean_email, send_invite, make_invite, invite_view, stale, INVITE_DAYS)
     kits.mount(app, db, principal, clean_email, homeowner_access)
+    billing.mount(app, db, principal, send_invite)
 
     # ---------- contractor fleet ----------
     @app.get("/api/fleet")

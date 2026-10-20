@@ -51,3 +51,5 @@ SMTP_PASS = os.environ.get("SMTP_PASS", "")
 SMTP_FROM = os.environ.get("SMTP_FROM", "") or SMTP_USER
 ORDER_EMAIL = os.environ.get("ORDER_EMAIL", "") or SMTP_FROM          # where landing-page order requests go
 WARRANTY_MONTHS = int(os.environ.get("WARRANTY_MONTHS", "12"))        # Fullscope boards, from the day a kit is claimed
+INVOICE_DAYS = int(os.environ.get("INVOICE_DAYS", "30"))              # invoices are due this many days after sending
+INVOICE_NOTE = os.environ.get("INVOICE_NOTE", "")                     # how to pay, printed on every invoice

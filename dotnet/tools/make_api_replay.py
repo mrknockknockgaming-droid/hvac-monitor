@@ -30,7 +30,7 @@ from fastapi.testclient import TestClient  # noqa: E402
 from freezegun import freeze_time  # noqa: E402
 from sqlalchemy import create_engine, select, text  # noqa: E402
 
-from hvaccloud import alerts, auth, settings  # noqa: E402
+from hvaccloud import alerts, auth, billing, settings  # noqa: E402
 from hvaccloud.api import create_app  # noqa: E402
 from hvaccloud.db import Account, Alert, ApiKey, System, User, hash_key, session_factory  # noqa: E402
 from hvaccloud.ingest import Ingest  # noqa: E402
@@ -42,6 +42,7 @@ KEY1 = "hvk_account-one-test-key-0000000000000000000"
 KEY2 = "hvk_account-two-test-key-0000000000000000000"
 APP_URL = "http://localhost:8000/app/"
 ORDER_EMAIL = "sales@fullscope.example"          # gets a copy of each new order and Office inbox ticket
+INVOICE_NOTE = "Pay by check to Fullscope, 1 Test Way, Mesa AZ."
 XRW = {"X-Requested-With": "fullscope"}
 TOKEN = re.compile(r"#/(invite|reset|claim)/([A-Za-z0-9_-]+)")
 
@@ -103,6 +104,8 @@ def main():
     sessions = session_factory(engine)
     settings.APP_URL = APP_URL
     settings.ORDER_EMAIL = ORDER_EMAIL
+    settings.INVOICE_NOTE = INVOICE_NOTE
+    billing.PRICING_FILE = ""                       # no list prices: the C# test has no web folder
     alerts.settings.APP_URL = APP_URL
     rec = Recorder()
     app = create_app(sessions, publisher=rec.publish, stale=30, mailer=rec, send_async=False)
@@ -557,6 +560,69 @@ def main():
     call("tech", "GET", "/api/office/kits")
     call("tech", "GET", "/api/systems")
 
+    # ---- Fullscope Office: billing ----
+    call("office", "GET", "/api/office/invoices")
+    call("tech", "GET", "/api/office/invoices")
+    call("office", "POST", "/api/support", {"subject": "Billing", "message": "Please send invoices to me"})
+    with sessions() as s:
+        t = s.scalar(select(text("max(id)")).select_from(text("tickets")))
+    call("tech", "POST", f"/api/office/inbox/{t}/customer")
+    with sessions() as s:
+        desert = s.scalar(select(text("customer_id")).select_from(text("tickets")).where(text(f"id = {t}")))
+    call("tech", "PATCH", f"/api/office/customers/{desert}", {"status": "active", "kit_cents": 34900, "monthly_cents": 1900})
+    call("tech", "PATCH", f"/api/office/customers/{desert}", {"monthly_cents": -1})
+    call("tech", "PATCH", f"/api/office/customers/{cid}", {"status": "active"})
+    call("tech", "POST", "/api/office/invoices/run", {"period": "2026-13"})
+    call("tech", "POST", "/api/office/invoices/run", {"period": "2026-10"})
+    call("tech", "POST", "/api/office/invoices/run", {"period": "2026-10"})
+    call("tech", "POST", "/api/office/invoices/run", {"period": "2026-11", "customer_id": 99999})
+    call("tech", "GET", "/api/office/invoices")
+    with sessions() as s:
+        inv1 = s.scalar(select(text("id")).select_from(text("invoices")).where(text(f"customer_id = {desert}")))
+        inv2 = s.scalar(select(text("id")).select_from(text("invoices")).where(text(f"customer_id = {cid}")))
+        acme = s.scalar(select(text("id")).select_from(text("customers")).where(text("company = 'Acme Air'")))
+    call("tech", "GET", f"/api/office/invoices/{inv1}")
+    call("tech", "PATCH", f"/api/office/invoices/{inv2}", {"lines": [{"description": "Fullscope kit FS-S2X9", "unit_cents": 34900, "kit_id": k2},
+                                                                    {"description": "Intro discount", "qty": 1, "unit_cents": -5000}],
+                                                          "notes": "First order, thank you"})
+    call("tech", "PATCH", f"/api/office/invoices/{inv2}", {"lines": [{"description": "x", "qty": 0, "unit_cents": "a"}]})
+    call("tech", "PATCH", f"/api/office/invoices/{inv2}", {"lines": [{"description": " ", "unit_cents": 1}]})
+    call("tech", "PATCH", f"/api/office/invoices/{inv2}", {"lines": [{"description": "Kit", "unit_cents": 1, "kit_id": 99999}]})
+    call("tech", "POST", f"/api/office/invoices/{inv2}/send")
+    call("tech", "POST", f"/api/office/invoices/{inv2}/send")
+    call("tech", "PATCH", f"/api/office/invoices/{inv2}", {"notes": "x"})
+    call("tech", "PATCH", f"/api/office/invoices/{inv2}", {"status": "paid", "paid_on": "2099-01-01"})
+    call("tech", "PATCH", f"/api/office/invoices/{inv2}", {"status": "paid", "paid_note": " Check 1042 "})
+    call("tech", "PATCH", f"/api/office/invoices/{inv2}", {"status": "void"})
+    call("tech", "PATCH", f"/api/office/invoices/{inv2}", {"status": "sent"})
+    call("tech", "PATCH", f"/api/office/invoices/{inv2}", {"due": "2020-01-01"})
+    call("tech", "PATCH", f"/api/office/invoices/{inv2}", {"due": "soon"})
+    call("tech", "GET", "/api/office/summary")
+    call("tech", "PATCH", f"/api/office/invoices/{inv2}", {"status": "void"})
+    call("tech", "POST", f"/api/office/invoices/{inv2}/send")
+    call("tech", "PATCH", f"/api/office/invoices/{inv2}", {"due": "2026-12-01"})
+    call("tech", "PATCH", f"/api/office/invoices/{inv1}", {"status": "paid"})
+    call("tech", "POST", "/api/office/invoices", {"customer_id": desert, "lines": [{"description": "Setup visit", "qty": 2, "unit_cents": 7500}],
+                                                  "notes": " On site "})
+    call("tech", "POST", "/api/office/invoices", {"customer_id": 99999})
+    call("tech", "POST", "/api/office/invoices", {"lines": []})
+    call("tech", "POST", "/api/office/invoices", {"customer_id": desert, "lines": [{"description": "x"}]})
+    call("tech", "POST", "/api/office/invoices", {"customer_id": acme})
+    with sessions() as s:
+        inv3, inv4 = s.scalars(select(text("id")).select_from(text("invoices")).order_by(text("id desc")).limit(2)).all()[::-1]
+    call("tech", "PATCH", f"/api/office/invoices/{inv4}", {"status": "sent"})
+    call("tech", "PATCH", f"/api/office/invoices/{inv4}", {"lines": [{"description": "Kit", "unit_cents": 100}], "status": "sent"})
+    call("tech", "POST", f"/api/office/invoices/{inv4}/send")
+    call("tech", "DELETE", f"/api/office/invoices/{inv3}")
+    call("tech", "DELETE", f"/api/office/invoices/{inv3}")
+    call("tech", "DELETE", f"/api/office/invoices/{inv1}")
+    call("tech", "GET", "/api/office/invoices?status=all")
+    call("tech", "GET", "/api/office/invoices?status=paid")
+    call("tech", "GET", "/api/office/invoices?status=bogus")
+    call("tech", "GET", "/api/office/invoices/99999")
+    call("tech", "GET", f"/api/office/customers/{desert}")
+    call("tech", "GET", "/api/office/summary")
+
     # ---- password guessing ----
     for _ in range(8):
         login("anon", "spouse@home.example", "wrong guess here")
@@ -579,7 +645,7 @@ def main():
         if os.path.exists(work + ext):
             os.remove(work + ext)
     with open(os.path.join(OUT, "api_replay.json"), "w") as f:
-        json.dump({"app_url": APP_URL, "order_email": ORDER_EMAIL, "keys": {"key1": KEY1, "key2": KEY2}, "steps": steps}, f, indent=0)
+        json.dump({"app_url": APP_URL, "order_email": ORDER_EMAIL, "invoice_note": INVOICE_NOTE, "keys": {"key1": KEY1, "key2": KEY2}, "steps": steps}, f, indent=0)
     by_status = {}
     for s_ in steps:
         by_status[s_["status"]] = by_status.get(s_["status"], 0) + 1

@@ -1,6 +1,7 @@
 /* Fullscope Office (office.html): the business side for Fullscope's own staff. Inbox (order requests,
    website contact messages, contractors' support requests), Customers (contractor companies and
-   their accounts), Devices (kits, boards, QR labels and warranty claims) and Flash (writes firmware to a
+   their accounts and prices), Devices (kits, boards, QR labels and warranty claims), Billing (invoices:
+   drafted each month, emailed or printed, marked paid by hand) and Flash (writes firmware to a
    pair of boards over USB from Chrome or Edge, saves the kit code on them and registers the kit).  Signs in through the web app (/app/); the server allows staff only. */
 (function () {
 "use strict";
@@ -17,7 +18,8 @@ $("#theme").addEventListener("click", function () {
 });
 
 var S = { me: null, summary: null, view: null, status: "open", kind: "all", tickets: null, ticket: null,
-          customers: null, customer: null, kits: null, kit: null, find: "", draft: "", msg: null, busy: false, error: null };
+          customers: null, customer: null, kits: null, kit: null, find: "", draft: "", msg: null, busy: false, error: null,
+          invoices: null, invoice: null, bstatus: "open", edit: null };
 
 function api(path, opts) {
   opts = opts || {};
@@ -56,6 +58,27 @@ var BSTATUS = { stock: ["offline", "In stock"], shipped: ["advisory", "Shipped"]
 var WSTATUS = { open: ["caution", "Open"], replaced: ["ok", "Replaced"], repaired: ["ok", "Repaired"], denied: ["offline", "Denied"] };
 var KINDNAME = { outdoor: "Outdoor", indoor: "Indoor" };
 var CSTATUS = { lead: ["advisory", "Lead"], active: ["ok", "Active"], paused: ["caution", "Paused"], closed: ["offline", "Closed"] };
+var ISTATUS = { draft: ["offline", "Draft"], sent: ["advisory", "Sent"], paid: ["ok", "Paid"], "void": ["offline", "Void"] };
+function istatus(i) { return i.overdue ? ["fault", "Overdue"] : ISTATUS[i.status] || ["offline", i.status]; }
+// whole cents <-> what people type: 34900 <-> "$349.00"; cents("349") = 34900, cents("") = null, cents("x") = NaN
+function money(c) {
+  if (c === null || c === undefined) return "—";
+  var a = Math.abs(c);
+  return (c < 0 ? "-" : "") + "$" + Math.floor(a / 100).toLocaleString("en-US") + "." + ("0" + (a % 100)).slice(-2);
+}
+function dollars(c) { return c === null || c === undefined ? "" : (c / 100).toFixed(2); }
+function cents(v) {
+  v = String(v || "").replace(/[$,\s]/g, "");
+  if (!v) return null;
+  return /^-?\d+(\.\d{0,2})?$/.test(v) ? Math.round(parseFloat(v) * 100) : NaN;
+}
+function today() { var d = new Date(); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); }
+function thisMonth() { var d = new Date(); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2); }
+function day(iso) {
+  if (!iso) return "—";
+  var p = iso.split("-");
+  return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" });
+}
 
 // ---------------------------------------------------------------- routing
 function route() {
@@ -80,6 +103,13 @@ function route() {
     if (S.kit && S.kit.loading) loadKit(S.kit.id);
     loadKits();
     if (!S.customers) loadCustomers();           // for shipping a kit to a customer
+  } else if ((m = h.match(/^#\/billing(?:\/(\d+))?$/))) {
+    S.view = "billing";
+    var iid = m[1] ? +m[1] : null;
+    if (!iid) { S.invoice = null; S.edit = null; }
+    else if (!S.invoice || S.invoice.id !== iid || S.invoice.error) { S.invoice = { id: iid, loading: true }; S.edit = null; loadInvoice(iid); }
+    loadInvoices();
+    if (!S.customers) loadCustomers();           // for a new invoice
   } else if (h === "#/flash") {
     S.view = "flash";
     if (!S.kits) loadKits();                     // to make up a kit code nobody has
@@ -130,6 +160,23 @@ function loadKit(id) {
   api("/api/office/kits/" + id).then(function (d) { if (S.kit && S.kit.id === id) { S.kit = d; render(); } })
     .catch(function (e) { if (S.kit && S.kit.id === id) { S.kit = { id: id, error: e.message }; render(); } });
 }
+function loadInvoices() {
+  loadSummary();
+  api("/api/office/invoices?status=" + S.bstatus).then(function (d) { S.invoices = d; S.error = null; render(); })
+    .catch(function (e) { if (e.message !== "401") { S.error = e.message; render(); } });
+}
+function loadInvoice(id) {
+  api("/api/office/invoices/" + id).then(function (d) { if (S.invoice && S.invoice.id === id) { showInvoice(d); render(); } })
+    .catch(function (e) { if (S.invoice && S.invoice.id === id) { S.invoice = { id: id, error: e.message }; render(); } });
+}
+// a draft is edited in S.edit (lines as typed) until it is saved
+function showInvoice(d) {
+  S.invoice = d;
+  S.edit = d.status !== "draft" ? null : { notes: d.notes || "", lines: d.lines.map(function (x) {
+    return { description: x.description, qty: String(x.qty), unit: dollars(x.unit_cents), kit_id: x.kit_id, system_id: x.system_id };
+  }) };
+  S.reset = true;
+}
 function loadCustomer(id) {
   api("/api/office/customers/" + id).then(function (d) { if (S.customer && S.customer.id === id) { S.customer = d; render(); } })
     .catch(function (e) { if (S.customer && S.customer.id === id) { S.customer = { id: id, error: e.message }; render(); } });
@@ -137,7 +184,7 @@ function loadCustomer(id) {
 
 // ---------------------------------------------------------------- page frame
 function header() {
-  var sm = S.summary || { inbox: {}, customers: {} }, ib = sm.inbox || {}, cu = sm.customers || {};
+  var sm = S.summary || { inbox: {}, customers: {} }, ib = sm.inbox || {}, cu = sm.customers || {}, iv = sm.invoices || {};
   var waiting = (ib["new"] || 0);
   var counts = [];
   if (ib["new"]) counts.push(st("caution", ib["new"] + " new"));
@@ -150,8 +197,10 @@ function header() {
   }
   return '<header class="top"><div class="top-row">' + LOGO + '<div class="ident"><b>Fullscope Office</b><span>' + esc(who) + "</span></div>" +
     '<div class="top-fields"><div class="tf"><span>Customers</span><b>' + ((cu.active || 0) + " active · " + (cu.lead || 0) + (cu.lead === 1 ? " lead" : " leads")) + "</b></div>" +
+    '<div class="tf"><span>Unpaid</span><b>' + money(iv.unpaid_cents || 0) + (iv.overdue ? ' <span class="st fault">' + iv.overdue + " overdue</span>" : "") + "</b></div>" +
     '<div class="tf alerts"><span>Inbox</span><div class="row">' + (counts.join("") || st("ok", "All answered")) + "</div></div></div></div>" +
-    '<nav class="nav" aria-label="Sections">' + nav("inbox", "Inbox", waiting) + nav("customers", "Customers") + nav("devices", "Devices") + nav("flash", "Flash") +
+    '<nav class="nav" aria-label="Sections">' + nav("inbox", "Inbox", waiting) + nav("customers", "Customers") + nav("devices", "Devices") +
+    nav("billing", "Billing", (iv.draft || 0) + (iv.overdue || 0)) + nav("flash", "Flash") +
     '<span class="spacer"></span><div class="tools"><a class="btn" href="/app/" style="text-decoration:none">Open the app</a>' +
     '<button class="btn" type="button" data-signout>Sign out</button></div></nav></header>' +
     (S.error ? '<div class="stale-banner">Can\'t reach the server: ' + esc(S.error) + "</div>" : "");
@@ -162,10 +211,10 @@ function render() {
   var y = window.scrollY, act = document.activeElement, focusId = act && act.id && root.contains(act) ? act.id : null;
   var sel = focusId && [act.selectionStart, act.selectionEnd];
   // what is being typed survives the re-render, unless another page or item opened or it was just saved
-  var key = S.view + ":" + (S.ticket && S.ticket.id) + ":" + (S.customer && S.customer.id) + ":" + (S.kit && S.kit.id), keep = {};
+  var key = S.view + ":" + (S.ticket && S.ticket.id) + ":" + (S.customer && S.customer.id) + ":" + (S.kit && S.kit.id) + ":" + (S.invoice && S.invoice.id), keep = {};
   if (key === S.formKey && !S.reset) $$("input[id^='f-'], textarea[id^='f-']").forEach(function (i) { keep[i.id] = i.value; });
   S.formKey = key; S.reset = false;
-  root.innerHTML = header() + '<main class="page">' + (S.view === "inbox" ? inboxPage() : S.view === "customers" ? customersPage() : S.view === "flash" ? flashPage() : devicesPage()) + "</main>";
+  root.innerHTML = header() + '<main class="page">' + (S.view === "inbox" ? inboxPage() : S.view === "customers" ? customersPage() : S.view === "flash" ? flashPage() : S.view === "billing" ? billingPage() : devicesPage()) + "</main>";
   Object.keys(keep).forEach(function (k) { var i = document.getElementById(k); if (i) i.value = keep[k]; });
   var f = focusId && document.getElementById(focusId);
   if (f) { f.focus(); try { f.setSelectionRange(sel[0], sel[1]); } catch (e) {} }
@@ -253,13 +302,19 @@ function customersPage() {
 function field(id, label, value, type) {
   return '<label for="f-' + id + '">' + label + '<input id="f-' + id + '" type="' + (type || "text") + '" value="' + esc(value || "") + '"></label>';
 }
+function priceField(id, label, value, list) {
+  return '<label for="f-' + id + '">' + label + '<input id="f-' + id + '" inputmode="decimal" value="' + esc(dollars(value)) + '" placeholder="' +
+    (list === null || list === undefined ? "No list price set" : "List price " + money(list)) + '"></label>';
+}
 function customerForm(c) {
-  var isNew = c.id === "new";
+  var isNew = c.id === "new", lp = c.list_prices || {};
   return '<form class="of-form" id="cust-form">' + field("company", "Company", c.company) +
     '<div class="two">' + field("contact", "Contact", c.contact) + field("phone", "Phone", c.phone, "tel") + "</div>" +
     '<div class="two">' + field("email", "Email", c.email, "email") +
     '<label for="f-cstatus">Status<select id="f-cstatus">' + Object.keys(CSTATUS).map(function (k) { return '<option value="' + k + '"' + (k === (c.status || "lead") ? " selected" : "") + ">" + CSTATUS[k][1] + "</option>"; }).join("") + "</select></label></div>" +
     field("address", "Address", c.address) +
+    '<div class="two">' + priceField("kitprice", "Kit price ($, once per kit)", c.kit_cents, lp.kit_cents) +
+    priceField("monthprice", "Monitoring ($ per system per month)", c.monthly_cents, lp.monthly_cents) + "</div>" +
     '<label for="f-notes">Notes<textarea id="f-notes" maxlength="4000">' + esc(c.notes || "") + "</textarea></label>" +
     '<div class="acts"><button class="btn primary" type="submit">' + (isNew ? "Add customer" : "Save") + "</button>" +
     (S.msg && S.msg[2] === "cust" ? '<span class="msg ' + S.msg[0] + '">' + esc(S.msg[1]) + "</span>" : "") + "</div></form>";
@@ -291,8 +346,15 @@ function customerPanel() {
     var ts = STATUS[t.status] || ["offline", t.status];
     return '<tr data-open-ticket="' + t.id + '" style="cursor:pointer"><td>' + st(ts[0], ts[1]) + "</td><td>" + esc(t.subject) + '<span class="who">' + esc(KIND[t.kind] || t.kind) + " #" + t.id + "</span></td><td>" + esc(when(t.updated_at)) + "</td></tr>";
   }).join("");
+  var invoices = (c.invoices || []).map(function (i) {
+    var is = istatus(i);
+    return '<tr data-open-invoice="' + i.id + '" style="cursor:pointer"><td><span class="mono">' + i.number + "</span>" + (i.period ? '<span class="who">' + esc(i.period) + "</span>" : "") + "</td><td>" + st(is[0], is[1]) +
+      '</td><td class="num"><span class="n">' + money(i.total_cents) + "</span></td></tr>";
+  }).join("");
   return '<section class="panel" aria-label="Customer"><div class="ph"><h2>' + esc(c.company) + "</h2>" + st(s[0], s[1]) + "</div>" +
     '<div class="of-body">' + customerForm(c) + "</div>" +
+    '<div class="sh3">Invoices</div><table class="dt of-list"><tbody>' + (invoices || '<tr><td class="faint">None yet</td></tr>') + "</tbody></table>" +
+    '<div class="of-body"><div class="acts" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn" type="button" data-bill-customer>Draft this month\'s invoice</button>' + msgFor("bill") + "</div></div>" +
     '<div class="sh3">Fullscope account</div><div class="of-body">' + acct + "</div>" +
     '<div class="sh3">Tickets</div><table class="dt of-list"><tbody>' + (tickets || '<tr><td class="faint">None</td></tr>') + "</tbody></table></section>";
 }
@@ -333,7 +395,7 @@ function kitForm() {
     '<form class="of-form" id="kit-form"><div class="two">' + field("code", "Kit code (leave empty to make one up)", "") + field("hwrev", "Hardware revision", "B") + "</div>" +
     board("outdoor") + board("indoor") +
     '<label for="f-knotes">Notes<textarea id="f-knotes" maxlength="1000"></textarea></label>' +
-    '<p class="muted" style="margin:0;font-size:12px">Until firmware 0.4.0, flash both boards with SITE_ID set to the kit code in lower case (config.h). The serial is the MAC the board prints at boot.</p>' +
+    '<p class="muted" style="margin:0;font-size:12px">The Flash tab adds kits for you. For boards flashed another way, the serial is the MAC the board prints at boot, and both boards need the kit code (in lower case) as their site.</p>' +
     '<div class="acts"><button class="btn primary" type="submit">Add kit</button>' + (S.msg && S.msg[2] === "kit" ? '<span class="msg ' + S.msg[0] + '">' + esc(S.msg[1]) + "</span>" : "") + "</div></form></div></section>";
 }
 function qrSvg(text) {
@@ -405,6 +467,189 @@ function kitAction(path, method, body, tag, done) {
     if (S.kit && S.kit.id === id) S.kit = d;
     S.msg = done ? ["ok", done, tag] : null; S.reset = true; loadKits(); render();
   }).catch(function (e) { S.msg = ["err", e.message, tag]; render(); });
+}
+
+// ---------------------------------------------------------------- billing: invoices, sent by email or printed, paid by hand
+function billingPage() {
+  var list = S.invoices, cur = S.invoice && S.invoice.id;
+  var rows = !list ? '<tr><td colspan="4" class="faint">Loading…</td></tr>'
+    : !list.length ? '<tr><td colspan="4" class="faint">' + (S.bstatus === "open" ? "Nothing to send or collect. Draft this month's invoices to bill monitoring and kits shipped." : "No invoices.") + "</td></tr>"
+    : list.map(function (i) {
+      var s = istatus(i);
+      return '<tr data-invoice="' + i.id + '"' + (i.id === cur ? ' aria-current="true"' : "") + '><td><span class="subj mono">' + i.number + '</span><span class="who">' + esc(i.customer.company) + "</span></td>" +
+        "<td>" + st(s[0], s[1]) + '<span class="who">' + (i.status === "paid" ? "Paid " + esc(day(i.paid_on)) : i.due ? "Due " + esc(day(i.due)) : i.period ? esc(i.period) : "") + "</span></td>" +
+        '<td class="num"><span class="n">' + money(i.total_cents) + "</span></td></tr>";
+    }).join("");
+  var newer = '<form class="of-form" id="run-form" style="padding:10px 12px;border-bottom:1px solid var(--line)"><div class="acts">' +
+    '<input id="f-period" type="month" value="' + thisMonth() + '" style="max-width:150px" aria-label="Month">' +
+    '<button class="btn primary" type="submit">Draft invoices for the month</button>' + msgFor("run") + "</div>" +
+    '<div class="acts"><select class="sel" id="f-icust" aria-label="Customer" style="max-width:220px"><option value="">New invoice for…</option>' +
+    (S.customers || []).map(function (c) { return '<option value="' + c.id + '">' + esc(c.company) + "</option>"; }).join("") + "</select>" + msgFor("new") + "</div></form>";
+  return '<div class="of-split' + (cur ? " has-sel" : "") + '"><section class="panel" aria-label="Invoices"><div class="ph"><h2>Invoices</h2><span class="sub">Newest first</span>' +
+    '<div class="right">' + seg("bstatus", [["open", "Open"], ["paid", "Paid"], ["void", "Void"], ["all", "All"]], S.bstatus) + "</div></div>" + newer +
+    '<table class="dt of-list"><thead><tr><th>Invoice</th><th>Status</th><th class="num">Total</th></tr></thead><tbody>' + rows + "</tbody></table></section>" +
+    invoicePanel() + "</div>";
+}
+// the invoice as the customer sees it (printed alone)
+function invoiceSheet(i) {
+  var b = i.bill_to;
+  var lines = i.lines.length ? i.lines.map(function (x) {
+    return "<tr><td>" + esc(x.description) + '</td><td class="num">' + x.qty + '</td><td class="num">' + money(x.unit_cents) + '</td><td class="num">' + money(x.amount_cents) + "</td></tr>";
+  }).join("") : '<tr><td colspan="4" class="small">No lines yet.</td></tr>';
+  return '<div class="of-invoice" id="invoice"><div class="ih"><div><i>FULLSCOPE</i>' + (i.from_email ? '<span class="small">' + esc(i.from_email) + "</span>" : "") + "</div>" +
+    '<div class="r"><b>Invoice ' + i.number + "</b>" + (i.status === "void" ? '<span class="void">VOID</span>' : i.status === "paid" ? '<span class="paid">PAID ' + esc(day(i.paid_on)) + "</span>" : "") +
+    '<span class="small">Date ' + esc(i.issued ? day(i.issued) : "not sent yet") + "</span>" + (i.due ? '<span class="small">Due ' + esc(day(i.due)) + "</span>" : "") + "</div></div>" +
+    '<div class="ib"><span class="small">Bill to</span><b>' + esc(b.company) + "</b>" + [b.contact, b.address, b.email].filter(Boolean).map(function (v) { return "<span>" + esc(v) + "</span>"; }).join("") + "</div>" +
+    '<table class="il"><thead><tr><th>Description</th><th class="num">Qty</th><th class="num">Unit</th><th class="num">Amount</th></tr></thead><tbody>' + lines + "</tbody>" +
+    '<tfoot><tr><td colspan="3">Total due</td><td class="num">' + money(i.total_cents) + "</td></tr></tfoot></table>" +
+    [i.notes, i.pay_note].filter(Boolean).map(function (v) { return '<p class="in">' + esc(v) + "</p>"; }).join("") + "</div>";
+}
+function lineEditor() {
+  var e = S.edit, total = 0;
+  var rows = e.lines.map(function (x, n) {
+    var amt = (parseInt(x.qty, 10) || 0) * (cents(x.unit) || 0);
+    total += amt;
+    return '<tr><td><input id="f-l' + n + '-d" data-line="' + n + '" data-k="description" value="' + esc(x.description) + '" maxlength="200" aria-label="Description"></td>' +
+      '<td style="width:70px"><input id="f-l' + n + '-q" data-line="' + n + '" data-k="qty" value="' + esc(x.qty) + '" inputmode="numeric" aria-label="Quantity"></td>' +
+      '<td style="width:110px"><input id="f-l' + n + '-u" data-line="' + n + '" data-k="unit" value="' + esc(x.unit) + '" inputmode="decimal" aria-label="Unit price in dollars"></td>' +
+      '<td class="num" style="width:100px"><span class="n" data-amt="' + n + '">' + money(amt) + '</span></td><td style="width:1%"><button class="btn" type="button" data-drop="' + n + '" aria-label="Remove line">×</button></td></tr>';
+  }).join("");
+  return '<form class="of-form" id="lines-form"><table class="dt of-lines"><thead><tr><th>Description</th><th>Qty</th><th>Unit ($)</th><th class="num">Amount</th><th></th></tr></thead><tbody>' +
+    (rows || '<tr><td colspan="5" class="faint">No lines. Add one below.</td></tr>') + '</tbody><tfoot><tr><td colspan="3">Total</td><td class="num"><span class="n" data-total>' + money(total) + "</span></td><td></td></tr></tfoot></table>" +
+    '<div class="acts"><button class="btn" type="button" data-add-line>Add line</button></div>' +
+    '<label for="f-inotes">Note on the invoice<textarea id="f-inotes" maxlength="2000" style="min-height:60px">' + esc(e.notes) + "</textarea></label>" +
+    '<div class="acts"><button class="btn primary" type="submit">Save draft</button>' + msgFor("lines") + "</div></form>";
+}
+function invoicePanel() {
+  var i = S.invoice;
+  if (!i) return '<section class="panel"><div class="empty">Pick an invoice to edit, send or mark paid.</div></section>';
+  if (i.loading) return '<section class="panel"><div class="empty">Loading…</div></section>';
+  if (i.error) return '<section class="panel"><div class="empty">' + esc(i.error) + "</div></section>";
+  var s = istatus(i), email = i.bill_to.email, acts = [];
+  if (i.status === "draft") {
+    acts.push(email ? '<button class="btn primary" type="button" data-send>Email to ' + esc(email) + "</button>" : '<span class="faint" style="font-size:12px">No email on file: add one to the customer, or print and post it.</span>');
+    acts.push('<button class="btn" type="button" data-istatus="sent">Mark sent (printed)</button>', '<button class="btn" type="button" data-delete-invoice>Delete draft</button>');
+  } else if (i.status === "sent") {
+    acts.push('<button class="btn primary" type="button" data-show-paid>Mark paid</button>');
+    if (email) acts.push('<button class="btn" type="button" data-send>Email again</button>');
+    acts.push('<button class="btn" type="button" data-istatus="draft">Back to draft</button>', '<button class="btn" type="button" data-istatus="void">Void</button>');
+  } else if (i.status === "paid") acts.push('<button class="btn" type="button" data-istatus="sent">Not paid after all</button>');
+  else acts.push('<button class="btn" type="button" data-istatus="draft">Back to draft</button>');
+  acts.push('<button class="btn" type="button" data-print>Print</button>');
+  var paid = S.payForm && i.status === "sent" ? '<form class="of-form" id="paid-form"><div class="two"><label for="f-paidon">Paid on<input id="f-paidon" type="date" value="' + today() + '"></label>' +
+    '<label for="f-paidnote">Reference<input id="f-paidnote" maxlength="200" placeholder="Check number, transfer reference"></label></div>' +
+    '<div class="acts"><button class="btn primary" type="submit">Mark paid</button><button class="btn" type="button" data-hide-paid>Cancel</button></div></form>' : "";
+  var meta = [["Customer", '<a href="#/customers/' + i.customer.id + '">' + esc(i.customer.company) + "</a>"], ["Month", esc(i.period || "—")],
+    ["Sent", i.sent_at ? esc(when(i.sent_at)) + (i.emailed ? " by email" : "") : i.issued ? "By hand" : '<span class="faint">Not yet</span>']];
+  if (i.status === "sent") meta.push(["Due", '<input class="sel" id="f-due" type="date" value="' + esc(i.due || "") + '" style="width:100%">']);
+  if (i.status === "paid") meta.push(["Paid", esc(day(i.paid_on)) + (i.paid_note ? '<span class="who">' + esc(i.paid_note) + "</span>" : "")]);
+  return '<section class="panel" aria-label="Invoice"><div class="ph"><h2>Invoice <span class="mono">' + i.number + "</span></h2>" + st(s[0], s[1]) + "</div>" +
+    '<div class="of-body"><div class="acts" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">' + acts.join("") + msgFor("inv") + "</div>" + paid +
+    '<div class="of-meta">' + meta.map(function (x) { return "<div><span>" + x[0] + "</span>" + x[1] + "</div>"; }).join("") + "</div></div>" +
+    (S.edit ? '<div class="sh3">Lines</div><div class="of-body">' + lineEditor() + "</div>" : "") +
+    '<div class="sh3">' + (S.edit ? "Preview (as saved)" : "Invoice") + '</div><div class="of-body">' + invoiceSheet(i) + "</div></section>";
+}
+function invoiceAction(path, method, body, done) {
+  var id = S.invoice.id;
+  return api("/api/office/invoices/" + id + path, { method: method, body: body }).then(function (d) {
+    if (S.invoice && S.invoice.id === id) showInvoice(d);
+    S.payForm = false; S.msg = done ? ["ok", done, "inv"] : null; loadInvoices(); render();
+  }).catch(function (e) { S.msg = ["err", e.message, "inv"]; render(); });
+}
+function editedLines() {
+  var out = [];
+  for (var n = 0; n < S.edit.lines.length; n++) {
+    var x = S.edit.lines[n], qty = parseInt(x.qty, 10), unit = cents(x.unit);
+    if (!x.description.trim()) return "Line " + (n + 1) + " needs a description.";
+    if (!(qty >= 1 && String(qty) === x.qty.trim())) return "Line " + (n + 1) + ": the quantity is a whole number, 1 or more.";
+    if (unit === null || isNaN(unit)) return "Line " + (n + 1) + ": enter the unit price in dollars, like 349.00.";
+    out.push({ description: x.description, qty: qty, unit_cents: unit, kit_id: x.kit_id || null, system_id: x.system_id || null });
+  }
+  return out;
+}
+function bindBilling() {
+  $$("[data-bstatus]").forEach(function (b) { b.addEventListener("click", function () { S.bstatus = b.dataset.bstatus; S.invoices = null; loadInvoices(); render(); }); });
+  $$("[data-invoice]").forEach(function (tr) { tr.addEventListener("click", function () { location.hash = "#/billing/" + tr.dataset.invoice; }); });
+  var run = $("#run-form");
+  if (run) run.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var period = $("#f-period").value;
+    $("button", run).disabled = true;
+    api("/api/office/invoices/run", { method: "POST", body: { period: period } }).then(function (d) {
+      var n = d.created.length, words = n ? n + (n === 1 ? " draft" : " drafts") + " made." : "No new drafts.";
+      if (d.skipped.length) words += " Skipped: " + d.skipped.map(function (x) { return x.customer.company + " (" + x.reason.replace(/\.$/, "").toLowerCase() + ")"; }).join(", ") + ".";
+      if (d.missing_prices) words += " Some lines are $0.00 because no price is set: set the list prices in pricing.json or the customer's own prices.";
+      S.msg = [n ? "ok" : "err", words, "run"]; S.bstatus = "open"; loadInvoices(); render();
+    }).catch(function (err) { S.msg = ["err", err.message, "run"]; render(); });
+  });
+  var nc = $("#f-icust");
+  if (nc) nc.addEventListener("change", function () {
+    if (!nc.value) return;
+    api("/api/office/invoices", { method: "POST", body: { customer_id: +nc.value } }).then(function (d) {
+      showInvoice(d); S.edit.lines.push({ description: "", qty: "1", unit: "" }); loadInvoices(); location.hash = "#/billing/" + d.id;
+    }).catch(function (err) { S.msg = ["err", err.message, "new"]; render(); });
+  });
+  var i = S.invoice;
+  if (!i || !i.number) return;
+  var pr = $("[data-print]");
+  if (pr) pr.addEventListener("click", function () { window.print(); });
+  $$("[data-istatus]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var to = b.dataset.istatus;
+      if (to === "void" && !confirm("Void invoice " + i.number + "? It stays in the list, crossed out, and its kits can be billed again.")) return;
+      invoiceAction("", "PATCH", { status: to }, { sent: "Marked sent.", draft: "Back to draft: you can edit it again.", "void": "Voided." }[to]);
+    });
+  });
+  var send = $("[data-send]");
+  if (send) send.addEventListener("click", function () { send.disabled = true; invoiceAction("/send", "POST", null, "Emailed to " + i.bill_to.email + "."); });
+  var del = $("[data-delete-invoice]");
+  if (del) del.addEventListener("click", function () {
+    if (!confirm("Delete this draft?")) return;
+    api("/api/office/invoices/" + i.id, { method: "DELETE" }).then(function () { S.invoice = null; S.edit = null; loadInvoices(); location.hash = "#/billing"; })
+      .catch(function (err) { S.msg = ["err", err.message, "inv"]; render(); });
+  });
+  var sp = $("[data-show-paid]");
+  if (sp) sp.addEventListener("click", function () { S.payForm = true; S.msg = null; render(); });
+  var hp = $("[data-hide-paid]");
+  if (hp) hp.addEventListener("click", function () { S.payForm = false; render(); });
+  var pf = $("#paid-form");
+  if (pf) pf.addEventListener("submit", function (e) {
+    e.preventDefault();
+    invoiceAction("", "PATCH", { status: "paid", paid_on: $("#f-paidon").value || null, paid_note: $("#f-paidnote").value || null }, "Marked paid.");
+  });
+  var due = $("#f-due");
+  if (due) due.addEventListener("change", function () { if (due.value) invoiceAction("", "PATCH", { due: due.value }, "Due date changed."); });
+  if (!S.edit) return;
+  $$("[data-line]").forEach(function (inp) {
+    inp.addEventListener("input", function () {
+      S.edit.lines[+inp.dataset.line][inp.dataset.k] = inp.value;
+      var total = 0;
+      S.edit.lines.forEach(function (x, n) {
+        var amt = (parseInt(x.qty, 10) || 0) * (cents(x.unit) || 0);
+        total += amt;
+        var cell = $('[data-amt="' + n + '"]');
+        if (cell) cell.textContent = money(amt);
+      });
+      $("[data-total]").textContent = money(total);
+    });
+  });
+  var notes = $("#f-inotes");
+  if (notes) notes.addEventListener("input", function () { S.edit.notes = notes.value; });
+  $$("[data-drop]").forEach(function (b) { b.addEventListener("click", function () { S.edit.lines.splice(+b.dataset.drop, 1); S.reset = true; render(); }); });
+  var add = $("[data-add-line]");
+  if (add) add.addEventListener("click", function () {
+    S.edit.lines.push({ description: "", qty: "1", unit: "" }); S.reset = true; render();
+    var last = $("#f-l" + (S.edit.lines.length - 1) + "-d"); if (last) last.focus();
+  });
+  var lf = $("#lines-form");
+  if (lf) lf.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var lines = editedLines();
+    if (typeof lines === "string") { S.msg = ["err", lines, "lines"]; return render(); }
+    api("/api/office/invoices/" + i.id, { method: "PATCH", body: { lines: lines, notes: S.edit.notes } }).then(function (d) {
+      showInvoice(d); S.msg = ["ok", "Saved.", "lines"]; loadInvoices(); render();
+    }).catch(function (err) { S.msg = ["err", err.message, "lines"]; render(); });
+  });
 }
 
 // ---------------------------------------------------------------- flash: firmware + kit code onto a pair of boards
@@ -624,7 +869,18 @@ function bind() {
   $$("[data-open-ticket]").forEach(function (tr) { tr.addEventListener("click", function () { location.hash = "#/inbox/" + tr.dataset.openTicket; }); });
   $$("[data-customer]").forEach(function (tr) { tr.addEventListener("click", function () { location.hash = "#/customers/" + tr.dataset.customer; }); });
   $$("[data-kit]").forEach(function (tr) { tr.addEventListener("click", function () { location.hash = "#/devices/" + tr.dataset.kit; }); });
+  $$("[data-open-invoice]").forEach(function (tr) { tr.addEventListener("click", function () { location.hash = "#/billing/" + tr.dataset.openInvoice; }); });
+  var bc = $("[data-bill-customer]");
+  if (bc) bc.addEventListener("click", function () {
+    var c = S.customer;
+    bc.disabled = true;
+    api("/api/office/invoices/run", { method: "POST", body: { period: thisMonth(), customer_id: c.id } }).then(function (d) {
+      if (d.created.length) { S.invoice = null; location.hash = "#/billing/" + d.created[0].id; return; }
+      S.msg = ["err", d.skipped.length ? d.skipped[0].reason : "Nothing to bill.", "bill"]; render();
+    }).catch(function (err) { S.msg = ["err", err.message, "bill"]; render(); });
+  });
   bindDevices();
+  bindBilling();
   bindFlash();
   var t = S.ticket;
   var stSel = $("#f-status");
@@ -655,9 +911,12 @@ function bind() {
   var cf = $("#cust-form");
   if (cf) cf.addEventListener("submit", function (e) {
     e.preventDefault();
-    var c = S.customer, body = { company: $("#f-company").value, contact: $("#f-contact").value, phone: $("#f-phone").value,
-      email: $("#f-email").value, status: $("#f-cstatus").value, address: $("#f-address").value, notes: $("#f-notes").value };
-    var isNew = c.id === "new";
+    var c = S.customer, isNew = c.id === "new", body = { company: $("#f-company").value, contact: $("#f-contact").value, phone: $("#f-phone").value,
+      email: $("#f-email").value, status: $("#f-cstatus").value, address: $("#f-address").value, notes: $("#f-notes").value,
+      kit_cents: cents($("#f-kitprice").value), monthly_cents: cents($("#f-monthprice").value) };
+    if (isNaN(body.kit_cents) || isNaN(body.monthly_cents) || body.kit_cents < 0 || body.monthly_cents < 0) {
+      S.msg = ["err", "Enter prices in dollars, like 349.00, or leave them empty for the list price.", "cust"]; return render();
+    }
     api(isNew ? "/api/office/customers" : "/api/office/customers/" + c.id, { method: isNew ? "POST" : "PATCH", body: body }).then(function (d) {
       S.customer = d; S.msg = ["ok", "Saved.", "cust"]; S.reset = true; loadCustomers();
       if (isNew) location.hash = "#/customers/" + d.id; else render();

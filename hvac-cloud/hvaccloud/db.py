@@ -136,6 +136,8 @@ class Customer(Base):
     status: Mapped[str] = mapped_column(String(16), default="lead")      # lead, active, paused, closed
     notes: Mapped[str | None] = mapped_column(String(4000))
     account_id: Mapped[int | None] = mapped_column(ForeignKey("accounts.id"))
+    kit_cents: Mapped[int | None]                                         # this customer's prices; None = the list price
+    monthly_cents: Mapped[int | None]                                     # (web/pricing.json)
 
 
 class Ticket(Base):
@@ -225,6 +227,34 @@ class WarrantyClaim(Base):
     replacement_id: Mapped[int | None] = mapped_column(ForeignKey("boards.id"))
     resolution: Mapped[str | None] = mapped_column(String(2000))
     closed_at: Mapped[dt.datetime | None]
+
+
+class Invoice(Base):
+    """A bill to a customer (billing.py), sent by email and marked paid by hand. Its number is 1000 + id."""
+    __tablename__ = "invoices"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    customer_id: Mapped[int] = mapped_column(ForeignKey("customers.id"))
+    created_at: Mapped[dt.datetime] = mapped_column(default=utcnow)
+    status: Mapped[str] = mapped_column(String(16), default="draft")      # draft, sent, paid, void
+    period: Mapped[str | None] = mapped_column(String(7))                 # 2026-10 for a monthly bill
+    issued: Mapped[dt.date | None] = mapped_column(Date)                  # set when first sent
+    due: Mapped[dt.date | None] = mapped_column(Date)
+    sent_at: Mapped[dt.datetime | None]
+    emailed: Mapped[bool | None]
+    paid_on: Mapped[dt.date | None] = mapped_column(Date)
+    paid_note: Mapped[str | None] = mapped_column(String(200))            # check number, transfer reference
+    notes: Mapped[str | None] = mapped_column(String(2000))               # printed on the invoice
+
+
+class InvoiceLine(Base):
+    __tablename__ = "invoice_lines"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    invoice_id: Mapped[int] = mapped_column(ForeignKey("invoices.id"))
+    description: Mapped[str] = mapped_column(String(200))
+    qty: Mapped[int] = mapped_column(default=1)
+    unit_cents: Mapped[int]
+    kit_id: Mapped[int | None] = mapped_column(ForeignKey("kits.id"))     # a kit's one-time price
+    system_id: Mapped[int | None] = mapped_column(ForeignKey("systems.id"))   # a system's monthly price
 
 
 class Invite(Base):

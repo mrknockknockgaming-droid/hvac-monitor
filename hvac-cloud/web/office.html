@@ -56,10 +56,30 @@
 .of-bar{height:4px;background:var(--surface-3);border-radius:2px;margin-top:4px;max-width:160px}
 .of-bar i{display:block;height:100%;background:var(--advisory);border-radius:2px}
 .of-log{margin:0;padding:10px 12px;font:12px/16px var(--font-mono);color:var(--ink-muted);white-space:pre-wrap;overflow-wrap:anywhere;max-height:520px;overflow:auto}
+/* an invoice: always black on white, like the paper it is printed on */
+.of-invoice{background:#fff;color:#111;border:1px solid var(--line-strong);border-radius:3px;padding:22px 24px;display:grid;gap:16px;font-size:13px;line-height:18px}
+.of-invoice .ih{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+.of-invoice .ih>div{display:flex;flex-direction:column;gap:2px}
+.of-invoice .ih .r{text-align:right}
+.of-invoice i{font:700 15px/18px var(--font-sans);font-style:normal;letter-spacing:.2em}
+.of-invoice .ih b{font-size:18px;line-height:22px}
+.of-invoice .ib{display:flex;flex-direction:column;gap:1px}
+.of-invoice .small{font-size:11px;color:#555}
+.of-invoice .paid{font-weight:700;color:#1a7f37;letter-spacing:.06em}
+.of-invoice .void{font-weight:700;color:#b42318;letter-spacing:.06em}
+.of-invoice .il{width:100%;border-collapse:collapse}
+.of-invoice .il th{font-size:11px;font-weight:500;color:#555;text-align:left;border-bottom:1px solid #999;padding:4px 6px}
+.of-invoice .il td{border-bottom:1px solid #ddd;padding:6px}
+.of-invoice .il .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.of-invoice .il tfoot td{border-bottom:0;font-weight:700;padding-top:8px}
+.of-invoice .in{margin:0;white-space:pre-wrap}
+.of-lines td{vertical-align:middle}
+.of-lines tfoot td{font-weight:600}
 @media print{
+  html,body{background:#fff}
   body *{visibility:hidden}
-  #label,#label *{visibility:visible}
-  #label{position:absolute;left:0;top:0;border:0;max-width:none;width:100%}
+  #label,#label *,#invoice,#invoice *{visibility:visible}
+  #label,#invoice{position:absolute;left:0;top:0;border:0;max-width:none;width:100%}
   .theme-t{display:none}
 }
 @media (max-width:1000px){.of-split{grid-template-columns:minmax(0,1fr)}.of-split.has-sel>section:last-child{order:-1}.of-form .two{grid-template-columns:1fr}}
