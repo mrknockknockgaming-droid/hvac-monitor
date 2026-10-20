@@ -16,7 +16,7 @@ Areas: hardware, enclosure, firmware, web app, dashboard, cloud, install, docs, 
 
 ## Planned
 
-- 2026-10-20 · business · Flash boards from the browser in Fullscope Office, with firmware 0.4.0 keeping the kit code in flash · planned (Phase 9)
+- 2026-10-20 · business · Flash boards from the browser in Fullscope Office, with firmware 0.4.0 keeping the kit code in flash · done (PR #84)
 - 2026-10-20 · business · Billing in Fullscope Office: manual invoices first · planned (Phase 12)
 
 ## Done
