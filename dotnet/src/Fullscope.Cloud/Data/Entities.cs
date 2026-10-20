@@ -218,6 +218,35 @@ public sealed class InvoiceLine
     public int? SystemId { get; set; }                  // a system's monthly price
 }
 
+public sealed class Quote
+{
+    public int Id { get; set; }
+    public int CustomerId { get; set; }
+    public DateTime CreatedAt { get; set; } = Db.UtcNow();
+    public string Status { get; set; } = "draft";       // draft, sent, accepted, declined, void
+    public DateOnly? Issued { get; set; }               // set when first sent
+    public DateOnly? ValidUntil { get; set; }
+    public DateTime? SentAt { get; set; }
+    public bool? Emailed { get; set; }
+    public string? TokenHash { get; set; }              // SHA-256 of the customer's link token
+    public DateTime? ViewedAt { get; set; }             // first opened by the customer
+    public DateTime? AnsweredAt { get; set; }
+    public string? AnsweredName { get; set; }           // typed by the customer when accepting
+    public string? AnsweredIp { get; set; }
+    public string? DeclineReason { get; set; }
+    public int? InvoiceId { get; set; }                 // made from it once accepted
+    public string? Notes { get; set; }                  // shown on the quote
+}
+
+public sealed class QuoteLine
+{
+    public int Id { get; set; }
+    public int QuoteId { get; set; }
+    public string Description { get; set; } = "";
+    public int Qty { get; set; } = 1;
+    public int UnitCents { get; set; }
+}
+
 public sealed class Invite
 {
     public int Id { get; set; }

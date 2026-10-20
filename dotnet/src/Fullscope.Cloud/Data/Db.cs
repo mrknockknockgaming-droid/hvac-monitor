@@ -35,6 +35,8 @@ public sealed class Db(DbContextOptions<Db> options) : DbContext(options)
     public DbSet<WarrantyClaim> WarrantyClaims => Set<WarrantyClaim>();
     public DbSet<Invoice> Invoices => Set<Invoice>();
     public DbSet<InvoiceLine> InvoiceLines => Set<InvoiceLine>();
+    public DbSet<Quote> Quotes => Set<Quote>();
+    public DbSet<QuoteLine> QuoteLines => Set<QuoteLine>();
     public DbSet<PasswordReset> PasswordResets => Set<PasswordReset>();
     public DbSet<PushSubscription> PushSubscriptions => Set<PushSubscription>();
     public DbSet<ServerKey> ServerKeys => Set<ServerKey>();
@@ -236,6 +238,25 @@ public sealed class Db(DbContextOptions<Db> options) : DbContext(options)
             e.HasOne<Invoice>().WithMany().HasForeignKey(x => x.InvoiceId).OnDelete(DeleteBehavior.NoAction);
             e.HasOne<Kit>().WithMany().HasForeignKey(x => x.KitId).OnDelete(DeleteBehavior.NoAction);
             e.HasOne<HvacSystem>().WithMany().HasForeignKey(x => x.SystemId).OnDelete(DeleteBehavior.NoAction);
+        });
+        b.Entity<Quote>(e =>
+        {
+            e.ToTable("quotes");
+            Len(e.Property(x => x.Status), 16);
+            e.HasIndex(x => x.TokenHash).IsUnique();
+            Len(e.Property(x => x.TokenHash), 64);
+            Len(e.Property(x => x.AnsweredName), 120);
+            Len(e.Property(x => x.AnsweredIp), 64);
+            Len(e.Property(x => x.DeclineReason), 1000);
+            Len(e.Property(x => x.Notes), 2000);
+            e.HasOne<Customer>().WithMany().HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.NoAction);
+            e.HasOne<Invoice>().WithMany().HasForeignKey(x => x.InvoiceId).OnDelete(DeleteBehavior.NoAction);
+        });
+        b.Entity<QuoteLine>(e =>
+        {
+            e.ToTable("quote_lines");
+            Len(e.Property(x => x.Description), 200);
+            e.HasOne<Quote>().WithMany().HasForeignKey(x => x.QuoteId).OnDelete(DeleteBehavior.NoAction);
         });
         b.Entity<Invite>(e =>
         {

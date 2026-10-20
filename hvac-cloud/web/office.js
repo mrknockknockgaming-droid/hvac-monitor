@@ -1,7 +1,8 @@
 /* Fullscope Office (office.html): the business side for Fullscope's own staff. Inbox (order requests,
    website contact messages, contractors' support requests), Customers (contractor companies and
-   their accounts and prices), Devices (kits, boards, QR labels and warranty claims), Billing (invoices:
-   drafted each month, emailed or printed, marked paid by hand) and Flash (writes firmware to a
+   their accounts and prices), Devices (kits, boards, QR labels and warranty claims), Quotes (emailed with a
+   link the customer opens to accept), Billing (invoices: drafted each month, emailed or printed, marked paid
+   by hand) and Flash (writes firmware to a
    pair of boards over USB from Chrome or Edge, saves the kit code on them and registers the kit).  Signs in through the web app (/app/); the server allows staff only. */
 (function () {
 "use strict";
@@ -19,7 +20,7 @@ $("#theme").addEventListener("click", function () {
 
 var S = { me: null, summary: null, view: null, status: "open", kind: "all", tickets: null, ticket: null,
           customers: null, customer: null, kits: null, kit: null, find: "", draft: "", msg: null, busy: false, error: null,
-          invoices: null, invoice: null, bstatus: "open", edit: null };
+          invoices: null, invoice: null, bstatus: "open", edit: null, quotes: null, quote: null, qstatus: "open", qlink: null };
 
 function api(path, opts) {
   opts = opts || {};
@@ -60,6 +61,8 @@ var KINDNAME = { outdoor: "Outdoor", indoor: "Indoor" };
 var CSTATUS = { lead: ["advisory", "Lead"], active: ["ok", "Active"], paused: ["caution", "Paused"], closed: ["offline", "Closed"] };
 var ISTATUS = { draft: ["offline", "Draft"], sent: ["advisory", "Sent"], paid: ["ok", "Paid"], "void": ["offline", "Void"] };
 function istatus(i) { return i.overdue ? ["fault", "Overdue"] : ISTATUS[i.status] || ["offline", i.status]; }
+var QSTATUS = { draft: ["offline", "Draft"], sent: ["advisory", "Sent"], accepted: ["ok", "Accepted"], declined: ["caution", "Declined"], "void": ["offline", "Void"] };
+function qstatus(q) { return q.expired ? ["fault", "Expired"] : q.status === "accepted" && q.invoice_id ? ["ok", "Invoiced"] : QSTATUS[q.status] || ["offline", q.status]; }
 // whole cents <-> what people type: 34900 <-> "$349.00"; cents("349") = 34900, cents("") = null, cents("x") = NaN
 function money(c) {
   if (c === null || c === undefined) return "—";
@@ -103,11 +106,20 @@ function route() {
     if (S.kit && S.kit.loading) loadKit(S.kit.id);
     loadKits();
     if (!S.customers) loadCustomers();           // for shipping a kit to a customer
+  } else if ((m = h.match(/^#\/quotes(?:\/(\d+))?$/))) {
+    var qfresh = S.view !== "quotes";             // the line editor belonged to an invoice
+    S.view = "quotes";
+    var qid = m[1] ? +m[1] : null;
+    if (!qid) { S.quote = null; S.edit = null; }
+    else if (qfresh || !S.quote || S.quote.id !== qid || S.quote.error) { S.quote = { id: qid, loading: true }; S.edit = null; S.qlink = null; loadQuote(qid); }
+    loadQuotes();
+    if (!S.customers) loadCustomers();           // for a new quote
   } else if ((m = h.match(/^#\/billing(?:\/(\d+))?$/))) {
+    var bfresh = S.view !== "billing";            // the line editor belonged to a quote
     S.view = "billing";
     var iid = m[1] ? +m[1] : null;
     if (!iid) { S.invoice = null; S.edit = null; }
-    else if (!S.invoice || S.invoice.id !== iid || S.invoice.error) { S.invoice = { id: iid, loading: true }; S.edit = null; loadInvoice(iid); }
+    else if (bfresh || !S.invoice || S.invoice.id !== iid || S.invoice.error) { S.invoice = { id: iid, loading: true }; S.edit = null; loadInvoice(iid); }
     loadInvoices();
     if (!S.customers) loadCustomers();           // for a new invoice
   } else if (h === "#/flash") {
@@ -177,6 +189,22 @@ function showInvoice(d) {
   }) };
   S.reset = true;
 }
+function loadQuotes() {
+  loadSummary();
+  api("/api/office/quotes?status=" + S.qstatus).then(function (d) { S.quotes = d; S.error = null; render(); })
+    .catch(function (e) { if (e.message !== "401") { S.error = e.message; render(); } });
+}
+function loadQuote(id) {
+  api("/api/office/quotes/" + id).then(function (d) { if (S.quote && S.quote.id === id) { showQuote(d); render(); } })
+    .catch(function (e) { if (S.quote && S.quote.id === id) { S.quote = { id: id, error: e.message }; render(); } });
+}
+function showQuote(d) {
+  S.quote = d;
+  S.edit = d.status !== "draft" ? null : { notes: d.notes || "", lines: d.lines.map(function (x) {
+    return { description: x.description, qty: String(x.qty), unit: dollars(x.unit_cents) };
+  }) };
+  S.reset = true;
+}
 function loadCustomer(id) {
   api("/api/office/customers/" + id).then(function (d) { if (S.customer && S.customer.id === id) { S.customer = d; render(); } })
     .catch(function (e) { if (S.customer && S.customer.id === id) { S.customer = { id: id, error: e.message }; render(); } });
@@ -184,7 +212,7 @@ function loadCustomer(id) {
 
 // ---------------------------------------------------------------- page frame
 function header() {
-  var sm = S.summary || { inbox: {}, customers: {} }, ib = sm.inbox || {}, cu = sm.customers || {}, iv = sm.invoices || {};
+  var sm = S.summary || { inbox: {}, customers: {} }, ib = sm.inbox || {}, cu = sm.customers || {}, iv = sm.invoices || {}, qs = sm.quotes || {};
   var waiting = (ib["new"] || 0);
   var counts = [];
   if (ib["new"]) counts.push(st("caution", ib["new"] + " new"));
@@ -200,7 +228,7 @@ function header() {
     '<div class="tf"><span>Unpaid</span><b>' + money(iv.unpaid_cents || 0) + (iv.overdue ? ' <span class="st fault">' + iv.overdue + " overdue</span>" : "") + "</b></div>" +
     '<div class="tf alerts"><span>Inbox</span><div class="row">' + (counts.join("") || st("ok", "All answered")) + "</div></div></div></div>" +
     '<nav class="nav" aria-label="Sections">' + nav("inbox", "Inbox", waiting) + nav("customers", "Customers") + nav("devices", "Devices") +
-    nav("billing", "Billing", (iv.draft || 0) + (iv.overdue || 0)) + nav("flash", "Flash") +
+    nav("quotes", "Quotes", qs.accepted || 0) + nav("billing", "Billing", (iv.draft || 0) + (iv.overdue || 0)) + nav("flash", "Flash") +
     '<span class="spacer"></span><div class="tools"><a class="btn" href="/app/" style="text-decoration:none">Open the app</a>' +
     '<button class="btn" type="button" data-signout>Sign out</button></div></nav></header>' +
     (S.error ? '<div class="stale-banner">Can\'t reach the server: ' + esc(S.error) + "</div>" : "");
@@ -211,10 +239,10 @@ function render() {
   var y = window.scrollY, act = document.activeElement, focusId = act && act.id && root.contains(act) ? act.id : null;
   var sel = focusId && [act.selectionStart, act.selectionEnd];
   // what is being typed survives the re-render, unless another page or item opened or it was just saved
-  var key = S.view + ":" + (S.ticket && S.ticket.id) + ":" + (S.customer && S.customer.id) + ":" + (S.kit && S.kit.id) + ":" + (S.invoice && S.invoice.id), keep = {};
+  var key = S.view + ":" + (S.ticket && S.ticket.id) + ":" + (S.customer && S.customer.id) + ":" + (S.kit && S.kit.id) + ":" + (S.invoice && S.invoice.id) + ":" + (S.quote && S.quote.id), keep = {};
   if (key === S.formKey && !S.reset) $$("input[id^='f-'], textarea[id^='f-']").forEach(function (i) { keep[i.id] = i.value; });
   S.formKey = key; S.reset = false;
-  root.innerHTML = header() + '<main class="page">' + (S.view === "inbox" ? inboxPage() : S.view === "customers" ? customersPage() : S.view === "flash" ? flashPage() : S.view === "billing" ? billingPage() : devicesPage()) + "</main>";
+  root.innerHTML = header() + '<main class="page">' + (S.view === "inbox" ? inboxPage() : S.view === "customers" ? customersPage() : S.view === "flash" ? flashPage() : S.view === "billing" ? billingPage() : S.view === "quotes" ? quotesPage() : devicesPage()) + "</main>";
   Object.keys(keep).forEach(function (k) { var i = document.getElementById(k); if (i) i.value = keep[k]; });
   var f = focusId && document.getElementById(focusId);
   if (f) { f.focus(); try { f.setSelectionRange(sel[0], sel[1]); } catch (e) {} }
@@ -351,8 +379,15 @@ function customerPanel() {
     return '<tr data-open-invoice="' + i.id + '" style="cursor:pointer"><td><span class="mono">' + i.number + "</span>" + (i.period ? '<span class="who">' + esc(i.period) + "</span>" : "") + "</td><td>" + st(is[0], is[1]) +
       '</td><td class="num"><span class="n">' + money(i.total_cents) + "</span></td></tr>";
   }).join("");
+  var quotes = (c.quotes || []).map(function (q) {
+    var qs = qstatus(q);
+    return '<tr data-open-quote="' + q.id + '" style="cursor:pointer"><td><span class="mono">' + q.number + "</span>" + (q.issued ? '<span class="who">' + esc(day(q.issued)) + "</span>" : "") + "</td><td>" + st(qs[0], qs[1]) +
+      '</td><td class="num"><span class="n">' + money(q.total_cents) + "</span></td></tr>";
+  }).join("");
   return '<section class="panel" aria-label="Customer"><div class="ph"><h2>' + esc(c.company) + "</h2>" + st(s[0], s[1]) + "</div>" +
     '<div class="of-body">' + customerForm(c) + "</div>" +
+    '<div class="sh3">Quotes</div><table class="dt of-list"><tbody>' + (quotes || '<tr><td class="faint">None yet</td></tr>') + "</tbody></table>" +
+    '<div class="of-body"><div class="acts" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn" type="button" data-quote-customer>New quote</button>' + msgFor("cq") + "</div></div>" +
     '<div class="sh3">Invoices</div><table class="dt of-list"><tbody>' + (invoices || '<tr><td class="faint">None yet</td></tr>') + "</tbody></table>" +
     '<div class="of-body"><div class="acts" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn" type="button" data-bill-customer>Draft this month\'s invoice</button>' + msgFor("bill") + "</div></div>" +
     '<div class="sh3">Fullscope account</div><div class="of-body">' + acct + "</div>" +
@@ -504,7 +539,7 @@ function invoiceSheet(i) {
     '<tfoot><tr><td colspan="3">Total due</td><td class="num">' + money(i.total_cents) + "</td></tr></tfoot></table>" +
     [i.notes, i.pay_note].filter(Boolean).map(function (v) { return '<p class="in">' + esc(v) + "</p>"; }).join("") + "</div>";
 }
-function lineEditor() {
+function lineEditor(noteLabel) {
   var e = S.edit, total = 0;
   var rows = e.lines.map(function (x, n) {
     var amt = (parseInt(x.qty, 10) || 0) * (cents(x.unit) || 0);
@@ -517,7 +552,7 @@ function lineEditor() {
   return '<form class="of-form" id="lines-form"><table class="dt of-lines"><thead><tr><th>Description</th><th>Qty</th><th>Unit ($)</th><th class="num">Amount</th><th></th></tr></thead><tbody>' +
     (rows || '<tr><td colspan="5" class="faint">No lines. Add one below.</td></tr>') + '</tbody><tfoot><tr><td colspan="3">Total</td><td class="num"><span class="n" data-total>' + money(total) + "</span></td><td></td></tr></tfoot></table>" +
     '<div class="acts"><button class="btn" type="button" data-add-line>Add line</button></div>' +
-    '<label for="f-inotes">Note on the invoice<textarea id="f-inotes" maxlength="2000" style="min-height:60px">' + esc(e.notes) + "</textarea></label>" +
+    '<label for="f-inotes">' + noteLabel + '<textarea id="f-inotes" maxlength="2000" style="min-height:60px">' + esc(e.notes) + "</textarea></label>" +
     '<div class="acts"><button class="btn primary" type="submit">Save draft</button>' + msgFor("lines") + "</div></form>";
 }
 function invoicePanel() {
@@ -546,7 +581,7 @@ function invoicePanel() {
   return '<section class="panel" aria-label="Invoice"><div class="ph"><h2>Invoice <span class="mono">' + i.number + "</span></h2>" + st(s[0], s[1]) + "</div>" +
     '<div class="of-body"><div class="acts" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">' + acts.join("") + msgFor("inv") + "</div>" + paid +
     '<div class="of-meta">' + meta.map(function (x) { return "<div><span>" + x[0] + "</span>" + x[1] + "</div>"; }).join("") + "</div></div>" +
-    (S.edit ? '<div class="sh3">Lines</div><div class="of-body">' + lineEditor() + "</div>" : "") +
+    (S.edit ? '<div class="sh3">Lines</div><div class="of-body">' + lineEditor("Note on the invoice") + "</div>" : "") +
     '<div class="sh3">' + (S.edit ? "Preview (as saved)" : "Invoice") + '</div><div class="of-body">' + invoiceSheet(i) + "</div></section>";
 }
 function invoiceAction(path, method, body, done) {
@@ -619,6 +654,10 @@ function bindBilling() {
   });
   var due = $("#f-due");
   if (due) due.addEventListener("change", function () { if (due.value) invoiceAction("", "PATCH", { due: due.value }, "Due date changed."); });
+  bindLines("/api/office/invoices/" + i.id, function (d) { showInvoice(d); loadInvoices(); });
+}
+// the draft line editor of an invoice or a quote; saved with PATCH to path, then done(answer)
+function bindLines(path, done) {
   if (!S.edit) return;
   $$("[data-line]").forEach(function (inp) {
     inp.addEventListener("input", function () {
@@ -646,10 +685,156 @@ function bindBilling() {
     e.preventDefault();
     var lines = editedLines();
     if (typeof lines === "string") { S.msg = ["err", lines, "lines"]; return render(); }
-    api("/api/office/invoices/" + i.id, { method: "PATCH", body: { lines: lines, notes: S.edit.notes } }).then(function (d) {
-      showInvoice(d); S.msg = ["ok", "Saved.", "lines"]; loadInvoices(); render();
+    api(path, { method: "PATCH", body: { lines: lines, notes: S.edit.notes } }).then(function (d) {
+      done(d); S.msg = ["ok", "Saved.", "lines"]; render();
     }).catch(function (err) { S.msg = ["err", err.message, "lines"]; render(); });
   });
+}
+
+// ---------------------------------------------------------------- quotes: emailed with a link the customer opens to accept
+function quotesPage() {
+  var list = S.quotes, cur = S.quote && S.quote.id;
+  var rows = !list ? '<tr><td colspan="3" class="faint">Loading…</td></tr>'
+    : !list.length ? '<tr><td colspan="3" class="faint">' + (S.qstatus === "open" ? "No quotes waiting. Start one for a customer or lead below." : "No quotes.") + "</td></tr>"
+    : list.map(function (q) {
+      var s = qstatus(q);
+      var sub = q.status === "sent" ? (q.viewed_at ? "Opened " + when(q.viewed_at) : "Not opened yet") + (q.valid_until ? " · until " + day(q.valid_until) : "")
+        : q.answered_at ? when(q.answered_at) : "";
+      return '<tr data-quote="' + q.id + '"' + (q.id === cur ? ' aria-current="true"' : "") + '><td><span class="subj mono">' + q.number + '</span><span class="who">' + esc(q.customer.company) + "</span></td>" +
+        "<td>" + st(s[0], s[1]) + '<span class="who">' + esc(sub) + "</span></td>" +
+        '<td class="num"><span class="n">' + money(q.total_cents) + "</span></td></tr>";
+    }).join("");
+  var newer = '<form class="of-form" style="padding:10px 12px;border-bottom:1px solid var(--line)" onsubmit="return false"><div class="acts">' +
+    '<select class="sel" id="f-qcust" aria-label="Customer" style="max-width:240px"><option value="">New quote for…</option>' +
+    (S.customers || []).map(function (c) { return '<option value="' + c.id + '">' + esc(c.company) + (c.status === "lead" ? " (lead)" : "") + "</option>"; }).join("") + "</select>" +
+    '<a class="btn" href="#/customers/new" style="text-decoration:none;color:var(--ink)">New lead</a>' + msgFor("newq") + "</div></form>";
+  return '<div class="of-split' + (cur ? " has-sel" : "") + '"><section class="panel" aria-label="Quotes"><div class="ph"><h2>Quotes</h2><span class="sub">Newest first</span>' +
+    '<div class="right">' + seg("qstatus", [["open", "Open"], ["accepted", "Accepted"], ["declined", "Declined"], ["all", "All"]], S.qstatus) + "</div></div>" + newer +
+    '<table class="dt of-list"><thead><tr><th>Quote</th><th>Status</th><th class="num">Total</th></tr></thead><tbody>' + rows + "</tbody></table></section>" +
+    quotePanel() + "</div>";
+}
+// the quote as the customer sees it (printed alone)
+function quoteSheet(q) {
+  var t = q.to;
+  var lines = q.lines.length ? q.lines.map(function (x) {
+    return "<tr><td>" + esc(x.description) + '</td><td class="num">' + x.qty + '</td><td class="num">' + money(x.unit_cents) + '</td><td class="num">' + money(x.amount_cents) + "</td></tr>";
+  }).join("") : '<tr><td colspan="4" class="small">No lines yet.</td></tr>';
+  var stamp = q.status === "void" ? '<span class="void">VOID</span>' : q.status === "declined" ? '<span class="void">DECLINED</span>'
+    : q.status === "accepted" ? '<span class="paid">ACCEPTED ' + esc(day((q.answered_at || "").slice(0, 10))) + "</span>" : "";
+  return '<div class="of-invoice" id="invoice"><div class="ih"><div><i>FULLSCOPE</i>' + (q.from_email ? '<span class="small">' + esc(q.from_email) + "</span>" : "") + "</div>" +
+    '<div class="r"><b>Quote ' + q.number + "</b>" + stamp +
+    '<span class="small">Date ' + esc(q.issued ? day(q.issued) : "not sent yet") + "</span>" + (q.valid_until ? '<span class="small">Valid until ' + esc(day(q.valid_until)) + "</span>" : "") + "</div></div>" +
+    '<div class="ib"><span class="small">For</span><b>' + esc(t.company) + "</b>" + [t.contact, t.address, t.email].filter(Boolean).map(function (v) { return "<span>" + esc(v) + "</span>"; }).join("") + "</div>" +
+    '<table class="il"><thead><tr><th>Description</th><th class="num">Qty</th><th class="num">Unit</th><th class="num">Amount</th></tr></thead><tbody>' + lines + "</tbody>" +
+    '<tfoot><tr><td colspan="3">Total</td><td class="num">' + money(q.total_cents) + "</td></tr></tfoot></table>" +
+    (q.notes ? '<p class="in">' + esc(q.notes) + "</p>" : "") + "</div>";
+}
+function quotePanel() {
+  var q = S.quote;
+  if (!q) return '<section class="panel"><div class="empty">Pick a quote to edit, send or follow up.</div></section>';
+  if (q.loading) return '<section class="panel"><div class="empty">Loading…</div></section>';
+  if (q.error) return '<section class="panel"><div class="empty">' + esc(q.error) + "</div></section>";
+  var s = qstatus(q), email = q.to.email, acts = [];
+  if (q.status === "draft") {
+    acts.push(email ? '<button class="btn primary" type="button" data-qsend>Email to ' + esc(email) + "</button>" : '<span class="faint" style="font-size:12px">No email on file: add one to the customer, or get a link to text them.</span>');
+    acts.push('<button class="btn" type="button" data-qlink>Get link</button>');
+    acts.push(q.sent_at ? '<button class="btn" type="button" data-qstatus-to="void">Void</button>' : '<button class="btn" type="button" data-delete-quote>Delete draft</button>');
+  } else if (q.status === "sent") {
+    if (email) acts.push('<button class="btn" type="button" data-qsend>Email again</button>');
+    acts.push('<button class="btn" type="button" data-qlink>New link</button>', '<button class="btn" type="button" data-qanswer="accepted">They said yes</button>',
+      '<button class="btn" type="button" data-qanswer="declined">They said no</button>', '<button class="btn" type="button" data-qstatus-to="draft">Back to draft</button>',
+      '<button class="btn" type="button" data-qstatus-to="void">Void</button>');
+  } else if (q.status === "accepted") {
+    acts.push(q.invoice_id ? '<a class="btn primary" href="#/billing/' + q.invoice_id + '" style="text-decoration:none">Open invoice ' + (1000 + q.invoice_id) + "</a>"
+      : '<button class="btn primary" type="button" data-qinvoice>Make invoice</button><button class="btn" type="button" data-qstatus-to="sent">Not accepted after all</button>');
+  } else if (q.status === "declined") acts.push('<button class="btn" type="button" data-qstatus-to="draft">Revise (back to draft)</button>', '<button class="btn" type="button" data-qstatus-to="void">Void</button>');
+  else acts.push('<button class="btn" type="button" data-qstatus-to="draft">Back to draft</button>');
+  acts.push('<button class="btn" type="button" data-print>Print</button>');
+  var link = S.qlink && S.qlink.id === q.id ? '<div class="of-form"><label for="qlink-box">The customer\'s link (only this newest one works)<div class="acts" style="flex-wrap:nowrap"><input id="qlink-box" readonly value="' + esc(S.qlink.url) + '" style="flex:1;min-width:0">' +
+    '<button class="btn" type="button" data-copy-link>Copy</button></div></label></div>' : "";
+  var answer = S.answerForm && q.status === "sent" ? '<form class="of-form" id="answer-form"><label for="f-aname">' + (S.answerForm === "accepted" ? "Who said yes" : "Who said no") +
+    '<input id="f-aname" maxlength="120" placeholder="Name, and how (phone, email)"></label>' +
+    (S.answerForm === "declined" ? '<label for="f-areason">Reason<input id="f-areason" maxlength="1000"></label>' : "") +
+    '<div class="acts"><button class="btn primary" type="submit">' + (S.answerForm === "accepted" ? "Mark accepted" : "Mark declined") + '</button><button class="btn" type="button" data-hide-answer>Cancel</button></div></form>' : "";
+  var answered = q.answered_at ? esc(when(q.answered_at)) + '<span class="who">' + esc(q.answered_name || (q.status === "declined" ? "" : "—")) + (q.decline_reason ? ": " + esc(q.decline_reason) : "") + "</span>" : '<span class="faint">Not yet</span>';
+  var meta = [["Customer", '<a href="#/customers/' + q.customer.id + '">' + esc(q.customer.company) + "</a>"],
+    ["Sent", q.sent_at ? esc(when(q.sent_at)) + (q.emailed ? " by email" : " as a link") : '<span class="faint">Not yet</span>'],
+    ["Opened", q.viewed_at ? esc(when(q.viewed_at)) : '<span class="faint">Not yet</span>'], [q.status === "declined" ? "Declined" : "Accepted", answered]];
+  if (q.status === "sent" || q.status === "draft") meta.push(["Valid until", '<input class="sel" id="f-valid" type="date" value="' + esc(q.valid_until || "") + '" style="width:100%">']);
+  return '<section class="panel" aria-label="Quote"><div class="ph"><h2>Quote <span class="mono">' + q.number + "</span></h2>" + st(s[0], s[1]) + "</div>" +
+    '<div class="of-body"><div class="acts" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">' + acts.join("") + msgFor("q") + "</div>" + link + answer +
+    '<div class="of-meta">' + meta.map(function (x) { return "<div><span>" + x[0] + "</span>" + x[1] + "</div>"; }).join("") + "</div></div>" +
+    (S.edit ? '<div class="sh3">Lines</div><div class="of-body">' + lineEditor("Note on the quote (the customer sees it)") + "</div>" : "") +
+    '<div class="sh3">' + (S.edit ? "Preview (as saved)" : "Quote") + '</div><div class="of-body">' + quoteSheet(q) + "</div></section>";
+}
+function quoteAction(path, method, body, done) {
+  var id = S.quote.id;
+  return api("/api/office/quotes/" + id + path, { method: method, body: body }).then(function (d) {
+    if (S.quote && S.quote.id === id) showQuote(d);
+    if (d.link) S.qlink = { id: id, url: d.link };
+    S.answerForm = null; S.msg = done ? ["ok", typeof done === "function" ? done(d) : done, "q"] : null; loadQuotes(); render();
+    return d;
+  }).catch(function (e) { S.msg = ["err", e.message, "q"]; render(); });
+}
+function bindQuotes() {
+  $$("[data-qstatus]").forEach(function (b) { b.addEventListener("click", function () { S.qstatus = b.dataset.qstatus; S.quotes = null; loadQuotes(); render(); }); });
+  $$("[data-quote]").forEach(function (tr) { tr.addEventListener("click", function () { location.hash = "#/quotes/" + tr.dataset.quote; }); });
+  var nc = $("#f-qcust");
+  if (nc) nc.addEventListener("change", function () {
+    if (!nc.value) return;
+    api("/api/office/quotes", { method: "POST", body: { customer_id: +nc.value } }).then(function (d) {
+      showQuote(d); S.edit.lines.push({ description: "", qty: "1", unit: "" }); loadQuotes(); location.hash = "#/quotes/" + d.id;
+    }).catch(function (err) { S.msg = ["err", err.message, "newq"]; render(); });
+  });
+  var q = S.quote;
+  if (!q || !q.number || S.view !== "quotes") return;
+  var pr = $("[data-print]");
+  if (pr) pr.addEventListener("click", function () { window.print(); });
+  var send = $("[data-qsend]");
+  if (send) send.addEventListener("click", function () { send.disabled = true; quoteAction("/send", "POST", { email: true }, "Emailed to " + q.to.email + ". The link in it is the only one that works now."); });
+  var gl = $("[data-qlink]");
+  if (gl) gl.addEventListener("click", function () {
+    if (q.has_link && !confirm("Make a new link? The link sent before stops working.")) return;
+    quoteAction("/send", "POST", { email: false }, "Link ready: copy it and text or email it yourself.");
+  });
+  var cp = $("[data-copy-link]");
+  if (cp) cp.addEventListener("click", function () {
+    var box = $("#qlink-box"); box.select();
+    (navigator.clipboard ? navigator.clipboard.writeText(box.value) : Promise.reject()).then(function () { cp.textContent = "Copied"; })
+      .catch(function () { try { document.execCommand("copy"); cp.textContent = "Copied"; } catch (e) {} });
+  });
+  $$("[data-qstatus-to]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var to = b.dataset.qstatusTo;
+      if (to === "void" && !confirm("Void quote " + q.number + "? Its link stops working.")) return;
+      if (to === "draft" && q.status === "sent" && !confirm("Back to draft? The link you sent stops working until you send it again.")) return;
+      quoteAction("", "PATCH", { status: to }, { draft: "Back to draft: you can edit it again.", "void": "Voided.", sent: "Back to sent: the customer can answer again." }[to]);
+    });
+  });
+  $$("[data-qanswer]").forEach(function (b) { b.addEventListener("click", function () { S.answerForm = b.dataset.qanswer; S.msg = null; render(); }); });
+  var ha = $("[data-hide-answer]");
+  if (ha) ha.addEventListener("click", function () { S.answerForm = null; render(); });
+  var af = $("#answer-form");
+  if (af) af.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var to = S.answerForm, r = $("#f-areason");
+    quoteAction("", "PATCH", { status: to, answered_name: $("#f-aname").value || null, decline_reason: r ? r.value || null : null }, to === "accepted" ? "Marked accepted." : "Marked declined.");
+  });
+  var mi = $("[data-qinvoice]");
+  if (mi) mi.addEventListener("click", function () {
+    mi.disabled = true;
+    api("/api/office/quotes/" + q.id + "/invoice", { method: "POST" }).then(function (d) { S.quote = null; S.invoice = null; location.hash = "#/billing/" + d.invoice_id; })
+      .catch(function (err) { S.msg = ["err", err.message, "q"]; render(); });
+  });
+  var del = $("[data-delete-quote]");
+  if (del) del.addEventListener("click", function () {
+    if (!confirm("Delete this draft?")) return;
+    api("/api/office/quotes/" + q.id, { method: "DELETE" }).then(function () { S.quote = null; S.edit = null; loadQuotes(); location.hash = "#/quotes"; })
+      .catch(function (err) { S.msg = ["err", err.message, "q"]; render(); });
+  });
+  var vu = $("#f-valid");
+  if (vu) vu.addEventListener("change", function () { if (vu.value) quoteAction("", "PATCH", { valid_until: vu.value }, "Valid-until date changed."); });
+  bindLines("/api/office/quotes/" + q.id, function (d) { showQuote(d); loadQuotes(); });
 }
 
 // ---------------------------------------------------------------- flash: firmware + kit code onto a pair of boards
@@ -870,6 +1055,14 @@ function bind() {
   $$("[data-customer]").forEach(function (tr) { tr.addEventListener("click", function () { location.hash = "#/customers/" + tr.dataset.customer; }); });
   $$("[data-kit]").forEach(function (tr) { tr.addEventListener("click", function () { location.hash = "#/devices/" + tr.dataset.kit; }); });
   $$("[data-open-invoice]").forEach(function (tr) { tr.addEventListener("click", function () { location.hash = "#/billing/" + tr.dataset.openInvoice; }); });
+  $$("[data-open-quote]").forEach(function (tr) { tr.addEventListener("click", function () { location.hash = "#/quotes/" + tr.dataset.openQuote; }); });
+  var qc = $("[data-quote-customer]");
+  if (qc) qc.addEventListener("click", function () {
+    qc.disabled = true;
+    api("/api/office/quotes", { method: "POST", body: { customer_id: S.customer.id } }).then(function (d) {
+      showQuote(d); S.edit.lines.push({ description: "", qty: "1", unit: "" }); S.view = "quotes"; location.hash = "#/quotes/" + d.id;
+    }).catch(function (err) { S.msg = ["err", err.message, "cq"]; render(); });
+  });
   var bc = $("[data-bill-customer]");
   if (bc) bc.addEventListener("click", function () {
     var c = S.customer;
@@ -880,7 +1073,8 @@ function bind() {
     }).catch(function (err) { S.msg = ["err", err.message, "bill"]; render(); });
   });
   bindDevices();
-  bindBilling();
+  if (S.view === "billing") bindBilling();
+  if (S.view === "quotes") bindQuotes();
   bindFlash();
   var t = S.ticket;
   var stSel = $("#f-status");

@@ -191,7 +191,7 @@ public sealed partial class ApiServer
         foreach (var k in TicketStatuses) i[k] = inbox.GetValueOrDefault(k);
         var c = new JsonObject();
         foreach (var k in CustomerStatuses) c[k] = cust.GetValueOrDefault(k);
-        return new JsonObject { ["inbox"] = i, ["customers"] = c, ["invoices"] = InvoiceSummary(r.S) };
+        return new JsonObject { ["inbox"] = i, ["customers"] = c, ["invoices"] = InvoiceSummary(r.S), ["quotes"] = QuoteSummary(r.S) };
     }
 
     /// <summary>Tickets, most recently active first. "open" = everything not closed.</summary>
@@ -338,6 +338,7 @@ public sealed partial class ApiServer
         o["monthly_cents"] = c.MonthlyCents;
         o["list_prices"] = ListPricesView();
         o["invoices"] = CustomerInvoices(s, c);
+        o["quotes"] = CustomerQuotes(s, c);
         return o;
     }
 

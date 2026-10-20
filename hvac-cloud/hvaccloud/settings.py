@@ -53,3 +53,4 @@ ORDER_EMAIL = os.environ.get("ORDER_EMAIL", "") or SMTP_FROM          # where la
 WARRANTY_MONTHS = int(os.environ.get("WARRANTY_MONTHS", "12"))        # Fullscope boards, from the day a kit is claimed
 INVOICE_DAYS = int(os.environ.get("INVOICE_DAYS", "30"))              # invoices are due this many days after sending
 INVOICE_NOTE = os.environ.get("INVOICE_NOTE", "")                     # how to pay, printed on every invoice
+QUOTE_DAYS = int(os.environ.get("QUOTE_DAYS", "30"))                  # a sent quote can be accepted for this many days

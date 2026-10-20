@@ -194,6 +194,11 @@ temperatures, superheat, subcooling and delta-T.
     per kit shipped to them and not on a non-void invoice, a line per system on their account (full month, no pro-rating).
     draft -> sent (emailed, or marked sent when printed) -> paid (date + reference), or void; drafts can be deleted.
     INVOICE_NOTE (how to pay, printed on every invoice) and INVOICE_DAYS (30) in .env / fullscope.env.
+    Quotes (2026-10-20, `hvaccloud/quotes.py`, C# `Api/Quotes.cs`, Quotes tab): `quotes` + `quote_lines`, number Q-(1000 + id), for a
+    customer or lead. Send emails a private link `{APP_URL}quote.html#/quote/<token>` (SHA-256 stored; "Get link" makes one without
+    email; each send replaces the old link); valid QUOTE_DAYS (30). Public page web/quote.html: POST /api/quote/view and /api/quote/answer
+    (token in the body; accept needs a typed name, decline takes a reason) emails ORDER_EMAIL. Staff can mark yes/no by hand; "Make
+    invoice" turns an accepted quote into a draft invoice.
     Plan: Claude Doc "Fullscope Office plan".
   - Invites (`invites` table, token hashed, 7 days, single use) for homeowners (per system,
     Sensors & calibration page) and contractor teammates (Account page); links use APP_URL.

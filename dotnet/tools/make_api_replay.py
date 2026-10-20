@@ -44,7 +44,7 @@ APP_URL = "http://localhost:8000/app/"
 ORDER_EMAIL = "sales@fullscope.example"          # gets a copy of each new order and Office inbox ticket
 INVOICE_NOTE = "Pay by check to Fullscope, 1 Test Way, Mesa AZ."
 XRW = {"X-Requested-With": "fullscope"}
-TOKEN = re.compile(r"#/(invite|reset|claim)/([A-Za-z0-9_-]+)")
+TOKEN = re.compile(r"#/(invite|reset|claim|quote)/([A-Za-z0-9_-]+)")
 
 
 def make_seed(path):
@@ -620,6 +620,65 @@ def main():
     call("tech", "GET", "/api/office/invoices?status=paid")
     call("tech", "GET", "/api/office/invoices?status=bogus")
     call("tech", "GET", "/api/office/invoices/99999")
+    call("tech", "GET", f"/api/office/customers/{desert}")
+    call("tech", "GET", "/api/office/summary")
+
+    # ---- Fullscope Office: quotes ----
+    call("tech", "GET", "/api/office/quotes")
+    call("owner", "GET", "/api/office/quotes")
+    call("tech", "POST", "/api/office/quotes", {"customer_id": desert, "lines": [{"description": "Fullscope kit", "qty": 3, "unit_cents": 34900},
+                                                                                {"description": "Install visit", "unit_cents": 15000}],
+                                                "notes": " Ships in a week "})
+    call("tech", "POST", "/api/office/quotes", {"customer_id": 99999})
+    call("tech", "POST", "/api/office/quotes", {"customer_id": desert, "lines": [{"description": " ", "unit_cents": 1}]})
+    call("tech", "POST", "/api/office/quotes", {"customer_id": acme})
+    with sessions() as s:
+        q1, q2 = s.scalars(select(text("id")).select_from(text("quotes")).order_by(text("id"))).all()
+    call("tech", "POST", f"/api/office/quotes/{q2}/send")
+    call("tech", "PATCH", f"/api/office/quotes/{q2}", {"lines": [{"description": "Kit", "qty": 0, "unit_cents": 100}]})
+    call("tech", "PATCH", f"/api/office/quotes/{q2}", {"lines": [{"description": "Kit", "unit_cents": 100}], "valid_until": "2026-12-01"})
+    call("tech", "POST", f"/api/office/quotes/{q2}/send")
+    call("tech", "POST", f"/api/office/quotes/{q2}/send", {"email": "maybe"})
+    call("tech", "POST", f"/api/office/quotes/{q2}/send", {"email": False})
+    call("tech", "POST", f"/api/office/quotes/{q1}/send")
+    call("tech", "PATCH", f"/api/office/quotes/{q1}", {"notes": "x"})
+    call("anon", "POST", "/api/quote/view", {"token": tok()})
+    call("anon", "POST", "/api/quote/view", {"token": tok()})
+    call("anon", "POST", "/api/quote/view", {"token": "not-a-real-token"})
+    call("anon", "POST", "/api/quote/view", {})
+    call("anon", "POST", "/api/quote/answer", {"token": tok(), "accept": True, "name": "  "})
+    call("anon", "POST", "/api/quote/answer", {"token": tok()})
+    call("tech", "PATCH", f"/api/office/quotes/{q1}", {"valid_until": "2020-01-01"})
+    call("anon", "POST", "/api/quote/answer", {"token": tok(), "accept": True, "name": "Sam"})
+    call("tech", "PATCH", f"/api/office/quotes/{q1}", {"valid_until": "2099-01-01"})
+    call("anon", "POST", "/api/quote/answer", {"token": tok(), "accept": True, "name": " Sam Lee "})
+    call("anon", "POST", "/api/quote/answer", {"token": tok(), "accept": False})
+    call("tech", "GET", "/api/office/summary")
+    call("tech", "GET", f"/api/office/quotes/{q1}")
+    call("tech", "PATCH", f"/api/office/quotes/{q1}", {"status": "void"})
+    call("tech", "POST", f"/api/office/quotes/{q1}/invoice")
+    call("tech", "POST", f"/api/office/quotes/{q1}/invoice")
+    call("tech", "PATCH", f"/api/office/quotes/{q1}", {"status": "sent"})
+    call("anon", "POST", "/api/quote/answer", {"token": tok(-2), "accept": False, "reason": " Too pricey "})
+    call("tech", "PATCH", f"/api/office/quotes/{q2}", {"status": "declined", "decline_reason": " Went with another "})
+    call("tech", "PATCH", f"/api/office/quotes/{q2}", {"status": "draft"})
+    call("anon", "POST", "/api/quote/view", {"token": tok(-2)})
+    call("tech", "DELETE", f"/api/office/quotes/{q2}")
+    call("tech", "PATCH", f"/api/office/quotes/{q2}", {"status": "void"})
+    call("tech", "POST", "/api/office/quotes", {"customer_id": desert, "lines": [{"description": "Spare sensor", "unit_cents": 2500}]})
+    with sessions() as s:
+        q3 = s.scalar(select(text("max(id)")).select_from(text("quotes")))
+    call("tech", "POST", f"/api/office/quotes/{q3}/send", {"email": False})
+    call("tech", "PATCH", f"/api/office/quotes/{q3}", {"status": "accepted", "answered_name": "Sam, by phone"})
+    call("tech", "PATCH", f"/api/office/quotes/{q3}", {"status": "bogus"})
+    call("tech", "POST", "/api/office/quotes", {"customer_id": acme, "lines": [{"description": "Throwaway", "unit_cents": 1}]})
+    with sessions() as s:
+        q4 = s.scalar(select(text("max(id)")).select_from(text("quotes")))
+    call("tech", "DELETE", f"/api/office/quotes/{q4}")
+    call("tech", "GET", "/api/office/quotes")
+    call("tech", "GET", "/api/office/quotes?status=all")
+    call("tech", "GET", "/api/office/quotes?status=nope")
+    call("tech", "GET", "/api/office/quotes/99999")
     call("tech", "GET", f"/api/office/customers/{desert}")
     call("tech", "GET", "/api/office/summary")
 
