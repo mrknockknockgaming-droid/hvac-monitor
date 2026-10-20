@@ -1,5 +1,5 @@
 {
-  "_comment": "Prices on the landing page (welcome.html). null shows 'Price on request'. Change, commit, then deploy.",
+  "_comment": "Prices on the landing page (welcome.html). null shows 'Pricing Upon Request'. Change, commit, then deploy.",
   "currency": "USD",
   "kit": null,
   "monitoring": null
