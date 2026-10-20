@@ -9,14 +9,15 @@ Areas: hardware, enclosure, firmware, web app, dashboard, cloud, install, docs, 
 
 ## Open
 
+- 2026-10-19 · install · WiFi is weak at both units (outdoor -68 dBm with drops every few minutes, indoor -79 dBm); WiFi uploads failed at 7-42 %. Move the router or add an access point nearer the units, or wait for LoRa on rev B · open
 - 2026-10-11 · hardware · Sensor leads need to be longer, especially for package units · open
-- 2026-10-11 · install · PC IP changed to 192.168.1.204 (was .191): add a DHCP reservation · open
-- 2026-10-11 · cloud · Move the MQTT broker to a Proxmox VM and point both nodes at it · open
+- 2026-10-11 · install · Reserve 192.168.1.50 (the Proxmox container the nodes report to) in the router's DHCP; the PC's address no longer matters to the nodes · open
 - 2026-10-11 · firmware · OTA password is weak: change it in config.h and reflash · open
 
 ## Planned
 
 ## Done
 
+- 2026-10-11 · cloud · Move the MQTT broker to a Proxmox VM and point both nodes at it · done 2026-10-14 (Proxmox container 192.168.1.50, PR #40)
 - 2026-10-12 · web app · Select one or more alerts and highlight the chart at the time each alert occurred · done 2026-10-17 (tick alerts in the Monitor alert log)
 - 2026-10-11 · install · Land the Y and O/B call wires if not done (diagnostics only run during a call) · done 2026-10-17 (Tyler)
