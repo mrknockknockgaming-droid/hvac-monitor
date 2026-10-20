@@ -95,6 +95,8 @@ temperatures, superheat, subcooling and delta-T.
   - Resend (fw 0.3.2, `include/send_queue.h`): the node subscribes to its own telemetry topic; readings the broker
     never echoed back (a link that died quietly, seen on Tyler's outdoor node 2026-10-19) are resent first on the
     next connection. Ingest.repeat / C# Ingest.Repeat drop an exact repeat (same node, ts and contents).
+  - `outdoor_reva_ota` / `indoor_reva_ota` (2026-10-20): 0.3.x without Bluetooth (-DNO_BLE_SETUP), default
+    partitions, so rev A boards on the AC update over WiFi (`--upload-port <IP>`) without the min_spiffs USB flash.
   - CT inputs (fw 0.3.0, `src/ct.cpp`, maths in `include/ct_math.h`, host test in
     tools/host_tests): RMS every 2 s at 3 kHz/channel, 1.5 s compressor-start capture on the Y
     rising edge; the outdoor node publishes them as the `electrical` node every 5 s (over LoRa
