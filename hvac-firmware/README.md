@@ -101,6 +101,12 @@ pio run -e outdoor -t upload -t monitor
 (or pick the env in the PlatformIO sidebar). Use `-e indoor` for the other board.
 After the first USB flash you can update over WiFi: `pio run -e outdoor_ota -t upload`.
 
+Rev A boards (no SETUP button) still on the original partition table can take 0.3.x over WiFi
+without the Bluetooth setup: `pio run -e outdoor_reva_ota -t upload --upload-port 192.168.1.247`
+(indoor: `indoor_reva_ota`). Everything else is the same firmware. Such a board needs the USB
+flash only to get Bluetooth setup, which it has no button for anyway. If an update over WiFi fails
+partway, the board keeps running its old firmware.
+
 On boot the serial monitor shows which sensors were found, e.g.
 `[hw] ADS1115 #1 ok, ADS1115 #2 ok, SHT30 ok`, then one JSON line per reading.
 

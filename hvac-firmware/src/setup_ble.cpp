@@ -2,15 +2,19 @@
 #include "common.h"
 #include "settings.h"
 #include <WiFi.h>
+#ifndef NO_BLE_SETUP      // the *_reva_ota builds: rev A boards have no SETUP button and no room for Bluetooth
 #include <SimpleBLE.h>    // only so the library finder adds it for WiFiProv
 #include <WiFiProv.h>
+#endif
 
+static const char*    K_SSID     = "wifi.ssid";
+static const char*    K_PASS     = "wifi.pass";
+
+#ifndef NO_BLE_SETUP
 static const uint32_t HOLD_MS    = 3000;                 // button hold that starts setup
 static const uint32_t SETUP_MS   = 10UL * 60UL * 1000UL; // give up (no changes) after 10 min
 static const char*    K_REQ      = "setup.req";          // set before the restart into setup mode
 static const char*    K_POP      = "setup.pop";
-static const char*    K_SSID     = "wifi.ssid";
-static const char*    K_PASS     = "wifi.pass";
 
 static uint32_t pressedSince = 0;
 static volatile bool credOk = false;
@@ -108,6 +112,11 @@ void setupBleLoop() {
   delay(100);
   ESP.restart();
 }
+
+#else
+void setupBleBegin() {}
+void setupBleLoop() {}
+#endif
 
 bool setupBleWifi(String& ssid, String& pass) {
   ssid = setGetS(K_SSID, "");
