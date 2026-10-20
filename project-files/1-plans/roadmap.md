@@ -1,10 +1,10 @@
 # HVAC Monitor Roadmap
 
-Oct 17, 2026 · @Tyler
+Oct 20, 2026 · @Tyler
 
 ## Overview
 
-Phases 1 to 3 are done and Phase 4 is under way. The rev A carrier boards are built and installed on your own AC, both nodes run firmware 0.2.0, the sensors are calibrated, and live data shows in the Fullscope web app. Enclosures and cabinet mounting plates are designed. The broker and cloud now run in a Proxmox container (192.168.1.50), on the new C# build of the server. Open follow-ups: reserve 192.168.1.50 in the router's DHCP, change the weak OTA password, and land the Y and O/B call wires if they aren't yet.
+Phases 1 to 3 are done and Phase 4 is under way. The rev A carrier boards are installed on your own AC, both nodes run firmware 0.3.2, the sensors are calibrated, and live data shows at https://app.fullscope-app.com, served from a Proxmox container (192.168.1.50) on the C# build of the server. Sign-in has two-step codes, alerts go to email and phones, and `fullscope-manage check` reports the system's health. Open follow-ups: reserve 192.168.1.50 in the router's DHCP, change the weak OTA password, and improve WiFi at both units (outdoor -68 dBm with frequent drops, indoor -79 dBm).
 
 Phases run in order. Customer discovery and IP protection run alongside the build from now on. Tick items as you finish them.
 
@@ -87,7 +87,7 @@ Phases run in order. Customer discovery and IP protection run alongside the buil
 - [x] Create your account and system with manage.py
 - [x] Register both nodes: they appear on their first message once powered and online (no firmware change needed, same MQTT topics)
 - [x] Port the cloud server and bench dashboard to C# (.NET 10): one `fullscope` program, tested against recorded Python output, with faster long history ranges; the Proxmox container runs it (deploy with `-Python` to go back)
-- [ ] Confirm history, alerts, email and remote calibration all work (all built; needs the nodes online and alert email set up)
+- [x] Confirm history, alerts, email and remote calibration all work (Oct 19, `fullscope-manage check` on the live system: both nodes reporting, history since Oct 10, alert email on, last remote command answered)
 
 ## Phase 8: Go live in the cloud
 
@@ -102,7 +102,8 @@ Phases run in order. Customer discovery and IP protection run alongside the buil
 - [x] Invite links for homeowners and contractor colleagues, and a contractor Fleet page listing every system, most in need of attention first
 - [x] Review of the cloud code for bugs and security: 8 fixes (alert emails now reach homeowners, password change signs out other sessions, remove colleagues, invite tokens kept out of logs, and smaller hardening)
 - [x] Password reset: emailed one-time link, or a link the contractor makes for a homeowner when email is off
-- [ ] Move sign-in to a managed provider (Auth0 or Clerk) for password reset, two-factor and phone-friendly login
+- [x] Two-step sign-in with an authenticator app and 8 recovery codes, plus a limit of 30 failed sign-ins per address per 15 min (Oct 19, PR #67); built in instead of a managed provider. Turn it on from the Account page
+- [x] `fullscope-manage check`: one command that lists OK / WARN / FAIL for nodes, readings, alerts, email, notifications, two-step, backups and the HTTPS cookie (Oct 19, PR #69)
 - [x] Build alerts: a fault lasting 5 min raises an alert, "no data" after 10 min of silence, alert lists in the web app, email with a 6 h cooldown
 - [x] Alert recipients (owner and/or contractor; plain-language emails for the owner, technical for the contractor), acknowledge, and mute by alert type
 - [x] Alerts for checks that only run while the system runs (refrigerant, delta-T) stay open between cycles instead of clearing every time the compressor stops: one problem, one alert, no "back to normal" email each cycle
@@ -134,9 +135,10 @@ Sheet-metal cabinets and homeowner WiFi are the weak points for nodes at the con
 - [ ] Enable secure boot and flash encryption
 - [ ] Load unique device credentials at manufacturing
 - [ ] Bluetooth WiFi setup for the gateway from a phone, with QR claim codes that pair all devices
-- [x] SETUP button WiFi setup over Bluetooth on both nodes (merged Oct 18, PR #62, firmware 0.3.1): hold SETUP 3 s, then use the ESP BLE Provisioning app with the node's setup code; needs one USB flash per node (new flash layout). Builds pass; not yet tried with a phone
+- [x] SETUP button WiFi setup over Bluetooth on both nodes (merged Oct 18, PR #62, firmware 0.3.1): hold SETUP 3 s, then use the ESP BLE Provisioning app with the node's setup code; both nodes have the new flash layout since the Oct 20 USB flash. Not yet tried with a phone
 - [ ] Cloud firmware updates, relayed through the gateway to the nodes
-- [ ] Local buffering during outages (nodes keep 10 minutes since firmware 0.2; longer storage and the gateway still to do)
+- [x] Firmware 0.3.2 on both nodes (Oct 20): readings sent into a WiFi link that died without the node noticing are resent on reconnect, and the cloud drops the repeats (PR #70); WiFi power saving off for steadier links (PR #73); fix for 0.3.1 ignoring config.h's WiFi network (PR #74). Later updates can go over WiFi with outdoor_ota / indoor_ota; rev A boards still on the old flash layout can use outdoor_reva_ota / indoor_reva_ota (PR #71)
+- [ ] Local buffering during outages (nodes keep 10 minutes since firmware 0.2 and resend lost readings since 0.3.2; longer storage and the gateway still to do)
 - [ ] Heat-rated production enclosures
 
 ## Phase 10: Pilot
@@ -174,7 +176,7 @@ Sheet-metal cabinets and homeowner WiFi are the weak points for nodes at the con
 
 - [ ] FCC Part 15 testing; UL/ETL for the electrical module
 - [ ] Multi-contractor accounts and subscription billing
-- [ ] Push notifications
+- [x] Push notifications to phones and browsers (Oct 19, PR #68): turn them on from the Account page; on iPhone, Add to Home Screen first (iOS 16.4+). Same switches, mutes and 6 h cooldown as alert email
 - [ ] Install guides and support docs
 - [ ] Volume sourcing direct from manufacturers
 - [ ] Final pricing: hardware plus subscription
