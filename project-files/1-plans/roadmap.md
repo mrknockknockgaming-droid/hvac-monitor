@@ -136,6 +136,8 @@ Sheet-metal cabinets and homeowner WiFi are the weak points for nodes at the con
 - [ ] Enable secure boot and flash encryption
 - [ ] Load unique device credentials at manufacturing
 - [ ] Bluetooth WiFi setup for the gateway from a phone, with QR claim codes that pair all devices
+- [x] QR claim codes for shipped kits (merged Oct 20, PR #81): each kit (an outdoor and an indoor board) gets a printed QR label; a contractor scans it, signs in and names the system, which adds it to their account, starts the 12-month warranty and invites the homeowner. Until firmware 0.4.0, flash both boards with SITE_ID set to the kit code
+- [ ] Firmware 0.4.0 keeps the kit code and broker settings in flash, plus board flashing from the browser in Fullscope Office
 - [x] SETUP button WiFi setup over Bluetooth on both nodes (merged Oct 18, PR #62, firmware 0.3.1): hold SETUP 3 s, then use the ESP BLE Provisioning app with the node's setup code; both nodes have the new flash layout since the Oct 20 USB flash. Not yet tried with a phone
 - [ ] Cloud firmware updates, relayed through the gateway to the nodes
 - [x] Firmware 0.3.2 on both nodes (Oct 20): readings sent into a WiFi link that died without the node noticing are resent on reconnect, and the cloud drops the repeats (PR #70); WiFi power saving off for steadier links (PR #73); fix for 0.3.1 ignoring config.h's WiFi network (PR #74). Later updates can go over WiFi with outdoor_ota / indoor_ota; rev A boards still on the old flash layout can use outdoor_reva_ota / indoor_reva_ota (PR #71)
@@ -177,6 +179,8 @@ Sheet-metal cabinets and homeowner WiFi are the weak points for nodes at the con
 
 - [ ] FCC Part 15 testing; UL/ETL for the electrical module
 - [ ] Multi-contractor accounts and subscription billing
+- [x] Fullscope Office, the business pages for Fullscope staff (merged Oct 20, PR #80 and #81): one inbox for order requests, website contact messages and contractors' support requests (reply by email or add internal notes); customers with "Create account and invite"; devices with kits, boards, QR labels and warranty claims
+- [ ] Billing in Fullscope Office: manual invoices first (Tyler's choice, Oct 20), no payment provider yet
 - [x] Push notifications to phones and browsers (Oct 19, PR #68): turn them on from the Account page; on iPhone, Add to Home Screen first (iOS 16.4+). Same switches, mutes and 6 h cooldown as alert email
 - [ ] Install guides and support docs
 - [ ] Volume sourcing direct from manufacturers

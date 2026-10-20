@@ -16,7 +16,12 @@ Areas: hardware, enclosure, firmware, web app, dashboard, cloud, install, docs, 
 
 ## Planned
 
+- 2026-10-20 · business · Flash boards from the browser in Fullscope Office, with firmware 0.4.0 keeping the kit code in flash · planned (Phase 9)
+- 2026-10-20 · business · Billing in Fullscope Office: manual invoices first · planned (Phase 12)
+
 ## Done
+
+- 2026-10-20 · business · One page for the business side: email requests, inquiries and support in one inbox, customers, warranties, and QR codes contractors scan to add a shipped kit to their account and homeowner · done 2026-10-20 (Fullscope Office, PR #80 and #81)
 
 - 2026-10-11 · cloud · Move the MQTT broker to a Proxmox VM and point both nodes at it · done 2026-10-14 (Proxmox container 192.168.1.50, PR #40)
 - 2026-10-12 · web app · Select one or more alerts and highlight the chart at the time each alert occurred · done 2026-10-17 (tick alerts in the Monitor alert log)
