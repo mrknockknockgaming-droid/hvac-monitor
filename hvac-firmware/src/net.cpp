@@ -132,6 +132,11 @@ void netBegin(CmdHandler onCmd, StatusFiller onStatus) {
 
   wifiFromSetup = setupBleWifi(wifiSsid, wifiPass);
   WiFi.mode(WIFI_STA);
+  // No modem power saving: with it the radio dozes between beacons, which on a weak link (the boards
+  // on Tyler's AC sit at -68 and -79 dBm) means late packets, dropped MQTT connections and OTA
+  // uploads that die partway. Costs ~80 mA, which the 24 VAC supply has to spare. Bluetooth setup
+  // needs it on, but that runs from a restart before this.
+  WiFi.setSleep(false);
   WiFi.setHostname(("hvac-" NODE_NAME));
   WiFi.setAutoReconnect(true);
   WiFi.begin(wifiSsid.c_str(), wifiPass.c_str());

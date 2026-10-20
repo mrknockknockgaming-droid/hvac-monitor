@@ -68,6 +68,8 @@ clock by NTP after WiFi connects and waits up to 15 s for it before the first TL
   `tools/host_tests/send_queue_test.cpp`). The cloud ignores an exact repeat of a reading it
   already has (same node, same `ts`, same contents). The retired PC dashboard doesn't, so it may
   show the odd duplicate.
+- WiFi power saving is off (`WiFi.setSleep(false)`): weak links drop fewer connections and take
+  updates over WiFi more reliably, for about 80 mA more.
 
 ### LoRa instead of WiFi (optional)
 With an SX1262 module wired up (pins in `config.example.h`), set `LORA_ENABLED 1` and the node's
