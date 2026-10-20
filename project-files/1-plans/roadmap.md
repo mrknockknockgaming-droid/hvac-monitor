@@ -4,7 +4,7 @@ Oct 20, 2026 · @Tyler
 
 ## Overview
 
-Phases 1 to 3 are done and Phase 4 is under way. The rev A carrier boards are installed on your own AC, both nodes run firmware 0.3.2, the sensors are calibrated, and live data shows at https://app.fullscope-app.com, served from a Proxmox container (192.168.1.50) on the C# build of the server. Sign-in has two-step codes, alerts go to email and phones, and `fullscope-manage check` reports the system's health. Open follow-ups: reserve 192.168.1.50 in the router's DHCP, change the weak OTA password, and improve WiFi at both units (outdoor -68 dBm with frequent drops, indoor -79 dBm).
+Phases 1 to 3 are done and Phase 4 is under way. The rev A carrier boards are installed on your own AC, both nodes run firmware 0.3.2, the sensors are calibrated, and live data shows at https://app.fullscope-app.com, served from a Proxmox container (192.168.1.50) on the C# build of the server. Sign-in has two-step codes and separate admin, technician and homeowner pages, alerts go to email and phones, and `fullscope-manage check` reports the system's health. Open follow-ups: reserve 192.168.1.50 in the router's DHCP, change the weak OTA password, and improve WiFi at both units (outdoor -68 dBm with frequent drops, indoor -79 dBm).
 
 Phases run in order. Customer discovery and IP protection run alongside the build from now on. Tick items as you finish them.
 
@@ -104,6 +104,7 @@ Phases run in order. Customer discovery and IP protection run alongside the buil
 - [x] Password reset: emailed one-time link, or a link the contractor makes for a homeowner when email is off
 - [x] Two-step sign-in with an authenticator app and 8 recovery codes, plus a limit of 30 failed sign-ins per address per 15 min (Oct 19, PR #67); built in instead of a managed provider. Turn it on from the Account page
 - [x] `fullscope-manage check`: one command that lists OK / WARN / FAIL for nodes, readings, alerts, email, notifications, two-step, backups and the HTTPS cookie (Oct 19, PR #69)
+- [x] Separate pages by access level (Oct 20, PR #76): admins get the Fleet page, the team list and teammate invites, technicians get only the system pages (Monitor, Equipment, Sensors & calibration, Service history), and homeowners get only their home page; the server checks each level, and each account's first contractor is its admin
 - [x] Build alerts: a fault lasting 5 min raises an alert, "no data" after 10 min of silence, alert lists in the web app, email with a 6 h cooldown
 - [x] Alert recipients (owner and/or contractor; plain-language emails for the owner, technical for the contractor), acknowledge, and mute by alert type
 - [x] Alerts for checks that only run while the system runs (refrigerant, delta-T) stay open between cycles instead of clearing every time the compressor stops: one problem, one alert, no "back to normal" email each cycle
