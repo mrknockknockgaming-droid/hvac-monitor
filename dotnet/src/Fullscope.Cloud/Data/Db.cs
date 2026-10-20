@@ -27,6 +27,9 @@ public sealed class Db(DbContextOptions<Db> options) : DbContext(options)
     public DbSet<SystemMember> SystemMembers => Set<SystemMember>();
     public DbSet<Invite> Invites => Set<Invite>();
     public DbSet<Order> Orders => Set<Order>();
+    public DbSet<Customer> Customers => Set<Customer>();
+    public DbSet<Ticket> Tickets => Set<Ticket>();
+    public DbSet<TicketMessage> TicketMessages => Set<TicketMessage>();
     public DbSet<PasswordReset> PasswordResets => Set<PasswordReset>();
     public DbSet<PushSubscription> PushSubscriptions => Set<PushSubscription>();
     public DbSet<ServerKey> ServerKeys => Set<ServerKey>();
@@ -140,6 +143,43 @@ public sealed class Db(DbContextOptions<Db> options) : DbContext(options)
             Len(e.Property(x => x.Email), 320);
             Len(e.Property(x => x.Phone), 40);
             Len(e.Property(x => x.Notes), 2000);
+        });
+        b.Entity<Customer>(e =>
+        {
+            e.ToTable("customers");
+            Len(e.Property(x => x.Company), 200);
+            Len(e.Property(x => x.Contact), 200);
+            Len(e.Property(x => x.Email), 320);
+            Len(e.Property(x => x.Phone), 40);
+            Len(e.Property(x => x.Address), 500);
+            Len(e.Property(x => x.Status), 16);
+            Len(e.Property(x => x.Notes), 4000);
+            e.HasOne<Account>().WithMany().HasForeignKey(x => x.AccountId).OnDelete(DeleteBehavior.NoAction);
+        });
+        b.Entity<Ticket>(e =>
+        {
+            e.ToTable("tickets");
+            Len(e.Property(x => x.Kind), 16);
+            Len(e.Property(x => x.Status), 16);
+            Len(e.Property(x => x.Subject), 200);
+            Len(e.Property(x => x.Name), 200);
+            Len(e.Property(x => x.Email), 320);
+            Len(e.Property(x => x.Phone), 40);
+            Len(e.Property(x => x.Company), 200);
+            Len(e.Property(x => x.Body), 4000);
+            e.HasOne<Order>().WithMany().HasForeignKey(x => x.OrderId).OnDelete(DeleteBehavior.NoAction);
+            e.HasOne<Customer>().WithMany().HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.NoAction);
+            e.HasOne<Account>().WithMany().HasForeignKey(x => x.AccountId).OnDelete(DeleteBehavior.NoAction);
+            e.HasOne<HvacSystem>().WithMany().HasForeignKey(x => x.SystemId).OnDelete(DeleteBehavior.NoAction);
+            e.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.NoAction);
+        });
+        b.Entity<TicketMessage>(e =>
+        {
+            e.ToTable("ticket_messages");
+            Len(e.Property(x => x.Kind), 8);
+            Len(e.Property(x => x.Body), 4000);
+            e.HasOne<Ticket>().WithMany().HasForeignKey(x => x.TicketId).OnDelete(DeleteBehavior.NoAction);
+            e.HasOne<User>().WithMany().HasForeignKey(x => x.AuthorId).OnDelete(DeleteBehavior.NoAction);
         });
         b.Entity<Invite>(e =>
         {

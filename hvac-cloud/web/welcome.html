@@ -70,7 +70,7 @@
 .lp form{max-width:640px;margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:14px 16px}
 .lp form label{display:flex;flex-direction:column;gap:5px;font-size:13px;color:var(--ink-muted)}
 .lp form .wide{grid-column:1 / -1}
-.lp form input,.lp form textarea{background:var(--surface-2);border:1px solid var(--line-strong);border-radius:2px;padding:8px 10px;font:inherit;font-size:15px;color:var(--ink);width:100%}
+.lp form input,.lp form textarea,.lp form select{background:var(--surface-2);border:1px solid var(--line-strong);border-radius:2px;padding:8px 10px;font:inherit;font-size:15px;color:var(--ink);width:100%}
 .lp form textarea{min-height:88px;resize:vertical}
 .lp form .opt{color:var(--ink-faint)}
 .lp form .trap{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
@@ -107,6 +107,7 @@
       <nav class="nav">
         <a class="link" href="#pricing">Pricing</a>
         <a class="link" href="#order">Order</a>
+        <a class="link" href="#contact">Contact</a>
         <a class="btn signin" href="/app/">Sign in</a>
       </nav>
     </div>
@@ -223,6 +224,28 @@
       </div>
     </section>
 
+    <section id="contact">
+      <div class="wrap">
+        <h2>Contact us</h2>
+        <p>Questions about Fullscope, or help with a system that's already installed. We answer by email.</p>
+        <form id="contact-form" novalidate>
+          <label>Your name<input name="name" autocomplete="name" maxlength="200" required></label>
+          <label>Email<input name="email" type="email" autocomplete="email" maxlength="320" required></label>
+          <label><span>Company <span class="opt">(optional)</span></span><input name="company" autocomplete="organization" maxlength="200"></label>
+          <label><span>Phone <span class="opt">(optional)</span></span><input name="phone" type="tel" autocomplete="tel" maxlength="40"></label>
+          <label class="wide">About<select name="topic">
+            <option value="sales">Buying Fullscope</option>
+            <option value="support">Help with an installed system</option>
+            <option value="other">Something else</option>
+          </select></label>
+          <label class="wide">Message<textarea name="message" maxlength="4000" required></textarea></label>
+          <label class="trap" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>
+          <button class="btn primary wide" type="submit">Send message</button>
+          <p class="msg wide" id="contact-msg" role="status" hidden></p>
+        </form>
+      </div>
+    </section>
+
     <section>
       <div class="wrap">
         <h2>Already using Fullscope?</h2>
@@ -288,6 +311,30 @@ document.getElementById("order-form").addEventListener("submit", function (e) {
       }
     })
     .catch(function () { show("Couldn't send the request. Check your connection and try again.", false); })
+    .then(function () { btn.disabled = false; });
+});
+
+document.getElementById("contact-form").addEventListener("submit", function (e) {
+  e.preventDefault();
+  var f = e.target, msg = document.getElementById("contact-msg"), btn = f.querySelector("button");
+  function show(text, ok) { msg.hidden = false; msg.className = "msg wide " + (ok ? "ok" : "err"); msg.textContent = text; }
+  var data = {};
+  ["name", "email", "company", "phone", "topic", "message", "website"].forEach(function (k) { data[k] = f.elements[k].value.trim(); });
+  if (!data.name || !data.email || !data.message) return show("Please fill in your name, email and message.", false);
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(data.email)) return show("That doesn't look like an email address.", false);
+  btn.disabled = true;
+  fetch("/api/contact", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
+    .then(function (r) { return r.json().catch(function () { return {}; }).then(function (b) { return { ok: r.ok, body: b }; }); })
+    .then(function (res) {
+      if (res.ok) {
+        f.querySelectorAll("input, textarea").forEach(function (el) { el.value = ""; });
+        show("Thanks, your message was sent. We'll answer by email.", true);
+      } else {
+        var d = res.body && res.body.detail;
+        show(typeof d === "string" ? d : "Something in the form isn't right. Check the fields and try again.", false);
+      }
+    })
+    .catch(function () { show("Couldn't send the message. Check your connection and try again.", false); })
     .then(function () { btn.disabled = false; });
 });
 </script>

@@ -37,6 +37,7 @@ class Principal:
     user_id: int | None = None   # None for an API key
     via: str = "session"         # "session" | "key"
     admin: bool = False          # contractor who runs the account: fleet page and team
+    staff: bool = False          # Fullscope's own people: the Office pages (business side)
 
     @property
     def is_tech(self):
@@ -54,7 +55,7 @@ class Principal:
 
     @classmethod
     def for_user(cls, user):
-        return cls(role=user.role, account_id=user.account_id, user_id=user.id, admin=bool(user.admin))
+        return cls(role=user.role, account_id=user.account_id, user_id=user.id, admin=bool(user.admin), staff=bool(user.staff))
 
 
 def hash_password(password):

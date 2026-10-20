@@ -36,6 +36,8 @@ public static class Schema
             }
             AddMissingColumns(db, conn);
             EnsureAdmins(db);
+            EnsureStaff(db);
+            EnsureOrderTickets(db);
             if (!db.IsSqlite)
             {
                 Exec(conn, "CREATE EXTENSION IF NOT EXISTS timescaledb");
@@ -61,6 +63,25 @@ public static class Schema
             var team = s.Users.Where(u => u.Role == "contractor" && u.AccountId == accountId).OrderBy(u => u.Id).ToList();
             if (team.Count > 0 && !team.Any(u => u.Admin == true)) team[0].Admin = true;
         }
+        s.SaveChanges();
+    }
+
+    /// <summary>Someone can always open the Office pages: when nobody is staff, the first contractor admin
+    /// (the owner's own sign-in on a new server) becomes staff (db.ensure_staff).</summary>
+    public static void EnsureStaff(Db s)
+    {
+        if (!s.Users.Any(u => u.Staff == true)
+            && s.Users.Where(u => u.Role == "contractor" && u.Admin == true).OrderBy(u => u.Id).FirstOrDefault() is User first)
+            first.Staff = true;
+        s.SaveChanges();
+    }
+
+    /// <summary>Order requests saved before the Office inbox existed get their inbox ticket (db.ensure_order_tickets).</summary>
+    public static void EnsureOrderTickets(Db s)
+    {
+        var have = s.Tickets.Where(t => t.OrderId != null).Select(t => t.OrderId!.Value).ToHashSet();
+        foreach (var order in s.Orders.OrderBy(o => o.Id).ToList())
+            if (!have.Contains(order.Id)) s.Tickets.Add(Ticket.ForOrder(order));
         s.SaveChanges();
     }
 

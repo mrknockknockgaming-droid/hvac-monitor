@@ -23,6 +23,7 @@ namespace Fullscope.Cloud;
 ///   fullscope manage create-user you@gmail.com --name "Tyler" --account 1        (contractor; asks for a password)
 ///   fullscope manage create-user owner@example.com --role homeowner --system 1   (sees system 1 only)
 ///   fullscope manage set-admin you@gmail.com          (fleet page + team; --off makes them a technician again)
+///   fullscope manage set-staff you@gmail.com          (Fullscope Office: inbox, customers; --off removes it)
 ///   fullscope manage set-password you@gmail.com
 ///   fullscope manage reset-2fa you@gmail.com          (turns two-step sign-in off, for a lost phone)
 ///   fullscope manage check                             (is everything working? nodes, readings, alerts, email, backups)
@@ -100,7 +101,7 @@ public static class Manage
         var cmd = argv.FirstOrDefault();
         var rest = argv.Length > 0 ? argv[1..] : [];
         string[] commands = ["init-db", "create-account", "create-key", "create-system", "list", "set-email", "backup", "prune",
-                             "create-user", "set-admin", "set-password", "reset-2fa", "test-email", "orders", "check"];
+                             "create-user", "set-admin", "set-staff", "set-password", "reset-2fa", "test-email", "orders", "check"];
         if (cmd is null or "-h" or "--help" || !commands.Contains(cmd))
         {
             Console.Error.WriteLine("usage: fullscope manage {" + string.Join(",", commands) + "} ...");
@@ -266,6 +267,19 @@ public static class Manage
                 user.Admin = off ? null : true;
                 s.SaveChanges();
                 Console.WriteLine($"{user.Email} is now {(off ? "a technician" : "an admin")}");
+                break;
+            }
+            case "set-staff":
+            {
+                a.Need(1, "set-staff <email> [--off]");
+                var email = a.Pos[0].Trim().ToLowerInvariant();
+                var user = s.Users.FirstOrDefault(u => u.Email == email) ?? throw new Exit($"no user {a.Pos[0]}");
+                bool off = a.Flag("--off");
+                if (off && user.Staff == true && !s.Users.Any(u => u.Staff == true && u.Id != user.Id))
+                    throw new Exit("someone must keep Office access: make someone else staff first");
+                user.Staff = off ? null : true;
+                s.SaveChanges();
+                Console.WriteLine($"{user.Email} {(off ? "can no longer open" : "can now open")} Fullscope Office");
                 break;
             }
             case "set-password":

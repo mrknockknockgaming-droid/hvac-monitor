@@ -41,6 +41,7 @@ PW = "correct horse battery"
 KEY1 = "hvk_account-one-test-key-0000000000000000000"
 KEY2 = "hvk_account-two-test-key-0000000000000000000"
 APP_URL = "http://localhost:8000/app/"
+ORDER_EMAIL = "sales@fullscope.example"          # gets a copy of each new order and Office inbox ticket
 XRW = {"X-Requested-With": "fullscope"}
 TOKEN = re.compile(r"#/(invite|reset)/([A-Za-z0-9_-]+)")
 
@@ -63,7 +64,7 @@ def make_seed(path):
         s.add(System(account_id=a2.id, name="Other", site_id="other"))
         for key, acct in ((KEY1, 1), (KEY2, a2.id)):
             s.add(ApiKey(account_id=acct, prefix=key[:12], key_hash=hash_key(key)))
-        s.add(User(email="tech@desertair.example", name="Tech", role="contractor", account_id=1, admin=True,
+        s.add(User(email="tech@desertair.example", name="Tech", role="contractor", account_id=1, admin=True, staff=True,
                    password_hash=auth.hash_password(PW)))
         s.add(User(email="boss@other.example", role="contractor", account_id=a2.id, admin=True,
                    password_hash=auth.hash_password(PW)))
@@ -101,6 +102,7 @@ def main():
     engine = create_engine("sqlite:///" + work)
     sessions = session_factory(engine)
     settings.APP_URL = APP_URL
+    settings.ORDER_EMAIL = ORDER_EMAIL
     alerts.settings.APP_URL = APP_URL
     rec = Recorder()
     app = create_app(sessions, publisher=rec.publish, stale=30, mailer=rec, send_async=False)
@@ -427,6 +429,66 @@ def main():
     call("office", "POST", "/api/invites/accept", {"token": tok(), "password": "office password 1"})
     call("office", "GET", "/api/fleet")
 
+    # ---- Fullscope Office: inbox, support requests, customers ----
+    order = {"company": "Sun Valley Air", "name": "Kim", "email": "kim@sunvalley.example", "phone": "623-555-0199", "systems": 12,
+             "notes": "Glendale maintenance customers"}
+    contact = {"name": "Pat", "email": " Pat@Cool.example ", "company": "Cool Co", "topic": "sales", "message": "Do you ship to Texas?"}
+    call("anon", "POST", "/api/orders", order)
+    call("anon", "POST", "/api/contact", contact)
+    call("anon", "POST", "/api/contact", {"name": "Lee", "email": "lee@example.com", "message": "Homeowner version?"})
+    call("anon", "POST", "/api/contact", {**contact, "topic": "spam"})
+    call("anon", "POST", "/api/contact", {**contact, "message": "   "})
+    call("anon", "POST", "/api/contact", {**contact, "website": "http://spam.example"})
+    call("anon", "GET", "/api/office/inbox")
+    call("key1", "GET", "/api/office/inbox")
+    call("mate", "GET", "/api/office/summary")
+    call("boss", "GET", "/api/office/customers")
+    call("mate", "POST", "/api/support", {"subject": "Indoor node offline", "message": "Since this morning", "system_id": 1})
+    call("mate", "POST", "/api/support", {"subject": "Wrong system", "message": "x", "system_id": 4})
+    call("mate", "POST", "/api/support", {"subject": " ", "message": "x"})
+    call("owner", "POST", "/api/support", {"subject": "Help", "message": "x"})
+    call("owner", "GET", "/api/support")
+    call("tech", "GET", "/api/office/summary")
+    call("tech", "GET", "/api/office/inbox")
+    call("tech", "GET", "/api/office/inbox?status=all&kind=order")
+    call("tech", "GET", "/api/office/inbox?status=bogus")
+    with sessions() as s:
+        ids = {k: s.scalar(select(text("max(id)")).select_from(text("tickets")).where(text(f"kind = '{k}'")))
+               for k in ("order", "contact", "support")}
+    call("tech", "GET", f"/api/office/inbox/{ids['order']}")
+    call("tech", "POST", f"/api/office/inbox/{ids['order']}/customer")
+    call("tech", "POST", f"/api/office/inbox/{ids['order']}/customer")
+    call("tech", "POST", f"/api/office/inbox/{ids['contact']}/messages", {"kind": "note", "body": "Call back Monday"})
+    call("tech", "POST", f"/api/office/inbox/{ids['contact']}/messages", {"kind": "reply", "body": "Yes, we ship anywhere. "})
+    call("tech", "POST", f"/api/office/inbox/{ids['contact']}/messages", {"kind": "shout", "body": "x"})
+    call("tech", "POST", f"/api/office/inbox/{ids['contact']}/messages", {"kind": "reply", "body": "  "})
+    call("tech", "PATCH", f"/api/office/inbox/{ids['contact']}", {"status": "closed"})
+    call("tech", "PATCH", f"/api/office/inbox/{ids['contact']}", {"customer_id": 999})
+    call("tech", "GET", "/api/office/inbox?status=closed")
+    call("tech", "GET", "/api/office/inbox/99999")
+    call("tech", "POST", f"/api/office/inbox/{ids['support']}/messages", {"kind": "reply", "body": "Power-cycle it please"})
+    call("mate", "GET", "/api/support")
+    call("tech", "GET", "/api/office/customers")
+    with sessions() as s:
+        cid = s.scalar(select(text("max(id)")).select_from(text("customers")))
+    call("tech", "PATCH", f"/api/office/customers/{cid}", {"address": "1 Main St, Glendale AZ", "notes": "Met at ACCA", "status": "paused"})
+    call("tech", "PATCH", f"/api/office/customers/{cid}", {"company": " "})
+    call("tech", "PATCH", f"/api/office/customers/{cid}", {"email": "nope"})
+    call("tech", "POST", "/api/office/customers", {"company": "Acme Air", "phone": "602-555-0111"})
+    call("tech", "POST", "/api/office/customers", {"phone": "1"})
+    call("tech", "POST", f"/api/office/customers/{cid}/account", {"email": "boss@other.example"})
+    call("tech", "POST", f"/api/office/customers/{cid}/account", {"email": "Kim@SunValley.example"})
+    call("tech", "POST", f"/api/office/customers/{cid}/account", {"email": "k2@sunvalley.example"})
+    call("tech", "GET", f"/api/office/customers/{cid}")
+    call("tech", "POST", f"/api/office/inbox/{ids['support']}/customer")
+    with sessions() as s:
+        cid2 = s.scalar(select(text("max(id)")).select_from(text("customers")))
+    call("tech", "GET", f"/api/office/customers/{cid2}")
+    call("tech", "PATCH", f"/api/office/inbox/{ids['contact']}", {"customer_id": 0, "status": "open"})
+    call("tech", "GET", "/api/office/customers")
+    call("tech", "GET", "/api/office/customers/99999")
+    call("tech", "GET", "/api/office/summary")
+
     # ---- password guessing ----
     for _ in range(8):
         login("anon", "spouse@home.example", "wrong guess here")
@@ -449,7 +511,7 @@ def main():
         if os.path.exists(work + ext):
             os.remove(work + ext)
     with open(os.path.join(OUT, "api_replay.json"), "w") as f:
-        json.dump({"app_url": APP_URL, "keys": {"key1": KEY1, "key2": KEY2}, "steps": steps}, f, indent=0)
+        json.dump({"app_url": APP_URL, "order_email": ORDER_EMAIL, "keys": {"key1": KEY1, "key2": KEY2}, "steps": steps}, f, indent=0)
     by_status = {}
     for s_ in steps:
         by_status[s_["status"]] = by_status.get(s_["status"], 0) + 1

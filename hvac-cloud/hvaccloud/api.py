@@ -25,10 +25,10 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import func, select
 
-from . import alerts, auth, calc, display, electrical, equipment, gauge, report, service, settings, thermostat, webpush
+from . import alerts, auth, calc, display, electrical, equipment, gauge, office, report, service, settings, thermostat, webpush
 from .db import (Account, Alert, AlertMute, AlertPrefs, ApiKey, Command, Device, GaugeCheck, Invite, Order, PasswordReset, PushSubscription, ServiceInfo, ServiceVisit, Snapshot,
                  System, SystemMember, Telemetry, ThermostatConfig, User, as_utc, hash_key, init_db, make_engine,
-                 session_factory, utcnow)
+                 order_ticket, session_factory, utcnow)
 from .refrigerants import FLUIDS, Tables
 
 mimetypes.add_type("font/woff", ".woff")   # Windows does not know it; StaticFiles uses mimetypes
@@ -318,7 +318,7 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
     def me_view(s, who):
         user = s.get(User, who.user_id) if who.user_id else None
         acct = s.get(Account, who.account_id) if who.account_id else None
-        return {"role": who.role, "level": who.level, "via": who.via,
+        return {"role": who.role, "level": who.level, "via": who.via, "staff": who.staff,
                 "user": {"id": user.id, "email": user.email, "name": user.name} if user else None,
                 "account": {"id": acct.id, "name": acct.name} if acct else None}
 
@@ -370,6 +370,8 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
         order = Order(company=company, name=name, email=email, phone=(body.phone or "").strip() or None,
                       systems=body.systems, notes=(body.notes or "").strip() or None)
         s.add(order)
+        s.commit()
+        s.add(order_ticket(order))                                # shows in the Office inbox
         s.commit()
         if settings.ORDER_EMAIL:
             send_invite(settings.ORDER_EMAIL, f"[Fullscope] Order request from {company}",
@@ -885,6 +887,8 @@ def create_app(sessions=None, publisher=None, stale=settings.STALE_SECONDS, mail
         s.commit()
         set_cookie(response, token_cookie)
         return me_view(s, auth.Principal.for_user(user))
+
+    office.mount(app, db, principal, clean_email, send_invite, make_invite, invite_view, stale, INVITE_DAYS)
 
     # ---------- contractor fleet ----------
     @app.get("/api/fleet")

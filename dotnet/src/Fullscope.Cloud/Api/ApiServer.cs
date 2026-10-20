@@ -39,7 +39,7 @@ public sealed class Req(HttpContext http, Db s, ApiServer api, JsonNode? body, b
 /// their account's systems; homeowners see the systems they are members of, read-only apart from
 /// marking the air filter changed.
 /// </summary>
-public sealed class ApiServer
+public sealed partial class ApiServer
 {
     public const int InviteDays = 7;
     public const int ResetHours = 1;               // a forgotten-password link works this long, once
@@ -272,7 +272,7 @@ public sealed class ApiServer
         var acct = who.AccountId is int aid ? s.Accounts.Find(aid) : null;
         return new JsonObject
         {
-            ["role"] = who.Role, ["level"] = who.Level, ["via"] = who.Via,
+            ["role"] = who.Role, ["level"] = who.Level, ["via"] = who.Via, ["staff"] = who.Staff,
             ["user"] = user is null ? null : new JsonObject { ["id"] = user.Id, ["email"] = user.Email, ["name"] = user.Name },
             ["account"] = acct is null ? null : new JsonObject { ["id"] = acct.Id, ["name"] = acct.Name },
         };
@@ -391,6 +391,7 @@ public sealed class ApiServer
         Route(app, "POST", "/api/invites/accept", AcceptInvite, body: true);
 
         // systems
+        OfficeRoutes(app);
         Route(app, "GET", "/api/fleet", Fleet);
         Route(app, "GET", "/api/refrigerants", _ => new JsonArray(RefrigerantTables.Fluids.Select(f => (JsonNode?)f).ToArray()));
         Route(app, "GET", "/api/systems", r =>
@@ -641,6 +642,8 @@ public sealed class ApiServer
             Notes = b.Str("notes")?.Trim() is { Length: > 0 } notes ? notes : null,
         };
         r.S.Orders.Add(order);
+        r.S.SaveChanges();
+        r.S.Tickets.Add(Ticket.ForOrder(order));                 // shows in the Office inbox
         r.S.SaveChanges();
         if (_settings.OrderEmail.Length > 0)
             SendInvite(_settings.OrderEmail, $"[Fullscope] Order request from {company}",
