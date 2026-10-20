@@ -232,7 +232,7 @@ public sealed class Demo
             var acct = new Account { Name = AccountName, Email = AccountEmail };
             s.Accounts.Add(acct);
             s.SaveChanges();
-            s.Users.Add(new User { Email = TechLogin, Name = "Demo technician", Role = "contractor", AccountId = acct.Id, PasswordHash = Passwords.Hash(techPw) });
+            s.Users.Add(new User { Email = TechLogin, Name = "Demo technician", Role = "contractor", AccountId = acct.Id, Admin = true, PasswordHash = Passwords.Hash(techPw) });
             for (int i = 0; i < Homes.Length; i++)
             {
                 var home = Homes[i];

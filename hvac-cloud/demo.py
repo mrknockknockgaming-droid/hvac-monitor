@@ -190,7 +190,7 @@ def setup(sessions):
         acct = Account(**ACCOUNT)
         s.add(acct)
         s.flush()
-        s.add(User(email=TECH_LOGIN, name="Demo technician", role="contractor", account_id=acct.id,
+        s.add(User(email=TECH_LOGIN, name="Demo technician", role="contractor", account_id=acct.id, admin=True,
                    password_hash=auth.hash_password(tech_pw)))
         for i, home in enumerate(HOMES):
             if s.scalar(select(System).where(System.site_id == home["site"])):

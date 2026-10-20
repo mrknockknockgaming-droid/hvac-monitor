@@ -22,6 +22,7 @@ namespace Fullscope.Cloud;
 ///   fullscope manage test-email 1                      (needs SMTP_* in .env)
 ///   fullscope manage create-user you@gmail.com --name "Tyler" --account 1        (contractor; asks for a password)
 ///   fullscope manage create-user owner@example.com --role homeowner --system 1   (sees system 1 only)
+///   fullscope manage set-admin you@gmail.com          (fleet page + team; --off makes them a technician again)
 ///   fullscope manage set-password you@gmail.com
 ///   fullscope manage reset-2fa you@gmail.com          (turns two-step sign-in off, for a lost phone)
 ///   fullscope manage check                             (is everything working? nodes, readings, alerts, email, backups)
@@ -99,13 +100,13 @@ public static class Manage
         var cmd = argv.FirstOrDefault();
         var rest = argv.Length > 0 ? argv[1..] : [];
         string[] commands = ["init-db", "create-account", "create-key", "create-system", "list", "set-email", "backup", "prune",
-                             "create-user", "set-password", "reset-2fa", "test-email", "check"];
+                             "create-user", "set-admin", "set-password", "reset-2fa", "test-email", "check"];
         if (cmd is null or "-h" or "--help" || !commands.Contains(cmd))
         {
             Console.Error.WriteLine("usage: fullscope manage {" + string.Join(",", commands) + "} ...");
             return cmd is "-h" or "--help" ? 0 : 2;
         }
-        var a = Args.Parse(rest, ["--no-heat-pump", "--no-password"], ["--refrigerant", "--atm-psia", "--ob", "--name", "--role", "--account", "--system"]);
+        var a = Args.Parse(rest, ["--no-heat-pump", "--no-password", "--admin", "--off"], ["--refrigerant", "--atm-psia", "--ob", "--name", "--role", "--account", "--system"]);
         var log = logs.CreateLogger("manage");
         var sessions = DbFactory.FromUrl(settings.DatabaseUrl).Init(settings.KeepDays);
 
@@ -208,7 +209,8 @@ public static class Manage
                     var where = user.Role == "contractor"
                         ? $"account {user.AccountId?.ToString(CultureInfo.InvariantCulture) ?? "None"}"
                         : "systems " + string.Join(", ", s.SystemMembers.Where(m => m.UserId == user.Id).Select(m => m.SystemId).ToList());
-                    Console.WriteLine($"user {user.Id}: {user.Email} ({user.Role}, {where})" + (user.PasswordHash is not null ? "" : " - no password"));
+                    var shown = user.Role == "contractor" && user.Admin == true ? "admin" : user.Role;
+                    Console.WriteLine($"user {user.Id}: {user.Email} ({shown}, {where})" + (user.PasswordHash is not null ? "" : " - no password"));
                 }
                 break;
             case "set-email":
@@ -223,7 +225,7 @@ public static class Manage
             }
             case "create-user":
             {
-                if (a.Flag("--no-password")) a.Need(1, "create-user <email> [--name N] [--role contractor|homeowner] [--account ID] [--system ID]... [--no-password]");
+                if (a.Flag("--no-password")) a.Need(1, "create-user <email> [--name N] [--role contractor|homeowner] [--account ID] [--admin] [--system ID]... [--no-password]");
                 var email = a.Pos[0].Trim().ToLowerInvariant();
                 var role = a.Opt("--role") ?? "contractor";
                 if (role is not ("contractor" or "homeowner")) throw new Exit($"argument --role: invalid choice: '{role}' (choose from 'contractor', 'homeowner')", 2);
@@ -242,12 +244,28 @@ public static class Manage
                 {
                     Email = email, Name = a.Opt("--name"), Role = role, AccountId = role == "contractor" ? account : null,
                     PasswordHash = password is not null ? Passwords.Hash(password) : null,
+                    Admin = a.Flag("--admin") && role == "contractor" ? true : null,
                 };
                 s.Users.Add(user);
                 s.SaveChanges();
                 foreach (var sid in systems) s.SystemMembers.Add(new SystemMember { SystemId = sid, UserId = user.Id });
                 s.SaveChanges();
-                Console.WriteLine($"user {user.Id}: {email} ({role})" + (password is not null ? "" : " - no password yet"));
+                Schema.EnsureAdmins(s);                   // an account's first contractor is its admin
+                Console.WriteLine($"user {user.Id}: {email} ({(user.Admin == true ? "admin" : role)})" + (password is not null ? "" : " - no password yet"));
+                break;
+            }
+            case "set-admin":
+            {
+                a.Need(1, "set-admin <email> [--off]");
+                var email = a.Pos[0].Trim().ToLowerInvariant();
+                var user = s.Users.FirstOrDefault(u => u.Email == email && u.Role == "contractor") ?? throw new Exit($"no contractor {a.Pos[0]}");
+                bool off = a.Flag("--off");
+                if (off && user.Admin == true
+                    && !s.Users.Any(u => u.Role == "contractor" && u.AccountId == user.AccountId && u.Admin == true && u.Id != user.Id))
+                    throw new Exit("the account needs at least one admin: make someone else an admin first");
+                user.Admin = off ? null : true;
+                s.SaveChanges();
+                Console.WriteLine($"{user.Email} is now {(off ? "a technician" : "an admin")}");
                 break;
             }
             case "set-password":

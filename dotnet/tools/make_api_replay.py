@@ -63,9 +63,10 @@ def make_seed(path):
         s.add(System(account_id=a2.id, name="Other", site_id="other"))
         for key, acct in ((KEY1, 1), (KEY2, a2.id)):
             s.add(ApiKey(account_id=acct, prefix=key[:12], key_hash=hash_key(key)))
-        s.add(User(email="tech@desertair.example", name="Tech", role="contractor", account_id=1,
+        s.add(User(email="tech@desertair.example", name="Tech", role="contractor", account_id=1, admin=True,
                    password_hash=auth.hash_password(PW)))
-        s.add(User(email="boss@other.example", role="contractor", account_id=a2.id, password_hash=auth.hash_password(PW)))
+        s.add(User(email="boss@other.example", role="contractor", account_id=a2.id, admin=True,
+                   password_hash=auth.hash_password(PW)))
         owner = s.scalar(select(User).where(User.email == "owner@home.example"))
         owner.password_hash = auth.hash_password(PW)
     with sessions() as s, s.begin():                     # the API only reads each node's newest raw message
@@ -386,6 +387,24 @@ def main():
     call("tech", "POST", "/api/account/invites", {"email": "Mate@DesertAir.example"})
     call("mate", "POST", "/api/invites/accept", {"token": tok(), "password": "mate password 1"})
     call("mate", "GET", "/api/fleet")
+    # ---- access levels: the mate joined as a technician ----
+    with sessions() as s:
+        mate = s.scalar(select(User.id).where(User.email == "mate@desertair.example"))
+        me = s.scalar(select(User.id).where(User.email == "tech@desertair.example"))
+    call("mate", "GET", "/api/account/people")
+    call("mate", "POST", "/api/account/invites", {"email": "x@desertair.example"})
+    call("mate", "PATCH", f"/api/account/users/{mate}", {"admin": True})
+    call("mate", "GET", "/api/systems/1/equipment")
+    call("tech", "PATCH", f"/api/account/users/{me}", {"admin": False})
+    call("tech", "PATCH", f"/api/account/users/{mate}", {"admin": "yes please"})
+    call("tech", "PATCH", f"/api/account/users/{mate}", {})
+    call("tech", "PATCH", "/api/account/users/99999", {"admin": True})
+    call("tech", "PATCH", f"/api/account/users/{mate}", {"admin": True})
+    call("mate", "GET", "/api/auth/me")
+    call("mate", "GET", "/api/account/people")
+    call("mate", "PATCH", f"/api/account/users/{mate}", {"admin": False})
+    call("mate", "GET", "/api/fleet")
+    call("key1", "PATCH", f"/api/account/users/{mate}", {"admin": False})
     call("tech", "POST", "/api/account/invites", {"email": "later@desertair.example"})
     call("tech", "POST", "/api/account/invites", {"email": "owner@home.example"})
     call("tech", "GET", "/api/account/people")
@@ -402,6 +421,11 @@ def main():
     call("tech", "GET", "/api/account/people")
     call("boss", "POST", "/api/auth/login", {"email": "boss@other.example", "password": PW})
     call("boss", "DELETE", "/api/account/users/3")
+    call("boss", "PATCH", "/api/account/users/3", {"admin": False})
+    call("tech", "POST", "/api/account/invites", {"email": "office@desertair.example", "admin": True})
+    call("tech", "GET", "/api/account/people")
+    call("office", "POST", "/api/invites/accept", {"token": tok(), "password": "office password 1"})
+    call("office", "GET", "/api/fleet")
 
     # ---- password guessing ----
     for _ in range(8):

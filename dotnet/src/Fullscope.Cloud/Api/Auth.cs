@@ -4,10 +4,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Fullscope.Cloud.Api;
 
-/// <summary>Who is making a request: a signed-in user, or an account API key (acts as a contractor).</summary>
-public sealed record Principal(string Role, int? AccountId, int? UserId = null, string Via = "session")
+/// <summary>Who is making a request: a signed-in user, or an account API key (acts as an admin contractor).</summary>
+public sealed record Principal(string Role, int? AccountId, int? UserId = null, string Via = "session", bool Admin = false)
 {
     public bool IsTech => Role == "contractor";
+
+    /// <summary>A contractor who runs the account: fleet page and team.</summary>
+    public bool IsAdmin => IsTech && Admin;
+
+    /// <summary>Which pages this person gets: "admin" (fleet, team and the technician pages),
+    /// "technician" (the technician pages only) or "homeowner" (their home page only).</summary>
+    public string Level => IsAdmin ? "admin" : IsTech ? "technician" : "homeowner";
+
+    public static Principal ForUser(User user) => new(user.Role, user.AccountId, user.Id, Admin: user.Admin == true);
 }
 
 /// <summary>

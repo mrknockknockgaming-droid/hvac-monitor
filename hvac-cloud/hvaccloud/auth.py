@@ -36,10 +36,25 @@ class Principal:
     account_id: int | None       # contractor's account
     user_id: int | None = None   # None for an API key
     via: str = "session"         # "session" | "key"
+    admin: bool = False          # contractor who runs the account: fleet page and team
 
     @property
     def is_tech(self):
         return self.role == "contractor"
+
+    @property
+    def is_admin(self):
+        return self.is_tech and self.admin
+
+    @property
+    def level(self):
+        """Which pages this person gets: "admin" (fleet, team and the technician pages),
+        "technician" (the technician pages only) or "homeowner" (their home page only)."""
+        return "admin" if self.is_admin else "technician" if self.is_tech else "homeowner"
+
+    @classmethod
+    def for_user(cls, user):
+        return cls(role=user.role, account_id=user.account_id, user_id=user.id, admin=bool(user.admin))
 
 
 def hash_password(password):

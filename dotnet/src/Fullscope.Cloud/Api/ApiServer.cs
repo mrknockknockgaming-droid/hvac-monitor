@@ -218,14 +218,14 @@ public sealed class ApiServer
             var row = s.ApiKeys.FirstOrDefault(k => k.KeyHash == h) ?? throw new ApiError(401, "invalid API key");
             row.LastUsed = Db.UtcNow();
             s.SaveChanges();
-            return new Principal("contractor", row.AccountId, Via: "key");
+            return new Principal("contractor", row.AccountId, Via: "key", Admin: true);
         }
         var userId = Auth.SessionUserId(s, r.Cookie, _settings.SessionDays);
         var user = userId is int id ? s.Users.Find(id) : null;
         if (user is null) throw new ApiError(401, "sign in required");
         if (r.Http.Request.Method is not ("GET" or "HEAD") && r.Http.Request.Headers[Auth.CsrfHeader].ToString().Length == 0)
             throw new ApiError(403, $"missing {Auth.CsrfHeader} header");
-        return new Principal(user.Role, user.AccountId, user.Id);
+        return Principal.ForUser(user);
     }
 
     static IQueryable<HvacSystem> Visible(Db s, Principal who) => who.IsTech
@@ -252,13 +252,19 @@ public sealed class ApiServer
         if (!who.IsTech) throw new ApiError(403, "for your contractor only");
     }
 
+    /// <summary>The account's own pages: fleet overview and teammates.</summary>
+    static void AdminOnly(Principal who)
+    {
+        if (!who.IsAdmin) throw new ApiError(403, "for your account's admins only");
+    }
+
     static JsonObject MeView(Db s, Principal who)
     {
         var user = who.UserId is int uid ? s.Users.Find(uid) : null;
         var acct = who.AccountId is int aid ? s.Accounts.Find(aid) : null;
         return new JsonObject
         {
-            ["role"] = who.Role, ["via"] = who.Via,
+            ["role"] = who.Role, ["level"] = who.Level, ["via"] = who.Via,
             ["user"] = user is null ? null : new JsonObject { ["id"] = user.Id, ["email"] = user.Email, ["name"] = user.Name },
             ["account"] = acct is null ? null : new JsonObject { ["id"] = acct.Id, ["name"] = acct.Name },
         };
@@ -370,6 +376,7 @@ public sealed class ApiServer
         Route(app, "POST", "/api/account/invites", InviteTeammate, body: true);
         Route(app, "GET", "/api/account/people", AccountPeople);
         Route(app, "DELETE", "/api/account/users/{user_id}", RemoveTeammate);
+        Route(app, "PATCH", "/api/account/users/{user_id}", SetAdmin, body: true);
         Route(app, "DELETE", "/api/invites/{invite_id}", RevokeInvite);
         Route(app, "POST", "/api/invites/lookup", InviteInfo, body: true);
         Route(app, "POST", "/api/invites/accept", AcceptInvite, body: true);
@@ -443,7 +450,7 @@ public sealed class ApiServer
         var token = Auth.NewSession(r.S, user.Id, _settings.SessionDays);
         r.S.SaveChanges();
         SetCookie(r, token);
-        return MeView(r.S, new Principal(user.Role, user.AccountId, user.Id));
+        return MeView(r.S, Principal.ForUser(user));
     }
 
     object? Logout(Req r)
@@ -654,7 +661,7 @@ public sealed class ApiServer
         r.S.SaveChanges();
         _throttle.Clear(user.Email);
         SetCookie(r, token);
-        return MeView(r.S, new Principal(user.Role, user.AccountId, user.Id));
+        return MeView(r.S, Principal.ForUser(user));
     }
 
     // ---------- equipment ----------
@@ -877,7 +884,7 @@ public sealed class ApiServer
     }
 
     /// <summary>New invite (older pending ones for the same person and place are revoked). Returns the link.</summary>
-    (Invite Invite, string Url) MakeInvite(Db s, Principal who, string email, string role, int? accountId = null, int? systemId = null)
+    (Invite Invite, string Url) MakeInvite(Db s, Principal who, string email, string role, int? accountId = null, int? systemId = null, bool admin = false)
     {
         var q = s.Invites.Where(i => i.Email == email && i.AcceptedAt == null && i.Role == role);
         q = systemId is not null ? q.Where(i => i.SystemId == systemId) : q.Where(i => i.AccountId == accountId);
@@ -886,7 +893,7 @@ public sealed class ApiServer
         var inv = new Invite
         {
             TokenHash = Db.HashKey(token), Email = email, Role = role, AccountId = accountId, SystemId = systemId,
-            InvitedBy = who.UserId, ExpiresAt = Db.UtcNow().AddDays(InviteDays),
+            InvitedBy = who.UserId, ExpiresAt = Db.UtcNow().AddDays(InviteDays), Admin = admin ? true : null,
         };
         s.Invites.Add(inv);
         s.SaveChanges();                        // insert, then delete, as SQLAlchemy flushes (the new id comes after the old one)
@@ -897,13 +904,18 @@ public sealed class ApiServer
 
     static JsonObject InviteView(Invite inv) => new()
     {
-        ["id"] = inv.Id, ["email"] = inv.Email, ["role"] = inv.Role, ["expires_at"] = Iso(inv.ExpiresAt),
+        ["id"] = inv.Id, ["email"] = inv.Email, ["role"] = inv.Role, ["admin"] = inv.Admin == true, ["expires_at"] = Iso(inv.ExpiresAt),
         ["expired"] = inv.ExpiresAt <= Db.UtcNow(),
     };
 
     static JsonObject PersonView(User u) => new()
     {
         ["user_id"] = u.Id, ["email"] = u.Email, ["name"] = u.Name, ["last_login"] = Iso(u.LastLogin),
+    };
+
+    static JsonObject TeammateView(User u) => new()
+    {
+        ["user_id"] = u.Id, ["email"] = u.Email, ["name"] = u.Name, ["admin"] = u.Admin == true, ["last_login"] = Iso(u.LastLogin),
     };
 
     /// <summary>Give a homeowner access: an existing homeowner sign-in is added at once, anyone else gets a link.</summary>
@@ -956,15 +968,15 @@ public sealed class ApiServer
         return new JsonObject { ["ok"] = true };
     }
 
-    /// <summary>Invite a contractor colleague to this account.</summary>
+    /// <summary>Invite a contractor colleague to this account, as a technician or an admin.</summary>
     object? InviteTeammate(Req r)
     {
         var who = r.Who;
-        var b = Body(r, Field.Str("email", 320, required: true));
-        TechOnly(who);
+        AdminOnly(who);
+        var b = Body(r, Field.Str("email", 320, required: true), Field.Bool("admin", false));
         var email = CleanEmail(b.Str("email")!);
         if (r.S.Users.Any(u => u.Email == email)) throw new ApiError(409, "That email already has a sign-in.");
-        var (inv, url) = MakeInvite(r.S, who, email, "contractor", accountId: who.AccountId);
+        var (inv, url) = MakeInvite(r.S, who, email, "contractor", accountId: who.AccountId, admin: b.Bool("admin") == true);
         var acct = who.AccountId is int aid ? r.S.Accounts.Find(aid) : null;
         bool emailed = SendInvite(email, $"Join {acct?.Name ?? "your team"} on Fullscope",
             $"You've been invited to {acct?.Name ?? "a contractor account"} on Fullscope.\n\n" +
@@ -975,13 +987,13 @@ public sealed class ApiServer
     object? AccountPeople(Req r)
     {
         var who = r.Who;
-        TechOnly(who);
+        AdminOnly(who);
         var users = r.S.Users.Where(u => u.AccountId == who.AccountId).OrderBy(u => u.Email).ToList();
         var invites = r.S.Invites.Where(i => i.AccountId == who.AccountId && i.Role == "contractor" && i.AcceptedAt == null)
                        .ToList().OrderByDescending(i => i.CreatedAt).ToList();
         return new JsonObject
         {
-            ["users"] = new JsonArray(users.Select(u => (JsonNode?)PersonView(u)).ToArray()),
+            ["users"] = new JsonArray(users.Select(u => (JsonNode?)TeammateView(u)).ToArray()),
             ["invites"] = new JsonArray(invites.Select(i => (JsonNode?)InviteView(i)).ToArray()),
         };
     }
@@ -990,9 +1002,10 @@ public sealed class ApiServer
     object? RemoveTeammate(Req r)
     {
         var who = r.Who;
+        AdminOnly(who);
         int userId = Validate.PathInt("user_id", r.Route("user_id"));
         var user = r.S.Users.Find(userId);
-        if (!who.IsTech || user is null || user.Role != "contractor" || user.AccountId != who.AccountId)
+        if (user is null || user.Role != "contractor" || user.AccountId != who.AccountId)
             throw new ApiError(404, "no such teammate");
         if (user.Id == who.UserId) throw new ApiError(409, "You can't remove yourself.");
         Auth.EndOtherSessions(r.S, user.Id, null);
@@ -1007,6 +1020,25 @@ public sealed class ApiServer
         return new JsonObject { ["ok"] = true };
     }
 
+    /// <summary>Make a colleague an admin, or a technician again. The account always keeps one admin.</summary>
+    object? SetAdmin(Req r)
+    {
+        var who = r.Who;
+        AdminOnly(who);
+        int userId = Validate.PathInt("user_id", r.Route("user_id"));
+        var b = Body(r, Field.Bool("admin", required: true) with { Nullable = false });
+        var user = r.S.Users.Find(userId);
+        if (user is null || user.Role != "contractor" || user.AccountId != who.AccountId)
+            throw new ApiError(404, "no such teammate");
+        bool admin = b.Bool("admin")!.Value;
+        if (!admin && user.Admin == true
+            && r.S.Users.Count(u => u.Role == "contractor" && u.AccountId == who.AccountId && u.Admin == true) <= 1)
+            throw new ApiError(409, "The account needs at least one admin. Make someone else an admin first.");
+        user.Admin = admin ? true : null;
+        r.S.SaveChanges();
+        return new JsonObject { ["user_id"] = user.Id, ["admin"] = user.Admin == true };
+    }
+
     object? RevokeInvite(Req r)
     {
         var who = r.Who;
@@ -1014,7 +1046,9 @@ public sealed class ApiServer
         var inv = r.S.Invites.Find(inviteId);
         int? owner = null;
         if (inv is not null) owner = inv.SystemId is int sid ? r.S.Systems.Find(sid)?.AccountId : inv.AccountId;
-        if (inv is null || !who.IsTech || owner != who.AccountId) throw new ApiError(404, "no such invite");
+        // homeowner links belong to the technician pages; teammate links to the admins
+        bool allowed = inv is not null && inv.SystemId is null ? who.IsAdmin : who.IsTech;
+        if (inv is null || !allowed || owner != who.AccountId) throw new ApiError(404, "no such invite");
         r.S.Invites.Remove(inv);
         r.S.SaveChanges();
         return new JsonObject { ["ok"] = true };
@@ -1057,6 +1091,7 @@ public sealed class ApiServer
             Email = inv.Email, Name = name.Length > 0 ? name : null, Role = inv.Role,
             AccountId = inv.Role == "contractor" ? inv.AccountId : null,
             PasswordHash = Passwords.Hash(b.Str("password")!), LastLogin = Db.UtcNow(),
+            Admin = inv.Role == "contractor" && inv.Admin == true ? true : null,
         };
         using var tx = r.S.Database.BeginTransaction();
         r.S.Users.Add(user);
@@ -1067,16 +1102,16 @@ public sealed class ApiServer
         r.S.SaveChanges();
         tx.Commit();
         SetCookie(r, token);
-        return MeView(r.S, new Principal(user.Role, user.AccountId, user.Id));
+        return MeView(r.S, Principal.ForUser(user));
     }
 
     // ---------- systems ----------
 
-    /// <summary>Every system the contractor services, most in need of attention first.</summary>
+    /// <summary>Every system the contractor services, most in need of attention first (admins' page).</summary>
     object? Fleet(Req r)
     {
         var who = r.Who;
-        TechOnly(who);
+        AdminOnly(who);
         var now = Db.UtcNow();
         var today = Time.Today();
         var rows = new List<(JsonObject View, int Rank, bool Due, string Name)>();

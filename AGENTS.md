@@ -103,7 +103,12 @@ temperatures, superheat, subcooling and delta-T.
     account email; technical). alert_prefs.email_owner means "homeowners". Acknowledge, mutes.
   - Sign-in (`hvaccloud/auth.py`): users with role contractor (account_id, sees the account's
     systems + technician pages) or homeowner (system_members, home page only, can mark the
-    filter changed). scrypt passwords, HttpOnly session cookie (SESSION_DAYS 30), mutating
+    filter changed). Access levels (2026-10-20, me.level, checked server-side): admin = contractor with
+    users.admin (fleet page, Account team panel, invites/promotes teammates, PATCH /api/account/users/{id});
+    technician = other contractors (Monitor/Equipment/Sensors/Service only, land on #/monitor/<first>);
+    homeowner = #/home only. Contractors can't open #/home. db.ensure_admins (C# Schema.EnsureAdmins) makes
+    each account's first contractor admin at startup when it has none; API keys act as admin;
+    `manage.py set-admin <email> [--off]`, `create-user --admin`. scrypt passwords, HttpOnly session cookie (SESSION_DAYS 30), mutating
     cookie requests need `X-Requested-With`, 8 failures lock an email 15 min. API keys still
     act as a contractor. Create users with `manage.py create-user` / `set-password` (hidden
     password prompt: the user types it, never put a password on the command line).
@@ -112,7 +117,7 @@ temperatures, superheat, subcooling and delta-T.
     calc.compute (calc.py and the dashboard stay identical). Elevation sets atm_psia.
   - Invites (`invites` table, token hashed, 7 days, single use) for homeowners (per system,
     Sensors & calibration page) and contractor teammates (Account page); links use APP_URL.
-    Contractors land on `#/fleet` (GET /api/fleet, worst first: alerts.LEVEL mirrors the
+    Admins land on `#/fleet` (GET /api/fleet, admins only, worst first: alerts.LEVEL mirrors the
     FLAG_INFO levels in web/app.js).
   - Review 2026-10-03 (PR "review fixes"): recipients fixed as above; password change signs out
     other sessions; DELETE /api/account/users/{id}; invite tokens only in POST bodies; dummy

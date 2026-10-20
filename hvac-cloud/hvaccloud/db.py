@@ -4,7 +4,7 @@ import hashlib
 import secrets
 
 from sqlalchemy import (JSON, Boolean, Date, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint,
-                        create_engine, event, inspect, text)
+                        create_engine, event, inspect, select, text)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, sessionmaker
 
@@ -54,7 +54,8 @@ class ApiKey(Base):
 
 class User(Base):
     """A person who signs in. Contractor users belong to an account and see all its systems;
-    homeowner users have no account and see the systems they are members of."""
+    homeowner users have no account and see the systems they are members of. A contractor with
+    `admin` set runs the account (fleet page, teammates); the others are technicians."""
     __tablename__ = "users"
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(String(320), unique=True)
@@ -64,6 +65,7 @@ class User(Base):
     password_hash: Mapped[str | None] = mapped_column(String(200))   # None until a password is set
     created_at: Mapped[dt.datetime] = mapped_column(default=utcnow)
     last_login: Mapped[dt.datetime | None]
+    admin: Mapped[bool | None]                                       # contractors only (ensure_admins)
     # two-factor sign-in (auth.py): the authenticator secret is kept from setup; it counts once totp_on is set
     totp_secret: Mapped[str | None] = mapped_column(String(64))
     totp_on: Mapped[dt.datetime | None]
@@ -121,6 +123,7 @@ class Invite(Base):
     created_at: Mapped[dt.datetime] = mapped_column(default=utcnow)
     expires_at: Mapped[dt.datetime]
     accepted_at: Mapped[dt.datetime | None]
+    admin: Mapped[bool | None]                                       # a teammate who joins as an admin
 
 
 class PasswordReset(Base):
@@ -353,6 +356,9 @@ def make_engine(url=None):
 def init_db(engine):
     Base.metadata.create_all(engine)
     add_missing_columns(engine)
+    with session_factory(engine)() as s:
+        ensure_admins(s)
+        s.commit()
     if engine.dialect.name == "postgresql":
         with engine.begin() as c:
             c.execute(text("CREATE EXTENSION IF NOT EXISTS timescaledb"))
@@ -378,6 +384,16 @@ def add_missing_columns(engine):
                         raise RuntimeError(f"can't add NOT NULL column {table.name}.{col.name} automatically")
                     kind = col.type.compile(dialect=engine.dialect)
                     c.execute(text(f'ALTER TABLE {table.name} ADD COLUMN {col.name} {kind}'))
+
+
+def ensure_admins(s):
+    """Every account keeps at least one admin: when it has none (a database from before admins
+    existed, or the last admin was removed), its first contractor becomes one."""
+    for account_id in s.scalars(select(User.account_id).where(User.role == "contractor").distinct()):
+        team = s.scalars(select(User).where(User.role == "contractor", User.account_id == account_id).order_by(User.id)).all()
+        if team and not any(u.admin for u in team):
+            team[0].admin = True
+    s.flush()
 
 
 def session_factory(engine):
