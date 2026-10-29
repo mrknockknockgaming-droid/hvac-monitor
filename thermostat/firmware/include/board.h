@@ -27,15 +27,25 @@ constexpr uint8_t EXIO_TP_RST = 1 << 1, EXIO_LCD_BL = 1 << 2, EXIO_LCD_RST = 1 <
 // ---- GT911 touch controller (address chosen at reset by the INT pin: low -> 0x5D)
 constexpr uint8_t GT911_ADDR = 0x5D, GT911_ADDR_ALT = 0x14;
 
-// ---- our output board, on the same I2C bus
-// MCP23017 (0x20): GPA0 Y, GPA1 Y2, GPA2 W, GPA3 W2, GPA4 G, GPA5 O/B -> PhotoMOS LEDs (high = on),
-//                  GPA6 -> TPS3823 WDI (toggled every loop), GPA7 spare;
-//                  GPB0-4 <- H11AA1 state-sense (low while 24 VAC is present): Y, Y2, W, G, O/B.
-// The TPS3823's RESET goes to the ESP32's EN *and* the MCP23017's RESET, so if the firmware
-// stops, the expander resets to all inputs and every output turns off.
+// ---- our carrier board (hardware/thermostat-carrier, hardware/scripts/design.py), on the same
+// I2C bus through the display's I2C header; the sensor header's GPIO6 carries the radio's DIO1.
+// MCP23017 (0x20): GPA0 Y1, GPA1 Y2, GPA2 W1, GPA3 W2, GPA4 G, GPA5 O/B -> PhotoMOS LEDs (high = on),
+//                  GPA6 -> TPS3823 WDI (toggled every loop), GPA7 spare (output-only pin);
+//                  GPB0-5 <- H11AA1 read-back (low while 24 VAC is on the terminal): Y1, Y2, W1, G,
+//                  O/B, W2. GPB6 spare, GPB7 output-only.
+// The TPS3823's RESET drives the MCP23017's RESET (the display board's EN isn't brought out): if
+// the firmware stops toggling WDI, the expander resets to all inputs and every output turns off.
 constexpr uint8_t MCP_ADDR = 0x20;
 constexpr uint8_t OUT_Y = 0, OUT_Y2 = 1, OUT_W = 2, OUT_W2 = 3, OUT_G = 4, OUT_OB = 5, OUT_WDI = 6;
-constexpr uint8_t SENSE_Y = 0, SENSE_Y2 = 1, SENSE_W = 2, SENSE_G = 3, SENSE_OB = 4;
+constexpr uint8_t SENSE_Y = 0, SENSE_Y2 = 1, SENSE_W = 2, SENSE_G = 3, SENSE_OB = 4, SENSE_W2 = 5;
+constexpr uint8_t SENSE_MASK = 0x3F;
+
+// ---- LoRa (Wio-SX1262) behind the SC18IS602B I2C-to-SPI bridge (0x28, A0-A2 low): SS0 = NSS,
+// GPIO1 = BUSY, GPIO2 = NRST, GPIO3 = RF_SW (sc18is602_hal.h numbers them from BRIDGE_PIN).
+constexpr uint8_t LORA_BRIDGE_ADDR = 0x28;
+constexpr int LORA_BRIDGE_NSS = 0x100, LORA_BRIDGE_BUSY = 0x101, LORA_BRIDGE_NRST = 0x102,
+              LORA_BRIDGE_RFSW = 0x103;
+constexpr int LORA_DIO1_GPIO = 6;       // display board sensor header (check against Waveshare's schematic)
 
 // ---- room sensor: SHT45 (0x44) on its thermally isolated tab
 constexpr uint8_t SHT45_ADDR = 0x44;

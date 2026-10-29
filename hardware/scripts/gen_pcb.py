@@ -20,7 +20,7 @@ from sexp import find, first, parse  # noqa: E402
 import design  # noqa: E402
 
 HW = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-KFP = r'C:\Program Files\KiCad\10.0\share\kicad\footprints'
+KFP = os.path.join(os.environ.get('KICAD_SHARE', r'C:\Program Files\KiCad\10.0\share\kicad'), 'footprints')
 LOCAL = {'hvac_carrier': os.path.join(HW, 'lib', 'hvac_carrier.pretty')}
 BX, BY = 50.0, 50.0  # board top-left on the KiCad page
 
@@ -131,11 +131,64 @@ PLACE = {
     }, dx=2.0)),
 }
 
+
+
+def tstat_outputs():
+    """Thermostat: one column per output, G Y1 Y2 W1 W2 O/B left to right (as on J2): pull-down
+    and 330 R, PhotoMOS, its TVS, the H11AA1 read-back, the 4.7k (terminal end down) and the
+    read-back pull-up beside it."""
+    d = {}
+    for i in range(6):
+        x = 27.0 + 12.2 * i
+        d[f'R{9 + i}'] = (x + 2.0, 43.0, 0)       # DRV pull-down
+        d[f'R{3 + i}'] = (x + 2.0, 45.6, 0)       # LED 330 R
+        d[f'K{1 + i}'] = (x, 50.0, 0)             # AQV252G pin 1
+        d[f'D{5 + i}'] = (x + 3.8, 60.0, 0)       # SMBJ40CA across the switch
+        d[f'U{7 + i}'] = (x, 65.0, 0)             # H11AA1 pin 1
+        d[f'R{15 + i}'] = (x + 3.8, 86.0, 90)     # 4.7k, pad 1 (terminal) at the bottom
+        d[f'R{21 + i}'] = (x + 8.6, 75.0, 90)     # SENSE pull-up
+    return d
+
+
+PLACE['thermostat-carrier'] = dict(tstat_outputs(), **{
+    # power column on the left: LM2596 input end down, toward J1 / F1
+    'U1': (12.0, 28.4, 90), 'C1': (6.5, 58.0, 0), 'D2': (19.5, 52.5, 270), 'D1': (8.5, 68.5, 0),
+    'C2': (15.5, 68.5, 0), 'F1': (2.3, 75.5, 0), 'JP1': (5.0, 84.0, 90),
+    # terminals on the bottom edge, plugs face down
+    'J1': (6.0, 91.46, 0), 'J2': (25.0, 91.46, 0),
+    'F2': (66.0, 89.5, 0), 'F3': (66.0, 95.5, 0),
+    # 5 V: buck diode, USB-C in (top edge), USB-A out to the display (top edge), 3.3 V regulator
+    'D3': (27.5, 4.5, 180), 'C3': (30.5, 19.5, 0), 'J3': (38.0, 3.0, 180),
+    'R1': (36.0, 11.5, 90), 'R2': (40.0, 11.5, 90), 'D4': (45.5, 13.0, 90),
+    'J4': (60.0, 14.5, 180),
+    'U2': (32.0, 29.5, 0), 'C6': (38.5, 24.0, 0), 'C4': (27.6, 38.0, 0), 'C5': (33.6, 38.0, 0),
+    # expander (GPA0-5 along the bottom, toward the outputs) and watchdog
+    'U3': (50.0, 33.0, 270), 'C7': (48.5, 24.8, 0), 'U4': (64.5, 36.0, 0), 'C8': (64.5, 32.4, 0),
+    # LoRa top right, u.FL toward the top edge; bridge beside its pins
+    'U6': (86.5, 6.3, 90), 'C10': (96.5, 15.2, 0), 'U5': (72.0, 13.0, 0), 'C9': (72.0, 17.6, 0),
+    'R27': (72.0, 8.6, 0),
+    # display cables and room sensor, right edge
+    'J5': (95.0, 22.0, 0), 'J6': (95.0, 34.5, 0), 'J7': (86.0, 24.0, 180),
+    'R28': (86.6, 33.0, 0), 'R29': (86.6, 36.0, 0),
+    'H1': (3.5, 3.5, 0), 'H2': (96.5, 96.5, 0), 'H3': (96.5, 45.0, 0), 'H4': (56.8, 95.5, 0),
+})
+
 TEXT = {
     'outdoor-carrier': [('HVAC Monitor rev B', 56.0, 84.2, 1.0), ('outdoor carrier', 56.0, 86.0, 1.0),
                         ('CT1 comp', 18.15, 48.0, 0.9, 90), ('CT2 fan', 18.15, 62.0, 0.9, 90),
                         ('CT3 HERM', 18.15, 76.0, 0.9, 90)],
     'indoor-carrier': [('HVAC Monitor rev B', 21.0, 69.3, 1.1), ('indoor carrier', 21.0, 71.3, 1.1)],
+    'thermostat-carrier': [('Fullscope thermostat', 73.5, 24.5, 0.9), ('carrier rev A', 73.5, 26.2, 0.9),
+                           ('Set U1 to', 12.0, 34.0, 1.1), ('5.30 V first', 12.0, 35.8, 1.1),
+                           ('LoRa ANT ↑', 78.0, 2.0, 1.0), ('5 V in', 38.0, 8.6, 0.9),
+                           ('to display USB', 60.0, 18.8, 0.9), ('Rc=Rh', 13.6, 84.0, 0.9),
+                           ('one transformer', 15.0, 85.8, 0.8),
+                           ('3V3', 92.6, 22.0, 0.8, 0, 1), ('GND', 92.6, 24.54, 0.8, 0, 1),
+                           ('SDA', 92.6, 27.08, 0.8, 0, 1), ('SCL', 92.6, 29.62, 0.8, 0, 1),
+                           ('3V3', 92.6, 34.5, 0.8, 0, 1), ('GND', 92.6, 37.04, 0.8, 0, 1),
+                           ('IO6', 92.6, 39.58, 0.8, 0, 1), ('display I2C', 94.6, 19.4, 0.8),
+                           ('display IO6', 94.6, 32.0, 0.8),
+                           ('room', 86.0, 28.6, 0.8), ('SHT45', 86.0, 30.0, 0.8)],
 }
 COMMON_TEXT = [('Set U2 to', 77.5, 49.5, 1.1), ('5.00 V first', 77.5, 51.3, 1.1),
                ('USB', 49.0, 17.0, 1.2), ('← antenna', 5.0, 11.0, 1.0),
@@ -156,6 +209,12 @@ REF_AT = {
         'R17': 'right', 'R18': 'right', 'U8': 'right',
         'J11': (18.15, 42.0, 90), 'J12': (18.15, 56.0, 90), 'J13': (18.15, 70.0, 90),
         'C11': (4.5, 81.5)}),
+    'thermostat-carrier': dict(
+        {f'R{n}': 'right' for n in range(3, 15)}, **{f'K{n}': 'body' for n in range(1, 7)},
+        **{f'D{5 + i}': (30.8 + 12.2 * i, 60.0, 90) for i in range(6)}, **{f'U{n}': 'body' for n in range(7, 13)},
+        **{'J3': (31.0, 9.0), 'J5': (97.7, 25.8, 90), 'J6': (97.7, 37.0, 90), 'JP1': (6.3, 81.0),
+           'R28': 'right', 'R29': 'right', 'U4': 'right', 'C8': 'right', 'U5': 'body', 'C9': 'right',
+           'F2': 'body', 'F3': 'body'}),
     'indoor-carrier': {'C2': 'right', 'R3': 'body', 'R5': 'body', 'R7': 'body', 'R9': 'body',
                        'R1': 'body', 'R2': 'body', 'R4': 'body', 'R6': 'body', 'R8': 'body',
                        'J10': (86.9, 78.5, 90), 'U9': 'right', 'R10': (66.0, 59.3),
@@ -416,7 +475,7 @@ def build(name):
     board.GetDesignSettings().SetBoardThickness(FromMM(1.6))
     board.SetCopperLayerCount(2)
     tb = board.GetTitleBlock()
-    tb.SetTitle(cfg['title']); tb.SetRevision('B'); tb.SetDate('2026-10-18')
+    tb.SetTitle(cfg['title']); tb.SetRevision(cfg.get('rev', 'B')); tb.SetDate(cfg.get('date', '2026-10-18'))
     # CT jacks (outdoor): footprint edge line 6.5 mm either side of the jack centre
     gaps = [(y - 6.5, y + 6.5) for ref, (x, y, rot) in PLACE[name].items()
             if 'Jack_3.5mm' in parts.get(ref, {}).get('fp', '')]
@@ -455,7 +514,7 @@ def build(name):
                 pad.SetNet(nets[net])
         # terminal pin labels (e.g. +5 / SIG / GND) behind each pad
         labels = parts.get(ref, {}).get('pinlabels')
-        if labels:
+        if labels and ('JST_XH' in c['fp'] or 'Phoenix' in c['fp']):  # others: TEXT entries
             for pad in fp.Pads():
                 i = int(pad.GetNumber()) - 1
                 px = pcbnew.ToMM(pad.GetPosition().x) - BX
@@ -473,20 +532,21 @@ def build(name):
     if missing:
         raise SystemExit(f'{name}: no placement for {missing}')
 
-    # antenna keep-out: board edge to 8 mm in, between the ESP32 socket rows (both layers)
-    add_rule_area(board, [(0, 5.9), (8.0, 5.9), (8.0, 28.4), (0, 28.4)], 'ANTENNA_KEEPOUT')
-    # USB access: no parts beyond the DevKit's USB end
-    add_rule_area(board, [(43.5, 9.0), (54.5, 9.0), (54.5, 25.0), (43.5, 25.0)], 'USB_CLEAR',
-                  no_copper=False, no_footprints=True)
+    if name != 'thermostat-carrier':
+        # antenna keep-out: board edge to 8 mm in, between the ESP32 socket rows (both layers)
+        add_rule_area(board, [(0, 5.9), (8.0, 5.9), (8.0, 28.4), (0, 28.4)], 'ANTENNA_KEEPOUT')
+        # USB access: no parts beyond the DevKit's USB end
+        add_rule_area(board, [(43.5, 9.0), (54.5, 9.0), (54.5, 25.0), (43.5, 25.0)], 'USB_CLEAR',
+                      no_copper=False, no_footprints=True)
     # LoRa module: no top-side tracks or vias under its body (exposed test points underneath);
     # inset 1.3 mm on the pad sides so the pads' own connections stay legal
-    lx, ly, _ = TOP['LORA']
+    lx, ly, _ = place[{'thermostat-carrier': 'U6'}.get(name, LORA_REFS.get(name, {}).get('LORA'))]
     add_rule_area(board, [(lx - 4.2, ly - 5.6), (lx + 4.2, ly - 5.6), (lx + 4.2, ly + 5.6),
                           (lx - 4.2, ly + 5.6)], 'LORA_KEEPOUT', layers=(pcbnew.F_Cu,))
     add_gnd_zones(board, nets['GND'], w, h)
 
-    for s, x, y, size, *rot in TEXT[name] + COMMON_TEXT:
-        silk(board, s, x, y, size, rot=rot[0] if rot else 0)
+    for s, x, y, size, *more in TEXT[name] + (COMMON_TEXT if name != 'thermostat-carrier' else []):
+        silk(board, s, x, y, size, rot=more[0] if more else 0, just=more[1] if len(more) > 1 else 0)
 
     out = os.path.join(HW, name, name + '.kicad_pcb')
     pcbnew.SaveBoard(out, board)

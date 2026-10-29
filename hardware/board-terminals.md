@@ -70,6 +70,33 @@ Jack = 3.5 mm TRS socket (CUI SJ1-3523N): tip = signal, sleeve = CT_BIAS, ring n
   wall, then a 900 MHz whip outside the cabinet. Never transmit without the antenna connected.
 - SETUP is pressed through the lid by the printed plunger (see `enclosures/README.md`).
 
+## Thermostat carrier (rev A, 100 x 100 mm, 2026-10-29)
+
+Sits behind a Waveshare ESP32-S3-Touch-LCD-4.3, which runs everything. That board's screen uses
+almost every GPIO, so the carrier talks to it over I2C only, plus one wire for the radio's
+interrupt. Source: `hardware/scripts/design.py` (`thermostat()`), firmware `thermostat/firmware/include/board.h`.
+
+| Ref | Edge | Type | Pins (silkscreen) | Wire / cable | Firmware |
+|---|---|---|---|---|---|
+| J1 | bottom | Phoenix 3 | Rh, Rc, C | Heat and cool transformer R, common. Board power is Rc-C (C = board GND), so a C wire is required | power |
+| JP1 | bottom left | 2-pin header + shunt | Rc=Rh | Fit the shunt for one transformer (most systems); remove it for separate heating and cooling transformers | |
+| J2 | bottom | Phoenix 6 | G, Y1, Y2, W1, W2, O/B | Equipment call wires. Y1 Y2 G O/B switch from Rc, W1 W2 from Rh | outputs MCP23017 GPA4, GPA0, GPA1, GPA2, GPA3, GPA5; read-back GPB3, GPB0, GPB1, GPB2, GPB5, GPB4 |
+| J3 | top | USB-C (power only) | 5 V in | Display-only node: a 5 V USB charger instead of 24 VAC | power |
+| J4 | top | USB-A | to display USB | Short USB-A to USB-C cable to the display's USB port (power only) | |
+| J5 | right | 4-pin 2.54 header | 3V3, GND, SDA, SCL | The display's I2C cable. Its 3V3 wire goes on the 3V3 pin, which is not connected on the carrier | I2C GPIO8/9 |
+| J6 | right | 3-pin 2.54 header | 3V3, GND, IO6 | The display's sensor-header cable (3V3 not connected) | LoRa DIO1 on GPIO6 |
+| J7 | right | Qwiic (JST SH 4) | GND, 3V3, SDA, SCL | SHT45 room sensor breakout on a Qwiic cable, mounted on the isolated tab | SHT45 @ 0x44 |
+| U6 | top right | Wio-SX1262 | u.FL toward the top edge | u.FL pigtail to the antenna | via SC18IS602B @ 0x28 |
+
+- Outputs K1-K6: AQV252G PhotoMOS (60 V, 2.5 A) in DIP-6 sockets, a SMBJ40CA across each. F2/F3
+  are 1.25 A PTCs in the Rc and Rh feeds, so a shorted call wire trips them instead of a switch.
+- Read-backs U7-U12: H11AA1 from each call terminal to C, as on the nodes. With separate heating
+  and cooling transformers, W1/W2 read-backs only work if the two commons are tied.
+- Watchdog: TPS3823-33 resets the MCP23017 (every output off) if the firmware stops toggling
+  GPA6 for 1.6 s. The display board's own EN is not reachable.
+- Set U1 to **5.30 V** before fitting anything: the display's 5 V comes through a Schottky (D3).
+- Never plug a PC into the display's USB ports while 24 VAC is on the carrier (C is GND).
+
 ## Things to know
 
 - **Indoor J3 and J4 are the same 1-Wire bus.** The firmware does not know which jack a probe is in;

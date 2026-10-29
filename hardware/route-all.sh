@@ -3,10 +3,11 @@
 #   gen_pcb.py -> route.py export -> Freerouting -> route.py import (fill, ground fixes) -> DRC.
 # Freerouting's result changes from run to run, so a board is redone (up to 6 tries) until
 # kicad-cli DRC reports no errors and nothing unconnected. Writes <board>/drc.rpt.
-#   ./route-all.sh [outdoor-carrier] [indoor-carrier]
+#   ./route-all.sh [outdoor-carrier] [indoor-carrier] [thermostat-carrier]
 cd "$(dirname "$0")"
-K="/c/Program Files/KiCad/10.0/bin/python.exe"
-CLI="/c/Program Files/KiCad/10.0/bin/kicad-cli.exe"
+# KICAD_PY / KICAD_CLI override the PC's KiCad (e.g. wrappers around the kicad/kicad Docker image)
+K="${KICAD_PY:-/c/Program Files/KiCad/10.0/bin/python.exe}"
+CLI="${KICAD_CLI:-/c/Program Files/KiCad/10.0/bin/kicad-cli.exe}"
 for b in ${@:-outdoor-carrier indoor-carrier}; do
   for try in 1 2 3 4 5 6; do
     "$K" scripts/gen_pcb.py $b > /dev/null 2>&1 || { echo "$b: gen_pcb failed"; exit 1; }

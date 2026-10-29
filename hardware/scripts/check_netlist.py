@@ -1,17 +1,18 @@
 """Export each schematic's netlist with kicad-cli, verify every pin against
 design.py, and print a per-connector pin/net summary.
 
-    python check_netlist.py
+    python check_netlist.py [board ...]
 """
 import os
 import subprocess
+import sys
 from collections import defaultdict
 
 from sexp import find, first, parse
 import design
 
 HW = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CLI = r'C:\Program Files\KiCad\10.0\bin\kicad-cli.exe'
+CLI = os.environ.get('KICAD_CLI', r'C:\Program Files\KiCad\10.0\bin\kicad-cli.exe')
 
 
 PIN_NAMES = {
@@ -20,6 +21,9 @@ PIN_NAMES = {
     'hvac_carrier:LM2596HV_Module': ['IN+', 'IN-', 'OUT+', 'OUT-'],
     'hvac_carrier:Wio_SX1262': ['RF_SW', 'MISO', 'MOSI', 'SCK', 'NRST', 'NSS', 'GND', 'VCC', 'ANT',
                                 'GND', 'BUSY', 'DIO1'],
+    'hvac_carrier:AQV252G': ['LED+', 'LED-', 'NC', 'D', 'S', 'D'],
+    'hvac_carrier:SC18IS602B': ['SS0', 'SS1', 'RESET', 'VSS', 'MISO', 'MOSI', 'SDA', 'SCL', 'INT',
+                                'SS2', 'SPICLK', 'VDD', 'SS3', 'A0', 'A1', 'A2'],
 }
 
 
@@ -41,8 +45,9 @@ def netlist(name):
     return pins, members, comps
 
 
-def main():
-    for name, cfg in design.BOARDS.items():
+def main(names=None):
+    for name in names or list(design.BOARDS):
+        cfg = design.BOARDS[name]
         pins, members, comps = netlist(name)
         errors = []
         parts = cfg['parts']()
@@ -88,4 +93,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])

@@ -188,7 +188,8 @@ def import_(name):
     # ESP32 GND socket pins: diagonal thermal spokes clear the neighbouring traces
     u1 = board.FindFootprintByReference('U1')
     for num in ('14', '29'):
-        u1.FindPadByNumber(num).SetThermalSpokeAngleDegrees(45)
+        if 'ESP32' in str(u1.GetFPID().GetLibItemName()):
+            u1.FindPadByNumber(num).SetThermalSpokeAngleDegrees(45)
     # same for GND pins of the 2.5 mm pitch JST XH headers
     for fp in board.GetFootprints():
         if 'JST_XH' in str(fp.GetFPID().GetLibItemName()):
@@ -253,7 +254,7 @@ def stitch_ground(board, pitch=5.0, dia=0.9, drill=0.5, offset=0.0):
     return n
 
 
-CLI = os.path.join(r'C:\Program Files', 'KiCad', '10.0', 'bin', 'kicad-cli.exe')
+CLI = os.environ.get('KICAD_CLI', os.path.join(r'C:\Program Files', 'KiCad', '10.0', 'bin', 'kicad-cli.exe'))
 
 
 def ground_problems(pcb):

@@ -4,7 +4,7 @@
 
 struct Sensed {                 // what the equipment terminals actually see (24 VAC present)
     bool ok = false;
-    bool Y = false, Y2 = false, W = false, G = false, OB = false;
+    bool Y = false, Y2 = false, W = false, W2 = false, G = false, OB = false;
 };
 
 bool io_begin();                // Wire + the MCP23017; all outputs off

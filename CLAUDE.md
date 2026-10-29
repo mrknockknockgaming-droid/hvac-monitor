@@ -88,6 +88,13 @@ temperatures, superheat, subcooling and delta-T.
     rev B; `hardware/route-all.sh` repeats Freerouting until DRC is clean (results vary per run), and
     `scripts/make_fab.py` writes gerbers/zip, BOM, renders, PDFs and reports. Enclosure STLs/PNGs are
     still rev A until re-exported with OpenSCAD (commands in hardware/enclosures/README.md).
+  - Thermostat carrier rev A (2026-10-29, `thermostat-carrier/`, 100 x 100, design.py `thermostat()`):
+    behind the Waveshare ESP32-S3-Touch-LCD-4.3, everything on its I2C (MCP23017 0x20 outputs +
+    read-backs, TPS3823 resets the MCP23017, SC18IS602B 0x28 I2C-SPI bridge for the Wio-SX1262,
+    DIO1 on the display's GPIO6, SHT45 on Qwiic). Terminals Rh Rc C / G Y1 Y2 W1 W2 O/B, JP1 Rc=Rh,
+    USB-C 5 V in for display-only use, USB-A 5 V out to the display. Built in the cloud with the
+    kicad/kicad:10.0-full Docker image (KICAD_SHARE / KICAD_CLI / KICAD_PY env vars); make_fab.py
+    also writes its CPL + JLC BOM.
   - SETUP button (fw 0.3.1, `src/setup_ble.cpp`): hold 3 s -> restart into BLE provisioning (WiFiProv,
     security 1, Espressif "ESP BLE Provisioning" app, 10 min); setup code = random 8 chars in NVS
     printed on serial at boot; the joined network is saved in NVS (wifi.ssid/pass) and overrides
