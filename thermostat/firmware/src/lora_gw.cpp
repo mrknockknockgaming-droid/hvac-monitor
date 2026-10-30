@@ -10,12 +10,16 @@
 #include <Preferences.h>
 #include <time.h>
 
+#include "board.h"
 #include "lora_gateway.h"
 #include "lora_radio.h"
 #include "net.h"
+#include "sc18is602_hal.h"
 
-#if !defined(LORA_PIN_NSS) || !defined(LORA_PIN_SCK)
-#error "LORA_GATEWAY needs the SX1262 pins in config.h (LORA_PIN_SCK/MISO/MOSI/NSS/DIO1/RST/BUSY)"
+// Default: the Wio-SX1262 on the thermostat carrier, behind its I2C-SPI bridge (board.h).
+// LORA_PIN_* in config.h instead: an SX1262 wired straight to free ESP32 pins.
+#if !defined(LORA_PIN_NSS) && !defined(LORA_BRIDGE)
+#define LORA_BRIDGE 1
 #endif
 #ifndef LORA_TCXO_V
 #define LORA_TCXO_V 1.8
@@ -51,7 +55,14 @@ void lora_gw_begin() {
         prefs.putUInt(k, d.tx_counter);
         net_subscribe(topic(c.node, "cmd").c_str());
     }
+#if LORA_BRIDGE
+    static Sc18is602Hal hal(LORA_BRIDGE_ADDR);
+    LoraPins pins = {LORA_BRIDGE_NSS, LORA_DIO1_GPIO, LORA_BRIDGE_NRST, LORA_BRIDGE_BUSY};
+    pins.rxen = LORA_BRIDGE_RFSW;               // Wio-SX1262 RF_SW: high while receiving
+    pins.hal = &hal;
+#else
     LoraPins pins = {LORA_PIN_NSS, LORA_PIN_DIO1, LORA_PIN_RST, LORA_PIN_BUSY, LORA_PIN_SCK, LORA_PIN_MISO, LORA_PIN_MOSI};
+#endif
     pins.tcxo_v = LORA_TCXO_V;
     radio.begin(pins, lorafmt::channel_mhz(SITE_ID));
 }

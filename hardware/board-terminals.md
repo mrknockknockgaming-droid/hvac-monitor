@@ -70,6 +70,44 @@ Jack = 3.5 mm TRS socket (CUI SJ1-3523N): tip = signal, sleeve = CT_BIAS, ring n
   wall, then a 900 MHz whip outside the cabinet. Never transmit without the antenna connected.
 - SETUP is pressed through the lid by the printed plunger (see `enclosures/README.md`).
 
+## Thermostat carrier (rev A, 106 x 68 mm, 2026-10-30)
+
+Stacks behind a Waveshare ESP32-S3-Touch-LCD-4.3, which runs everything. Same outline as the
+display board. It screws to the display's four M2.5 SMT standoffs (4 mm tall, 98 x 60 mm apart)
+with M2.5 x 5 screws from the wall side. All parts are on the wall side and assembled by JLCPCB.
+The display side has only the THT leads of J1, J2 and JP1: trim them to 1.5 mm, because the
+display parts under them are up to 1.3 mm tall. A notch in the right edge (seen from the wall)
+leaves room for the display's side sockets. Short HY2.0 leads loop through the notch to J5 and J6.
+That board's screen uses almost every GPIO, so the carrier talks to it over I2C only, plus one
+wire for the radio's interrupt. Source: `hardware/scripts/design.py` (`thermostat()`), firmware
+`thermostat/firmware/include/board.h`. Edges below are as seen from the wall side.
+
+| Ref | Edge | Type | Pins (silkscreen) | Wire / cable | Firmware |
+|---|---|---|---|---|---|
+| J1 | bottom | Phoenix MCV 3.5 mm, 3 | Rh, Rc, C | Heat and cool transformer R, common. The plug faces the wall. Board power is Rc-C (C = board GND), so a C wire is required | power |
+| JP1 | bottom | 2-pin header + shunt | Rc=Rh | Fit the shunt for one transformer (most systems). Remove it for separate heating and cooling transformers | |
+| J2 | bottom | Phoenix MCV 3.5 mm, 6 | G, Y1, Y2, W1, W2, O/B | Equipment call wires. Y1, Y2, G and O/B switch from Rc; W1 and W2 switch from Rh | outputs MCP23017 GPA4, GPA0, GPA1, GPA2, GPA3, GPA5; read-back GPB3, GPB0, GPB1, GPB2, GPB5, GPB4 |
+| J3 | left | USB-C (power only) | 5 V in | Display-only node: a 5 V USB charger instead of 24 VAC | power |
+| J4 | left | USB-C (power only) | 5 V out | Short USB-C to USB-C cable to either of the display's USB-C ports (same edge) | |
+| J5 | bottom right | HY2.0 / PH 4 | 3V3, GND, SDA, SCL | Straight-through HY2.0 4-pin lead to the display's I2C socket. Its 3V3 lands on an unconnected pin | I2C GPIO8/9 |
+| J6 | top right | HY2.0 / PH 3 | 3V3, GND, IO6 | Straight-through HY2.0 3-pin lead to the display's sensor socket (3V3 not connected) | LoRa DIO1 on GPIO6 |
+| J7 | bottom | Qwiic (JST SH 4) | GND, 3V3, SDA, SCL | SHT45 room sensor breakout on a Qwiic cable, mounted on the isolated tab | SHT45 @ 0x44 |
+| U6 | top | Wio-SX1262 | u.FL at its right end | u.FL pigtail to the antenna | via SC18IS602B @ 0x28 |
+
+- Outputs K1-K6: AQV252GS PhotoMOS (60 V, 2.5 A), each with an SMBJ40CA across it. F2 and F3
+  are 2920L110/60 PTCs (1.1 A, 60 V) in the Rc and Rh feeds, so a shorted call wire trips them
+  instead of a switch.
+- Read-backs U7-U12: H11AA1SM from each call terminal to C, as on the nodes. With separate
+  heating and cooling transformers, the W1/W2 read-backs only work if the two commons are tied.
+- Watchdog: the TPS3823-33 resets the MCP23017 (every output off) if the firmware stops toggling
+  GPA6 for 1.6 s. The display board's own EN is not reachable.
+- Power: F1 (0.5 A), then SMBJ40CA, S1M half-wave and a 220 µF bulk cap feed a TPS54360B buck
+  set to 5.3 V. It needs no adjustment, unlike the LM2596 module on the nodes. The display's
+  5 V comes through a Schottky (D3).
+- Never plug a PC into the display's USB ports while 24 VAC is on the carrier (C is GND).
+- Not yet checked against real parts: the display's HY2.0 pin order (from the Waveshare wiki),
+  and the SMDIP-6 land pattern for the AQV252GS and H11AA1SM chosen at ordering.
+
 ## Things to know
 
 - **Indoor J3 and J4 are the same 1-Wire bus.** The firmware does not know which jack a probe is in;

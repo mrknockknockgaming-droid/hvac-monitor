@@ -115,7 +115,18 @@ step of simulated random days:
 | Blower | On with any call, for `fan_purge_s` after it, always (fan on), or `circulate_min_h` minutes an hour |
 | Sensor fail-safe | Room reading missing or outside 32–120 °F: all outputs off |
 
-## Hardware (proposed)
+## Hardware
+
+The carrier board is designed (rev A, 2026-10-30): `hardware/thermostat-carrier/`, wiring in
+`hardware/board-terminals.md`. It has the display's outline (106 x 68 mm) and screws straight
+onto the display's back standoffs, so the two stack as one block. It has six outputs (Y1 Y2 W1
+W2 G O/B, for two-stage cooling and heating), each read back, plus the watchdog, the room-sensor
+jack and the LoRa radio. The radio sits behind an I2C-SPI bridge because the Waveshare board has
+no free SPI pins. The carrier runs from Rc-C, or from USB-C as a display-only node, and feeds
+the display over a short USB-C cable. The controller doesn't use the second stages yet, so Y2
+and W2 stay off.
+
+The original proposal:
 
 - **MCU + display:** ESP32-S3 with a 3.5–4.3" capacitive touchscreen (an off-the-shelf
   ESP32-S3 display module to start), WiFi built in. Its FCC-certified radio module keeps the

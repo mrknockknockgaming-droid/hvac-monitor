@@ -1,17 +1,22 @@
 """Generate the custom symbol library, KiCad projects and schematics for both
 carrier boards from design.py. Run with any Python 3.10+.
 
-    python gen_sch.py
+    python gen_sch.py [board ...]      (default: every board in design.BOARDS)
+
+Regenerating a board's schematic gives its symbols new UUIDs, so rebuild its PCB after.
+KICAD_SHARE overrides KiCad's share folder (e.g. /usr/share/kicad in the kicad/kicad Docker image).
 """
 import json
 import os
+import sys
 import uuid
 
 from sexp import Str, dump, find, first, parse
 import design
 
 HW = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-KICAD_SYMS = r'C:\Program Files\KiCad\10.0\share\kicad\symbols'
+KICAD_SYMS = os.path.join(os.environ.get('KICAD_SHARE', r'C:\Program Files\KiCad\10.0\share\kicad'),
+                          'symbols')
 LIBNAME = 'hvac_carrier'
 FONT = ['effects', ['font', ['size', '1.27', '1.27']]]
 
@@ -79,6 +84,16 @@ def custom_symbols():
                    [('8', 'VCC'), ('7', 'GND'), ('10', 'GND'), ('9', 'ANT'), ('1', 'RF_SW')],
                    [('6', 'NSS'), ('4', 'SCK'), ('3', 'MOSI'), ('2', 'MISO'), ('5', 'NRST'),
                     ('11', 'BUSY'), ('12', 'DIO1')], 10.16),
+        box_symbol('AQV252G', 'K', 'AQV252G', design.FP_DIP6,
+                   'Panasonic AQV252G PhotoMOS relay, 60 V 2.5 A, AC/DC output (pins 4-6)',
+                   [('1', 'LED+'), ('2', 'LED−'), ('3', 'NC')],
+                   [('6', 'D'), ('5', 'S'), ('4', 'D')], 7.62),
+        box_symbol('SC18IS602B', 'U', 'SC18IS602B', design.FP_TSSOP16,
+                   'NXP SC18IS602B I2C-bus to SPI bridge, TSSOP-16',
+                   [('12', 'VDD'), ('4', 'VSS'), ('7', 'SDA'), ('8', 'SCL'), ('3', '~RESET'),
+                    ('9', '~INT'), ('14', 'A0'), ('15', 'A1'), ('16', 'A2')],
+                   [('1', 'SS0/GPIO0'), ('2', 'SS1/GPIO1'), ('10', 'SS2/GPIO2'),
+                    ('13', 'SS3/GPIO3'), ('11', 'SPICLK'), ('6', 'MOSI'), ('5', 'MISO')], 10.16),
     ]
 
 
@@ -130,6 +145,7 @@ class Sheet:
         self.libs = {}
         self.pwr = 0
         self.title = title
+        self.comment = 'Rev A from docs/hvac-schematics.html; rev B additions in design.py'
 
     def _instances(self, ref):
         return ['instances', ['project', Str(self.project),
@@ -188,6 +204,14 @@ class Sheet:
                     in_bom=False, on_board=False, hide_ref=True)
         self.wire(x, y, x, y + 5.08)
 
+    def flag_label(self, net, x, y):
+        """PWR_FLAG on a net that has no power symbol (e.g. a rectified input), via a label."""
+        self.label(net, x, y, 270)
+        self.pwr += 1
+        self.symbol('power:PWR_FLAG', f'#FLG{self.pwr:03d}', 'PWR_FLAG', x, y + 5.08, 180,
+                    in_bom=False, on_board=False, hide_ref=True)
+        self.wire(x, y, x, y + 5.08)
+
     def label(self, net, x, y, pin_dir):
         ang = (pin_dir + 180) % 360
         just = 'left' if ang in (0, 90) else 'right'
@@ -229,10 +253,10 @@ class Sheet:
             else:
                 self.label(net, ex, ey, a)
 
-    def write(self, path, date):
-        tb = ['title_block', ['title', Str(self.title)], ['date', Str(date)], ['rev', Str('B')],
+    def write(self, path, date, rev='B'):
+        tb = ['title_block', ['title', Str(self.title)], ['date', Str(date)], ['rev', Str(rev)],
               ['company', Str('HVAC Monitor')],
-              ['comment', '1', Str('Rev A from docs/hvac-schematics.html; rev B additions in design.py')],
+              ['comment', '1', Str(self.comment)],
               ['comment', '2', Str('Labels with the same name are connected')]]
         doc = ['kicad_sch', ['version', '20231120'], ['generator', Str('eeschema')],
                ['generator_version', Str('8.0')], ['uuid', self.root], ['paper', Str('A2')], tb,
@@ -255,6 +279,13 @@ ZONES = {
                        ('D  Mode inputs', 20.32, 142.24), ('Mounting', 269.24, 190.5),
                        ('F  I2C mux: SHT45 ch 0-1, SDP810 ch 2-4', 20.32, 241.3),
                        ('G  LoRa radio and SETUP button', 20.32, 294.64)],
+    'thermostat-carrier': [('A  Power: Rc-C 24 VAC (TPS54360B buck) or USB-C 5 V in; USB-C 5 V out to the display', 20.32, 22.86),
+                           ('B  Rc / Rh to the output switches', 20.32, 104.14),
+                           ('C  Outputs (PhotoMOS) and read-back (H11AA1): G Y1 Y2 W1 W2 O/B', 20.32, 139.7),
+                           ('D  I/O expander + watchdog (all outputs off on reset)', 289.56, 48.26),
+                           ('E  LoRa: I2C-SPI bridge + Wio-SX1262', 289.56, 147.32),
+                           ('F  Display board and room sensor', 401.32, 48.26),
+                           ('Mounting', 401.32, 180.34)],
 }
 
 
@@ -281,21 +312,28 @@ def write_project(name):
     return d
 
 
-def main(date='2026-10-18'):
+def main(names=None):
     write_lib()
-    for name, cfg in design.BOARDS.items():
+    for name in names or list(design.BOARDS):
+        cfg = design.BOARDS[name]
         d = write_project(name)
         sh = Sheet(name, cfg['title'])
+        if name == 'thermostat-carrier':
+            sh.comment = 'Fullscope display thermostat carrier; parts and nets in design.py'
         for p in cfg['parts']():
             sh.place(p)
         for label, x, y in ZONES[name]:
             sh.text(label, x, y)
         fy = 27.94
         for i, net in enumerate(design.POWER_NETS):
+            if net in cfg.get('driven_nets', ()):
+                continue  # a regulator's power output already drives it
             sh.flag(net, 223.52 + 12.7 * i, fy)
-        sh.write(os.path.join(d, name + '.kicad_sch'), date)
+        for i, net in enumerate(cfg.get('flag_nets', ())):
+            sh.flag_label(net, 223.52 + 12.7 * (len(design.POWER_NETS) + i), fy)
+        sh.write(os.path.join(d, name + '.kicad_sch'), cfg.get('date', '2026-10-18'), cfg.get('rev', 'B'))
         print('wrote', name)
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])

@@ -4,12 +4,15 @@
 #pragma once
 #include <Arduino.h>
 
+class RadioLibHal;
+
 struct LoraPins {
     int nss, dio1, rst, busy;
     int sck = -1, miso = -1, mosi = -1;     // -1: the board's default SPI pins
     float tcxo_v = 1.8f;                    // 0 for a crystal (no TCXO)
     bool dio2_rf_switch = true;
     int rxen = -1;                          // receive-enable pin of the module's RF switch (Wio-SX1262 RF_SW), -1: none
+    RadioLibHal* hal = nullptr;             // nullptr: the board's SPI and GPIOs (thermostat: an I2C-SPI bridge)
 };
 
 class LoraRadio {

@@ -120,7 +120,9 @@ void report() {
     if (s.ok) {
         JsonObject seen = doc["seen"].to<JsonObject>();   // what the equipment terminals actually get
         seen["Y"] = s.Y;
+        seen["Y2"] = s.Y2;
         seen["W"] = s.W;
+        seen["W2"] = s.W2;
         seen["G"] = s.G;
         seen["OB"] = s.OB;
     }

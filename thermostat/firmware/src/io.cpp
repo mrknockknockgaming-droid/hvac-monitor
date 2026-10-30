@@ -42,7 +42,7 @@ bool io_begin() {
     bool ok = mcp_write(OLATA, 0)                 // latch everything off before making them outputs
               && mcp_write(IODIRA, 0x80)          // GPA0-6 outputs, GPA7 spare input
               && mcp_write(IODIRB, 0xFF)          // GPB: state-sense inputs
-              && mcp_write(GPPUB, 0x1F);
+              && mcp_write(GPPUB, SENSE_MASK);
     if (!ok) Serial.println("io: MCP23017 not found: outputs can't switch");
     return ok;
 }
@@ -52,7 +52,7 @@ bool io_outputs(const tstat::Outputs& o) {
     if (o.Y) v |= 1 << OUT_Y;
     if (o.W) v |= 1 << OUT_W;
     if (o.G) v |= 1 << OUT_G;
-    if (o.OB) v |= 1 << OUT_OB;                   // Y2 / W2: second stages, not used yet
+    if (o.OB) v |= 1 << OUT_OB;                   // Y2 / W2: wired on the carrier; the controller has no stages yet
     if (!mcp_write(OLATA, v)) return false;
     olat = v;
     return true;
@@ -69,13 +69,14 @@ Sensed io_sense() {
     uint8_t low = 0, v;
     for (int i = 0; i < 5; i++) {
         if (!mcp_read(GPIOB, v)) return s;
-        low |= ~v & 0x1F;
+        low |= ~v & SENSE_MASK;
         delay(2);
     }
     s.ok = true;
     s.Y = low & (1 << SENSE_Y);
     s.Y2 = low & (1 << SENSE_Y2);
     s.W = low & (1 << SENSE_W);
+    s.W2 = low & (1 << SENSE_W2);
     s.G = low & (1 << SENSE_G);
     s.OB = low & (1 << SENSE_OB);
     return s;

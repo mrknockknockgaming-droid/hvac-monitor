@@ -1,0 +1,4 @@
+(sym_lib_table
+	(version 7)
+	(lib (name "hvac_carrier")(type "KiCad")(uri "${KIPRJMOD}/../lib/hvac_carrier.kicad_sym")(options "")(descr "HVAC carrier modules"))
+)

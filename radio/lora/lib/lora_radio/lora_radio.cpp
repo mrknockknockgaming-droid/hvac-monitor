@@ -15,7 +15,8 @@ ICACHE_RAM_ATTR void on_dio1() {
 
 bool LoraRadio::begin(const LoraPins& p, double mhz, uint8_t sf, int8_t dbm) {
     if (p.sck >= 0) SPI.begin(p.sck, p.miso, p.mosi, p.nss);
-    radio = new SX1262(new Module(p.nss, p.dio1, p.rst, p.busy));
+    radio = new SX1262(p.hal ? new Module(p.hal, p.nss, p.dio1, p.rst, p.busy)
+                             : new Module(p.nss, p.dio1, p.rst, p.busy));
     const int st = radio->begin(static_cast<float>(mhz), 500.0f, sf, 5, RADIOLIB_SX126X_SYNC_WORD_PRIVATE, dbm, 8, p.tcxo_v);
     if (st != RADIOLIB_ERR_NONE) {
         Serial.printf("lora: radio.begin failed (%d)\n", st);
