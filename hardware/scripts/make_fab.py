@@ -29,23 +29,25 @@ def run(*args):
     return r.stdout
 
 
-# LCSC numbers for JLCPCB assembly, by (value, footprint): SMD parts only. Thermostat numbers
-# were looked up 2026-10-29 (check stock when ordering).
+# LCSC numbers for JLCPCB assembly, by (value, footprint). Thermostat numbers were looked up
+# 2026-10-29 (check stock when ordering). Its JLC BOM lists every SMD part: a blank LCSC number
+# is matched by hand on JLCPCB's BOM page.
 JLC_PARTS = {
     'thermostat-carrier': {
-        ('10k', design.FP_R_SMD): 'C17414',
-        ('330', design.FP_R_SMD): 'C17630',
-        ('5.1k', design.FP_R_SMD): 'C27834',
-        ('0.1µF', design.FP_C_SMD): 'C49678',
+        ('10k', design.FP_R0805): 'C17414',
+        ('330', design.FP_R0805): 'C17630',
+        ('5.1k', design.FP_R0805): 'C27834',
+        ('0.1µF', design.FP_C0805): 'C49678',
         ('AMS1117-3.3', design.FP_LDO): 'C6186',
-        ('SMBJ48CA', design.FP_D1): 'C173522',
-        ('SMBJ40CA', design.FP_D1): 'C114004',
+        ('SMBJ40CA', design.FP_SMB): 'C114004',
         ('SS34', design.FP_SMA): 'C8678',
         ('MCP23017-E/SO', design.FP_SOIC28): 'C47023',
         ('TPS3823-33', design.FP_SOT235): 'C7719',
         ('SC18IS602B', design.FP_TSSOP16): 'C2678036',
     },
 }
+JLC_ALL_SMD = {'thermostat-carrier'}
+THT_LIBS = ('Connector_Phoenix_MC', 'Connector_PinHeader_2.54mm', 'MountingHole')
 # JLCPCB's placement preview turns these packages differently from KiCad (seen on rev B)
 JLC_ROTATE = {design.FP_LDO: 180}
 
@@ -60,7 +62,9 @@ def jlc_files(name, d, fab):
     rows, groups = [], {}
     for r in csv.DictReader(open(pos, encoding='utf-8')):
         p = parts.get(r['Ref'])
-        if not p or p.get('dnp') or (p['value'], p['fp']) not in lcsc:
+        if not p or p.get('dnp') or p['fp'].startswith(THT_LIBS):
+            continue
+        if (p['value'], p['fp']) not in lcsc and name not in JLC_ALL_SMD:
             continue
         rot = (float(r['Rot']) + JLC_ROTATE.get(p['fp'], 0)) % 360
         rows.append([r['Ref'], r['Val'], r['Package'], f"{float(r['PosX']):.4f}mm",
@@ -76,7 +80,7 @@ def jlc_files(name, d, fab):
         w.writerow(['Comment', 'Designator', 'Footprint', 'LCSC Part #'])
         for (value, fp), refs in sorted(groups.items()):
             refs.sort(key=lambda r: (r[0], int(''.join(c for c in r if c.isdigit()))))
-            w.writerow([value, ','.join(refs), fp.split(':')[1], lcsc[(value, fp)]])
+            w.writerow([value, ','.join(refs), fp.split(':')[1], lcsc.get((value, fp), '')])
 
 
 def board(name):

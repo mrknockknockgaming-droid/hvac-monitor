@@ -311,10 +311,16 @@ def indoor():
 #     GPIO2 = NRST, GPIO3 = RF_SW. DIO1 goes to the display's GPIO6 (sensor header) for the
 #     receive interrupt; without that wire the firmware polls the radio's IRQ flags.
 #   * SHT45 room sensor on a Qwiic cable (thermally isolated tab, away from the display heat).
-# Terminals as on a thermostat sub-base: Rh Rc C, then G Y1 Y2 W1 W2 O/B. JP1 joins Rc and Rh
-# (one transformer). Rc feeds Y1 Y2 G O/B and Rh feeds W1 W2, each through a 1.25 A PTC. The
-# board runs from Rc-C (C = GND, half-wave as on the nodes) or, as a display-only node, from
-# 5 V on the USB-C input; either way the display gets 5 V from the USB-A socket.
+# Rev A stacks under the display (2026-10-30): same 106 x 68 mm outline as the Waveshare board,
+# screwed to its four 4 mm M2.5 SMT standoffs (98 x 60 mm), SMD parts on the wall side for JLC
+# assembly, nothing on the display side but THT leads (trim to 1.5 mm). A notch on the right
+# edge clears the display's side sockets (I2C, sensor, CAN, RS485, battery); short HY2.0 leads
+# loop through it to J5/J6. Terminals as on a thermostat sub-base, plugs facing the wall:
+# Rh Rc C, then G Y1 Y2 W1 W2 O/B (3.5 mm pluggable). JP1 joins Rc and Rh (one transformer).
+# Rc feeds Y1 Y2 G O/B and Rh feeds W1 W2, each through a 1.1 A 60 V PTC. The board runs from
+# Rc-C (C = GND, half-wave as on the nodes, TPS54360B buck to 5.3 V) or, as a display-only
+# node, from 5 V on the USB-C input; either way J4 (USB-C, 5 V out) feeds the display through a
+# short USB-C cable.
 
 CALLS = [('G', 'RC'), ('Y1', 'RC'), ('Y2', 'RC'), ('W1', 'RH'), ('W2', 'RH'), ('OB', 'RC')]
 # MCP23017 SOIC-28: GPA0-5 = pins 21-26 drive the outputs, GPB0-5 = pins 1-6 read them back
@@ -322,79 +328,114 @@ CALLS = [('G', 'RC'), ('Y1', 'RC'), ('Y2', 'RC'), ('W1', 'RH'), ('W2', 'RH'), ('
 # SENSE_Y2 1, SENSE_W 2, SENSE_G 3, SENSE_OB 4, SENSE_W2 5). GPA7/GPB7 are output-only parts.
 MCP_OUT = {'Y1': '21', 'Y2': '22', 'W1': '23', 'W2': '24', 'G': '25', 'OB': '26'}
 MCP_SENSE = {'Y1': '1', 'Y2': '2', 'W1': '3', 'G': '4', 'OB': '5', 'W2': '6'}
-FP_C_EL63 = 'Capacitor_THT:CP_Radial_D6.3mm_P2.50mm'
-FP_C1_BIG = 'Capacitor_THT:CP_Radial_D12.5mm_P5.00mm'
-FP_PTC = 'Fuse:Fuse_BelFuse_0ZRE0125FF_L21.2mm_W5.3mm'
-FP_SMA = 'Diode_SMD:D_SMA_Handsoldering'
+FP_SMA = 'Diode_SMD:D_SMA'
+FP_SMB = 'Diode_SMD:D_SMB'
+FP_SMDIP6 = 'Package_DIP:SMDIP-6_W9.53mm'   # AQV252GS / H11AA1SM gull-wing; check the land pattern
 FP_SOIC28 = 'Package_SO:SOIC-28W_7.5x17.9mm_P1.27mm'
 FP_TSSOP16 = 'Package_SO:TSSOP-16_4.4x5mm_P0.65mm'
-FP_SOT235 = 'Package_TO_SOT_SMD:SOT-23-5_HandSoldering'
-FP_USB_A = 'Connector_USB:USB_A_Molex_67643_Horizontal'
+FP_SOT235 = 'Package_TO_SOT_SMD:SOT-23-5'
+FP_POWERPAD8 = 'Package_SO:TI_SO-PowerPAD-8_ThermalVias'
 FP_USB_C = 'Connector_USB:USB_C_Receptacle_GCT_USB4125-xx-x_6P_TopMnt_Horizontal'
 FP_QWIIC = 'Connector_JST:JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal'
+FP_R0805 = 'Resistor_SMD:R_0805_2012Metric'
+FP_C0805 = 'Capacitor_SMD:C_0805_2012Metric'
+FP_C1206 = 'Capacitor_SMD:C_1206_3216Metric'
+FP_C1210 = 'Capacitor_SMD:C_1210_3225Metric'
+FP_R2010 = 'Resistor_SMD:R_2010_5025Metric'
+FP_CP10 = 'Capacitor_SMD:CP_Elec_10x10.5'
+FP_L7 = 'Inductor_SMD:L_7.3x7.3_H4.5'
+FP_F1206 = 'Fuse:Fuse_1206_3216Metric'
+FP_PTC2920 = 'Fuse:Fuse_2920_7451Metric'
+FP_MH25 = 'MountingHole:MountingHole_2.7mm_M2.5_DIN965'
 
 
 def fp_hdr(n):
     return f'Connector_PinHeader_2.54mm:PinHeader_1x0{n}_P2.54mm_Vertical'
 
 
+def fp_mcv(n):
+    # Phoenix MCV 1,5/n-G-3.5 vertical pluggable header (mates with MC 1,5/n-ST-3,5)
+    return f'Connector_Phoenix_MC:PhoenixContact_MCV_1,5_{n}-G-3.5_1x0{n}_P3.50mm_Vertical'
+
+
+def fp_ph(n):
+    # HY2.0 / JST PH 2.0 mm top-entry SMD socket (the display's own sockets are HY2.0)
+    return f'Connector_JST:JST_PH_B{n}B-PH-SM4-TB_1x0{n}-1MP_P2.00mm_Vertical'
+
+
 def tstat_channel(i, call, src, x, y):
     """One output: MCP23017 pin -> 330 R -> AQV252G LED (10k pull-down keeps it off while the
     expander is in reset); the PhotoMOS switches Rc/Rh to the terminal, a TVS across it; an
-    H11AA1 reads the terminal back against C (4.7k 1/2 W in, 10k pull-up out, as on the nodes)."""
+    H11AA1 reads the terminal back against C (4.7k 2010 in, 10k pull-up out, as on the nodes)."""
     n = i + 1
     return [
-        part(f'R{3 + i}', 'Device:R', '330', FP_R_SMD, x, y, {'1': f'DRV_{call}', '2': f'LED_{call}'}),
-        part(f'R{9 + i}', 'Device:R', '10k', FP_R_SMD, x, y + 10.16, {'1': f'DRV_{call}', '2': 'GND'}),
-        part(f'K{n}', 'hvac_carrier:AQV252G', 'AQV252G', FP_DIP6, x + 25.4, y,
+        part(f'R{3 + i}', 'Device:R', '330', FP_R0805, x, y, {'1': f'DRV_{call}', '2': f'LED_{call}'}),
+        part(f'R{9 + i}', 'Device:R', '10k', FP_R0805, x, y + 10.16, {'1': f'DRV_{call}', '2': 'GND'}),
+        part(f'K{n}', 'hvac_carrier:AQV252G', 'AQV252GS', FP_SMDIP6, x + 25.4, y,
              {'1': f'LED_{call}', '2': 'GND', '3': 'NC', '4': f'{src}L_24V', '5': 'NC',
               '6': f'{call}_24V'}),
-        part(f'D{5 + i}', 'Device:D_TVS', 'SMBJ40CA', FP_D1, x + 50.8, y,
+        part(f'D{5 + i}', 'Device:D_TVS', 'SMBJ40CA', FP_SMB, x + 50.8, y,
              {'1': f'{src}L_24V', '2': f'{call}_24V'}),
-        part(f'R{15 + i}', 'Device:R', '4.7k ½W', FP_R_HW, x + 66.04, y,
+        part(f'R{15 + i}', 'Device:R', '4.7k 2010', FP_R2010, x + 66.04, y,
              {'1': f'{call}_24V', '2': f'{call}_OPTO'}),
-        part(f'U{7 + i}', 'Isolator:H11AA1', 'H11AA1', FP_DIP6, x + 91.44, y,
+        part(f'U{7 + i}', 'Isolator:H11AA1', 'H11AA1SM', FP_SMDIP6, x + 91.44, y,
              {'1': f'{call}_OPTO', '2': 'GND', '3': 'NC', '4': 'GND', '5': f'SENSE_{call}',
               '6': 'NC'}),
-        part(f'R{21 + i}', 'Device:R', '10k', FP_R_SMD, x + 116.84, y,
+        part(f'R{21 + i}', 'Device:R', '10k', FP_R0805, x + 116.84, y,
              {'1': '+3V3', '2': f'SENSE_{call}'}),
     ]
 
 
 def thermostat():
     p = [
-        part('J1', 'Connector_Generic:Conn_01x03', '24 VAC', fp_term(3), 30.48, 38.1,
+        part('J1', 'Connector_Generic:Conn_01x03', '24 VAC', fp_mcv(3), 30.48, 38.1,
              {'1': 'RH_24V', '2': 'RC_24V', '3': 'GND'}, pinlabels=['Rh', 'Rc', 'C']),
         part('JP1', 'Jumper:Jumper_2_Open', 'Rc=Rh', fp_hdr(2), 30.48, 55.88,
              {'1': 'RC_24V', '2': 'RH_24V'}),
-        part('F1', 'Device:Fuse', '0.5 A fast', FP_FUSE, 50.8, 38.1, {'1': 'RC_24V', '2': 'VAC_F'}),
-        part('D1', 'Device:D_TVS', 'SMBJ48CA', FP_D1, 71.12, 38.1, {'1': 'VAC_F', '2': 'GND'}),
-        part('D2', 'Device:D', '1N4007', FP_D2, 101.6, 38.1, {'1': 'VRAW', '2': 'VAC_F'}),
-        part('C1', 'Device:C_Polarized', '1000µF 63V', FP_C1_BIG, 124.46, 38.1,
-             {'1': 'VRAW', '2': 'GND'}),
-        part('C2', 'Device:C', '0.1µF', FP_C_DISC, 137.16, 38.1, {'1': 'VRAW', '2': 'GND'}),
-        part('U1', 'hvac_carrier:LM2596HV_Module', 'LM2596HV', FP_BUCK, 175.26, 38.1,
-             {'1': 'VRAW', '2': 'GND', '3': 'V5_BUCK', '4': 'GND'}),
-        part('D3', 'Device:D_Schottky', 'SS34', FP_SMA, 210.82, 38.1, {'1': '+5V', '2': 'V5_BUCK'}),
+        part('F1', 'Device:Fuse', '0.5 A fast 63 V', FP_F1206, 50.8, 38.1, {'1': 'RC_24V', '2': 'VAC_F'}),
+        part('D1', 'Device:D_TVS', 'SMBJ40CA', FP_SMB, 71.12, 38.1, {'1': 'VAC_F', '2': 'GND'}),
+        part('D2', 'Device:D', 'S1M', FP_SMA, 101.6, 38.1, {'1': 'VRAW', '2': 'VAC_F'}),
+        part('C1', 'Device:C_Polarized', '220µF 63V', FP_CP10, 124.46, 38.1, {'1': 'VRAW', '2': 'GND'}),
+        part('C2', 'Device:C', '2.2µF 100V', FP_C1210, 137.16, 38.1, {'1': 'VRAW', '2': 'GND'}),
+        # TPS54360B: 400 kHz (RT 243k), 5.3 V out (56k / 10k from 0.8 V), type II compensation
+        part('U1', 'Regulator_Switching:TPS54360DDA', 'TPS54360BDDAR', FP_POWERPAD8, 190.5, 38.1,
+             {'1': 'BOOT', '2': 'VRAW', '3': 'NC', '4': 'RT', '5': 'FB', '6': 'COMP', '7': 'GND',
+              '8': 'SW', '9': 'GND'}),
+        part('C11', 'Device:C', '0.1µF', FP_C0805, 101.6, 63.5, {'1': 'BOOT', '2': 'SW'}),
+        part('R30', 'Device:R', '243k', FP_R0805, 114.3, 63.5, {'1': 'RT', '2': 'GND'}),
+        part('R31', 'Device:R', '56k', FP_R0805, 127.0, 63.5, {'1': 'V5_BUCK', '2': 'FB'}),
+        part('R32', 'Device:R', '10k', FP_R0805, 139.7, 63.5, {'1': 'FB', '2': 'GND'}),
+        part('R33', 'Device:R', '6.8k', FP_R0805, 152.4, 63.5, {'1': 'COMP', '2': 'COMP_RC'}),
+        part('C12', 'Device:C', '22nF', FP_C0805, 165.1, 63.5, {'1': 'COMP_RC', '2': 'GND'}),
+        part('C13', 'Device:C', '100pF', FP_C0805, 177.8, 63.5, {'1': 'COMP', '2': 'GND'}),
+        part('D11', 'Device:D_Schottky', 'SS36', FP_SMA, 215.9, 38.1, {'1': 'SW', '2': 'GND'}),
+        part('L1', 'Device:L', '22µH 2A', FP_L7, 228.6, 38.1, {'1': 'SW', '2': 'V5_BUCK'}),
+        part('C14', 'Device:C', '22µF 16V', FP_C1206, 241.3, 38.1, {'1': 'V5_BUCK', '2': 'GND'}),
+        part('C15', 'Device:C', '22µF 16V', FP_C1206, 254.0, 38.1, {'1': 'V5_BUCK', '2': 'GND'}),
+        part('D3', 'Device:D_Schottky', 'SS34', FP_SMA, 266.7, 38.1, {'1': '+5V', '2': 'V5_BUCK'}),
         # display-only node: 5 V from a USB-C charger (5.1k CC pull-downs ask for 5 V)
         part('J3', 'Connector:USB_C_Receptacle_PowerOnly_6P', 'USB-C 5 V in', FP_USB_C, 30.48, 81.28,
              {'A9': 'VBUS_IN', 'B9': 'VBUS_IN', 'A12': 'GND', 'B12': 'GND', 'A5': 'CC1',
               'B5': 'CC2', 'SH': 'GND'}),
-        part('R1', 'Device:R', '5.1k', FP_R_SMD, 60.96, 81.28, {'1': 'CC1', '2': 'GND'}),
-        part('R2', 'Device:R', '5.1k', FP_R_SMD, 73.66, 81.28, {'1': 'CC2', '2': 'GND'}),
+        part('R1', 'Device:R', '5.1k', FP_R0805, 60.96, 81.28, {'1': 'CC1', '2': 'GND'}),
+        part('R2', 'Device:R', '5.1k', FP_R0805, 73.66, 81.28, {'1': 'CC2', '2': 'GND'}),
         part('D4', 'Device:D_Schottky', 'SS34', FP_SMA, 93.98, 81.28, {'1': '+5V', '2': 'VBUS_IN'}),
-        part('C3', 'Device:C_Polarized', '220µF 16V', FP_C_EL63, 114.3, 81.28, {'1': '+5V', '2': 'GND'}),
-        part('J4', 'Connector:USB_A', 'USB-A 5 V to display', FP_USB_A, 139.7, 81.28,
-             {'1': '+5V', '2': 'NC', '3': 'NC', '4': 'GND', 'SH': 'GND'}),
-        part('U2', 'Regulator_Linear:AMS1117-3.3', 'AMS1117-3.3', FP_LDO, 175.26, 81.28,
+        part('C3', 'Device:C', '22µF 16V', FP_C1206, 114.3, 81.28, {'1': '+5V', '2': 'GND'}),
+        # 5 V out to the display's USB-C (56k CC pull-ups: a default-power source)
+        part('J4', 'Connector:USB_C_Receptacle_PowerOnly_6P', 'USB-C 5 V to display', FP_USB_C,
+             139.7, 81.28, {'A9': '+5V', 'B9': '+5V', 'A12': 'GND', 'B12': 'GND', 'A5': 'CCO1',
+                            'B5': 'CCO2', 'SH': 'GND'}),
+        part('R34', 'Device:R', '56k', FP_R0805, 160.02, 96.52, {'1': '+5V', '2': 'CCO1'}),
+        part('R35', 'Device:R', '56k', FP_R0805, 172.72, 96.52, {'1': '+5V', '2': 'CCO2'}),
+        part('U2', 'Regulator_Linear:AMS1117-3.3', 'AMS1117-3.3', FP_LDO, 190.5, 81.28,
              {'1': 'GND', '2': '+3V3', '3': '+5V'}),
-        part('C4', 'Device:C_Polarized', '10µF 16V', FP_C_EL, 195.58, 81.28, {'1': '+5V', '2': 'GND'}),
-        part('C5', 'Device:C_Polarized', '22µF 10V', FP_C_EL, 208.28, 81.28, {'1': '+3V3', '2': 'GND'}),
-        part('C6', 'Device:C', '0.1µF', FP_C_SMD, 220.98, 81.28, {'1': '+3V3', '2': 'GND'}),
+        part('C4', 'Device:C', '10µF 25V', FP_C0805, 210.82, 81.28, {'1': '+5V', '2': 'GND'}),
+        part('C5', 'Device:C', '22µF 10V', FP_C0805, 223.52, 81.28, {'1': '+3V3', '2': 'GND'}),
+        part('C6', 'Device:C', '0.1µF', FP_C0805, 236.22, 81.28, {'1': '+3V3', '2': 'GND'}),
         # Rc / Rh to the output switches
-        part('F2', 'Device:Polyfuse', '0ZRE0125FF', FP_PTC, 30.48, 116.84, {'1': 'RC_24V', '2': 'RCL_24V'}),
-        part('F3', 'Device:Polyfuse', '0ZRE0125FF', FP_PTC, 50.8, 116.84, {'1': 'RH_24V', '2': 'RHL_24V'}),
-        part('J2', 'Connector_Generic:Conn_01x06', 'Calls 24 VAC', fp_term(6), 81.28, 116.84,
+        part('F2', 'Device:Polyfuse', '2920L110/60', FP_PTC2920, 30.48, 116.84, {'1': 'RC_24V', '2': 'RCL_24V'}),
+        part('F3', 'Device:Polyfuse', '2920L110/60', FP_PTC2920, 50.8, 116.84, {'1': 'RH_24V', '2': 'RHL_24V'}),
+        part('J2', 'Connector_Generic:Conn_01x06', 'Calls 24 VAC', fp_mcv(6), 81.28, 116.84,
              {str(i + 1): f'{c}_24V' for i, (c, _) in enumerate(CALLS)},
              pinlabels=['G', 'Y1', 'Y2', 'W1', 'W2', 'O/B']),
     ]
@@ -407,37 +448,40 @@ def thermostat():
     mcp.update({pin: f'SENSE_{c}' for c, pin in MCP_SENSE.items()})
     p += [
         part('U3', 'Interface_Expansion:MCP23017x-x-SO', 'MCP23017-E/SO', FP_SOIC28, 330.2, 76.2, mcp),
-        part('C7', 'Device:C', '0.1µF', FP_C_SMD, 365.76, 60.96, {'1': '+3V3', '2': 'GND'}),
+        part('C7', 'Device:C', '0.1µF', FP_C0805, 365.76, 60.96, {'1': '+3V3', '2': 'GND'}),
         part('U4', 'Power_Supervisor:TPS3823-xxDBV', 'TPS3823-33', FP_SOT235, 330.2, 121.92,
              {'1': 'WD_RST', '2': 'GND', '3': '+3V3', '4': 'WDI', '5': '+3V3'}),
-        part('C8', 'Device:C', '0.1µF', FP_C_SMD, 365.76, 121.92, {'1': '+3V3', '2': 'GND'}),
+        part('C8', 'Device:C', '0.1µF', FP_C0805, 365.76, 121.92, {'1': '+3V3', '2': 'GND'}),
         # LoRa: SC18IS602B bridge, Wio-SX1262 on the board's 3.3 V
         part('U5', 'hvac_carrier:SC18IS602B', 'SC18IS602B', FP_TSSOP16, 330.2, 167.64,
              {'1': 'LORA_NSS', '2': 'LORA_BUSY', '3': 'BR_RST', '4': 'GND', '5': 'LORA_MISO',
               '6': 'LORA_MOSI', '7': 'SDA', '8': 'SCL', '9': 'NC', '10': 'LORA_NRST',
               '11': 'LORA_SCK', '12': '+3V3', '13': 'LORA_RFSW', '14': 'GND', '15': 'GND',
               '16': 'GND'}),
-        part('R27', 'Device:R', '10k', FP_R_SMD, 365.76, 154.94, {'1': '+3V3', '2': 'BR_RST'}),
-        part('C9', 'Device:C', '0.1µF', FP_C_SMD, 365.76, 167.64, {'1': '+3V3', '2': 'GND'}),
+        part('R27', 'Device:R', '10k', FP_R0805, 365.76, 154.94, {'1': '+3V3', '2': 'BR_RST'}),
+        part('C9', 'Device:C', '0.1µF', FP_C0805, 365.76, 167.64, {'1': '+3V3', '2': 'GND'}),
         part('U6', 'hvac_carrier:Wio_SX1262', 'Wio-SX1262', FP_LORA, 330.2, 213.36,
              {'1': 'LORA_RFSW', '2': 'LORA_MISO', '3': 'LORA_MOSI', '4': 'LORA_SCK',
               '5': 'LORA_NRST', '6': 'LORA_NSS', '7': 'GND', '8': '+3V3', '9': 'NC',
               '10': 'GND', '11': 'LORA_BUSY', '12': 'LORA_DIO1'}),
-        part('C10', 'Device:C', '0.1µF', FP_C_SMD, 365.76, 213.36, {'1': '+3V3', '2': 'GND'}),
-        # to the display board: its I2C cable (its 3V3 wire parks on an unconnected pin) and
-        # the sensor-header cable for DIO1 -> GPIO6
-        part('J5', 'Connector_Generic:Conn_01x04', 'Display I2C', fp_hdr(4), 419.1, 76.2,
-             {'1': 'NC', '2': 'GND', '3': 'SDA', '4': 'SCL'}, pinlabels=['3V3', 'GND', 'SDA', 'SCL']),
-        part('J6', 'Connector_Generic:Conn_01x03', 'Display IO6', fp_hdr(3), 419.1, 101.6,
-             {'1': 'NC', '2': 'GND', '3': 'LORA_DIO1'}, pinlabels=['3V3', 'GND', 'IO6']),
+        part('C10', 'Device:C', '0.1µF', FP_C0805, 365.76, 213.36, {'1': '+3V3', '2': 'GND'}),
+        # to the display board's HY2.0 sockets, straight-through leads: its I2C (its 3V3 wire
+        # parks on an unconnected pin) and the sensor socket for DIO1 -> GPIO6
+        part('J5', 'Connector_Generic_MountingPin:Conn_01x04_MountingPin', 'Display I2C', fp_ph(4),
+             419.1, 76.2, {'1': 'NC', '2': 'GND', '3': 'SDA', '4': 'SCL', 'MP': 'GND'},
+             pinlabels=['3V3', 'GND', 'SDA', 'SCL']),
+        part('J6', 'Connector_Generic_MountingPin:Conn_01x03_MountingPin', 'Display IO6', fp_ph(3),
+             419.1, 101.6, {'1': 'NC', '2': 'GND', '3': 'LORA_DIO1', 'MP': 'GND'},
+             pinlabels=['3V3', 'GND', 'IO6']),
         part('J7', 'Connector_Generic_MountingPin:Conn_01x04_MountingPin', 'Room SHT45 (Qwiic)',
              FP_QWIIC, 419.1, 127.0, {'1': 'GND', '2': '+3V3', '3': 'SDA', '4': 'SCL', 'MP': 'GND'},
              pinlabels=['GND', '3V3', 'SDA', 'SCL']),
         # the display board already pulls SDA/SCL up; fit these only if the bus misbehaves
-        part('R28', 'Device:R', '4.7k', FP_R_SMD, 419.1, 154.94, {'1': '+3V3', '2': 'SDA'}, dnp=True),
-        part('R29', 'Device:R', '4.7k', FP_R_SMD, 431.8, 154.94, {'1': '+3V3', '2': 'SCL'}, dnp=True),
+        part('R28', 'Device:R', '4.7k', FP_R0805, 419.1, 154.94, {'1': '+3V3', '2': 'SDA'}, dnp=True),
+        part('R29', 'Device:R', '4.7k', FP_R0805, 431.8, 154.94, {'1': '+3V3', '2': 'SCL'}, dnp=True),
     ]
-    p += mounting_holes(419.1, 190.5)
+    p += [part(f'H{i}', 'Mechanical:MountingHole', 'M2.5', FP_MH25, 419.1 + 12.7 * (i - 1), 190.5, {},
+               in_bom=False) for i in range(1, 5)]
     return p
 
 
@@ -447,5 +491,6 @@ BOARDS = {
     'indoor-carrier': dict(parts=indoor, title='HVAC Monitor indoor carrier',
                            size=(100, 88)),
     'thermostat-carrier': dict(parts=thermostat, title='Fullscope thermostat carrier',
-                               size=(100, 100), rev='A', date='2026-10-29', driven_nets=('+3V3',)),
+                               size=(106, 68), rev='A', date='2026-10-30', driven_nets=('+3V3',),
+                               flag_nets=('VRAW',)),
 }

@@ -134,43 +134,50 @@ PLACE = {
 
 
 def tstat_outputs():
-    """Thermostat: one column per output, G Y1 Y2 W1 W2 O/B left to right (as on J2): pull-down
-    and 330 R, PhotoMOS, its TVS, the H11AA1 read-back, the 4.7k (terminal end down) and the
-    read-back pull-up beside it."""
+    """Thermostat: one 10.6 mm column per output, G Y1 Y2 W1 W2 O/B left to right: pull-down and
+    330 R, PhotoMOS (LED pins up), its TVS beside the 4.7k 2010, then the H11AA1 read-back and
+    its pull-up."""
     d = {}
     for i in range(6):
-        x = 27.0 + 12.2 * i
-        d[f'R{9 + i}'] = (x + 2.0, 43.0, 0)       # DRV pull-down
-        d[f'R{3 + i}'] = (x + 2.0, 45.6, 0)       # LED 330 R
-        d[f'K{1 + i}'] = (x, 50.0, 0)             # AQV252G pin 1
-        d[f'D{5 + i}'] = (x + 3.8, 60.0, 0)       # SMBJ40CA across the switch
-        d[f'U{7 + i}'] = (x, 65.0, 0)             # H11AA1 pin 1
-        d[f'R{15 + i}'] = (x + 3.8, 86.0, 90)     # 4.7k, pad 1 (terminal) at the bottom
-        d[f'R{21 + i}'] = (x + 8.6, 75.0, 90)     # SENSE pull-up
+        x = 35.3 + 10.6 * i
+        d[f'R{9 + i}'] = (x - 2.2, 19.3, 90)      # DRV pull-down
+        d[f'R{3 + i}'] = (x + 2.2, 19.3, 90)      # LED 330 R
+        d[f'K{1 + i}'] = (x, 28.4, 270)           # AQV252GS
+        d[f'D{5 + i}'] = (x - 2.2, 38.4, 90)      # SMBJ40CA across the switch
+        d[f'R{15 + i}'] = (x + 2.8, 38.4, 90)     # 4.7k to the opto
+        d[f'U{7 + i}'] = (x - 0.6, 48.4, 270)     # H11AA1SM
+        d[f'R{21 + i}'] = (x + 4.5, 49.4, 90)     # SENSE pull-up
     return d
 
 
+# Thermostat carrier: the display's outline (106 x 68), its standoffs at the corners (98 x 60),
+# the notch on the right edge under its side sockets. Seen from the wall side (parts side), so
+# the display's USB-C ports are on the left edge and its HY2.0 sockets on the right.
+TSTAT_NOTCH = (95.0, 11.4, 54.2)   # x from, y from, y to
 PLACE['thermostat-carrier'] = dict(tstat_outputs(), **{
-    # power column on the left: LM2596 input end down, toward J1 / F1
-    'U1': (12.0, 28.4, 90), 'C1': (6.5, 58.0, 0), 'D2': (19.5, 52.5, 270), 'D1': (8.5, 68.5, 0),
-    'C2': (15.5, 68.5, 0), 'F1': (2.3, 75.5, 0), 'JP1': (5.0, 84.0, 90),
-    # terminals on the bottom edge, plugs face down
-    'J1': (6.0, 91.46, 0), 'J2': (25.0, 91.46, 0),
-    'F2': (66.0, 89.5, 0), 'F3': (66.0, 95.5, 0),
-    # 5 V: buck diode, USB-C in (top edge), USB-A out to the display (top edge), 3.3 V regulator
-    'D3': (27.5, 4.5, 180), 'C3': (30.5, 19.5, 0), 'J3': (38.0, 3.0, 180),
-    'R1': (36.0, 11.5, 90), 'R2': (40.0, 11.5, 90), 'D4': (45.5, 13.0, 90),
-    'J4': (60.0, 14.5, 180),
-    'U2': (32.0, 29.5, 0), 'C6': (38.5, 24.0, 0), 'C4': (27.6, 38.0, 0), 'C5': (33.6, 38.0, 0),
-    # expander (GPA0-5 along the bottom, toward the outputs) and watchdog
-    'U3': (50.0, 33.0, 270), 'C7': (48.5, 24.8, 0), 'U4': (64.5, 36.0, 0), 'C8': (64.5, 32.4, 0),
-    # LoRa top right, u.FL toward the top edge; bridge beside its pins
-    'U6': (86.5, 6.3, 90), 'C10': (96.5, 15.2, 0), 'U5': (72.0, 13.0, 0), 'C9': (72.0, 17.6, 0),
-    'R27': (72.0, 8.6, 0),
-    # display cables and room sensor, right edge
-    'J5': (95.0, 22.0, 0), 'J6': (95.0, 34.5, 0), 'J7': (86.0, 24.0, 180),
-    'R28': (86.6, 33.0, 0), 'R29': (86.6, 36.0, 0),
-    'H1': (3.5, 3.5, 0), 'H2': (96.5, 96.5, 0), 'H3': (96.5, 45.0, 0), 'H4': (56.8, 95.5, 0),
+    'H1': (4.0, 4.0, 0), 'H2': (102.0, 4.0, 0), 'H3': (4.0, 64.0, 0), 'H4': (102.0, 64.0, 0),
+    # 3.3 V regulator and the expander along the top
+    'U2': (14.0, 5.5, 0), 'C4': (8.0, 11.5, 0), 'C5': (20.5, 3.5, 90), 'C6': (20.5, 7.5, 90),
+    'U3': (32.0, 7.2, 270), 'C7': (21.0, 12.0, 90),
+    'U4': (45.0, 3.5, 0), 'C8': (45.0, 7.5, 0),
+    # LoRa: bridge, module (u.FL on its right end), DIO1 socket to the display
+    'U5': (53.5, 7.5, 0), 'R27': (48.4, 7.0, 90), 'C9': (55.5, 13.0, 0),
+    'U6': (70.0, 6.4, 270), 'C10': (60.5, 14.0, 90), 'J6': (86.5, 5.5, 0),
+    # buck, top left
+    'U1': (14.0, 20.0, 0), 'C11': (14.0, 15.0, 0), 'C2': (7.0, 19.5, 90),
+    'L1': (23.5, 20.5, 0), 'D11': (23.5, 28.0, 0), 'C14': (23.5, 31.8, 0), 'C15': (23.5, 34.6, 0),
+    'R30': (9.0, 25.0, 90), 'R33': (12.5, 25.0, 90), 'C13': (15.0, 25.0, 90), 'R31': (17.5, 25.0, 90),
+    'C12': (12.5, 29.0, 90), 'R32': (17.5, 29.0, 90), 'D3': (8.5, 33.5, 0),
+    # USB-C out to the display and USB-C in, left edge (mouths out)
+    'J4': (3.5, 41.5, 270), 'R34': (10.0, 39.0, 0), 'R35': (10.0, 42.0, 0), 'C3': (14.5, 41.5, 90),
+    'J3': (3.5, 53.5, 270), 'R1': (10.0, 51.0, 0), 'R2': (10.0, 54.0, 0), 'D4': (15.5, 54.0, 90),
+    # 24 VAC in: bulk cap, rectifier, fuse, TVS
+    'C1': (23.5, 43.0, 90), 'D2': (24.0, 51.9, 0), 'F1': (20.8, 56.5, 0), 'D1': (16.5, 61.5, 90),
+    # terminals along the bottom (plugs face the wall), Rc/Rh PTCs between them
+    'J1': (26.5, 63.6, 0), 'JP1': (25.0, 55.8, 90), 'F2': (42.0, 58.0, 0), 'F3': (42.0, 64.6, 0),
+    'J2': (51.5, 63.6, 0),
+    # room sensor and the display's I2C lead
+    'J7': (78.0, 64.6, 0), 'J5': (91.0, 59.5, 0), 'R28': (74.0, 59.5, 90), 'R29': (76.0, 59.5, 90),
 })
 
 TEXT = {
@@ -178,17 +185,15 @@ TEXT = {
                         ('CT1 comp', 18.15, 48.0, 0.9, 90), ('CT2 fan', 18.15, 62.0, 0.9, 90),
                         ('CT3 HERM', 18.15, 76.0, 0.9, 90)],
     'indoor-carrier': [('HVAC Monitor rev B', 21.0, 69.3, 1.1), ('indoor carrier', 21.0, 71.3, 1.1)],
-    'thermostat-carrier': [('Fullscope thermostat', 73.5, 24.5, 0.9), ('carrier rev A', 73.5, 26.2, 0.9),
-                           ('Set U1 to', 12.0, 34.0, 1.1), ('5.30 V first', 12.0, 35.8, 1.1),
-                           ('LoRa ANT ↑', 78.0, 2.0, 1.0), ('5 V in', 38.0, 8.6, 0.9),
-                           ('to display USB', 60.0, 18.8, 0.9), ('Rc=Rh', 13.6, 84.0, 0.9),
-                           ('one transformer', 15.0, 85.8, 0.8),
-                           ('3V3', 92.6, 22.0, 0.8, 0, 1), ('GND', 92.6, 24.54, 0.8, 0, 1),
-                           ('SDA', 92.6, 27.08, 0.8, 0, 1), ('SCL', 92.6, 29.62, 0.8, 0, 1),
-                           ('3V3', 92.6, 34.5, 0.8, 0, 1), ('GND', 92.6, 37.04, 0.8, 0, 1),
-                           ('IO6', 92.6, 39.58, 0.8, 0, 1), ('display I2C', 94.6, 19.4, 0.8),
-                           ('display IO6', 94.6, 32.0, 0.8),
-                           ('room', 86.0, 28.6, 0.8), ('SHT45', 86.0, 30.0, 0.8)],
+    'thermostat-carrier': [('Fullscope thermostat carrier rev A', 44.0, 15.4, 0.9),
+                           ('5 V out', 10.0, 45.3, 0.8), ('5 V in', 10.0, 56.9, 0.8),
+                           ('Rc=Rh', 31.8, 55.8, 0.8),
+                           ('3V3', 84.5, 11.0, 0.8, 90), ('GND', 86.5, 11.0, 0.8, 90),
+                           ('IO6', 88.5, 11.0, 0.8, 90), ('display IO6', 86.5, 14.6, 0.8),
+                           ('3V3', 88.0, 65.0, 0.8, 90), ('GND', 90.0, 65.0, 0.8, 90),
+                           ('SDA', 92.0, 65.0, 0.8, 90), ('SCL', 94.0, 65.0, 0.8, 90),
+                           ('display I2C', 91.0, 67.3, 0.8), ('room', 80.6, 58.6, 0.8),
+                           ('SHT45', 80.6, 60.0, 0.8), ('trim THT leads to 1.5 mm', 60.0, 56.3, 0.8)],
 }
 COMMON_TEXT = [('Set U2 to', 77.5, 49.5, 1.1), ('5.00 V first', 77.5, 51.3, 1.1),
                ('USB', 49.0, 17.0, 1.2), ('← antenna', 5.0, 11.0, 1.0),
@@ -210,11 +215,11 @@ REF_AT = {
         'J11': (18.15, 42.0, 90), 'J12': (18.15, 56.0, 90), 'J13': (18.15, 70.0, 90),
         'C11': (4.5, 81.5)}),
     'thermostat-carrier': dict(
-        {f'R{n}': 'right' for n in range(3, 15)}, **{f'K{n}': 'body' for n in range(1, 7)},
-        **{f'D{5 + i}': (30.8 + 12.2 * i, 60.0, 90) for i in range(6)}, **{f'U{n}': 'body' for n in range(7, 13)},
-        **{'J3': (31.0, 9.0), 'J5': (97.7, 25.8, 90), 'J6': (97.7, 37.0, 90), 'JP1': (6.3, 81.0),
-           'R28': 'right', 'R29': 'right', 'U4': 'right', 'C8': 'right', 'U5': 'body', 'C9': 'right',
-           'F2': 'body', 'F3': 'body'}),
+        {r: 'hide' for r in [f'R{n}' for n in range(1, 36)] + [f'C{n}' for n in range(1, 16)] +
+         [f'D{n}' for n in range(1, 12)] + ['F1', 'L1', 'U1', 'U4', 'J1', 'J2', 'J7', 'JP1']},
+        **{f'K{n}': 'body' for n in range(1, 7)}, **{f'U{n}': 'body' for n in (2, 3, 5, 6, *range(7, 13))},
+        **{'F2': 'body', 'F3': 'body', 'J3': (10.0, 48.9), 'J4': (10.0, 36.9),
+           'J5': (91.0, 56.0), 'J6': (79.0, 3.0)}),
     'indoor-carrier': {'C2': 'right', 'R3': 'body', 'R5': 'body', 'R7': 'body', 'R9': 'body',
                        'R1': 'body', 'R2': 'body', 'R4': 'body', 'R6': 'body', 'R8': 'body',
                        'J10': (86.9, 78.5, 90), 'U9': 'right', 'R10': (66.0, 59.3),
@@ -231,12 +236,15 @@ NETCLASSES = [
     ('Default', 0.3, 0.2, 0.6, 0.3, []),
     ('Power24', 1.0, 0.3, 0.9, 0.5, ['/VAC_IN', '/VAC_F', '/VRAW', '/*_24V']),   # 24 VAC side
     ('Opto24', 0.3, 0.3, 0.6, 0.3, ['/*_OPTO']),                             # series R to opto LED
-    ('Rail5V', 1.0, 0.3, 0.9, 0.5, ['+5V']),
+    ('Rail5V', 1.0, 0.2, 0.9, 0.5, ['+5V']),
     ('Ground', 0.8, 0.25, 0.9, 0.5, ['GND']),
     ('Rail3V3', 0.5, 0.2, 0.7, 0.35, ['+3V3', '/+3V3_RF']),
     ('Analog', 0.3, 0.2, 0.6, 0.3, ['/P_*', '/V5_MON', '/T_*', '/CT*']),       # dividers, thermistors, CTs
 ]
 ANALOG_TO_24VAC_MM = 3.0
+# the thermostat's SMD pins (PowerPAD, USB-C, TSSOP) are too narrow for 1 mm tracks; its loads
+# are light (<= 1 A per call wire, 0.7 A at 5 V)
+NETCLASS_WIDTH = {'thermostat-carrier': {'Power24': 0.6, 'Rail5V': 0.6, 'Ground': 0.5}}
 
 DRU = f"""(version 1)
 (rule "Analog away from 24 VAC"
@@ -253,6 +261,7 @@ def write_project_rules(name):
     d = json.load(open(path, encoding='utf-8')) if os.path.exists(path) else {}
     classes = []
     for cname, tw, cl, vd, vr, _ in NETCLASSES:
+        tw = NETCLASS_WIDTH.get(name, {}).get(cname, tw)
         classes.append({'name': cname, 'track_width': tw, 'clearance': cl, 'via_diameter': vd,
                         'via_drill': vr, 'microvia_diameter': 0.3, 'microvia_drill': 0.1,
                         'diff_pair_gap': 0.25, 'diff_pair_width': 0.2, 'diff_pair_via_gap': 0.25,
@@ -309,7 +318,7 @@ def read_netlist(name):
 
 # ---------------------------------------------------------------- helpers
 
-def add_edge(board, w, h, r=2.0, left_gaps=()):
+def add_edge(board, w, h, r=2.0, left_gaps=(), right_notch=None):
     """Rounded rectangle; left_gaps = (y0, y1) spans of the left edge drawn by a footprint
     (the CT jacks carry their own Edge.Cuts notch for the jack's nose)."""
     def seg(a, b):
@@ -327,7 +336,13 @@ def add_edge(board, w, h, r=2.0, left_gaps=()):
         board.Add(s)
 
     k = r * (1 - 0.70710678)
-    seg((r, 0), (w - r, 0)); seg((w, r), (w, h - r)); seg((w - r, h), (r, h))
+    seg((r, 0), (w - r, 0)); seg((w - r, h), (r, h))
+    if right_notch:   # (x, y0, y1): a cut-out from the right edge in to x
+        nx, n0, n1 = right_notch
+        seg((w, r), (w, n0)); seg((w, n0), (nx, n0)); seg((nx, n0), (nx, n1)); seg((nx, n1), (w, n1))
+        seg((w, n1), (w, h - r))
+    else:
+        seg((w, r), (w, h - r))
     y = h - r
     for y0, y1 in sorted(left_gaps, reverse=True):
         seg((0, y), (0, y1))
@@ -407,6 +422,9 @@ def sync_fields(fp, fields):
 def place_reference(fp, ref, rot, how=None):
     """Put the reference designator just outside the part's courtyard."""
     t = fp.Reference()
+    if how == 'hide':
+        t.SetVisible(False)
+        return
     if ref.startswith('H'):
         t.SetVisible(False)
         return
@@ -479,7 +497,8 @@ def build(name):
     # CT jacks (outdoor): footprint edge line 6.5 mm either side of the jack centre
     gaps = [(y - 6.5, y + 6.5) for ref, (x, y, rot) in PLACE[name].items()
             if 'Jack_3.5mm' in parts.get(ref, {}).get('fp', '')]
-    add_edge(board, w, h, left_gaps=gaps)
+    add_edge(board, w, h, left_gaps=gaps,
+             right_notch=TSTAT_NOTCH if name == 'thermostat-carrier' else None)
 
     nets = {}
     for net in sorted(set(padnets.values())):
@@ -523,6 +542,8 @@ def build(name):
                     silk(board, labels[i], px + 3.6, py, 0.8, just=-1)
                 elif 'JST_XH' in c['fp']:  # 2.5 mm pitch: labels turned sideways
                     silk(board, labels[i], px, py - 4.2, 0.8, rot=90)
+                elif 'MCV' in c['fp']:  # vertical plug: labels above its body
+                    silk(board, labels[i], px, py - 5.7, 0.9)
                 elif rot == 0:    # bottom edge, plug faces down
                     silk(board, labels[i], px, py - 3.4, 1.0)
                 elif rot == 180:  # top edge
@@ -540,9 +561,17 @@ def build(name):
                       no_copper=False, no_footprints=True)
     # LoRa module: no top-side tracks or vias under its body (exposed test points underneath);
     # inset 1.3 mm on the pad sides so the pads' own connections stay legal
-    lx, ly, _ = place[{'thermostat-carrier': 'U6'}.get(name, LORA_REFS.get(name, {}).get('LORA'))]
-    add_rule_area(board, [(lx - 4.2, ly - 5.6), (lx + 4.2, ly - 5.6), (lx + 4.2, ly + 5.6),
-                          (lx - 4.2, ly + 5.6)], 'LORA_KEEPOUT', layers=(pcbnew.F_Cu,))
+    lx, ly, lr = place[{'thermostat-carrier': 'U6'}.get(name, LORA_REFS.get(name, {}).get('LORA'))]
+    kx, ky = (4.2, 5.6) if lr in (90, 270) else (5.6, 4.2)   # inside the two pad rows
+    add_rule_area(board, [(lx - kx, ly - ky), (lx + kx, ly - ky), (lx + kx, ly + ky),
+                          (lx - kx, ly + ky)], 'LORA_KEEPOUT', layers=(pcbnew.F_Cu,))
+    if name == 'thermostat-carrier':
+        # Freerouting ignores the board-edge clearance: keep its tracks and vias 0.7 mm in
+        e, (nx, n0, n1) = 0.7, TSTAT_NOTCH
+        for pts in ([(0, 0), (w, 0), (w, e), (0, e)], [(0, h - e), (w, h - e), (w, h), (0, h)],
+                    [(0, 0), (e, 0), (e, h), (0, h)], [(w - e, 0), (w, 0), (w, h), (w - e, h)],
+                    [(nx - e, n0 - e), (w, n0 - e), (w, n1 + e), (nx - e, n1 + e)]):
+            add_rule_area(board, pts, 'EDGE_KEEPOUT')
     add_gnd_zones(board, nets['GND'], w, h)
 
     for s, x, y, size, *more in TEXT[name] + (COMMON_TEXT if name != 'thermostat-carrier' else []):

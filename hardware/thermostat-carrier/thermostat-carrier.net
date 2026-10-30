@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "/hw/thermostat-carrier/thermostat-carrier.kicad_sch")
-		(date "2026-10-29T04:54:42")
+		(date "2026-10-30T09:11:22")
 		(tool "Eeschema 10.0.7")
 		(sheet
 			(number "1")
@@ -12,7 +12,7 @@
 				(title "Fullscope thermostat carrier")
 				(company "HVAC Monitor")
 				(rev "A")
-				(date "2026-10-29")
+				(date "2026-10-30")
 				(source "thermostat-carrier.kicad_sch")
 				(comment
 					(number "1")
@@ -56,11 +56,11 @@
 	(components
 		(comp
 			(ref "C1")
-			(value "1000µF 63V")
-			(footprint "Capacitor_THT:CP_Radial_D12.5mm_P5.00mm")
+			(value "220µF 63V")
+			(footprint "Capacitor_SMD:CP_Elec_10x10.5")
 			(fields
 				(field
-					(name "Footprint") "Capacitor_THT:CP_Radial_D12.5mm_P5.00mm")
+					(name "Footprint") "Capacitor_SMD:CP_Elec_10x10.5")
 				(field
 					(name "Datasheet")
 				)
@@ -93,7 +93,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "309acf1e-fe56-4d83-b96b-41d91537240e")
+			(tstamps "d38c5230-2511-4e1d-ad86-d526becb4f74")
 			(units
 				(unit
 					(name "A")
@@ -110,11 +110,11 @@
 		)
 		(comp
 			(ref "C2")
-			(value "0.1µF")
-			(footprint "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm")
+			(value "2.2µF 100V")
+			(footprint "Capacitor_SMD:C_1210_3225Metric")
 			(fields
 				(field
-					(name "Footprint") "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm")
+					(name "Footprint") "Capacitor_SMD:C_1210_3225Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -147,7 +147,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "032b71f3-9061-4c52-be1e-62a606eb1b75")
+			(tstamps "f8b3d4c0-62c6-4796-816d-0b8bef85e43a")
 			(units
 				(unit
 					(name "A")
@@ -164,11 +164,11 @@
 		)
 		(comp
 			(ref "C3")
-			(value "220µF 16V")
-			(footprint "Capacitor_THT:CP_Radial_D6.3mm_P2.50mm")
+			(value "22µF 16V")
+			(footprint "Capacitor_SMD:C_1206_3216Metric")
 			(fields
 				(field
-					(name "Footprint") "Capacitor_THT:CP_Radial_D6.3mm_P2.50mm")
+					(name "Footprint") "Capacitor_SMD:C_1206_3216Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -178,8 +178,8 @@
 			)
 			(libsource
 				(lib "Device")
-				(part "C_Polarized")
-				(description "Polarized capacitor")
+				(part "C")
+				(description "Unpolarized capacitor")
 			)
 			(property
 				(name "Sheetname")
@@ -195,13 +195,13 @@
 			)
 			(property
 				(name "ki_fp_filters")
-				(value "CP_*")
+				(value "C_*")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e8af22f4-5a7f-45e1-ab34-716a0f68258a")
+			(tstamps "90943d4a-87a2-4ca5-9a5e-ead85676a1c2")
 			(units
 				(unit
 					(name "A")
@@ -218,11 +218,11 @@
 		)
 		(comp
 			(ref "C4")
-			(value "10µF 16V")
-			(footprint "Capacitor_THT:CP_Radial_D5.0mm_P2.00mm")
+			(value "10µF 25V")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(fields
 				(field
-					(name "Footprint") "Capacitor_THT:CP_Radial_D5.0mm_P2.00mm")
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -232,8 +232,8 @@
 			)
 			(libsource
 				(lib "Device")
-				(part "C_Polarized")
-				(description "Polarized capacitor")
+				(part "C")
+				(description "Unpolarized capacitor")
 			)
 			(property
 				(name "Sheetname")
@@ -249,13 +249,13 @@
 			)
 			(property
 				(name "ki_fp_filters")
-				(value "CP_*")
+				(value "C_*")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "578abe28-9fa5-4acd-9e47-9e05e3416e8c")
+			(tstamps "5cde13a5-597f-49d0-bcfa-00929ffe8351")
 			(units
 				(unit
 					(name "A")
@@ -273,10 +273,10 @@
 		(comp
 			(ref "C5")
 			(value "22µF 10V")
-			(footprint "Capacitor_THT:CP_Radial_D5.0mm_P2.00mm")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(fields
 				(field
-					(name "Footprint") "Capacitor_THT:CP_Radial_D5.0mm_P2.00mm")
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -286,8 +286,8 @@
 			)
 			(libsource
 				(lib "Device")
-				(part "C_Polarized")
-				(description "Polarized capacitor")
+				(part "C")
+				(description "Unpolarized capacitor")
 			)
 			(property
 				(name "Sheetname")
@@ -303,13 +303,13 @@
 			)
 			(property
 				(name "ki_fp_filters")
-				(value "CP_*")
+				(value "C_*")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0c47ef16-c98a-44a7-a6fe-c9e93696e845")
+			(tstamps "935ad927-bb69-4cd4-94e7-a0e72cd62eb7")
 			(units
 				(unit
 					(name "A")
@@ -327,10 +327,10 @@
 		(comp
 			(ref "C6")
 			(value "0.1µF")
-			(footprint "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(fields
 				(field
-					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder")
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -363,7 +363,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "625f1c0a-0cac-4a7d-80ef-9d3e78180795")
+			(tstamps "7c512811-b8d0-4ee0-8f27-8ebc68267187")
 			(units
 				(unit
 					(name "A")
@@ -381,10 +381,10 @@
 		(comp
 			(ref "C7")
 			(value "0.1µF")
-			(footprint "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(fields
 				(field
-					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder")
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -417,7 +417,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1cd5f11b-3445-44c5-a4ce-42ed019c9fdb")
+			(tstamps "78cb27e8-cfa0-4347-b731-c58833905f3a")
 			(units
 				(unit
 					(name "A")
@@ -435,10 +435,10 @@
 		(comp
 			(ref "C8")
 			(value "0.1µF")
-			(footprint "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(fields
 				(field
-					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder")
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -471,7 +471,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "2d860f0f-6341-4683-b420-40af0c76ade1")
+			(tstamps "42234d03-5449-4c91-93d1-82f3195c1a9a")
 			(units
 				(unit
 					(name "A")
@@ -489,10 +489,10 @@
 		(comp
 			(ref "C9")
 			(value "0.1µF")
-			(footprint "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(fields
 				(field
-					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder")
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -525,7 +525,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "882efdc5-9a4a-40f8-a1bc-985d826974d9")
+			(tstamps "af3d12ee-e0cf-40f2-860f-cb8e942d1304")
 			(units
 				(unit
 					(name "A")
@@ -543,10 +543,10 @@
 		(comp
 			(ref "C10")
 			(value "0.1µF")
-			(footprint "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(fields
 				(field
-					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder")
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -579,7 +579,277 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0cbf434d-6804-4b8c-8175-65f414b99167")
+			(tstamps "de667ae3-5af9-4bde-9698-d4b57478988b")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C11")
+			(value "0.1µF")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "C")
+				(description "Unpolarized capacitor")
+			)
+			(property
+				(name "Sheetname")
+				(value "thermostat-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "thermostat-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "cap capacitor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "C_*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "20c3ef4f-62c2-498b-8a8f-435219893f76")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C12")
+			(value "22nF")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "C")
+				(description "Unpolarized capacitor")
+			)
+			(property
+				(name "Sheetname")
+				(value "thermostat-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "thermostat-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "cap capacitor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "C_*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "a4dfe45c-f25a-430d-9f48-053599be471c")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C13")
+			(value "100pF")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "C")
+				(description "Unpolarized capacitor")
+			)
+			(property
+				(name "Sheetname")
+				(value "thermostat-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "thermostat-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "cap capacitor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "C_*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "cf2dfd25-cde1-4457-a114-65b1fcd1bc98")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C14")
+			(value "22µF 16V")
+			(footprint "Capacitor_SMD:C_1206_3216Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_1206_3216Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "C")
+				(description "Unpolarized capacitor")
+			)
+			(property
+				(name "Sheetname")
+				(value "thermostat-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "thermostat-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "cap capacitor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "C_*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "a82c9af0-11d5-4f43-a878-69ba1212751a")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C15")
+			(value "22µF 16V")
+			(footprint "Capacitor_SMD:C_1206_3216Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_1206_3216Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "C")
+				(description "Unpolarized capacitor")
+			)
+			(property
+				(name "Sheetname")
+				(value "thermostat-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "thermostat-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "cap capacitor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "C_*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "01d4912a-c1f2-4fec-b631-8d6beb6f21f4")
 			(units
 				(unit
 					(name "A")
@@ -596,11 +866,11 @@
 		)
 		(comp
 			(ref "D1")
-			(value "SMBJ48CA")
-			(footprint "Diode_SMD:D_SMB_Handsoldering")
+			(value "SMBJ40CA")
+			(footprint "Diode_SMD:D_SMB")
 			(fields
 				(field
-					(name "Footprint") "Diode_SMD:D_SMB_Handsoldering")
+					(name "Footprint") "Diode_SMD:D_SMB")
 				(field
 					(name "Datasheet")
 				)
@@ -633,7 +903,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "35659d9d-e805-44e2-8b11-b97973fdcfd5")
+			(tstamps "fbf9708b-9609-4793-882e-38a53f191b22")
 			(units
 				(unit
 					(name "A")
@@ -650,11 +920,11 @@
 		)
 		(comp
 			(ref "D2")
-			(value "1N4007")
-			(footprint "Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal")
+			(value "S1M")
+			(footprint "Diode_SMD:D_SMA")
 			(fields
 				(field
-					(name "Footprint") "Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal")
+					(name "Footprint") "Diode_SMD:D_SMA")
 				(field
 					(name "Datasheet")
 				)
@@ -687,7 +957,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7ab2da90-cd5d-4ce6-a689-be9862492743")
+			(tstamps "a91ca35f-b3a0-48a2-9a3f-a761fcfd4d22")
 			(units
 				(unit
 					(name "A")
@@ -705,10 +975,10 @@
 		(comp
 			(ref "D3")
 			(value "SS34")
-			(footprint "Diode_SMD:D_SMA_Handsoldering")
+			(footprint "Diode_SMD:D_SMA")
 			(fields
 				(field
-					(name "Footprint") "Diode_SMD:D_SMA_Handsoldering")
+					(name "Footprint") "Diode_SMD:D_SMA")
 				(field
 					(name "Datasheet")
 				)
@@ -741,7 +1011,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "2f0a29ea-e278-48b5-91c0-b5ba03264700")
+			(tstamps "eff297d8-bee6-43ca-9fe7-3f5928ec3bd9")
 			(units
 				(unit
 					(name "A")
@@ -759,10 +1029,10 @@
 		(comp
 			(ref "D4")
 			(value "SS34")
-			(footprint "Diode_SMD:D_SMA_Handsoldering")
+			(footprint "Diode_SMD:D_SMA")
 			(fields
 				(field
-					(name "Footprint") "Diode_SMD:D_SMA_Handsoldering")
+					(name "Footprint") "Diode_SMD:D_SMA")
 				(field
 					(name "Datasheet")
 				)
@@ -795,7 +1065,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "64b03047-28cd-4e51-b844-a1c0f0b2e763")
+			(tstamps "c69fbca0-c377-4550-beb8-dc95db470625")
 			(units
 				(unit
 					(name "A")
@@ -813,10 +1083,10 @@
 		(comp
 			(ref "D5")
 			(value "SMBJ40CA")
-			(footprint "Diode_SMD:D_SMB_Handsoldering")
+			(footprint "Diode_SMD:D_SMB")
 			(fields
 				(field
-					(name "Footprint") "Diode_SMD:D_SMB_Handsoldering")
+					(name "Footprint") "Diode_SMD:D_SMB")
 				(field
 					(name "Datasheet")
 				)
@@ -849,7 +1119,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e791e9b0-0960-4240-b907-8262aae861a0")
+			(tstamps "0e2ab3a9-f675-462f-ba02-de5e79be038a")
 			(units
 				(unit
 					(name "A")
@@ -867,10 +1137,10 @@
 		(comp
 			(ref "D6")
 			(value "SMBJ40CA")
-			(footprint "Diode_SMD:D_SMB_Handsoldering")
+			(footprint "Diode_SMD:D_SMB")
 			(fields
 				(field
-					(name "Footprint") "Diode_SMD:D_SMB_Handsoldering")
+					(name "Footprint") "Diode_SMD:D_SMB")
 				(field
 					(name "Datasheet")
 				)
@@ -903,7 +1173,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "747a1550-ac66-4edc-a6b7-d112b4ac69bd")
+			(tstamps "99f3952a-b8d6-4850-9b08-d1c647091aa9")
 			(units
 				(unit
 					(name "A")
@@ -921,10 +1191,10 @@
 		(comp
 			(ref "D7")
 			(value "SMBJ40CA")
-			(footprint "Diode_SMD:D_SMB_Handsoldering")
+			(footprint "Diode_SMD:D_SMB")
 			(fields
 				(field
-					(name "Footprint") "Diode_SMD:D_SMB_Handsoldering")
+					(name "Footprint") "Diode_SMD:D_SMB")
 				(field
 					(name "Datasheet")
 				)
@@ -957,7 +1227,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "9515e346-3149-452c-94ec-e8d100ac44f5")
+			(tstamps "e8eb164d-1457-4838-903c-99e48c180b2f")
 			(units
 				(unit
 					(name "A")
@@ -975,10 +1245,10 @@
 		(comp
 			(ref "D8")
 			(value "SMBJ40CA")
-			(footprint "Diode_SMD:D_SMB_Handsoldering")
+			(footprint "Diode_SMD:D_SMB")
 			(fields
 				(field
-					(name "Footprint") "Diode_SMD:D_SMB_Handsoldering")
+					(name "Footprint") "Diode_SMD:D_SMB")
 				(field
 					(name "Datasheet")
 				)
@@ -1011,7 +1281,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "cefea01d-a945-4d2a-a8de-f58bd50e43c5")
+			(tstamps "2af19b3c-94e4-40df-97ff-b8a21baf8dfd")
 			(units
 				(unit
 					(name "A")
@@ -1029,10 +1299,10 @@
 		(comp
 			(ref "D9")
 			(value "SMBJ40CA")
-			(footprint "Diode_SMD:D_SMB_Handsoldering")
+			(footprint "Diode_SMD:D_SMB")
 			(fields
 				(field
-					(name "Footprint") "Diode_SMD:D_SMB_Handsoldering")
+					(name "Footprint") "Diode_SMD:D_SMB")
 				(field
 					(name "Datasheet")
 				)
@@ -1065,7 +1335,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f7e3f1e9-ba2d-442f-a151-6d105551bccb")
+			(tstamps "404bfdec-a2b9-4e8b-aeb5-476e1a06ccb9")
 			(units
 				(unit
 					(name "A")
@@ -1083,10 +1353,10 @@
 		(comp
 			(ref "D10")
 			(value "SMBJ40CA")
-			(footprint "Diode_SMD:D_SMB_Handsoldering")
+			(footprint "Diode_SMD:D_SMB")
 			(fields
 				(field
-					(name "Footprint") "Diode_SMD:D_SMB_Handsoldering")
+					(name "Footprint") "Diode_SMD:D_SMB")
 				(field
 					(name "Datasheet")
 				)
@@ -1119,7 +1389,61 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "2df58bec-2adc-4ed8-84af-3cd264c814a8")
+			(tstamps "4b1cba2e-ad35-4030-9e09-4cf9c914b09f")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "D11")
+			(value "SS36")
+			(footprint "Diode_SMD:D_SMA")
+			(fields
+				(field
+					(name "Footprint") "Diode_SMD:D_SMA")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "D_Schottky")
+				(description "Schottky diode")
+			)
+			(property
+				(name "Sheetname")
+				(value "thermostat-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "thermostat-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "diode Schottky")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "TO-???* *_Diode_* *SingleDiode* D_*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "54028c06-d710-41a7-8dab-a424d77c46b6")
 			(units
 				(unit
 					(name "A")
@@ -1136,11 +1460,11 @@
 		)
 		(comp
 			(ref "F1")
-			(value "0.5 A fast")
-			(footprint "Fuse:Fuseholder_Clip-5x20mm_Littelfuse_111_Inline_P20.00x5.00mm_D1.05mm_Horizontal")
+			(value "0.5 A fast 63 V")
+			(footprint "Fuse:Fuse_1206_3216Metric")
 			(fields
 				(field
-					(name "Footprint") "Fuse:Fuseholder_Clip-5x20mm_Littelfuse_111_Inline_P20.00x5.00mm_D1.05mm_Horizontal")
+					(name "Footprint") "Fuse:Fuse_1206_3216Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -1173,7 +1497,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6183ccdb-4214-4c33-b884-b823867cb225")
+			(tstamps "2ff7775b-9ff8-44be-9de4-d8de69f066b7")
 			(units
 				(unit
 					(name "A")
@@ -1190,11 +1514,11 @@
 		)
 		(comp
 			(ref "F2")
-			(value "0ZRE0125FF")
-			(footprint "Fuse:Fuse_BelFuse_0ZRE0125FF_L21.2mm_W5.3mm")
+			(value "2920L110/60")
+			(footprint "Fuse:Fuse_2920_7451Metric")
 			(fields
 				(field
-					(name "Footprint") "Fuse:Fuse_BelFuse_0ZRE0125FF_L21.2mm_W5.3mm")
+					(name "Footprint") "Fuse:Fuse_2920_7451Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -1227,7 +1551,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "66729e42-5ec9-4261-bb9f-4879d12e2c83")
+			(tstamps "f6ad039a-9295-432a-8953-d146c72abbe3")
 			(units
 				(unit
 					(name "A")
@@ -1244,11 +1568,11 @@
 		)
 		(comp
 			(ref "F3")
-			(value "0ZRE0125FF")
-			(footprint "Fuse:Fuse_BelFuse_0ZRE0125FF_L21.2mm_W5.3mm")
+			(value "2920L110/60")
+			(footprint "Fuse:Fuse_2920_7451Metric")
 			(fields
 				(field
-					(name "Footprint") "Fuse:Fuse_BelFuse_0ZRE0125FF_L21.2mm_W5.3mm")
+					(name "Footprint") "Fuse:Fuse_2920_7451Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -1281,7 +1605,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "09c49132-f583-4155-9664-77185076f6e4")
+			(tstamps "3ebbdb81-f2bf-4b73-8eea-fb3b82cc0274")
 			(units
 				(unit
 					(name "A")
@@ -1298,11 +1622,11 @@
 		)
 		(comp
 			(ref "H1")
-			(value "M3")
-			(footprint "MountingHole:MountingHole_3.2mm_M3_DIN965")
+			(value "M2.5")
+			(footprint "MountingHole:MountingHole_2.7mm_M2.5_DIN965")
 			(fields
 				(field
-					(name "Footprint") "MountingHole:MountingHole_3.2mm_M3_DIN965")
+					(name "Footprint") "MountingHole:MountingHole_2.7mm_M2.5_DIN965")
 				(field
 					(name "Datasheet")
 				)
@@ -1338,7 +1662,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c44fb662-f042-4cad-aca8-c5b3d33d0ab9")
+			(tstamps "f192fc43-22fe-429a-a657-c2986c5a5f4e")
 			(units
 				(unit
 					(name "A")
@@ -1348,11 +1672,11 @@
 		)
 		(comp
 			(ref "H2")
-			(value "M3")
-			(footprint "MountingHole:MountingHole_3.2mm_M3_DIN965")
+			(value "M2.5")
+			(footprint "MountingHole:MountingHole_2.7mm_M2.5_DIN965")
 			(fields
 				(field
-					(name "Footprint") "MountingHole:MountingHole_3.2mm_M3_DIN965")
+					(name "Footprint") "MountingHole:MountingHole_2.7mm_M2.5_DIN965")
 				(field
 					(name "Datasheet")
 				)
@@ -1388,7 +1712,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "47baa8a0-d2fb-4847-a29f-2515b2825f0b")
+			(tstamps "a437e088-f157-4cdf-930c-de9a5ce34ae7")
 			(units
 				(unit
 					(name "A")
@@ -1398,11 +1722,11 @@
 		)
 		(comp
 			(ref "H3")
-			(value "M3")
-			(footprint "MountingHole:MountingHole_3.2mm_M3_DIN965")
+			(value "M2.5")
+			(footprint "MountingHole:MountingHole_2.7mm_M2.5_DIN965")
 			(fields
 				(field
-					(name "Footprint") "MountingHole:MountingHole_3.2mm_M3_DIN965")
+					(name "Footprint") "MountingHole:MountingHole_2.7mm_M2.5_DIN965")
 				(field
 					(name "Datasheet")
 				)
@@ -1438,7 +1762,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "09ef7da5-eef9-443b-8fd6-31957a51a016")
+			(tstamps "f275fdb9-2d06-49c6-9408-ca5c38ee1522")
 			(units
 				(unit
 					(name "A")
@@ -1448,11 +1772,11 @@
 		)
 		(comp
 			(ref "H4")
-			(value "M3")
-			(footprint "MountingHole:MountingHole_3.2mm_M3_DIN965")
+			(value "M2.5")
+			(footprint "MountingHole:MountingHole_2.7mm_M2.5_DIN965")
 			(fields
 				(field
-					(name "Footprint") "MountingHole:MountingHole_3.2mm_M3_DIN965")
+					(name "Footprint") "MountingHole:MountingHole_2.7mm_M2.5_DIN965")
 				(field
 					(name "Datasheet")
 				)
@@ -1488,7 +1812,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0c66b272-99eb-45a3-8207-5d220903a343")
+			(tstamps "12e3d57a-242a-4e86-b5a0-503239e7856e")
 			(units
 				(unit
 					(name "A")
@@ -1499,12 +1823,12 @@
 		(comp
 			(ref "J1")
 			(value "24 VAC")
-			(footprint "Connector_Phoenix_MC_HighVoltage:PhoenixContact_MC_1,5_3-G-5.08_1x03_P5.08mm_Horizontal")
+			(footprint "Connector_Phoenix_MC:PhoenixContact_MCV_1,5_3-G-3.5_1x03_P3.50mm_Vertical")
 			(fields
 				(field
 					(name "Silkscreen") "Rh / Rc / C")
 				(field
-					(name "Footprint") "Connector_Phoenix_MC_HighVoltage:PhoenixContact_MC_1,5_3-G-5.08_1x03_P5.08mm_Horizontal")
+					(name "Footprint") "Connector_Phoenix_MC:PhoenixContact_MCV_1,5_3-G-3.5_1x03_P3.50mm_Vertical")
 				(field
 					(name "Datasheet")
 				)
@@ -1541,7 +1865,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "9b5cc158-940c-454c-9df2-c52af073132f")
+			(tstamps "f4b2d11f-5827-4086-9270-c1d2ec1bda52")
 			(units
 				(unit
 					(name "A")
@@ -1562,12 +1886,12 @@
 		(comp
 			(ref "J2")
 			(value "Calls 24 VAC")
-			(footprint "Connector_Phoenix_MC_HighVoltage:PhoenixContact_MC_1,5_6-G-5.08_1x06_P5.08mm_Horizontal")
+			(footprint "Connector_Phoenix_MC:PhoenixContact_MCV_1,5_6-G-3.5_1x06_P3.50mm_Vertical")
 			(fields
 				(field
 					(name "Silkscreen") "G / Y1 / Y2 / W1 / W2 / O/B")
 				(field
-					(name "Footprint") "Connector_Phoenix_MC_HighVoltage:PhoenixContact_MC_1,5_6-G-5.08_1x06_P5.08mm_Horizontal")
+					(name "Footprint") "Connector_Phoenix_MC:PhoenixContact_MCV_1,5_6-G-3.5_1x06_P3.50mm_Vertical")
 				(field
 					(name "Datasheet")
 				)
@@ -1604,7 +1928,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1a38f49e-ead8-4947-9b4e-04b7fb46df91")
+			(tstamps "e2418846-6ff3-4797-b7a5-1c513583e7c1")
 			(units
 				(unit
 					(name "A")
@@ -1670,7 +1994,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "461843ee-53bf-4a39-8f94-4d3a47705e3f")
+			(tstamps "002c0b2f-09c6-4bd3-86a3-848291230a98")
 			(units
 				(unit
 					(name "A")
@@ -1702,11 +2026,11 @@
 		)
 		(comp
 			(ref "J4")
-			(value "USB-A 5 V to display")
-			(footprint "Connector_USB:USB_A_Molex_67643_Horizontal")
+			(value "USB-C 5 V to display")
+			(footprint "Connector_USB:USB_C_Receptacle_GCT_USB4125-xx-x_6P_TopMnt_Horizontal")
 			(fields
 				(field
-					(name "Footprint") "Connector_USB:USB_A_Molex_67643_Horizontal")
+					(name "Footprint") "Connector_USB:USB_C_Receptacle_GCT_USB4125-xx-x_6P_TopMnt_Horizontal")
 				(field
 					(name "Datasheet")
 				)
@@ -1716,8 +2040,8 @@
 			)
 			(libsource
 				(lib "Connector")
-				(part "USB_A")
-				(description "USB Type A connector")
+				(part "USB_C_Receptacle_PowerOnly_6P")
+				(description "USB Power-Only 6P Type-C Receptacle connector")
 			)
 			(property
 				(name "Sheetname")
@@ -1729,17 +2053,17 @@
 			)
 			(property
 				(name "ki_keywords")
-				(value "connector USB")
+				(value "usb universal serial bus type-C power-only charging-only 6P 6C")
 			)
 			(property
 				(name "ki_fp_filters")
-				(value "USB*")
+				(value "USB*C*Receptacle*")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "17d457b1-4324-43b4-9855-42a342119dfd")
+			(tstamps "d6e59bd4-71c9-48f0-b3ac-63fde6b44efe")
 			(units
 				(unit
 					(name "A")
@@ -1748,16 +2072,22 @@
 							(num "SH")
 						)
 						(pin
-							(num "4")
+							(num "A12")
 						)
 						(pin
-							(num "1")
+							(num "B12")
 						)
 						(pin
-							(num "3")
+							(num "A9")
 						)
 						(pin
-							(num "2")
+							(num "B9")
+						)
+						(pin
+							(num "A5")
+						)
+						(pin
+							(num "B5")
 						)
 					)
 				)
@@ -1766,12 +2096,12 @@
 		(comp
 			(ref "J5")
 			(value "Display I2C")
-			(footprint "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical")
+			(footprint "Connector_JST:JST_PH_B4B-PH-SM4-TB_1x04-1MP_P2.00mm_Vertical")
 			(fields
 				(field
 					(name "Silkscreen") "3V3 / GND / SDA / SCL")
 				(field
-					(name "Footprint") "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical")
+					(name "Footprint") "Connector_JST:JST_PH_B4B-PH-SM4-TB_1x04-1MP_P2.00mm_Vertical")
 				(field
 					(name "Datasheet")
 				)
@@ -1780,9 +2110,9 @@
 				)
 			)
 			(libsource
-				(lib "Connector_Generic")
-				(part "Conn_01x04")
-				(description "Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)")
+				(lib "Connector_Generic_MountingPin")
+				(part "Conn_01x04_MountingPin")
+				(description "Generic connectable mounting pin connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)")
 			)
 			(property
 				(name "Silkscreen")
@@ -1802,13 +2132,13 @@
 			)
 			(property
 				(name "ki_fp_filters")
-				(value "Connector*:*_1x??_*")
+				(value "Connector*:*_1x??-1MP*")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "9e4b82b6-a4b3-47a4-bcea-1ea1fe583468")
+			(tstamps "7a0344dd-28d7-4772-bbd0-aa85f222121a")
 			(units
 				(unit
 					(name "A")
@@ -1825,6 +2155,9 @@
 						(pin
 							(num "4")
 						)
+						(pin
+							(num "MP")
+						)
 					)
 				)
 			)
@@ -1832,12 +2165,12 @@
 		(comp
 			(ref "J6")
 			(value "Display IO6")
-			(footprint "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical")
+			(footprint "Connector_JST:JST_PH_B3B-PH-SM4-TB_1x03-1MP_P2.00mm_Vertical")
 			(fields
 				(field
 					(name "Silkscreen") "3V3 / GND / IO6")
 				(field
-					(name "Footprint") "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical")
+					(name "Footprint") "Connector_JST:JST_PH_B3B-PH-SM4-TB_1x03-1MP_P2.00mm_Vertical")
 				(field
 					(name "Datasheet")
 				)
@@ -1846,9 +2179,9 @@
 				)
 			)
 			(libsource
-				(lib "Connector_Generic")
-				(part "Conn_01x03")
-				(description "Generic connector, single row, 01x03, script generated (kicad-library-utils/schlib/autogen/connector/)")
+				(lib "Connector_Generic_MountingPin")
+				(part "Conn_01x03_MountingPin")
+				(description "Generic connectable mounting pin connector, single row, 01x03, script generated (kicad-library-utils/schlib/autogen/connector/)")
 			)
 			(property
 				(name "Silkscreen")
@@ -1868,13 +2201,13 @@
 			)
 			(property
 				(name "ki_fp_filters")
-				(value "Connector*:*_1x??_*")
+				(value "Connector*:*_1x??-1MP*")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "23adb7e2-2265-4b39-9e54-da1bb9b061eb")
+			(tstamps "c73d135e-0a7d-43f0-aa3e-e1970d48f149")
 			(units
 				(unit
 					(name "A")
@@ -1887,6 +2220,9 @@
 						)
 						(pin
 							(num "3")
+						)
+						(pin
+							(num "MP")
 						)
 					)
 				)
@@ -1937,7 +2273,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6d6c68a2-47cb-4b16-bc00-d8fcc534f1aa")
+			(tstamps "01c64f3a-b7a1-4f16-853d-8d523aa2fa33")
 			(units
 				(unit
 					(name "A")
@@ -2000,7 +2336,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "09864450-8870-471e-85cf-8a1a4f7029fd")
+			(tstamps "6c593e80-1bbc-4f9e-abed-862cdc1da038")
 			(units
 				(unit
 					(name "A")
@@ -2017,11 +2353,11 @@
 		)
 		(comp
 			(ref "K1")
-			(value "AQV252G")
-			(footprint "Package_DIP:DIP-6_W7.62mm_Socket")
+			(value "AQV252GS")
+			(footprint "Package_DIP:SMDIP-6_W9.53mm")
 			(fields
 				(field
-					(name "Footprint") "Package_DIP:DIP-6_W7.62mm_Socket")
+					(name "Footprint") "Package_DIP:SMDIP-6_W9.53mm")
 				(field
 					(name "Datasheet")
 				)
@@ -2046,7 +2382,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d6ede559-0db4-440f-a46f-913039e103d8")
+			(tstamps "b14692aa-3ab3-4a14-baa2-118868e4ab99")
 			(units
 				(unit
 					(name "A")
@@ -2075,11 +2411,11 @@
 		)
 		(comp
 			(ref "K2")
-			(value "AQV252G")
-			(footprint "Package_DIP:DIP-6_W7.62mm_Socket")
+			(value "AQV252GS")
+			(footprint "Package_DIP:SMDIP-6_W9.53mm")
 			(fields
 				(field
-					(name "Footprint") "Package_DIP:DIP-6_W7.62mm_Socket")
+					(name "Footprint") "Package_DIP:SMDIP-6_W9.53mm")
 				(field
 					(name "Datasheet")
 				)
@@ -2104,7 +2440,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e19eac01-409a-4d2b-960b-5960b5363250")
+			(tstamps "f1e47422-5621-42fd-a685-bf9b92f116a4")
 			(units
 				(unit
 					(name "A")
@@ -2133,11 +2469,11 @@
 		)
 		(comp
 			(ref "K3")
-			(value "AQV252G")
-			(footprint "Package_DIP:DIP-6_W7.62mm_Socket")
+			(value "AQV252GS")
+			(footprint "Package_DIP:SMDIP-6_W9.53mm")
 			(fields
 				(field
-					(name "Footprint") "Package_DIP:DIP-6_W7.62mm_Socket")
+					(name "Footprint") "Package_DIP:SMDIP-6_W9.53mm")
 				(field
 					(name "Datasheet")
 				)
@@ -2162,7 +2498,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a36b2eb7-9ac8-4eb0-a6b7-02a28f3c346b")
+			(tstamps "8eaaf804-deb3-4123-bca6-0424595e3b48")
 			(units
 				(unit
 					(name "A")
@@ -2191,11 +2527,11 @@
 		)
 		(comp
 			(ref "K4")
-			(value "AQV252G")
-			(footprint "Package_DIP:DIP-6_W7.62mm_Socket")
+			(value "AQV252GS")
+			(footprint "Package_DIP:SMDIP-6_W9.53mm")
 			(fields
 				(field
-					(name "Footprint") "Package_DIP:DIP-6_W7.62mm_Socket")
+					(name "Footprint") "Package_DIP:SMDIP-6_W9.53mm")
 				(field
 					(name "Datasheet")
 				)
@@ -2220,7 +2556,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5b7af821-fc4b-4f2f-a77f-e533dd376275")
+			(tstamps "88ed374a-2725-4615-9b30-7eda84f1b07b")
 			(units
 				(unit
 					(name "A")
@@ -2249,11 +2585,11 @@
 		)
 		(comp
 			(ref "K5")
-			(value "AQV252G")
-			(footprint "Package_DIP:DIP-6_W7.62mm_Socket")
+			(value "AQV252GS")
+			(footprint "Package_DIP:SMDIP-6_W9.53mm")
 			(fields
 				(field
-					(name "Footprint") "Package_DIP:DIP-6_W7.62mm_Socket")
+					(name "Footprint") "Package_DIP:SMDIP-6_W9.53mm")
 				(field
 					(name "Datasheet")
 				)
@@ -2278,7 +2614,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d257315b-2635-4dd9-bc8e-f65483fbb640")
+			(tstamps "eef4aa58-94a6-4e14-ba1d-3472f2df0a1c")
 			(units
 				(unit
 					(name "A")
@@ -2307,11 +2643,11 @@
 		)
 		(comp
 			(ref "K6")
-			(value "AQV252G")
-			(footprint "Package_DIP:DIP-6_W7.62mm_Socket")
+			(value "AQV252GS")
+			(footprint "Package_DIP:SMDIP-6_W9.53mm")
 			(fields
 				(field
-					(name "Footprint") "Package_DIP:DIP-6_W7.62mm_Socket")
+					(name "Footprint") "Package_DIP:SMDIP-6_W9.53mm")
 				(field
 					(name "Datasheet")
 				)
@@ -2336,7 +2672,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "74ee5020-5d27-41a2-a46d-8dda06bc3ac8")
+			(tstamps "36f6fceb-dd33-4135-94ac-ee6c7262fc01")
 			(units
 				(unit
 					(name "A")
@@ -2364,12 +2700,66 @@
 			)
 		)
 		(comp
-			(ref "R1")
-			(value "5.1k")
-			(footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+			(ref "L1")
+			(value "22µH 2A")
+			(footprint "Inductor_SMD:L_7.3x7.3_H4.5")
 			(fields
 				(field
-					(name "Footprint") "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+					(name "Footprint") "Inductor_SMD:L_7.3x7.3_H4.5")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "L")
+				(description "Inductor")
+			)
+			(property
+				(name "Sheetname")
+				(value "thermostat-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "thermostat-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "inductor choke coil reactor magnetic")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "Choke_* *Coil* Inductor_* L_*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "a2f7a660-6b53-4df0-a6a8-25a6e4f3db82")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R1")
+			(value "5.1k")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2402,7 +2792,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1e4260e0-4393-4e0c-bace-fe103a33bce5")
+			(tstamps "bcfa583c-4976-4fd9-bf40-c3b16cdb259a")
 			(units
 				(unit
 					(name "A")
@@ -2420,10 +2810,10 @@
 		(comp
 			(ref "R2")
 			(value "5.1k")
-			(footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "Footprint") "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2456,7 +2846,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "572a4993-18e3-489b-9b7c-8c2a86d87cba")
+			(tstamps "37629ac9-a191-4746-9c98-4647f853242a")
 			(units
 				(unit
 					(name "A")
@@ -2474,10 +2864,10 @@
 		(comp
 			(ref "R3")
 			(value "330")
-			(footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "Footprint") "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2510,7 +2900,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ed6f3675-4a58-48a8-8ed1-ad150be85950")
+			(tstamps "9ccdfd26-535e-4416-9b50-e5d8a36998e2")
 			(units
 				(unit
 					(name "A")
@@ -2528,10 +2918,10 @@
 		(comp
 			(ref "R4")
 			(value "330")
-			(footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "Footprint") "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2564,7 +2954,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "83aa3178-b086-4fce-8c0c-daa331c42dce")
+			(tstamps "0c23b674-1aa2-4967-9c9d-24fcb71621c8")
 			(units
 				(unit
 					(name "A")
@@ -2582,10 +2972,10 @@
 		(comp
 			(ref "R5")
 			(value "330")
-			(footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "Footprint") "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2618,7 +3008,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "126ccc32-f79f-4ec7-b020-5ca2f45d5a01")
+			(tstamps "a16020a1-154c-4aea-9abb-9f1f610449ae")
 			(units
 				(unit
 					(name "A")
@@ -2636,10 +3026,10 @@
 		(comp
 			(ref "R6")
 			(value "330")
-			(footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "Footprint") "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2672,7 +3062,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "2be830e2-a6e5-405a-953f-60fd13c5e2ca")
+			(tstamps "8522d75a-26de-4708-ba56-cb7795350f7d")
 			(units
 				(unit
 					(name "A")
@@ -2690,10 +3080,10 @@
 		(comp
 			(ref "R7")
 			(value "330")
-			(footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "Footprint") "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2726,7 +3116,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "aac19d81-8b98-4c1a-8300-30ce75e31b88")
+			(tstamps "f481f5ee-f7ec-4e49-93eb-f5b89caa4803")
 			(units
 				(unit
 					(name "A")
@@ -2744,10 +3134,10 @@
 		(comp
 			(ref "R8")
 			(value "330")
-			(footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "Footprint") "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2780,7 +3170,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a7b8eca8-0dc1-4e53-9c4d-ee9b4e09ade6")
+			(tstamps "48e42667-15b8-4712-9253-ac1584e14ca0")
 			(units
 				(unit
 					(name "A")
@@ -2798,10 +3188,10 @@
 		(comp
 			(ref "R9")
 			(value "10k")
-			(footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "Footprint") "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2834,7 +3224,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1fb6742d-00e1-49a9-9ea9-336eab05dd3c")
+			(tstamps "2088e847-5f3c-40f7-b9e5-dc082691fa69")
 			(units
 				(unit
 					(name "A")
@@ -2852,10 +3242,10 @@
 		(comp
 			(ref "R10")
 			(value "10k")
-			(footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "Footprint") "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2888,7 +3278,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "474c5eaf-f91f-4eca-aa0e-ad80b7d2f15c")
+			(tstamps "a62c9eff-1681-4e82-9fa0-24c5980cab71")
 			(units
 				(unit
 					(name "A")
@@ -2906,10 +3296,10 @@
 		(comp
 			(ref "R11")
 			(value "10k")
-			(footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "Footprint") "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2942,7 +3332,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ddf44378-dd9f-4e39-9a44-65f516dce4ef")
+			(tstamps "e26813f1-0f54-4e4b-addd-12f7b58a7d7e")
 			(units
 				(unit
 					(name "A")
@@ -2960,10 +3350,10 @@
 		(comp
 			(ref "R12")
 			(value "10k")
-			(footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "Footprint") "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2996,7 +3386,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d9e65e8b-cfcc-42c7-9a8d-21874fecb2ed")
+			(tstamps "ab9e9d1e-cd7d-4545-8828-8a13fc82e8a5")
 			(units
 				(unit
 					(name "A")
@@ -3014,10 +3404,10 @@
 		(comp
 			(ref "R13")
 			(value "10k")
-			(footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "Footprint") "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -3050,7 +3440,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "2b49406d-b1be-42fe-806d-40df1dccb037")
+			(tstamps "3d5ce38e-3d22-4cee-ac1c-ccc80eb06807")
 			(units
 				(unit
 					(name "A")
@@ -3068,10 +3458,10 @@
 		(comp
 			(ref "R14")
 			(value "10k")
-			(footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "Footprint") "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -3104,7 +3494,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "641a0cf2-c3d2-4d31-8e3c-551137e477fb")
+			(tstamps "079b9dbf-d82c-4afe-b744-f2181d5b116f")
 			(units
 				(unit
 					(name "A")
@@ -3121,11 +3511,11 @@
 		)
 		(comp
 			(ref "R15")
-			(value "4.7k ½W")
-			(footprint "Resistor_THT:R_Axial_DIN0309_L9.0mm_D3.2mm_P12.70mm_Horizontal")
+			(value "4.7k 2010")
+			(footprint "Resistor_SMD:R_2010_5025Metric")
 			(fields
 				(field
-					(name "Footprint") "Resistor_THT:R_Axial_DIN0309_L9.0mm_D3.2mm_P12.70mm_Horizontal")
+					(name "Footprint") "Resistor_SMD:R_2010_5025Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -3158,7 +3548,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7c8fcb14-1c48-419e-a657-bdae09934d3c")
+			(tstamps "dde0d691-055a-4f00-80f5-025c49609fab")
 			(units
 				(unit
 					(name "A")
@@ -3175,11 +3565,11 @@
 		)
 		(comp
 			(ref "R16")
-			(value "4.7k ½W")
-			(footprint "Resistor_THT:R_Axial_DIN0309_L9.0mm_D3.2mm_P12.70mm_Horizontal")
+			(value "4.7k 2010")
+			(footprint "Resistor_SMD:R_2010_5025Metric")
 			(fields
 				(field
-					(name "Footprint") "Resistor_THT:R_Axial_DIN0309_L9.0mm_D3.2mm_P12.70mm_Horizontal")
+					(name "Footprint") "Resistor_SMD:R_2010_5025Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -3212,7 +3602,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c0784d02-25ea-468b-844a-d9ed5f69f4c9")
+			(tstamps "07b08f58-78ac-4229-b9be-5ee8f435e8e2")
 			(units
 				(unit
 					(name "A")
@@ -3229,11 +3619,11 @@
 		)
 		(comp
 			(ref "R17")
-			(value "4.7k ½W")
-			(footprint "Resistor_THT:R_Axial_DIN0309_L9.0mm_D3.2mm_P12.70mm_Horizontal")
+			(value "4.7k 2010")
+			(footprint "Resistor_SMD:R_2010_5025Metric")
 			(fields
 				(field
-					(name "Footprint") "Resistor_THT:R_Axial_DIN0309_L9.0mm_D3.2mm_P12.70mm_Horizontal")
+					(name "Footprint") "Resistor_SMD:R_2010_5025Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -3266,7 +3656,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e364e913-f033-4d26-8e57-659fa60a1422")
+			(tstamps "5986cf76-7847-4e5a-9cc2-24138897fda9")
 			(units
 				(unit
 					(name "A")
@@ -3283,11 +3673,11 @@
 		)
 		(comp
 			(ref "R18")
-			(value "4.7k ½W")
-			(footprint "Resistor_THT:R_Axial_DIN0309_L9.0mm_D3.2mm_P12.70mm_Horizontal")
+			(value "4.7k 2010")
+			(footprint "Resistor_SMD:R_2010_5025Metric")
 			(fields
 				(field
-					(name "Footprint") "Resistor_THT:R_Axial_DIN0309_L9.0mm_D3.2mm_P12.70mm_Horizontal")
+					(name "Footprint") "Resistor_SMD:R_2010_5025Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -3320,7 +3710,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "8e971043-cf13-48c4-96fb-a362c814834a")
+			(tstamps "a043283d-1eaa-4e47-b27c-9a511ce4c098")
 			(units
 				(unit
 					(name "A")
@@ -3337,11 +3727,11 @@
 		)
 		(comp
 			(ref "R19")
-			(value "4.7k ½W")
-			(footprint "Resistor_THT:R_Axial_DIN0309_L9.0mm_D3.2mm_P12.70mm_Horizontal")
+			(value "4.7k 2010")
+			(footprint "Resistor_SMD:R_2010_5025Metric")
 			(fields
 				(field
-					(name "Footprint") "Resistor_THT:R_Axial_DIN0309_L9.0mm_D3.2mm_P12.70mm_Horizontal")
+					(name "Footprint") "Resistor_SMD:R_2010_5025Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -3374,7 +3764,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e5181e93-7e44-4f14-b26a-0522f8b50713")
+			(tstamps "f4399c40-10f4-4c7b-b20c-3f29dc45131d")
 			(units
 				(unit
 					(name "A")
@@ -3391,11 +3781,11 @@
 		)
 		(comp
 			(ref "R20")
-			(value "4.7k ½W")
-			(footprint "Resistor_THT:R_Axial_DIN0309_L9.0mm_D3.2mm_P12.70mm_Horizontal")
+			(value "4.7k 2010")
+			(footprint "Resistor_SMD:R_2010_5025Metric")
 			(fields
 				(field
-					(name "Footprint") "Resistor_THT:R_Axial_DIN0309_L9.0mm_D3.2mm_P12.70mm_Horizontal")
+					(name "Footprint") "Resistor_SMD:R_2010_5025Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -3428,7 +3818,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "75b6a8c4-86c5-4b93-af28-c674f51b4e8b")
+			(tstamps "117d09d9-213d-46eb-abdd-d98e4e5d039a")
 			(units
 				(unit
 					(name "A")
@@ -3446,10 +3836,10 @@
 		(comp
 			(ref "R21")
 			(value "10k")
-			(footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "Footprint") "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -3482,7 +3872,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b78ff640-99d5-4b29-bceb-e30d834b9fc0")
+			(tstamps "aa8a428b-bfcd-4498-882b-e2fe3048367d")
 			(units
 				(unit
 					(name "A")
@@ -3500,10 +3890,10 @@
 		(comp
 			(ref "R22")
 			(value "10k")
-			(footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "Footprint") "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -3536,7 +3926,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "52a652c3-9a4e-4985-af83-60f7baf01c48")
+			(tstamps "37618475-7490-47a1-ab09-da449c237e43")
 			(units
 				(unit
 					(name "A")
@@ -3554,10 +3944,10 @@
 		(comp
 			(ref "R23")
 			(value "10k")
-			(footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "Footprint") "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -3590,7 +3980,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "4c83f083-946c-4583-893b-4f782c96cfb7")
+			(tstamps "5eacf7cb-47bc-4248-8816-aa2c6ce393af")
 			(units
 				(unit
 					(name "A")
@@ -3608,10 +3998,10 @@
 		(comp
 			(ref "R24")
 			(value "10k")
-			(footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "Footprint") "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -3644,7 +4034,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d9e1569b-eb34-4b65-a74f-ff94714c8c79")
+			(tstamps "e092ba84-433e-4619-930c-9a788965716a")
 			(units
 				(unit
 					(name "A")
@@ -3662,10 +4052,10 @@
 		(comp
 			(ref "R25")
 			(value "10k")
-			(footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "Footprint") "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -3698,7 +4088,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "388205ef-6993-45c0-89cc-5c671a1d523e")
+			(tstamps "bd76580c-932b-41f6-a828-82dfeab6ab20")
 			(units
 				(unit
 					(name "A")
@@ -3716,10 +4106,10 @@
 		(comp
 			(ref "R26")
 			(value "10k")
-			(footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "Footprint") "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -3752,7 +4142,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d6ce8e92-4402-40f4-ad42-6e4775cfc427")
+			(tstamps "8d9e3097-0547-45df-958a-21f551454d3f")
 			(units
 				(unit
 					(name "A")
@@ -3770,10 +4160,10 @@
 		(comp
 			(ref "R27")
 			(value "10k")
-			(footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "Footprint") "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -3806,7 +4196,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e91fd56e-9cdb-4948-b0ec-b29c5f2c4a9b")
+			(tstamps "0db1b3ed-0b41-4063-8120-0824d15879d2")
 			(units
 				(unit
 					(name "A")
@@ -3824,10 +4214,10 @@
 		(comp
 			(ref "R28")
 			(value "4.7k")
-			(footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "Footprint") "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -3863,7 +4253,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "511a8a2a-1832-470d-811a-fb42657b4358")
+			(tstamps "1506c862-d335-46fc-aac9-48d42649af95")
 			(units
 				(unit
 					(name "A")
@@ -3881,10 +4271,10 @@
 		(comp
 			(ref "R29")
 			(value "4.7k")
-			(footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "Footprint") "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -3920,7 +4310,331 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "bdb8bfae-838b-40ff-a7fb-a5da1aae9e69")
+			(tstamps "d9d7e720-e7b8-41e9-aeb7-7cf8ed54c55d")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R30")
+			(value "243k")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "R")
+				(description "Resistor")
+			)
+			(property
+				(name "Sheetname")
+				(value "thermostat-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "thermostat-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "R res resistor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "R_*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "4cadc62f-7ce4-4e88-8739-1b22e3f9605e")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R31")
+			(value "56k")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "R")
+				(description "Resistor")
+			)
+			(property
+				(name "Sheetname")
+				(value "thermostat-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "thermostat-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "R res resistor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "R_*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "f6cd65f0-c2fe-4e7f-9c3e-a58e2e22269a")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R32")
+			(value "10k")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "R")
+				(description "Resistor")
+			)
+			(property
+				(name "Sheetname")
+				(value "thermostat-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "thermostat-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "R res resistor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "R_*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "f10e2e4b-a03f-46c5-9864-855027ccc21e")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R33")
+			(value "6.8k")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "R")
+				(description "Resistor")
+			)
+			(property
+				(name "Sheetname")
+				(value "thermostat-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "thermostat-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "R res resistor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "R_*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "2e8eaae8-7d5d-4076-bc17-4a7562640f70")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R34")
+			(value "56k")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "R")
+				(description "Resistor")
+			)
+			(property
+				(name "Sheetname")
+				(value "thermostat-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "thermostat-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "R res resistor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "R_*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "2e22fbbe-0961-4c46-b6b8-5db0e4569c58")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R35")
+			(value "56k")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "R")
+				(description "Resistor")
+			)
+			(property
+				(name "Sheetname")
+				(value "thermostat-carrier")
+			)
+			(property
+				(name "Sheetfile")
+				(value "thermostat-carrier.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "R res resistor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "R_*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "954982fd-782b-4cb8-9120-42cbe3e9842a")
 			(units
 				(unit
 					(name "A")
@@ -3937,11 +4651,11 @@
 		)
 		(comp
 			(ref "U1")
-			(value "LM2596HV")
-			(footprint "hvac_carrier:LM2596HVS_Module")
+			(value "TPS54360BDDAR")
+			(footprint "Package_SO:TI_SO-PowerPAD-8_ThermalVias")
 			(fields
 				(field
-					(name "Footprint") "hvac_carrier:LM2596HVS_Module")
+					(name "Footprint") "Package_SO:TI_SO-PowerPAD-8_ThermalVias")
 				(field
 					(name "Datasheet")
 				)
@@ -3950,9 +4664,9 @@
 				)
 			)
 			(libsource
-				(lib "hvac_carrier")
-				(part "LM2596HV_Module")
-				(description "LM2596HVS buck module on four single-pin sockets")
+				(lib "Regulator_Switching")
+				(part "TPS54360DDA")
+				(description "3.5A, Step Down DC-DC Converter with Eco-mode, 4.5-60V Input Voltage, PowerSO-8")
 			)
 			(property
 				(name "Sheetname")
@@ -3962,26 +4676,49 @@
 				(name "Sheetfile")
 				(value "thermostat-carrier.kicad_sch")
 			)
+			(property
+				(name "ki_keywords")
+				(value "Step-Down DC-DC Switching Regulator High Voltage High Frequency")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "TI*SO*PowerPAD*ThermalVias*")
+			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "38d863df-1d89-46c2-9e52-e26ec86780c2")
+			(tstamps "ae927e5d-65a9-472b-bd04-c8835fc5a709")
 			(units
 				(unit
 					(name "A")
 					(pins
 						(pin
-							(num "1")
+							(num "2")
 						)
 						(pin
-							(num "2")
+							(num "4")
 						)
 						(pin
 							(num "3")
 						)
 						(pin
-							(num "4")
+							(num "7")
+						)
+						(pin
+							(num "9")
+						)
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "8")
+						)
+						(pin
+							(num "6")
+						)
+						(pin
+							(num "5")
 						)
 					)
 				)
@@ -4026,7 +4763,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "26f1f9d6-5e3c-4282-a596-cd5fb284186c")
+			(tstamps "6caa65ad-bffe-4f00-9cde-24d46cdbfe93")
 			(units
 				(unit
 					(name "A")
@@ -4083,7 +4820,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "2b6508b9-d7d8-4504-bedb-3d640ff7021e")
+			(tstamps "ccb2491f-981e-4a72-91f4-fcd925a16e14")
 			(units
 				(unit
 					(name "A")
@@ -4179,10 +4916,10 @@
 		(comp
 			(ref "U4")
 			(value "TPS3823-33")
-			(footprint "Package_TO_SOT_SMD:SOT-23-5_HandSoldering")
+			(footprint "Package_TO_SOT_SMD:SOT-23-5")
 			(fields
 				(field
-					(name "Footprint") "Package_TO_SOT_SMD:SOT-23-5_HandSoldering")
+					(name "Footprint") "Package_TO_SOT_SMD:SOT-23-5")
 				(field
 					(name "Datasheet")
 				)
@@ -4215,7 +4952,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "126c586e-07f3-44e5-a05b-d71e9e72d569")
+			(tstamps "6574ba4e-b0a7-41c7-be4d-9e4a83ab43ae")
 			(units
 				(unit
 					(name "A")
@@ -4270,7 +5007,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "765af913-31fd-4293-a19c-5e55d8bdc0d4")
+			(tstamps "620df55a-843f-4eb2-beec-183dfb8acf3b")
 			(units
 				(unit
 					(name "A")
@@ -4358,7 +5095,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "03f6eeb6-1a1f-43a4-b8ee-ccc4652b17d0")
+			(tstamps "30c7ea54-9daa-41bb-ba75-4f206b67c175")
 			(units
 				(unit
 					(name "A")
@@ -4405,11 +5142,11 @@
 		)
 		(comp
 			(ref "U7")
-			(value "H11AA1")
-			(footprint "Package_DIP:DIP-6_W7.62mm_Socket")
+			(value "H11AA1SM")
+			(footprint "Package_DIP:SMDIP-6_W9.53mm")
 			(fields
 				(field
-					(name "Footprint") "Package_DIP:DIP-6_W7.62mm_Socket")
+					(name "Footprint") "Package_DIP:SMDIP-6_W9.53mm")
 				(field
 					(name "Datasheet")
 				)
@@ -4442,7 +5179,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ece121f1-346b-4090-9a4f-28f6c72e68b4")
+			(tstamps "36c5f85a-b085-4dbd-b541-97c5d7e48705")
 			(units
 				(unit
 					(name "A")
@@ -4471,11 +5208,11 @@
 		)
 		(comp
 			(ref "U8")
-			(value "H11AA1")
-			(footprint "Package_DIP:DIP-6_W7.62mm_Socket")
+			(value "H11AA1SM")
+			(footprint "Package_DIP:SMDIP-6_W9.53mm")
 			(fields
 				(field
-					(name "Footprint") "Package_DIP:DIP-6_W7.62mm_Socket")
+					(name "Footprint") "Package_DIP:SMDIP-6_W9.53mm")
 				(field
 					(name "Datasheet")
 				)
@@ -4508,7 +5245,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b1a5b6d0-12bc-45fa-adba-050e31b6aaa6")
+			(tstamps "96534ec1-b87a-4834-9583-c1425f38163d")
 			(units
 				(unit
 					(name "A")
@@ -4537,11 +5274,11 @@
 		)
 		(comp
 			(ref "U9")
-			(value "H11AA1")
-			(footprint "Package_DIP:DIP-6_W7.62mm_Socket")
+			(value "H11AA1SM")
+			(footprint "Package_DIP:SMDIP-6_W9.53mm")
 			(fields
 				(field
-					(name "Footprint") "Package_DIP:DIP-6_W7.62mm_Socket")
+					(name "Footprint") "Package_DIP:SMDIP-6_W9.53mm")
 				(field
 					(name "Datasheet")
 				)
@@ -4574,7 +5311,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "63d660f4-6504-4f2f-9cea-de91ea3b004f")
+			(tstamps "6de36de5-47c3-4ca5-a2fe-866832cd8532")
 			(units
 				(unit
 					(name "A")
@@ -4603,11 +5340,11 @@
 		)
 		(comp
 			(ref "U10")
-			(value "H11AA1")
-			(footprint "Package_DIP:DIP-6_W7.62mm_Socket")
+			(value "H11AA1SM")
+			(footprint "Package_DIP:SMDIP-6_W9.53mm")
 			(fields
 				(field
-					(name "Footprint") "Package_DIP:DIP-6_W7.62mm_Socket")
+					(name "Footprint") "Package_DIP:SMDIP-6_W9.53mm")
 				(field
 					(name "Datasheet")
 				)
@@ -4640,7 +5377,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "06926964-fea7-4f1b-ae32-8d36ff52a3ee")
+			(tstamps "38a0884c-b240-4ec3-ba1d-d1a31a5a7c08")
 			(units
 				(unit
 					(name "A")
@@ -4669,11 +5406,11 @@
 		)
 		(comp
 			(ref "U11")
-			(value "H11AA1")
-			(footprint "Package_DIP:DIP-6_W7.62mm_Socket")
+			(value "H11AA1SM")
+			(footprint "Package_DIP:SMDIP-6_W9.53mm")
 			(fields
 				(field
-					(name "Footprint") "Package_DIP:DIP-6_W7.62mm_Socket")
+					(name "Footprint") "Package_DIP:SMDIP-6_W9.53mm")
 				(field
 					(name "Datasheet")
 				)
@@ -4706,7 +5443,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "93bebe19-822f-416f-b088-f340904bac36")
+			(tstamps "533df4a1-e7b6-4d25-a601-5ef2f3531f72")
 			(units
 				(unit
 					(name "A")
@@ -4735,11 +5472,11 @@
 		)
 		(comp
 			(ref "U12")
-			(value "H11AA1")
-			(footprint "Package_DIP:DIP-6_W7.62mm_Socket")
+			(value "H11AA1SM")
+			(footprint "Package_DIP:SMDIP-6_W9.53mm")
 			(fields
 				(field
-					(name "Footprint") "Package_DIP:DIP-6_W7.62mm_Socket")
+					(name "Footprint") "Package_DIP:SMDIP-6_W9.53mm")
 				(field
 					(name "Datasheet")
 				)
@@ -4772,7 +5509,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "944388ca-8ae0-4d31-8f68-f06616f792e1")
+			(tstamps "ef7ad1de-9b48-4397-ab2d-aaeb134527fe")
 			(units
 				(unit
 					(name "A")
@@ -4803,55 +5540,6 @@
 	(groups)
 	(variants)
 	(libparts
-		(libpart
-			(lib "Connector")
-			(part "USB_A")
-			(description "USB Type A connector")
-			(footprints
-				(fp "USB*")
-			)
-			(fields
-				(field
-					(name "Reference") "J")
-				(field
-					(name "Value") "USB_A")
-				(field
-					(name "Footprint")
-				)
-				(field
-					(name "Datasheet")
-				)
-				(field
-					(name "Description") "USB Type A connector")
-			)
-			(pins
-				(pin
-					(num "1")
-					(name "VBUS")
-					(type "power_in")
-				)
-				(pin
-					(num "2")
-					(name "D-")
-					(type "bidirectional")
-				)
-				(pin
-					(num "3")
-					(name "D+")
-					(type "bidirectional")
-				)
-				(pin
-					(num "4")
-					(name "GND")
-					(type "power_in")
-				)
-				(pin
-					(num "SH")
-					(name "Shield")
-					(type "passive")
-				)
-			)
-		)
 		(libpart
 			(lib "Connector")
 			(part "USB_C_Receptacle_PowerOnly_6P")
@@ -4952,50 +5640,6 @@
 		)
 		(libpart
 			(lib "Connector_Generic")
-			(part "Conn_01x04")
-			(description "Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)")
-			(footprints
-				(fp "Connector*:*_1x??_*")
-			)
-			(fields
-				(field
-					(name "Reference") "J")
-				(field
-					(name "Value") "Conn_01x04")
-				(field
-					(name "Footprint")
-				)
-				(field
-					(name "Datasheet")
-				)
-				(field
-					(name "Description") "Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)")
-			)
-			(pins
-				(pin
-					(num "1")
-					(name "Pin_1")
-					(type "passive")
-				)
-				(pin
-					(num "2")
-					(name "Pin_2")
-					(type "passive")
-				)
-				(pin
-					(num "3")
-					(name "Pin_3")
-					(type "passive")
-				)
-				(pin
-					(num "4")
-					(name "Pin_4")
-					(type "passive")
-				)
-			)
-		)
-		(libpart
-			(lib "Connector_Generic")
 			(part "Conn_01x06")
 			(description "Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)")
 			(footprints
@@ -5044,6 +5688,50 @@
 				(pin
 					(num "6")
 					(name "Pin_6")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "Connector_Generic_MountingPin")
+			(part "Conn_01x03_MountingPin")
+			(description "Generic connectable mounting pin connector, single row, 01x03, script generated (kicad-library-utils/schlib/autogen/connector/)")
+			(footprints
+				(fp "Connector*:*_1x??-1MP*")
+			)
+			(fields
+				(field
+					(name "Reference") "J")
+				(field
+					(name "Value") "Conn_01x03_MountingPin")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Generic connectable mounting pin connector, single row, 01x03, script generated (kicad-library-utils/schlib/autogen/connector/)")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "Pin_1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "Pin_2")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "Pin_3")
+					(type "passive")
+				)
+				(pin
+					(num "MP")
+					(name "MountPin")
 					(type "passive")
 				)
 			)
@@ -5310,6 +5998,43 @@
 				(pin
 					(num "2")
 					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "Device")
+			(part "L")
+			(description "Inductor")
+			(footprints
+				(fp "Choke_*")
+				(fp "*Coil*")
+				(fp "Inductor_*")
+				(fp "L_*")
+			)
+			(fields
+				(field
+					(name "Reference") "L")
+				(field
+					(name "Value") "L")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Inductor")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "2")
 					(type "passive")
 				)
 			)
@@ -5744,6 +6469,74 @@
 			)
 		)
 		(libpart
+			(lib "Regulator_Switching")
+			(part "TPS54360DDA")
+			(description "3.5A, Step Down DC-DC Converter with Eco-mode, 4.5-60V Input Voltage, PowerSO-8")
+			(docs "http://www.ti.com/lit/ds/symlink/tps54360.pdf")
+			(footprints
+				(fp "TI*SO*PowerPAD*ThermalVias*")
+			)
+			(fields
+				(field
+					(name "Reference") "U")
+				(field
+					(name "Value") "TPS54360DDA")
+				(field
+					(name "Footprint") "Package_SO:TI_SO-PowerPAD-8_ThermalVias")
+				(field
+					(name "Datasheet") "http://www.ti.com/lit/ds/symlink/tps54360.pdf")
+				(field
+					(name "Description") "3.5A, Step Down DC-DC Converter with Eco-mode, 4.5-60V Input Voltage, PowerSO-8")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "BOOT")
+					(type "input")
+				)
+				(pin
+					(num "2")
+					(name "VIN")
+					(type "power_in")
+				)
+				(pin
+					(num "3")
+					(name "EN")
+					(type "input")
+				)
+				(pin
+					(num "4")
+					(name "RT/CLK")
+					(type "input")
+				)
+				(pin
+					(num "5")
+					(name "FB")
+					(type "input")
+				)
+				(pin
+					(num "6")
+					(name "COMP")
+					(type "passive")
+				)
+				(pin
+					(num "7")
+					(name "GND")
+					(type "power_in")
+				)
+				(pin
+					(num "8")
+					(name "SW")
+					(type "output")
+				)
+				(pin
+					(num "9")
+					(name "GNDPAD")
+					(type "power_in")
+				)
+			)
+		)
+		(libpart
 			(lib "hvac_carrier")
 			(part "AQV252G")
 			(description "Panasonic AQV252G PhotoMOS relay, 60 V 2.5 A, AC/DC output (pins 4-6)")
@@ -5789,46 +6582,6 @@
 				(pin
 					(num "6")
 					(name "D")
-					(type "passive")
-				)
-			)
-		)
-		(libpart
-			(lib "hvac_carrier")
-			(part "LM2596HV_Module")
-			(description "LM2596HVS buck module on four single-pin sockets")
-			(fields
-				(field
-					(name "Reference") "U")
-				(field
-					(name "Value") "LM2596HV")
-				(field
-					(name "Footprint") "hvac_carrier:LM2596HVS_Module")
-				(field
-					(name "Datasheet")
-				)
-				(field
-					(name "Description") "LM2596HVS buck module on four single-pin sockets")
-			)
-			(pins
-				(pin
-					(num "1")
-					(name "IN+")
-					(type "passive")
-				)
-				(pin
-					(num "2")
-					(name "IN−")
-					(type "passive")
-				)
-				(pin
-					(num "3")
-					(name "OUT+")
-					(type "passive")
-				)
-				(pin
-					(num "4")
-					(name "OUT−")
 					(type "passive")
 				)
 			)
@@ -6056,6 +6809,10 @@
 			(uri "${KICAD10_SYMBOL_DIR}/Regulator_Linear.kicad_sym")
 		)
 		(library
+			(logical "Regulator_Switching")
+			(uri "${KICAD10_SYMBOL_DIR}/Regulator_Switching.kicad_sym")
+		)
+		(library
 			(logical "hvac_carrier")
 			(uri "${KIPRJMOD}/../lib/hvac_carrier.kicad_sym")
 		)
@@ -6211,9 +6968,25 @@
 			)
 			(node
 				(ref "J4")
+				(pin "A9")
+				(pinfunction "VBUS_A9")
+				(pintype "passive")
+			)
+			(node
+				(ref "J4")
+				(pin "B9")
+				(pinfunction "VBUS_B9")
+				(pintype "passive")
+			)
+			(node
+				(ref "R34")
 				(pin "1")
-				(pinfunction "VBUS_1")
-				(pintype "power_in")
+				(pintype "passive")
+			)
+			(node
+				(ref "R35")
+				(pin "1")
+				(pintype "passive")
 			)
 			(node
 				(ref "U2")
@@ -6224,6 +6997,22 @@
 		)
 		(net
 			(code "3")
+			(name "/BOOT")
+			(class "Default")
+			(node
+				(ref "C11")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "1")
+				(pinfunction "BOOT_1")
+				(pintype "input")
+			)
+		)
+		(net
+			(code "4")
 			(name "/BR_RST")
 			(class "Default")
 			(node
@@ -6239,7 +7028,7 @@
 			)
 		)
 		(net
-			(code "4")
+			(code "5")
 			(name "/CC1")
 			(class "Default")
 			(node
@@ -6255,7 +7044,7 @@
 			)
 		)
 		(net
-			(code "5")
+			(code "6")
 			(name "/CC2")
 			(class "Default")
 			(node
@@ -6271,7 +7060,75 @@
 			)
 		)
 		(net
-			(code "6")
+			(code "7")
+			(name "/CCO1")
+			(class "Default")
+			(node
+				(ref "J4")
+				(pin "A5")
+				(pinfunction "CC1_A5")
+				(pintype "bidirectional")
+			)
+			(node
+				(ref "R34")
+				(pin "2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "8")
+			(name "/CCO2")
+			(class "Default")
+			(node
+				(ref "J4")
+				(pin "B5")
+				(pinfunction "CC2_B5")
+				(pintype "bidirectional")
+			)
+			(node
+				(ref "R35")
+				(pin "2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "9")
+			(name "/COMP")
+			(class "Default")
+			(node
+				(ref "C13")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R33")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "6")
+				(pinfunction "COMP_6")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "10")
+			(name "/COMP_RC")
+			(class "Default")
+			(node
+				(ref "C12")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R33")
+				(pin "2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "11")
 			(name "/DRV_G")
 			(class "Default")
 			(node
@@ -6292,7 +7149,7 @@
 			)
 		)
 		(net
-			(code "7")
+			(code "12")
 			(name "/DRV_OB")
 			(class "Default")
 			(node
@@ -6313,7 +7170,7 @@
 			)
 		)
 		(net
-			(code "8")
+			(code "13")
 			(name "/DRV_W1")
 			(class "Default")
 			(node
@@ -6334,7 +7191,7 @@
 			)
 		)
 		(net
-			(code "9")
+			(code "14")
 			(name "/DRV_W2")
 			(class "Default")
 			(node
@@ -6355,7 +7212,7 @@
 			)
 		)
 		(net
-			(code "10")
+			(code "15")
 			(name "/DRV_Y1")
 			(class "Default")
 			(node
@@ -6376,7 +7233,7 @@
 			)
 		)
 		(net
-			(code "11")
+			(code "16")
 			(name "/DRV_Y2")
 			(class "Default")
 			(node
@@ -6397,7 +7254,28 @@
 			)
 		)
 		(net
-			(code "12")
+			(code "17")
+			(name "/FB")
+			(class "Default")
+			(node
+				(ref "R31")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R32")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "5")
+				(pinfunction "FB_5")
+				(pintype "input")
+			)
+		)
+		(net
+			(code "18")
 			(name "/G_24V")
 			(class "Power24")
 			(node
@@ -6425,7 +7303,7 @@
 			)
 		)
 		(net
-			(code "13")
+			(code "19")
 			(name "/G_OPTO")
 			(class "Opto24")
 			(node
@@ -6440,7 +7318,7 @@
 			)
 		)
 		(net
-			(code "14")
+			(code "20")
 			(name "/LED_G")
 			(class "Default")
 			(node
@@ -6456,7 +7334,7 @@
 			)
 		)
 		(net
-			(code "15")
+			(code "21")
 			(name "/LED_OB")
 			(class "Default")
 			(node
@@ -6472,7 +7350,7 @@
 			)
 		)
 		(net
-			(code "16")
+			(code "22")
 			(name "/LED_W1")
 			(class "Default")
 			(node
@@ -6488,7 +7366,7 @@
 			)
 		)
 		(net
-			(code "17")
+			(code "23")
 			(name "/LED_W2")
 			(class "Default")
 			(node
@@ -6504,7 +7382,7 @@
 			)
 		)
 		(net
-			(code "18")
+			(code "24")
 			(name "/LED_Y1")
 			(class "Default")
 			(node
@@ -6520,7 +7398,7 @@
 			)
 		)
 		(net
-			(code "19")
+			(code "25")
 			(name "/LED_Y2")
 			(class "Default")
 			(node
@@ -6536,7 +7414,7 @@
 			)
 		)
 		(net
-			(code "20")
+			(code "26")
 			(name "/LORA_BUSY")
 			(class "Default")
 			(node
@@ -6553,7 +7431,7 @@
 			)
 		)
 		(net
-			(code "21")
+			(code "27")
 			(name "/LORA_DIO1")
 			(class "Default")
 			(node
@@ -6570,7 +7448,7 @@
 			)
 		)
 		(net
-			(code "22")
+			(code "28")
 			(name "/LORA_MISO")
 			(class "Default")
 			(node
@@ -6587,7 +7465,7 @@
 			)
 		)
 		(net
-			(code "23")
+			(code "29")
 			(name "/LORA_MOSI")
 			(class "Default")
 			(node
@@ -6604,7 +7482,7 @@
 			)
 		)
 		(net
-			(code "24")
+			(code "30")
 			(name "/LORA_NRST")
 			(class "Default")
 			(node
@@ -6621,7 +7499,7 @@
 			)
 		)
 		(net
-			(code "25")
+			(code "31")
 			(name "/LORA_NSS")
 			(class "Default")
 			(node
@@ -6638,7 +7516,7 @@
 			)
 		)
 		(net
-			(code "26")
+			(code "32")
 			(name "/LORA_RFSW")
 			(class "Default")
 			(node
@@ -6655,7 +7533,7 @@
 			)
 		)
 		(net
-			(code "27")
+			(code "33")
 			(name "/LORA_SCK")
 			(class "Default")
 			(node
@@ -6672,7 +7550,7 @@
 			)
 		)
 		(net
-			(code "28")
+			(code "34")
 			(name "/OB_24V")
 			(class "Power24")
 			(node
@@ -6700,7 +7578,7 @@
 			)
 		)
 		(net
-			(code "29")
+			(code "35")
 			(name "/OB_OPTO")
 			(class "Opto24")
 			(node
@@ -6715,7 +7593,7 @@
 			)
 		)
 		(net
-			(code "30")
+			(code "36")
 			(name "/RCL_24V")
 			(class "Power24")
 			(node
@@ -6773,7 +7651,7 @@
 			)
 		)
 		(net
-			(code "31")
+			(code "37")
 			(name "/RC_24V")
 			(class "Power24")
 			(node
@@ -6800,7 +7678,7 @@
 			)
 		)
 		(net
-			(code "32")
+			(code "38")
 			(name "/RHL_24V")
 			(class "Power24")
 			(node
@@ -6834,7 +7712,7 @@
 			)
 		)
 		(net
-			(code "33")
+			(code "39")
 			(name "/RH_24V")
 			(class "Power24")
 			(node
@@ -6856,7 +7734,23 @@
 			)
 		)
 		(net
-			(code "34")
+			(code "40")
+			(name "/RT")
+			(class "Default")
+			(node
+				(ref "R30")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "4")
+				(pinfunction "RT/CLK_4")
+				(pintype "input")
+			)
+		)
+		(net
+			(code "41")
 			(name "/SCL")
 			(class "Default")
 			(node
@@ -6890,7 +7784,7 @@
 			)
 		)
 		(net
-			(code "35")
+			(code "42")
 			(name "/SDA")
 			(class "Default")
 			(node
@@ -6924,7 +7818,7 @@
 			)
 		)
 		(net
-			(code "36")
+			(code "43")
 			(name "/SENSE_G")
 			(class "Default")
 			(node
@@ -6945,7 +7839,7 @@
 			)
 		)
 		(net
-			(code "37")
+			(code "44")
 			(name "/SENSE_OB")
 			(class "Default")
 			(node
@@ -6966,7 +7860,7 @@
 			)
 		)
 		(net
-			(code "38")
+			(code "45")
 			(name "/SENSE_W1")
 			(class "Default")
 			(node
@@ -6987,7 +7881,7 @@
 			)
 		)
 		(net
-			(code "39")
+			(code "46")
 			(name "/SENSE_W2")
 			(class "Default")
 			(node
@@ -7008,7 +7902,7 @@
 			)
 		)
 		(net
-			(code "40")
+			(code "47")
 			(name "/SENSE_Y1")
 			(class "Default")
 			(node
@@ -7029,7 +7923,7 @@
 			)
 		)
 		(net
-			(code "41")
+			(code "48")
 			(name "/SENSE_Y2")
 			(class "Default")
 			(node
@@ -7050,9 +7944,47 @@
 			)
 		)
 		(net
-			(code "42")
+			(code "49")
+			(name "/SW")
+			(class "Default")
+			(node
+				(ref "C11")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "D11")
+				(pin "1")
+				(pinfunction "K_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "L1")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "8")
+				(pinfunction "SW_8")
+				(pintype "output")
+			)
+		)
+		(net
+			(code "50")
 			(name "/V5_BUCK")
 			(class "Default")
+			(node
+				(ref "C14")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C15")
+				(pin "1")
+				(pintype "passive")
+			)
 			(node
 				(ref "D3")
 				(pin "2")
@@ -7060,14 +7992,19 @@
 				(pintype "passive")
 			)
 			(node
-				(ref "U1")
-				(pin "3")
-				(pinfunction "OUT+_3")
+				(ref "L1")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R31")
+				(pin "1")
 				(pintype "passive")
 			)
 		)
 		(net
-			(code "43")
+			(code "51")
 			(name "/VAC_F")
 			(class "Power24")
 			(node
@@ -7089,7 +8026,7 @@
 			)
 		)
 		(net
-			(code "44")
+			(code "52")
 			(name "/VBUS_IN")
 			(class "Default")
 			(node
@@ -7112,7 +8049,7 @@
 			)
 		)
 		(net
-			(code "45")
+			(code "53")
 			(name "/VRAW")
 			(class "Power24")
 			(node
@@ -7133,13 +8070,13 @@
 			)
 			(node
 				(ref "U1")
-				(pin "1")
-				(pinfunction "IN+_1")
-				(pintype "passive")
+				(pin "2")
+				(pinfunction "VIN_2")
+				(pintype "power_in")
 			)
 		)
 		(net
-			(code "46")
+			(code "54")
 			(name "/W1_24V")
 			(class "Power24")
 			(node
@@ -7167,7 +8104,7 @@
 			)
 		)
 		(net
-			(code "47")
+			(code "55")
 			(name "/W1_OPTO")
 			(class "Opto24")
 			(node
@@ -7182,7 +8119,7 @@
 			)
 		)
 		(net
-			(code "48")
+			(code "56")
 			(name "/W2_24V")
 			(class "Power24")
 			(node
@@ -7210,7 +8147,7 @@
 			)
 		)
 		(net
-			(code "49")
+			(code "57")
 			(name "/W2_OPTO")
 			(class "Opto24")
 			(node
@@ -7225,7 +8162,7 @@
 			)
 		)
 		(net
-			(code "50")
+			(code "58")
 			(name "/WDI")
 			(class "Default")
 			(node
@@ -7242,7 +8179,7 @@
 			)
 		)
 		(net
-			(code "51")
+			(code "59")
 			(name "/WD_RST")
 			(class "Default")
 			(node
@@ -7259,7 +8196,7 @@
 			)
 		)
 		(net
-			(code "52")
+			(code "60")
 			(name "/Y1_24V")
 			(class "Power24")
 			(node
@@ -7287,7 +8224,7 @@
 			)
 		)
 		(net
-			(code "53")
+			(code "61")
 			(name "/Y1_OPTO")
 			(class "Opto24")
 			(node
@@ -7302,7 +8239,7 @@
 			)
 		)
 		(net
-			(code "54")
+			(code "62")
 			(name "/Y2_24V")
 			(class "Power24")
 			(node
@@ -7330,7 +8267,7 @@
 			)
 		)
 		(net
-			(code "55")
+			(code "63")
 			(name "/Y2_OPTO")
 			(class "Opto24")
 			(node
@@ -7345,7 +8282,7 @@
 			)
 		)
 		(net
-			(code "56")
+			(code "64")
 			(name "GND")
 			(class "Ground")
 			(node
@@ -7355,6 +8292,26 @@
 			)
 			(node
 				(ref "C10")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C12")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C13")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C14")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C15")
 				(pin "2")
 				(pintype "passive")
 			)
@@ -7405,6 +8362,12 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "D11")
+				(pin "2")
+				(pinfunction "A_2")
+				(pintype "passive")
+			)
+			(node
 				(ref "J1")
 				(pin "3")
 				(pinfunction "Pin_3_3")
@@ -7430,14 +8393,20 @@
 			)
 			(node
 				(ref "J4")
-				(pin "4")
-				(pinfunction "GND_4")
-				(pintype "power_in")
+				(pin "A12")
+				(pinfunction "GND_A12")
+				(pintype "passive")
+			)
+			(node
+				(ref "J4")
+				(pin "B12")
+				(pinfunction "GND_B12")
+				(pintype "passive")
 			)
 			(node
 				(ref "J4")
 				(pin "SH")
-				(pinfunction "Shield_SH")
+				(pinfunction "SHIELD_SH")
 				(pintype "passive")
 			)
 			(node
@@ -7447,9 +8416,21 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "J5")
+				(pin "MP")
+				(pinfunction "MountPin_MP")
+				(pintype "passive")
+			)
+			(node
 				(ref "J6")
 				(pin "2")
 				(pinfunction "Pin_2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J6")
+				(pin "MP")
+				(pinfunction "MountPin_MP")
 				(pintype "passive")
 			)
 			(node
@@ -7536,21 +8517,31 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "R30")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R32")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
 				(ref "R9")
 				(pin "2")
 				(pintype "passive")
 			)
 			(node
 				(ref "U1")
-				(pin "2")
-				(pinfunction "IN−_2")
-				(pintype "passive")
+				(pin "7")
+				(pinfunction "GND_7")
+				(pintype "power_in")
 			)
 			(node
 				(ref "U1")
-				(pin "4")
-				(pinfunction "OUT−_4")
-				(pintype "passive")
+				(pin "9")
+				(pinfunction "GNDPAD_9")
+				(pintype "power_in")
 			)
 			(node
 				(ref "U10")
@@ -7686,29 +8677,7 @@
 			)
 		)
 		(net
-			(code "57")
-			(name "unconnected-(J4-D+-Pad3)")
-			(class "Default")
-			(node
-				(ref "J4")
-				(pin "3")
-				(pinfunction "D+_3")
-				(pintype "bidirectional+no_connect")
-			)
-		)
-		(net
-			(code "58")
-			(name "unconnected-(J4-D--Pad2)")
-			(class "Default")
-			(node
-				(ref "J4")
-				(pin "2")
-				(pinfunction "D-_2")
-				(pintype "bidirectional+no_connect")
-			)
-		)
-		(net
-			(code "59")
+			(code "65")
 			(name "unconnected-(J5-Pin_1-Pad1)")
 			(class "Default")
 			(node
@@ -7719,7 +8688,7 @@
 			)
 		)
 		(net
-			(code "60")
+			(code "66")
 			(name "unconnected-(J6-Pin_1-Pad1)")
 			(class "Default")
 			(node
@@ -7730,7 +8699,7 @@
 			)
 		)
 		(net
-			(code "61")
+			(code "67")
 			(name "unconnected-(K1-NC-Pad3)")
 			(class "Default")
 			(node
@@ -7741,7 +8710,7 @@
 			)
 		)
 		(net
-			(code "62")
+			(code "68")
 			(name "unconnected-(K1-S-Pad5)")
 			(class "Default")
 			(node
@@ -7752,7 +8721,7 @@
 			)
 		)
 		(net
-			(code "63")
+			(code "69")
 			(name "unconnected-(K2-NC-Pad3)")
 			(class "Default")
 			(node
@@ -7763,7 +8732,7 @@
 			)
 		)
 		(net
-			(code "64")
+			(code "70")
 			(name "unconnected-(K2-S-Pad5)")
 			(class "Default")
 			(node
@@ -7774,7 +8743,7 @@
 			)
 		)
 		(net
-			(code "65")
+			(code "71")
 			(name "unconnected-(K3-NC-Pad3)")
 			(class "Default")
 			(node
@@ -7785,7 +8754,7 @@
 			)
 		)
 		(net
-			(code "66")
+			(code "72")
 			(name "unconnected-(K3-S-Pad5)")
 			(class "Default")
 			(node
@@ -7796,7 +8765,7 @@
 			)
 		)
 		(net
-			(code "67")
+			(code "73")
 			(name "unconnected-(K4-NC-Pad3)")
 			(class "Default")
 			(node
@@ -7807,7 +8776,7 @@
 			)
 		)
 		(net
-			(code "68")
+			(code "74")
 			(name "unconnected-(K4-S-Pad5)")
 			(class "Default")
 			(node
@@ -7818,7 +8787,7 @@
 			)
 		)
 		(net
-			(code "69")
+			(code "75")
 			(name "unconnected-(K5-NC-Pad3)")
 			(class "Default")
 			(node
@@ -7829,7 +8798,7 @@
 			)
 		)
 		(net
-			(code "70")
+			(code "76")
 			(name "unconnected-(K5-S-Pad5)")
 			(class "Default")
 			(node
@@ -7840,7 +8809,7 @@
 			)
 		)
 		(net
-			(code "71")
+			(code "77")
 			(name "unconnected-(K6-NC-Pad3)")
 			(class "Default")
 			(node
@@ -7851,7 +8820,7 @@
 			)
 		)
 		(net
-			(code "72")
+			(code "78")
 			(name "unconnected-(K6-S-Pad5)")
 			(class "Default")
 			(node
@@ -7862,7 +8831,18 @@
 			)
 		)
 		(net
-			(code "73")
+			(code "79")
+			(name "unconnected-(U1-EN-Pad3)")
+			(class "Default")
+			(node
+				(ref "U1")
+				(pin "3")
+				(pinfunction "EN_3")
+				(pintype "input+no_connect")
+			)
+		)
+		(net
+			(code "80")
 			(name "unconnected-(U3-GPA7-Pad28)")
 			(class "Default")
 			(node
@@ -7873,7 +8853,7 @@
 			)
 		)
 		(net
-			(code "74")
+			(code "81")
 			(name "unconnected-(U3-GPB6-Pad7)")
 			(class "Default")
 			(node
@@ -7884,7 +8864,7 @@
 			)
 		)
 		(net
-			(code "75")
+			(code "82")
 			(name "unconnected-(U3-GPB7-Pad8)")
 			(class "Default")
 			(node
@@ -7895,7 +8875,7 @@
 			)
 		)
 		(net
-			(code "76")
+			(code "83")
 			(name "unconnected-(U3-INTA-Pad20)")
 			(class "Default")
 			(node
@@ -7906,7 +8886,7 @@
 			)
 		)
 		(net
-			(code "77")
+			(code "84")
 			(name "unconnected-(U3-INTB-Pad19)")
 			(class "Default")
 			(node
@@ -7917,7 +8897,7 @@
 			)
 		)
 		(net
-			(code "78")
+			(code "85")
 			(name "unconnected-(U3-NC-Pad11)")
 			(class "Default")
 			(node
@@ -7928,7 +8908,7 @@
 			)
 		)
 		(net
-			(code "79")
+			(code "86")
 			(name "unconnected-(U3-NC-Pad14)")
 			(class "Default")
 			(node
@@ -7939,7 +8919,7 @@
 			)
 		)
 		(net
-			(code "80")
+			(code "87")
 			(name "unconnected-(U5-~INT-Pad9)")
 			(class "Default")
 			(node
@@ -7950,7 +8930,7 @@
 			)
 		)
 		(net
-			(code "81")
+			(code "88")
 			(name "unconnected-(U6-ANT-Pad9)")
 			(class "Default")
 			(node
@@ -7961,7 +8941,7 @@
 			)
 		)
 		(net
-			(code "82")
+			(code "89")
 			(name "unconnected-(U7-NC-Pad3)")
 			(class "Default")
 			(node
@@ -7972,7 +8952,7 @@
 			)
 		)
 		(net
-			(code "83")
+			(code "90")
 			(name "unconnected-(U7-Pad6)")
 			(class "Default")
 			(node
@@ -7982,7 +8962,7 @@
 			)
 		)
 		(net
-			(code "84")
+			(code "91")
 			(name "unconnected-(U8-NC-Pad3)")
 			(class "Default")
 			(node
@@ -7993,7 +8973,7 @@
 			)
 		)
 		(net
-			(code "85")
+			(code "92")
 			(name "unconnected-(U8-Pad6)")
 			(class "Default")
 			(node
@@ -8003,7 +8983,7 @@
 			)
 		)
 		(net
-			(code "86")
+			(code "93")
 			(name "unconnected-(U9-NC-Pad3)")
 			(class "Default")
 			(node
@@ -8014,7 +8994,7 @@
 			)
 		)
 		(net
-			(code "87")
+			(code "94")
 			(name "unconnected-(U9-Pad6)")
 			(class "Default")
 			(node
@@ -8024,7 +9004,7 @@
 			)
 		)
 		(net
-			(code "88")
+			(code "95")
 			(name "unconnected-(U10-NC-Pad3)")
 			(class "Default")
 			(node
@@ -8035,7 +9015,7 @@
 			)
 		)
 		(net
-			(code "89")
+			(code "96")
 			(name "unconnected-(U10-Pad6)")
 			(class "Default")
 			(node
@@ -8045,7 +9025,7 @@
 			)
 		)
 		(net
-			(code "90")
+			(code "97")
 			(name "unconnected-(U11-NC-Pad3)")
 			(class "Default")
 			(node
@@ -8056,7 +9036,7 @@
 			)
 		)
 		(net
-			(code "91")
+			(code "98")
 			(name "unconnected-(U11-Pad6)")
 			(class "Default")
 			(node
@@ -8066,7 +9046,7 @@
 			)
 		)
 		(net
-			(code "92")
+			(code "99")
 			(name "unconnected-(U12-NC-Pad3)")
 			(class "Default")
 			(node
@@ -8077,7 +9057,7 @@
 			)
 		)
 		(net
-			(code "93")
+			(code "100")
 			(name "unconnected-(U12-Pad6)")
 			(class "Default")
 			(node

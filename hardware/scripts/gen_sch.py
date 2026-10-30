@@ -204,6 +204,14 @@ class Sheet:
                     in_bom=False, on_board=False, hide_ref=True)
         self.wire(x, y, x, y + 5.08)
 
+    def flag_label(self, net, x, y):
+        """PWR_FLAG on a net that has no power symbol (e.g. a rectified input), via a label."""
+        self.label(net, x, y, 270)
+        self.pwr += 1
+        self.symbol('power:PWR_FLAG', f'#FLG{self.pwr:03d}', 'PWR_FLAG', x, y + 5.08, 180,
+                    in_bom=False, on_board=False, hide_ref=True)
+        self.wire(x, y, x, y + 5.08)
+
     def label(self, net, x, y, pin_dir):
         ang = (pin_dir + 180) % 360
         just = 'left' if ang in (0, 90) else 'right'
@@ -271,7 +279,7 @@ ZONES = {
                        ('D  Mode inputs', 20.32, 142.24), ('Mounting', 269.24, 190.5),
                        ('F  I2C mux: SHT45 ch 0-1, SDP810 ch 2-4', 20.32, 241.3),
                        ('G  LoRa radio and SETUP button', 20.32, 294.64)],
-    'thermostat-carrier': [('A  Power: Rc-C 24 VAC or USB-C 5 V; USB-A 5 V to the display', 20.32, 22.86),
+    'thermostat-carrier': [('A  Power: Rc-C 24 VAC (TPS54360B buck) or USB-C 5 V in; USB-C 5 V out to the display', 20.32, 22.86),
                            ('B  Rc / Rh to the output switches', 20.32, 104.14),
                            ('C  Outputs (PhotoMOS) and read-back (H11AA1): G Y1 Y2 W1 W2 O/B', 20.32, 139.7),
                            ('D  I/O expander + watchdog (all outputs off on reset)', 289.56, 48.26),
@@ -321,6 +329,8 @@ def main(names=None):
             if net in cfg.get('driven_nets', ()):
                 continue  # a regulator's power output already drives it
             sh.flag(net, 223.52 + 12.7 * i, fy)
+        for i, net in enumerate(cfg.get('flag_nets', ())):
+            sh.flag_label(net, 223.52 + 12.7 * (len(design.POWER_NETS) + i), fy)
         sh.write(os.path.join(d, name + '.kicad_sch'), cfg.get('date', '2026-10-18'), cfg.get('rev', 'B'))
         print('wrote', name)
 
